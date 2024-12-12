@@ -1,0 +1,61 @@
+#tablaProveedores_wrapper label,
+#tablaClientes_wrapper label,
+#tablaChoferes_wrapper label {
+    color: black !important;
+}
+
+
+#tablaProveedores_wrapper thead,
+#tablaClientes_wrapper thead,
+#tablaChoferes_wrapper thead {
+    margin-top: 30px;
+}
+
+#tablaProveedores_wrapper .table-striped > tbody > tr:nth-child(even) > td, .table-striped > tbody > tr:nth-child(even) > th,
+#tablaClientes_wrapper .table-striped > tbody > tr:nth-child(even) > td, .table-striped > tbody > tr:nth-child(even) > th,
+#tablaChoferes_wrapper .table-striped > tbody > tr:nth-child(even) > td, .table-striped > tbody > tr:nth-child(even) > th {
+    background-color: #aeaeae;
+    color: white;
+}
+
+/* Cambia el color de fondo de todas las celdas, incluida la primera columna, en filas impares */
+#tablaProveedores_wrapper .table-striped > tbody > tr:nth-child(odd) > td, .table-striped > tbody > tr:nth-child(odd) > th,
+#tablaClientes_wrapper .table-striped > tbody > tr:nth-child(odd) > td, .table-striped > tbody > tr:nth-child(odd) > th,
+#tablaChoferes_wrapper .table-striped > tbody > tr:nth-child(odd) > td, .table-striped > tbody > tr:nth-child(odd) > th {
+    background-color: white;
+    color: black;
+}
+
+#tablaProveedores_wrapper .table-striped > thead > tr > th,
+#tablaClientes_wrapper .table-striped > thead > tr > th,
+#tablaChoferes_wrapper .table-striped > thead > tr > th
+{
+    background-color: #1fabca;
+    color: white;
+}
+
+#tablaProveedores tbody tr:hover,
+#tablaClientes tbody tr:hover {
+    cursor: pointer;
+}
+
+#grd_Productos_wrapper {
+    overflow-x: auto;
+}
+
+#grdPagosaProveedores_wrapper {
+    overflow-x: auto;
+}
+
+#grdPagosaClientes_wrapper {
+    overflow-x: auto;
+}
+
+
+.selected {
+    background-color: #1fabca !important;
+}
+
+select option:disabled {
+    color: red; /* Cambiar el color de la letra a rojo */
+}

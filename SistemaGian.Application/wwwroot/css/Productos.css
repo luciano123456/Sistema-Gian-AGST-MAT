@@ -1,0 +1,39 @@
+.custom-modal-width {
+    min-width:40%; /* Ajusta el porcentaje según sea necesario */
+}
+
+.input-nuevomodif {
+    display: flex;
+    border: none;
+    border-bottom: 10px;
+    border-bottom: solid blue;
+    width: 100% !important;
+    display: block;
+    position: relative;
+    left: 0%;
+    font-size: 30px;
+    margin-bottom: 10px;
+    color: black;
+    text-align: center;
+    font-size: 1.5vw;
+    max-width: 500px !important;
+    color: black !important;
+}
+
+.input-nuevomodifporc {
+    display: flex;
+    border: none;
+    border-bottom: 10px;
+    border-bottom: solid blue;
+    width: 65%;
+    display: block;
+    position: relative;
+    left: 17%;
+    font-size: 30px;
+    margin-bottom: 10px;
+    color: black;
+    text-align: center;
+    font-size: 1.5vw;
+    max-width: 500px !important;
+    color: black !important;
+}
