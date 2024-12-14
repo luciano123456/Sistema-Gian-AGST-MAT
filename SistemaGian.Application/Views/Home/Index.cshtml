@@ -89,6 +89,20 @@
                                     <button type="button" class="btn mt-2 btnMenu" onclick="window.location.href='@Url.Action("Index", "Choferes")'">Lista de Choferes</button>
                                 </div>
                             </div>
+
+                            <div class="col">
+                                <div class="d-flex flex-column align-items-center">
+                                    <img src="~/Imagenes/Menu Principal/Nueva Zona.png" class="img-fluid max-img-size" alt="Nueva Zona" title="Nueva Zona">
+                                    <button type="button" class="btn mt-2 btnMenu" onclick="nuevaZona()">Nueva Zona</button>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="d-flex flex-column align-items-center">
+                                    <img src="~/Imagenes/Menu Principal/Zonas.png" class="img-fluid max-img-size" alt="Lista de Zonas" title="Lista de Zonas">
+                                    <button type="button" class="btn mt-2 btnMenu" onclick="window.location.href='@Url.Action("Index", "Zonas")'">Lista de Zonas</button>
+                                </div>
+                            </div>
+
                             <div class="col">
                                 <div class="d-flex flex-column align-items-center">
                                     <img src="~/Imagenes/Menu Principal/Ventas.png" class="img-fluid max-img-size" alt="Historial de Ventas" title="Historial de Ventas">
@@ -346,6 +360,40 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                     <button type="button" id="btnGuardarChofer" class="btn btn-primary" onclick="registrarChofer()">Registrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Zonas -->
+    <div class="modal fade" id="modalEdicionZona" tabindex="-1" role="dialog" aria-labelledby="modalEdicionZonaLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalEdicionZonaLabel">Editar Zona</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="form-group" hidden>
+                            <label for="txtIdZona" class="lblNombreInput">ID</label>
+                            <input type="text" class="input-nuevomodif" id="txtIdZona" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label id="lblNombreZona" for="txtNombreZona" class="lblNombreInput">Nombre (*)</label>
+                            <input type="text" class="input-nuevomodif" id="txtNombreZona" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="txtPrecioZona" class="lblNombreInput">Precio</label>
+                            <input type="text" class="input-nuevomodif" id="txtPrecioZona">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="button" id="btnGuardarChofer" class="btn btn-primary" onclick="registrarZona()">Registrar</button>
                 </div>
             </div>
         </div>

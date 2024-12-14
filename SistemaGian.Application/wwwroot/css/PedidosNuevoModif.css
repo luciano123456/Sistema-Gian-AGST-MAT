@@ -1,19 +1,22 @@
 #tablaProveedores_wrapper label,
 #tablaClientes_wrapper label,
-#tablaChoferes_wrapper label {
+#tablaChoferes_wrapper label,
+#tablaZonas_wrapper label {
     color: black !important;
 }
 
 
 #tablaProveedores_wrapper thead,
 #tablaClientes_wrapper thead,
-#tablaChoferes_wrapper thead {
+#tablaChoferes_wrapper thead,
+#tablaZonas_wrapper thead {
     margin-top: 30px;
 }
 
 #tablaProveedores_wrapper .table-striped > tbody > tr:nth-child(even) > td, .table-striped > tbody > tr:nth-child(even) > th,
 #tablaClientes_wrapper .table-striped > tbody > tr:nth-child(even) > td, .table-striped > tbody > tr:nth-child(even) > th,
-#tablaChoferes_wrapper .table-striped > tbody > tr:nth-child(even) > td, .table-striped > tbody > tr:nth-child(even) > th {
+#tablaChoferes_wrapper .table-striped > tbody > tr:nth-child(even) > td, .table-striped > tbody > tr:nth-child(even) > th,
+#tablaZonas_wrapper .table-striped > tbody > tr:nth-child(even) > td, .table-striped > tbody > tr:nth-child(even) > th {
     background-color: #aeaeae;
     color: white;
 }
@@ -21,21 +24,24 @@
 /* Cambia el color de fondo de todas las celdas, incluida la primera columna, en filas impares */
 #tablaProveedores_wrapper .table-striped > tbody > tr:nth-child(odd) > td, .table-striped > tbody > tr:nth-child(odd) > th,
 #tablaClientes_wrapper .table-striped > tbody > tr:nth-child(odd) > td, .table-striped > tbody > tr:nth-child(odd) > th,
-#tablaChoferes_wrapper .table-striped > tbody > tr:nth-child(odd) > td, .table-striped > tbody > tr:nth-child(odd) > th {
+#tablaChoferes_wrapper .table-striped > tbody > tr:nth-child(odd) > td, .table-striped > tbody > tr:nth-child(odd) > th,
+#tablaZonas_wrapper .table-striped > tbody > tr:nth-child(odd) > td, .table-striped > tbody > tr:nth-child(odd) > th {
     background-color: white;
     color: black;
 }
 
 #tablaProveedores_wrapper .table-striped > thead > tr > th,
 #tablaClientes_wrapper .table-striped > thead > tr > th,
-#tablaChoferes_wrapper .table-striped > thead > tr > th
-{
+#tablaChoferes_wrapper .table-striped > thead > tr > th,
+#tablaZonas_wrapper .table-striped > thead > tr > th {
     background-color: #1fabca;
     color: white;
 }
 
 #tablaProveedores tbody tr:hover,
-#tablaClientes tbody tr:hover {
+#tablaClientes tbody tr:hover,
+#tablaChoferes tbody tr:hover,
+#tablaZonas tbody tr:hover {
     cursor: pointer;
 }
 

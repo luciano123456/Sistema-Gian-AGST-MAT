@@ -1,6 +1,7 @@
 ﻿//#########################################################################################################################################################
 //#########################################################################################################################################################
 //#############################################################################CLIENTES####################################################################
+const precioZonaInput = document.getElementById('txtPrecioZona');
 
 let nombreConfiguracion
 let controllerConfiguracion;
@@ -258,6 +259,8 @@ function nuevoChofer() {
     $('#txtNombreChofer').css('border-color', 'red');
 }
 
+
+
 async function mostrarModalChofer(modelo) {
     const campos = ["IdChofer", "NombreChofer", "TelefonoChofer", "DireccionChofer"];
     campos.forEach(campo => {
@@ -279,6 +282,97 @@ function limpiarModal() {
     });
 
     $("#lblNombreChofer, #txtNombreChofer").css("color", "").css("border-color", "");
+}
+
+
+
+//##########################################################################################################################################################
+//##########################################################################################################################################################
+//#########################################################################ZONAS########################################################################
+
+function registrarZona() {
+    if (validarCamposZona()) {
+        const idZona = $("#txtIdZona").val();
+        const nuevoModelo = {
+            "Id": idZona !== "" ? idZona : 0,
+            "Nombre": $("#txtNombreZona").val(),
+            "Precio": formatoNumero($("#txtPrecioZona").val()),
+        };
+
+        const url = "Zonas/Insertar";
+        const method = "POST";
+
+        fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json;charset=utf-8'
+            },
+            body: JSON.stringify(nuevoModelo)
+        })
+            .then(response => {
+                if (!response.ok) throw new Error(response.statusText);
+                return response.json();
+            })
+            .then(dataJson => {
+                const mensaje = "Zona registrada correctamente";
+                $('#modalEdicionZona').modal('hide');
+                exitoModal(mensaje);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    } else {
+        errorModal('Debes completar los campos requeridos');
+    }
+}
+
+
+function validarCamposZona() {
+    const nombre = $("#txtNombreZona").val();
+    const camposValidos = nombre !== "";
+
+    $("#lblNombreZona").css("color", camposValidos ? "" : "red");
+    $("#txtNombreZona").css("border-color", camposValidos ? "" : "red");
+
+    return camposValidos;
+}
+function nuevaZona() {
+    limpiarModalZona();
+
+    $('#txtNombreZona').on('input', function () {
+        validarCamposZona()
+    });
+
+    $('#modalEdicionZona').modal('show');
+    $("#btnGuardarZona").text("Registrar");
+    $("#modalEdicionZonaLabel").text("Nueva Zona");
+    $('#lblNombreZona').css('color', 'red');
+    $('#txtNombreZona').css('border-color', 'red');
+}
+
+
+
+async function mostrarModalZona(modelo) {
+    const campos = ["IdZona", "NombreZona", "PrecioZona"];
+    campos.forEach(campo => {
+        $(`#txt${campo}`).val(modelo[campo]);
+    });
+
+
+    $('#modalEdicionZona').modal('show');
+    $("#btnGuardarZona").text("Guardar");
+    $("#modalEdicionZonaLabel").text("Editar Chofer");
+
+    $('#lblNombreZona, #txtNombreZona').css('color', '').css('border-color', '');
+}
+
+function limpiarModalZona() {
+    const campos = ["IdZona", "NombreZona", "PrecioZona"];
+    campos.forEach(campo => {
+        $(`#txt${campo}`).val("");
+    });
+
+    $("#lblNombreZona, #txtNombreZona").css("color", "").css("border-color", "");
 }
 
 function abrirConfiguraciones() {
@@ -487,3 +581,17 @@ function agregarConfiguracion() {
     $('#lblNombreConfiguracion').css('color', 'red');
     $('#txtNombreConfiguracion').css('border-color', 'red');
 } 
+
+
+precioZonaInput.addEventListener('blur', function () {
+    const rawValue = this.value.replace(/[^0-9.,]/g, '').replace(',', '.');
+    const parsedValue = parseFloat(rawValue) || 0;
+
+    // Formatear el número al finalizar la edición
+    this.value = formatNumber(parsedValue);
+
+});
+
+function formatNumber(number) {
+    return '$' + number.toLocaleString('es-AR');
+}

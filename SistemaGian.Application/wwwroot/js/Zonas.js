@@ -1,4 +1,6 @@
-﻿let gridChoferes;
+﻿let gridZonas;
+const precioInput = document.getElementById('txtPrecio');
+
 
 const columnConfig = [
     { index: 0, filterType: 'text' },
@@ -15,7 +17,7 @@ const Modelo_base = {
 
 $(document).ready(() => {
 
-    listaChoferes();
+    listaZonas();
 
     $('#txtNombre').on('input', function () {
         validarCampos()
@@ -24,17 +26,15 @@ $(document).ready(() => {
 
 function guardarCambios() {
     if (validarCampos()) {
-        const idChofer = $("#txtId").val();
+        const idZona = $("#txtId").val();
         const nuevoModelo = {
-            "Id": idChofer !== "" ? idChofer : 0,
+            "Id": idZona !== "" ? idZona : 0,
             "Nombre": $("#txtNombre").val(),
-            "Telefono": $("#txtTelefono").val(),
-            "Direccion": $("#txtDireccion").val(),
-            "DNI": $("#txtDNI").val()
+            "Precio": formatoNumero($("#txtPrecio").val()),
         };
 
-        const url = idChofer === "" ? "Choferes/Insertar" : "Choferes/Actualizar";
-        const method = idChofer === "" ? "POST" : "PUT";
+        const url = idZona === "" ? "Zonas/Insertar" : "Zonas/Actualizar";
+        const method = idZona === "" ? "POST" : "PUT";
 
         fetch(url, {
             method: method,
@@ -48,10 +48,10 @@ function guardarCambios() {
                 return response.json();
             })
             .then(dataJson => {
-                const mensaje = idChofer === "" ? "Chofer registrado correctamente" : "Chofer modificado correctamente";
+                const mensaje = idZona === "" ? "Zona registrada correctamente" : "Zona modificada correctamente";
                 $('#modalEdicion').modal('hide');
                 exitoModal(mensaje);
-                listaChoferes();
+                listaZonas();
             })
             .catch(error => {
                 console.error('Error:', error);
@@ -69,44 +69,49 @@ function validarCampos() {
 
     return camposValidos;
 }
-function nuevoChofer() {
+function nuevaZona() {
     limpiarModal();
     $('#modalEdicion').modal('show');
     $("#btnGuardar").text("Registrar");
-    $("#modalEdicionLabel").text("Nuevo Chofer");
+    $("#modalEdicionLabel").text("Nueva Zona");
     $('#lblNombre').css('color', 'red');
     $('#txtNombre').css('border-color', 'red');
+    document.getElementById(`txtPrecio`).value = "$0.00";
 }
 async function mostrarModal(modelo) {
-    const campos = ["Id", "Nombre", "Telefono", "Direccion"];
+    const campos = ["Id", "Nombre", "Precio"];
     campos.forEach(campo => {
-        $(`#txt${campo}`).val(modelo[campo]);
+        if (campo == "Precio") {
+            $(`#txt${campo}`).val(formatNumber(modelo[campo]));
+        } else {
+            $(`#txt${campo}`).val(modelo[campo]);
+        }
     });
 
 
     $('#modalEdicion').modal('show');
     $("#btnGuardar").text("Guardar");
-    $("#modalEdicionLabel").text("Editar Chofer");
+    $("#modalEdicionLabel").text("Editar Zona");
 
     $('#lblNombre, #txtNombre').css('color', '').css('border-color', '');
 }
 function limpiarModal() {
-    const campos = ["Id", "Nombre", "Telefono", "Direccion"];
+    const campos = ["Id", "Nombre", "Precio"];
     campos.forEach(campo => {
         $(`#txt${campo}`).val("");
     });
 
     $("#lblNombre, #txtNombre").css("color", "").css("border-color", "");
 }
-async function listaChoferes() {
-    const url = `/Choferes/Lista`;
+async function listaZonas() {
+    const url = `/Zonas/Lista`;
     const response = await fetch(url);
     const data = await response.json();
     await configurarDataTable(data);
 }
 
-const editarChofer = id => {
-    fetch("Choferes/EditarInfo?id=" + id)
+const editarZona = id => {
+    fetch("Zonas/EditarInfo?id=" + id)
         .then(response => {
             if (!response.ok) throw new Error("Ha ocurrido un error.");
             return response.json();
@@ -122,24 +127,24 @@ const editarChofer = id => {
             errorModal("Ha ocurrido un error.");
         });
 }
-async function eliminarChofer(id) {
-    let resultado = window.confirm("¿Desea eliminar el Chofer?");
+async function eliminarZona(id) {
+    let resultado = window.confirm("¿Desea eliminar la Zona?");
 
     if (resultado) {
         try {
-            const response = await fetch("Choferes/Eliminar?id=" + id, {
+            const response = await fetch("Zonas/Eliminar?id=" + id, {
                 method: "DELETE"
             });
 
             if (!response.ok) {
-                throw new Error("Error al eliminar el Chofer.");
+                throw new Error("Error al eliminar la Zona.");
             }
 
             const dataJson = await response.json();
 
             if (dataJson.valor) {
-                listaChoferes();
-                exitoModal("Chofer eliminado correctamente")
+                listaZonas();
+                exitoModal("Zona eliminada correctamente")
             }
         } catch (error) {
             console.error("Ha ocurrido un error:", error);
@@ -148,9 +153,9 @@ async function eliminarChofer(id) {
 }
 
 async function configurarDataTable(data) {
-    if (!gridChoferes) {
-        $('#grd_Choferes thead tr').clone(true).addClass('filters').appendTo('#grd_Choferes thead');
-        gridChoferes = $('#grd_Choferes').DataTable({
+    if (!gridZonas) {
+        $('#grd_Zonas thead tr').clone(true).addClass('filters').appendTo('#grd_Zonas thead');
+        gridZonas = $('#grd_Zonas').DataTable({
             data: data,
             language: {
                 sLengthMenu: "Mostrar MENU registros",
@@ -161,22 +166,22 @@ async function configurarDataTable(data) {
             scrollCollapse: true,
             columns: [
                 { data: 'Nombre' },
-                { data: 'Telefono' },
                 {
-                    data: function (row) {
-                        return row.Direccion && row.Direccion.trim() !== "" ? '<div class="location-cell"><i title="Ir a Google Maps" class="fa fa-map-marker fa-2x text-warning"></i> ' + row.Direccion + '</div>' : row.Direccion;
+                    data: 'Precio',
+                    render: function (data) {
+                        return formatNumber(data); // Formatear el número antes de mostrarlo
                     }
                 },
                 {
                     data: "Id",
                     render: function (data) {
                         return `
-                <button class='btn btn-sm btneditar btnacciones' type='button' onclick='editarChofer(${data})' title='Editar'>
-                    <i class='fa fa-pencil-square-o fa-lg text-white' aria-hidden='true'></i>
-                </button>
-                <button class='btn btn-sm btneditar btnacciones' type='button' onclick='eliminarChofer(${data})' title='Eliminar'>
-                    <i class='fa fa-trash-o fa-lg text-danger' aria-hidden='true'></i>
-                </button>`;
+                            <button class='btn btn-sm btneditar btnacciones' type='button' onclick='editarZona(${data})' title='Editar'>
+                                <i class='fa fa-pencil-square-o fa-lg text-white' aria-hidden='true'></i>
+                            </button>
+                            <button class='btn btn-sm btneditar btnacciones' type='button' onclick='eliminarZona(${data})' title='Eliminar'>
+                                <i class='fa fa-trash-o fa-lg text-danger' aria-hidden='true'></i>
+                            </button>`;
                     },
                     orderable: true,
                     searchable: true,
@@ -187,7 +192,7 @@ async function configurarDataTable(data) {
                 {
                     extend: 'excelHtml5',
                     text: 'Exportar Excel',
-                    filename: 'Reporte Choferes',
+                    filename: 'Reporte Zonas',
                     title: '',
                     exportOptions: {
                         columns: [0, 1, 2]
@@ -197,7 +202,7 @@ async function configurarDataTable(data) {
                 {
                     extend: 'pdfHtml5',
                     text: 'Exportar PDF',
-                    filename: 'Reporte Choferes',
+                    filename: 'Reporte Zonas',
                     title: '',
                     exportOptions: {
                         columns: [0, 1, 2]
@@ -215,9 +220,16 @@ async function configurarDataTable(data) {
                 },
                 'pageLength'
             ],
+            "columnDefs": [
+                {
+                    "render": function (data, type, row) {
+                        return formatNumber(data); // Formatear número en la columna
+                    },
+                    "targets": [1] // Columna Precio
+                }
+            ],
             orderCellsTop: true,
             fixedHeader: true,
-
             initComplete: async function () {
                 var api = this.api();
 
@@ -236,7 +248,7 @@ async function configurarDataTable(data) {
 
                         var data = await config.fetchDataFunc(); // Llamada a la función para obtener los datos
                         data.forEach(function (item) {
-                            select.append('<option value="' + item.Id + '">' + item.Nombre + '</option>')
+                            select.append('<option value="' + item.Id + '">' + item.Nombre + '</option>');
                         });
 
                     } else if (config.filterType === 'text') {
@@ -259,24 +271,35 @@ async function configurarDataTable(data) {
                 $('.filters th').eq(lastColIdx).html(''); // Limpiar la última columna si es necesario
 
                 setTimeout(function () {
-                    gridChoferes.columns.adjust();
+                    gridZonas.columns.adjust();
                 }, 10);
 
-                $('body').on('mouseenter', '#grd_Choferes .fa-map-marker', function () {
+                // Agregar eventos al marcador
+                $('body').on('mouseenter', '#grd_Zonas .fa-map-marker', function () {
                     $(this).css('cursor', 'pointer');
                 });
-
-
-
-                $('body').on('click', '#grd_Choferes .fa-map-marker', function () {
+                $('body').on('click', '#grd_Zonas .fa-map-marker', function () {
                     var locationText = $(this).parent().text().trim().replace(' ', ' '); // Obtener el texto visible
                     var url = 'https://www.google.com/maps?q=' + encodeURIComponent(locationText);
                     window.open(url, '_blank');
                 });
-
             },
-});
+        });
     } else {
-    gridChoferes.clear().rows.add(data).draw();
+        gridZonas.clear().rows.add(data).draw();
+    }
 }
+
+
+precioInput.addEventListener('blur', function () {
+    const rawValue = this.value.replace(/[^0-9.,]/g, '').replace(',', '.');
+    const parsedValue = parseFloat(rawValue) || 0;
+
+    // Formatear el número al finalizar la edición
+    this.value = formatNumber(parsedValue);
+
+});
+
+function formatNumber(number) {
+    return '$' + number.toLocaleString('es-AR');
 }

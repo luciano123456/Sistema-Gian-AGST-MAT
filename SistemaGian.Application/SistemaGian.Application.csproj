@@ -15,10 +15,12 @@
     <Content Remove="wwwroot\js\PedidosNuevoModif.js" />
     <Content Remove="wwwroot\js\Proveedores.js" />
     <Content Remove="wwwroot\js\Utils\moment.js" />
+    <Content Remove="wwwroot\js\Zonas.js" />
   </ItemGroup>
 
   <ItemGroup>
     <None Include="wwwroot\Imagenes\Clientes.png" />
+    <None Include="wwwroot\js\Zonas.js" />
     <None Include="wwwroot\js\PedidosNuevoModif.js" />
     <None Include="wwwroot\js\Home.js" />
     <None Include="wwwroot\js\Choferes.js" />
