@@ -129,15 +129,24 @@
                             <label for="nroRemito">Nro Remito</label>
                             <input type="text" class="input-nuevo" id="nroRemito" name="nroRemito">
                         </div>
-                        <div class="form-group">
+
+                         <div class="form-group">
+                            <input type="text" class="input-nuevo" id="IdZona" name="IdZona" hidden>
                             <label for="zona">Zona</label>
-                            <input type="text" class="input-nuevo" id="zona" name="zona">
+                            <div style="display: flex; align-items: center;">
+                                <input type="text" class="input-nuevo" id="Zona" name="Zona" style="flex: 1;" readonly>
+                                <button type="button" class="btn btn-default" id="buscarZona" onclick="abrirZona()"
+                                        style="margin-left: 8px; background-color: #198754; padding: 6px 10px; border-radius: 4px; position: relative; top: -12px;">
+                                    <i class="fa fa-search" style="color: white; font-size: 1em;"></i>
+                                </button>
+                            </div>
                         </div>
+
                         <div class="form-group">
                             <input type="text" class="input-nuevo" id="IdChofer" name="IdChofer" hidden>
                             <label for="chofer">Chofer</label>
                             <div style="display: flex; align-items: center;">
-                                <input type="text" class="input-nuevo" id="Chofer" name="Chofer" style="flex: 1;">
+                                <input type="text" class="input-nuevo" id="Chofer" name="Chofer" style="flex: 1;" readonly>
                                 <button type="button" class="btn btn-default" id="buscarChofer" onclick="abrirChofer()"
                                         style="margin-left: 8px; background-color: #198754; padding: 6px 10px; border-radius: 4px; position: relative; top: -12px;">
                                     <i class="fa fa-search" style="color: white; font-size: 1em;"></i>
@@ -146,7 +155,7 @@
                         </div>
                         <div class="form-group">
                             <label for="zona">Costo Envio</label>
-                            <input type="text" class="input-nuevo" id="costoEnvio" name="zona" placeholder="$0.00" readonly>
+                            <input type="text" class="input-nuevo" id="costoEnvio" name="zona" placeholder="$0.00">
                         </div>
 
                         <div class="form-group">
@@ -402,6 +411,36 @@
             </div>
         </div>
     </div>
+
+
+    <div id="zonaModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="zonaModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="proveedorModalLabel">Seleccionar Zona</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <table id="tablaZonas" class="table table-striped table-bordered" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>Id</th>
+                                <th>Nombre</th>
+                                <th>Precio</th>
+
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-success" id="btnSeleccionarZona"><i class="fa fa-check"> Seleccionar</i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
 
 

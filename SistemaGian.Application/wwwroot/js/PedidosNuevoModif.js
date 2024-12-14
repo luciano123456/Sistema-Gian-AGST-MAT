@@ -1,4 +1,4 @@
-﻿let grdProveedores, grdClientes, grdChoferes, grdPagosaClientes, grdPagosaProveedores;
+﻿let grdProveedores, grdClientes, grdChoferes, grdZonas, grdPagosaClientes, grdPagosaProveedores;
 
 let editandopagoCliente = false;  // Indica si estamos en modo edición
 let pagoClienteIdEdicion = null;  // Almacena el ID del pago que estamos editando
@@ -7,6 +7,7 @@ const cantidadPagoClienteInput = document.getElementById('cantidadPagoCliente');
 const cotizacionPagoClienteInput = document.getElementById('cotizacionPagoCliente');
 const cantidadPagoProveedorInput = document.getElementById('cantidadPagoProveedor');
 const cotizacionPagoProveedorInput = document.getElementById('cotizacionPagoProveedor');
+const costoEnvioInput = document.getElementById('costoEnvio');
 
 
 $(document).ready(async function () {
@@ -71,6 +72,13 @@ async function abrirProveedor() {
     $('#proveedorModal').modal('show');
 
 }
+
+async function obtenerZonas() {
+    const response = await fetch('/Zonas/Lista');
+    const data = await response.json();
+    return data;
+}
+
 
 async function obtenerChoferes() {
     const response = await fetch('/Choferes/Lista');
@@ -170,6 +178,51 @@ async function abrirChofer() {
     $('#choferModal').modal('show');
 
 }
+
+async function abrirZona() {
+    const zonas = await obtenerZonas();
+    await cargarDataTableZonas(zonas);
+
+    // Configura eventos de selección
+    $('#tablaZonas tbody').on('dblclick', 'tr', function () {
+        var data = $('#tablaZonas').DataTable().row(this).data();
+        cargarDatosZona(data);
+        $('#zonaModal').modal('hide');
+    });
+
+    $('#btnSeleccionarZona').on('click', function () {
+        var data = $('#tablaZonas').DataTable().row('.selected').data();
+        if (data) {
+            cargarDatosZona(data);
+            $('#zonaModal').modal('hide');
+        } else {
+            errorModal('Seleccione una Zona');
+        }
+    });
+
+    let filaSeleccionada = null; // Variable para almacenar la fila seleccionada
+
+    $('#tablaZonas tbody').on('click', 'tr', function () {
+        // Remover la clase de la fila anteriormente seleccionada
+        if (filaSeleccionada) {
+            $(filaSeleccionada).removeClass('selected');
+            $('td', filaSeleccionada).removeClass('selected');
+
+        }
+
+        // Obtener la fila actual
+        filaSeleccionada = $(this);
+
+        // Agregar la clase a la fila actual
+        $(filaSeleccionada).addClass('selected');
+        $('td', filaSeleccionada).addClass('selected');
+    });
+
+    // Abre el modal
+    $('#zonaModal').modal('show');
+
+}
+
 async function obtenerProveedores() {
     const response = await fetch('/Proveedores/Lista');
     const data = await response.json();
@@ -194,6 +247,13 @@ function cargarDatosChofer(data) {
     $('#idChofer').val(data.Id);
     $('#Chofer').val(data.Nombre);
 }
+
+function cargarDatosZona(data) {
+    $('#idZona').val(data.Id);
+    $('#Zona').val(data.Nombre);
+    $('#costoEnvio').val(formatNumber(data.Precio));
+}
+
 
 // Cuando una pestaña se activa, redibuja las tablas
 $('a[data-bs-toggle="tab"]').on('shown.bs.tab', function () {
@@ -255,6 +315,50 @@ async function cargarDataTableProductos(data) {
         }
     });
 
+
+}
+
+async function cargarDataTableZonas(data) {
+
+    if (grdZonas) {
+        $('#tablaZonas').DataTable().columns.adjust().draw();
+        grdZonas.destroy();
+        grdZonas = null; // Opcional: Limpiar la variable
+
+    }
+
+    grdZonas = $('#tablaZonas').DataTable({
+        data: data,
+        language: {
+            sLengthMenu: "Mostrar _MENU_ registros",
+            url: "//cdn.datatables.net/plug-ins/2.0.7/i18n/es-MX.json"
+        },
+        scrollX: true,
+        autoWidth: false,
+        columns: [
+            { data: 'Id', width: "20%", visible: false },
+            { data: 'Nombre', width: "40%" },
+            { data: 'Precio', width: "20%" },
+
+        ],
+        orderCellsTop: true,
+        fixedHeader: true,
+
+        "columnDefs": [
+            {
+                "render": function (data, type, row) {
+                    return formatNumber(data); // Formatear número en la columna
+                },
+                "targets": [2] // Columna Precio
+            }
+        ],
+
+        initComplete: async function () {
+            setTimeout(function () {
+                $('#tablaZonas').DataTable().columns.adjust().draw();
+            }, 200);
+        }
+    });
 
 }
 
@@ -1019,6 +1123,16 @@ cotizacionPagoProveedorInput.addEventListener('blur', function () {
     // Recalcular el total cada vez que cambia el precio
     calcularTotalCotizacionPago('Proveedor');
 });
+
+
+costoEnvioInput.addEventListener('blur', function () {
+    const rawValue = this.value.replace(/[^0-9.,]/g, '').replace(',', '.');
+    const parsedValue = parseFloat(rawValue) || 0;
+
+    // Formatear el número al finalizar la edición
+    this.value = formatNumber(parsedValue);
+});
+
 async function ObtenerMonedas() {
     const url = `/Monedas/Lista`;
 

@@ -30,6 +30,7 @@ namespace SistemaGian.Application.Controllers
             {
                 Id = c.Id,
                 Nombre = c.Nombre,
+                Precio = c.Precio,
             }).ToList();
 
             return Ok(lista);
@@ -43,6 +44,7 @@ namespace SistemaGian.Application.Controllers
             {
                 Id = model.Id,
                 Nombre = model.Nombre,
+                Precio = model.Precio
             };
 
             bool respuesta = await _ZonasService.Insertar(Zona);
@@ -57,6 +59,7 @@ namespace SistemaGian.Application.Controllers
             {
                 Id = model.Id,
                 Nombre = model.Nombre,
+                Precio = model.Precio
             };
 
             bool respuesta = await _ZonasService.Actualizar(Zona);
@@ -75,7 +78,7 @@ namespace SistemaGian.Application.Controllers
         [HttpGet]
         public async Task<IActionResult> EditarInfo(int id)
         {
-            var Zona = await _ZonasService.Obtener(id);
+             var Zona = await _ZonasService.Obtener(id);
 
             if (Zona != null)
             {
