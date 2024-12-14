@@ -123,22 +123,37 @@
                             </div>
                             <div class="col">
                                 <div class="d-flex flex-column align-items-center">
-                                    <img src="~/Imagenes/Menu Principal/Monedas.png" class="img-fluid max-img-size" alt="Historial de Pedidos" title="Historial de Pedidos">
+                                    <img src="~/Imagenes/Menu Principal/historialPrecios.png" class="img-fluid max-img-size" alt="Historial de Precios" title="Historial de Precios">
+                                    <button type="button" class="btn mt-2 btnMenu bg-danger">Historial de Precios</button>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="d-flex flex-column align-items-center">
+                                    <img src="~/Imagenes/Menu Principal/Monedas.png" class="img-fluid max-img-size" alt="Monedas" title="Monedas">
                                     <button type="button" class="btn mt-2 btnMenu" onclick="window.location.href='@Url.Action("Index", "Monedas")'">Monedas</button>
                                 </div>
                             </div>
+
+                            <div class="col">
+                                <div class="d-flex flex-column align-items-center">
+                                    <img src="~/Imagenes/Menu Principal/Nuevo Usuario.png" class="img-fluid max-img-size" alt="Nuevo Usuario" title="Nuevo Usuario">
+                                    <button type="button" class="btn mt-2 btnMenu" onclick="nuevoUsuario()">Nuevo Usuario</button>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="d-flex flex-column align-items-center">
+                                    <img src="~/Imagenes/Menu Principal/Usuarios.png" class="img-fluid max-img-size" alt="Lista de Usuarios" title="Lista de Usuarios">
+                                    <button type="button" class="btn mt-2 btnMenu" onclick="window.location.href='@Url.Action("Index", "Usuarios")'">Lista de Usuarios</button>
+                                </div>
+                            </div>
+
                             <div class="col">
                                 <div class="d-flex flex-column align-items-center">
                                     <img src="~/Imagenes/Menu Principal/Configuraciones.png" class="img-fluid max-img-size" alt="Configuraciones" title="Configuraciones">
                                     <button type="button" class="btn mt-2 btnMenu" onclick="abrirConfiguraciones()">Configuraciones</button>
                                 </div>
                             </div>
-                            <div class="col">
-                                <div class="d-flex flex-column align-items-center">
-                                    <img src="~/Imagenes/Menu Principal/historialPrecios.png" class="img-fluid max-img-size" alt="Historial de Precios" title="Historial de Precios">
-                                    <button type="button" class="btn mt-2 btnMenu bg-danger">Historial de Precios</button>
-                                </div>
-                            </div>
+                           
                             <div class="col">
                                 <div class="d-flex flex-column align-items-center">
                                     <img src="~/Imagenes/Menu Principal/Analisis.png" class="img-fluid max-img-size" alt="Analisis de Datos" title="Analisis de Datos">
@@ -219,10 +234,15 @@
                             <img src="/Imagenes/unidadmedida.png" alt="Icono Unidades de Medidas" class="imgConfiguraciones">
                             <span>Unidades de medidas</span>
                         </button>
-                        <button type="button" class="btnConfiguraciones mt-2" onclick="abrirConfiguracion('Zona', 'Zonas')">
-                            <img src="/Imagenes/unidadmedida.png" alt="Icono Unidades de Medidas" class="imgConfiguraciones">
-                            <span>Zonas</span>
+                        <button type="button" class="btnConfiguraciones mt-2" onclick="abrirConfiguracion('Rol', 'Roles')">
+                            <img src="/Imagenes/Roles.png" alt="Icono Roles" class="imgConfiguraciones">
+                            <span>Roles</span>
                         </button>
+                        @* <button type="button" class="btnConfiguraciones mt-2" onclick="abrirConfiguracion('Estados de Usuarios', 'EstadosUsuarios')">
+                            <img src="/Imagenes/Roles.png" alt="Icono Roles" class="imgConfiguraciones">
+                            <span>Estados de Usuarios</span>
+                        </button> *@
+
                     </form>
                 </div>
                 <div class="modal-footer">
@@ -280,6 +300,72 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                     <button type="button" id="btnGuardar" class="btn btn-primary" onclick="registrarCliente()">Registrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Usuarios -->
+    <div class="modal fade" id="ModalEdicionUsuario" tabindex="-1" role="dialog" aria-labelledby="ModalEdicionUsuarioLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="ModalEdicionUsuarioLabel">Editar Usuario</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="form-group" hidden>
+                            <label for="txtIdUsuario" class="lblNombreInput">ID</label>
+                            <input type="text" class="input-nuevomodif" id="txtId" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label id="lblUserUsuario" for="txtUserUsuario" class="lblNombreInput">Usuario (*)</label>
+                            <input type="text" class="input-nuevomodif" id="txtUserUsuario" required>
+                        </div>
+                        <div class="form-group">
+                            <label id="lblNombreUsuario" for="txtNombreUsuario" class="lblNombreInput">Nombre (*)</label>
+                            <input type="text" class="input-nuevomodif" id="txtNombreUsuario" required>
+                        </div>
+                        <div class="form-group">
+                            <label id="lblApellidoUsuario" for="txtApellido" Usuario class="lblNombreInput">Apellido (*)</label>
+                            <input type="text" class="input-nuevomodif" id="txtApellidoUsuario" required>
+                        </div>
+                        <div class="form-group">
+                            <label id="lblNombreUsuario" for="txtDniUsuario" class="lblNombreInput">Dni</label>
+                            <input type="text" class="input-nuevomodif" id="txtDniUsuario">
+                        </div>
+                        <div class="form-group">
+                            <label for="txtTelefonoUsuario" class="lblNombreInput">Teléfono</label>
+                            <input type="text" class="input-nuevomodif" id="txtTelefonoUsuario">
+                        </div>
+                        <div class="form-group">
+                            <label for="txtDireccionUsuario" class="lblNombreInput">Dirección</label>
+                            <input type="text" class="input-nuevomodif" id="txtDireccionUsuario">
+                        </div>
+                        <div class="form-group">
+                            <label for="txtRolUsuario" class="lblNombreInput">Rol</label>
+                            <select id="RolesUsuario" name="select" class="input-nuevomodif select-modal-personalizado mt-2">
+                                <option value="" selected>Rol</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="txtEstadoUsuario" class="lblNombreInput">Estado</label>
+                            <select id="EstadosUsuario" name="select" class="input-nuevomodif select-modal-personalizado mt-2">
+                                <option value="" selected>Estado</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="txtContrasenaUsuario" class="lblNombreInput" id="lblContrasenaUsuario">Contrasena</label>
+                            <input type="password" class="input-nuevomodif" id="txtContrasenaUsuario">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="button" id="btnGuardar" class="btn btn-primary" onclick="registrarUsuario()">Registrar</button>
                 </div>
             </div>
         </div>

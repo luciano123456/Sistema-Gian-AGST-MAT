@@ -48,6 +48,17 @@ builder.Services.AddScoped<IPedidoService, PedidoService>();
 builder.Services.AddScoped<IZonasRepository<Zona>, ZonasRepository>();
 builder.Services.AddScoped<IZonasService, ZonasService>();
 
+builder.Services.AddScoped<IUsuariosRepository<User>, UsuariosRepository>();
+builder.Services.AddScoped<IUsuariosService, UsuariosService>();
+
+builder.Services.AddScoped<IRolesRepository<Rol>, RolesRepository>();
+builder.Services.AddScoped<IRolesService, RolesService>();
+
+builder.Services.AddScoped<IEstadosUsuariosRepository<EstadosUsuario>, EstadosUsuariosRepository>();
+builder.Services.AddScoped<IEstadosUsuariosService, EstadosUsuariosService>();
+
+
+
 builder.Services.AddControllersWithViews()
     .AddJsonOptions(o =>
     {

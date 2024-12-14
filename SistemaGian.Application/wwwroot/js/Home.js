@@ -375,6 +375,127 @@ function limpiarModalZona() {
     $("#lblNombreZona, #txtNombreZona").css("color", "").css("border-color", "");
 }
 
+//##########################################################################################################################################################
+//##########################################################################################################################################################
+//#########################################################################USUARIOS#########################################################################
+
+function registrarUsuario() {
+    if (validarCamposUsuario()) {
+        const nuevoModelo = {
+            "Id": 0,
+            "Usuario": $("#txtUserUsuario").val(),
+            "Nombre": $("#txtNombreUsuario").val(),
+            "Apellido": $("#txtApellidoUsuario").val(),
+            "DNI": $("#txtDniUsuario").val(),
+            "Telefono": $("#txtTelefonoUsuario").val(),
+            "Direccion": $("#txtDireccionUsuario").val(),
+            "IdRol": $("#RolesUsuario").val(),
+            "IdEstado": $("#EstadosUsuario").val(),
+            "Contrasena": $("#txtContrasenaUsuario").val()
+        };
+
+        const url = "Usuarios/Insertar";
+        const method = "POST";
+
+        fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json;charset=utf-8'
+            },
+            body: JSON.stringify(nuevoModelo)
+        })
+            .then(response => {
+                if (!response.ok) throw new Error(response.statusText);
+                return response.json();
+            })
+            .then(dataJson => {
+                const mensaje = "Usuario registrado correctamente";
+                $('#ModalEdicionUsuario').modal('hide');
+                exitoModal(mensaje);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    } else {
+        errorModal('Debes completar los campos requeridos');
+    }
+}
+
+
+function validarCamposUsuario() {
+    const nombre = $("#txtNombreUsuario").val();
+    const usuario = $("#txtUserUsuario").val();
+    const apellido = $("#txtApellidoUsuario").val();
+    const contrasena = $("#txtContrasenaUsuario").val();
+
+
+    // Validación independiente para cada campo
+    const nombreValido = nombre !== "";
+    const usuarioValido = usuario !== "";
+    const apellidoValido = apellido !== "";
+    const contrasenaValido = contrasena !== "";
+
+    // Cambiar el color de texto y borde según la validez de los campos
+    $("#lblNombreUsuario").css("color", nombreValido ? "" : "red");
+    $("#txtNombreUsuario").css("border-color", nombreValido ? "" : "red");
+
+    $("#lblUserUsuario").css("color", usuarioValido ? "" : "red");
+    $("#txtUserUsuario").css("border-color", usuarioValido ? "" : "red");
+
+    $("#lblApellidoUsuario").css("color", apellidoValido ? "" : "red");
+    $("#txtApellidoUsuario").css("border-color", apellidoValido ? "" : "red");
+
+
+    $("#lblContrasenaUsuario").css("color", contrasenaValido ? "" : "red");
+    $("#txtContrasenaUsuario").css("border-color", contrasenaValido ? "" : "red");
+
+
+
+    // La función retorna 'true' si todos los campos son válidos, de lo contrario 'false'
+    return nombreValido && usuarioValido && apellidoValido && contrasenaValido;
+}
+
+
+
+function nuevoUsuario() {
+    limpiarModalUsuario();
+
+    $('#txtNombreUsuario, #txtUserUsuario, #txtApellidoUsuario, #txtContrasenaUsuario').on('input', function () {
+        validarCamposUsuario()
+    });
+
+    listaEstados();
+    listaRoles();
+
+    $('#ModalEdicionUsuario').modal('show');
+    $("#btnGuardarUsuario").text("Registrar");
+    $("#ModalEdicionUsuarioLabel").text("Nuevo Usuario");
+    $('#lblUserUsuario').css('color', 'red');
+    $('#txtUserUsuario').css('border-color', 'red');
+
+    $('#lblNombreUsuario').css('color', 'red');
+    $('#txtNombreUsuario').css('border-color', 'red');
+
+    $('#lblApellidoUsuario').css('color', 'red');
+    $('#txtApellidoUsuario').css('border-color', 'red');
+
+    $('#lblContrasenaUsuario').css('color', 'red');
+    $('#txtContrasenaUsuario').css('border-color', 'red');
+}
+
+
+function limpiarModalUsuario() {
+    const campos = ["IdUsuario", "UserUsuario", "NombreUsuario", "ApellidoUsuario", "DniUsuario", "TelefonoUsuario", "DireccionUsuario", "ContrasenaUsuario"];
+    campos.forEach(campo => {
+        $(`#txt${campo}`).val("");
+    });
+
+     $('#lblUserUsuario, #txtUserUsuario').css('color', '').css('border-color', '');
+    $('#lblNombreUsuario, #txtNombreUsuario').css('color', '').css('border-color', '');
+    $('#lblApellidoUsuario, #txtApellidoUsuario').css('color', '').css('border-color', '');
+}
+
+
 function abrirConfiguraciones() {
     $('#ModalEdicionConfiguraciones').modal('show');
     $("#btnGuardarConfiguracion").text("Aceptar");
@@ -437,6 +558,7 @@ async function llenarConfiguraciones() {
 
     if (configuraciones.length == 0) {
         document.getElementById("lblListaVacia").innerText = `La lista de ${nombreConfiguracion} esta vacia.`;
+
         document.getElementById("lblListaVacia").style.color = 'red';
         document.getElementById("lblListaVacia").removeAttribute("hidden");
         listaVacia = true;
@@ -594,4 +716,40 @@ precioZonaInput.addEventListener('blur', function () {
 
 function formatNumber(number) {
     return '$' + number.toLocaleString('es-AR');
+}
+
+async function listaRoles() {
+    const url = `/Roles/Lista`;
+    const response = await fetch(url);
+    const data = await response.json();
+
+    $('#RolesUsuario option').remove();
+
+    select = document.getElementById("RolesUsuario");
+
+    for (i = 0; i < data.length; i++) {
+        option = document.createElement("option");
+        option.value = data[i].Id;
+        option.text = data[i].Nombre;
+        select.appendChild(option);
+
+    }
+}
+
+async function listaEstados() {
+    const url = `/EstadosUsuarios/Lista`;
+    const response = await fetch(url);
+    const data = await response.json();
+
+    $('#EstadosUsuario option').remove();
+
+    select = document.getElementById("EstadosUsuario");
+
+    for (i = 0; i < data.length; i++) {
+        option = document.createElement("option");
+        option.value = data[i].Id;
+        option.text = data[i].Nombre;
+        select.appendChild(option);
+
+    }
 }
