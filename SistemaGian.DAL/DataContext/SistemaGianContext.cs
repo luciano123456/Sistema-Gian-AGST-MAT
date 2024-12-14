@@ -20,6 +20,8 @@ public partial class SistemaGianContext : DbContext
 
     public virtual DbSet<Cliente> Clientes { get; set; }
 
+    public virtual DbSet<EstadosUsuario> EstadosUsuarios { get; set; }
+
     public virtual DbSet<Moneda> Monedas { get; set; }
 
     public virtual DbSet<PagosPedidosCliente> PagosPedidosClientes { get; set; }
@@ -47,6 +49,11 @@ public partial class SistemaGianContext : DbContext
     public virtual DbSet<Proveedor> Proveedores { get; set; }
 
     public virtual DbSet<Provincia> Provincias { get; set; }
+
+    public virtual DbSet<Rol> Roles { get; set; }
+
+    public virtual DbSet<User> Usuarios { get; set; }
+
     public virtual DbSet<Zona> Zonas { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -94,6 +101,13 @@ public partial class SistemaGianContext : DbContext
             entity.HasOne(d => d.IdProvinciaNavigation).WithMany(p => p.Clientes)
                 .HasForeignKey(d => d.IdProvincia)
                 .HasConstraintName("FK_Clientes_Provincias");
+        });
+
+        modelBuilder.Entity<EstadosUsuario>(entity =>
+        {
+            entity.Property(e => e.Nombre)
+                .HasMaxLength(100)
+                .IsUnicode(false);
         });
 
         modelBuilder.Entity<Moneda>(entity =>
@@ -354,11 +368,54 @@ public partial class SistemaGianContext : DbContext
                 .IsUnicode(false);
         });
 
+        modelBuilder.Entity<Rol>(entity =>
+        {
+            entity.Property(e => e.Nombre)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+        });
+
+        modelBuilder.Entity<User>(entity =>
+        {
+            entity.Property(e => e.Apellido)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.Contrasena)
+                .HasMaxLength(255)
+                .IsUnicode(false);
+            entity.Property(e => e.Direccion)
+                .HasMaxLength(20)
+                .IsUnicode(false);
+            entity.Property(e => e.Dni)
+                .HasMaxLength(20)
+                .IsUnicode(false);
+            entity.Property(e => e.Nombre)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.Telefono)
+                .HasMaxLength(20)
+                .IsUnicode(false);
+            entity.Property(e => e.Usuario)
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasColumnName("Usuario");
+
+            entity.HasOne(d => d.IdEstadoNavigation).WithMany(p => p.Usuarios)
+                .HasForeignKey(d => d.IdEstado)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Usuarios_EstadosUsuarios");
+
+            entity.HasOne(d => d.IdRolNavigation).WithMany(p => p.Usuarios)
+                .HasForeignKey(d => d.IdRol)
+                .HasConstraintName("FK_Usuarios_Roles");
+        });
+
         modelBuilder.Entity<Zona>(entity =>
         {
             entity.Property(e => e.Nombre)
                 .HasMaxLength(250)
                 .IsUnicode(false);
+            entity.Property(e => e.Precio).HasColumnType("decimal(20, 2)");
         });
 
         OnModelCreatingPartial(modelBuilder);
