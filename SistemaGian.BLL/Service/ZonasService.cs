@@ -6,9 +6,9 @@ namespace SistemaGian.BLL.Service
     public class ZonasService : IZonasService
     {
 
-        private readonly IGenericRepository<Zona> _contactRepo;
+        private readonly IZonasRepository<Zona> _contactRepo;
 
-        public ZonasService(IGenericRepository<Zona> contactRepo)
+        public ZonasService(IZonasRepository<Zona> contactRepo)
         {
             _contactRepo = contactRepo;
         }
