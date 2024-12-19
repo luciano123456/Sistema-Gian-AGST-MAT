@@ -42,7 +42,9 @@ function guardarCambios() {
             "Direccion": $("#txtDireccion").val(),
             "IdRol": $("#Roles").val(),
             "IdEstado": $("#Estados").val(),
-            "Contrasena": $("#txtContrasena").val()
+            "Contrasena": idUsuario === "" ? $("#txtContrasena").val() : "",
+            "ContrasenaNueva": $("#txtContrasenaNueva").val(),
+            "CambioAdmin": 1
         };
 
         const url = idUsuario === "" ? "Usuarios/Insertar" : "Usuarios/Actualizar";
@@ -60,9 +62,15 @@ function guardarCambios() {
                 return response.json();
             })
             .then(dataJson => {
-                const mensaje = idUsuario === "" ? "Usuario registrado correctamente" : "Usuario modificado correctamente";
-                $('#modalEdicion').modal('hide');
-                exitoModal(mensaje);
+                let mensaje = idUsuario === "" ? "Usuario registrado correctamente" : "Usuario modificado correctamente";
+                if (dataJson.valor === 'Contrasena') {
+                    mensaje = "Contrasena incorrecta";
+                    errorModal(mensaje);
+                    return false;
+                } else {
+                    $('#modalEdicion').modal('hide');
+                    exitoModal(mensaje);
+                }
                 listaUsuarios();
             })
             .catch(error => {
@@ -132,7 +140,7 @@ function nuevoUsuario() {
 
 }
 async function mostrarModal(modelo) {
-    const campos = ["Id", "Usuario", "Nombre", "Apellido", "Dni", "Telefono", "Direccion", "Contrasena"];
+    const campos = ["Id", "Usuario", "Nombre", "Apellido", "Dni", "Telefono", "Direccion", "Contrasena", "ContrasenaNueva"];
     campos.forEach(campo => {
         $(`#txt${campo}`).val(modelo[campo]);
     });
@@ -155,7 +163,7 @@ async function mostrarModal(modelo) {
     
 }
 function limpiarModal() {
-    const campos = ["Id", "Usuario", "Nombre", "Apellido", "Dni", "Telefono", "Direccion", "Contrasena"];
+    const campos = ["Id", "Usuario", "Nombre", "Apellido", "Dni", "Telefono", "Direccion", "Contrasena", "ContrasenaNueva"];
     campos.forEach(campo => {
         $(`#txt${campo}`).val("");
     });
