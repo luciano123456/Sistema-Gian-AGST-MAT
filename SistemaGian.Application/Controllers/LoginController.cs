@@ -24,22 +24,23 @@ namespace SistemaGian.Application.Controllers
         }
 
 
+
         [HttpPost]
-        public async Task<IActionResult> Login(string username, string password)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> IniciarSesion([FromBody] VMLogin model)
         {
             try
             {
-                var user = await _loginService.Login(username, password); // Llama al servicio de login
+                var user = await _loginService.Login(model.Usuario, model.Contrasena); // Llama al servicio de login
 
                 // Verificar si el usuario existe
                 if (user == null)
                 {
-                    ViewBag.Error = "Usuario no encontrado.";
-                    return View("Index");
+                    return Json(new { success = false, message = "Usuario o contraseña incorrectos." });
                 }
 
                 var passwordHasher = new PasswordHasher<User>();
-                var result = passwordHasher.VerifyHashedPassword(user, user.Contrasena, password);
+                var result = passwordHasher.VerifyHashedPassword(user, user.Contrasena, model.Contrasena);
 
                 if (result == PasswordVerificationResult.Success)
                 {
@@ -59,24 +60,21 @@ namespace SistemaGian.Application.Controllers
                     // Configurar la sesión con el usuario
                     await SessionHelper.SetUsuarioSesion(vmUser, HttpContext);
 
-                    // Redirigir a la página principal
-                    return RedirectToAction("Index", "Home");
+                    // Responder con éxito y redirigir
+                    return Json(new { success = true, redirectUrl = Url.Action("Index", "Home"), user = vmUser });
                 }
                 else
                 {
-                    // Si el login falla, mostrar mensaje de error
-                    ViewBag.Error = "Usuario o contraseña incorrectos.";
-                    return View("Index");
+                    return Json(new { success = false, message = "Usuario o contraseña incorrectos." });
                 }
             }
             catch (Exception ex)
             {
-                // Si ocurre un error, puedes registrar la excepción o mostrar un mensaje genérico
-                ViewBag.Error = "Ocurrió un error inesperado. Inténtalo nuevamente.";
-                // Log error aquí si es necesario
-                return View("Index");
+                // Si ocurre un error, manejarlo
+                return Json(new { success = false, message = "Ocurrió un error inesperado. Inténtalo nuevamente." });
             }
         }
+
 
 
 
