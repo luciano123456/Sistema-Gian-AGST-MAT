@@ -1,4 +1,13 @@
 ﻿document.addEventListener("DOMContentLoaded", function () {
+
+    var userSession = JSON.parse(localStorage.getItem('userSession'));
+
+    if (userSession) {
+        // Si el usuario está en el localStorage, actualizar el texto del enlace
+        var userFullName = userSession.Nombre + ' ' + userSession.Apellido;
+        $("#userName").html('<i class="fa fa-user"></i> ' + userFullName); // Cambiar el contenido del enlace
+
+    }
     // Busca todos los elementos con la clase "dropdown-toggle"
     var dropdownToggleList = document.querySelectorAll('.dropdown-toggle');
 
