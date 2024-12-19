@@ -15,12 +15,14 @@
     <Content Remove="wwwroot\js\PedidosNuevoModif.js" />
     <Content Remove="wwwroot\js\Proveedores.js" />
     <Content Remove="wwwroot\js\Usuarios.js" />
+    <Content Remove="wwwroot\js\UsuariosConfiguracion.js" />
     <Content Remove="wwwroot\js\Utils\moment.js" />
     <Content Remove="wwwroot\js\Zonas.js" />
   </ItemGroup>
 
   <ItemGroup>
     <None Include="wwwroot\Imagenes\Clientes.png" />
+    <None Include="wwwroot\js\UsuariosConfiguracion.js" />
     <None Include="wwwroot\js\Usuarios.js" />
     <None Include="wwwroot\js\Zonas.js" />
     <None Include="wwwroot\js\PedidosNuevoModif.js" />
@@ -43,6 +45,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="6.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="6.0.29" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="7.0.18">
       <PrivateAssets>all</PrivateAssets>
@@ -52,6 +55,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Update="Views\Choferes\Index.cshtml">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
     <Content Update="wwwroot\css\PedidosNuevoModif.css">
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>

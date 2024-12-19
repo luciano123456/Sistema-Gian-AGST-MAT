@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using SistemaGian.Application.Models;
 using SistemaGian.Application.Models.ViewModels;
@@ -8,6 +9,7 @@ using System.Diagnostics;
 
 namespace SistemaGian.Application.Controllers
 {
+    [Authorize]
     public class ProductosController : Controller
     {
         private readonly IProductoService _Productoservice;
@@ -88,7 +90,7 @@ namespace SistemaGian.Application.Controllers
 
 
         [HttpPost]
-        public async Task<IActionResult> AsignarCliente([FromBody] VMAsignarClientes modelo)
+        public async Task<IActionResult> AsignarCliente([FromBody] VMAumentoProductos modelo)
         {
             try
             {

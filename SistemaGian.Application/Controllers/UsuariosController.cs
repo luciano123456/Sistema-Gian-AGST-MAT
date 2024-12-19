@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using SistemaGian.Application.Models;
 using SistemaGian.Application.Models.ViewModels;
@@ -8,9 +9,11 @@ using System.Diagnostics;
 
 namespace SistemaGian.Application.Controllers
 {
+    [Authorize]
     public class UsuariosController : Controller
     {
         private readonly IUsuariosService _Usuarioservice;
+        private readonly SessionHelper _sessionHelper;  // Inyección de SessionHelper
 
         public UsuariosController(IUsuariosService Usuarioservice)
         {
@@ -20,6 +23,31 @@ namespace SistemaGian.Application.Controllers
         public IActionResult Index()
         {
             return View();
+        }
+
+
+        public async Task<IActionResult> Configuracion()
+        {
+            // Obtener el usuario actual desde la sesión usando el helper inyectado
+            var userSession = await SessionHelper.GetUsuarioSesion(HttpContext);
+
+            // Si no se pudo obtener el usuario de la sesión
+            if (userSession == null)
+            {
+                return RedirectToAction("Login", "Index");
+            }
+
+            // Obtener los detalles del usuario desde la base de datos
+            var user = await _Usuarioservice.Obtener(userSession.Id);
+
+            // Si el usuario no existe, redirigir al login
+            if (user == null)
+            {
+                return RedirectToAction("Login", "Index");
+            }
+
+            // Pasar los datos del usuario a la vista
+            return View(user);
         }
 
         [HttpGet]
@@ -74,27 +102,42 @@ namespace SistemaGian.Application.Controllers
         [HttpPut]
         public async Task<IActionResult> Actualizar([FromBody] VMUser model)
         {
-
             var passwordHasher = new PasswordHasher<User>();
 
-            var Usuario = new User
+            // Obtiene el usuario de la base de datos
+            User userbase = await _Usuarioservice.Obtener(model.Id);
+
+
+            if (model.CambioAdmin != 1) //YA QUE DESDE EL EDITAR DESDE EL ADMIN, NO VAMOS A MANDARLE LA CONTRASENA, SE LA CAMBIA DE UNA
             {
-                Id = model.Id,
-                Usuario = model.Usuario,
-                Nombre = model.Nombre,
-                Apellido = model.Apellido,
-                Dni = model.Dni,
-                Telefono = model.Telefono,
-                Direccion = model.Direccion,
-                IdRol = model.IdRol,
-                IdEstado = model.IdEstado,
-                Contrasena = passwordHasher.HashPassword(null, model.Contrasena)
-            };
+                var result = passwordHasher.VerifyHashedPassword(null, userbase.Contrasena, model.Contrasena);
+                if (result != PasswordVerificationResult.Success)
+                {
+                    return Ok(new { valor = "Contrasena" });
+                }
+            }
 
-            bool respuesta = await _Usuarioservice.Actualizar(Usuario);
+            // Si se proporciona una contraseña nueva, úsala; de lo contrario, mantén la contraseña actual
+            var passnueva = !string.IsNullOrEmpty(model.ContrasenaNueva)
+                ? passwordHasher.HashPassword(null, model.ContrasenaNueva) // Hashea la nueva contraseña si es proporcionada
+                : userbase.Contrasena; // Mantén la contraseña actual si no se proporciona una nueva
 
-            return Ok(new { valor = respuesta });
+            // Actualiza las propiedades del objeto ya cargado
+            userbase.Nombre = model.Nombre;
+            userbase.Apellido = model.Apellido;
+            userbase.Dni = model.Dni;
+            userbase.Telefono = model.Telefono;
+            userbase.Direccion = model.Direccion;
+            userbase.Contrasena = passnueva; // Asigna la nueva contraseña hasheada
+
+            // Realiza la actualización en la base de datos
+            bool respuesta = await _Usuarioservice.Actualizar(userbase);
+
+            return Ok(new { valor = respuesta ? "OK" : "Error" });
         }
+
+
+
 
         [HttpDelete]
         public async Task<IActionResult> Eliminar(int id)

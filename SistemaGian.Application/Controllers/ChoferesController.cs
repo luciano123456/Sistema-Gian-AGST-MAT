@@ -4,9 +4,12 @@ using SistemaGian.Application.Models.ViewModels;
 using SistemaGian.BLL.Service;
 using SistemaGian.Models;
 using System.Diagnostics;
+using Microsoft.AspNetCore.Authorization;
 
 namespace SistemaGian.Application.Controllers
 {
+
+    [Authorize]
     public class ChoferesController : Controller
     {
         private readonly IChoferService _Chofereservice;

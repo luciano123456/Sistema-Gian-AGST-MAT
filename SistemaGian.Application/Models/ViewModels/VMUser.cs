@@ -21,14 +21,13 @@ namespace SistemaGian.Application.Models.ViewModels
         public int IdRol { get; set; }
 
         public string Contrasena { get; set; } = null!;
+        public string ContrasenaNueva { get; set; } = null!;
         public string Estado { get; set; } = null!;
         public string Rol { get; set; } = null!;
+        public int CambioAdmin { get; set; } = 0;
 
         public int IdEstado { get; set; }
 
-        public virtual EstadosUsuario IdEstadoNavigation { get; set; } = null!;
-
-        public virtual Rol IdRolNavigation { get; set; } = null!;
 
     }
 }

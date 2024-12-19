@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using SistemaGian.Application.Models;
 using SistemaGian.Application.Models.ViewModels;
 using SistemaGian.BLL.Service;
@@ -7,6 +8,7 @@ using System.Diagnostics;
 
 namespace SistemaGian.Application.Controllers
 {
+    [Authorize]
     public class ProveedoresController : Controller
     {
         private readonly IProveedorService _ProveedorService;
