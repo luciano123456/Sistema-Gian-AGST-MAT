@@ -3,18 +3,25 @@ using SistemaGian.BLL.Service;
 using SistemaGian.DAL.DataContext;
 using SistemaGian.DAL.Repository;
 using SistemaGian.Models;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc.Authorization;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+// Configurar la conexión a la base de datos
 builder.Services.AddDbContext<SistemaGianContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("cadenaSQL"));
 });
 
-
+// Agregar Razor Pages
 builder.Services.AddRazorPages().AddRazorRuntimeCompilation();
+
+// Registrar repositorios y servicios
 builder.Services.AddScoped<IGenericRepository<Cliente>, ClienteRepository>();
 builder.Services.AddScoped<IClienteService, ClienteService>();
 builder.Services.AddScoped<IProvinciaRepository<Provincia>, ProvinciaRepository>();
@@ -57,7 +64,8 @@ builder.Services.AddScoped<IRolesService, RolesService>();
 builder.Services.AddScoped<IEstadosUsuariosRepository<EstadosUsuario>, EstadosUsuariosRepository>();
 builder.Services.AddScoped<IEstadosUsuariosService, EstadosUsuariosService>();
 
-
+builder.Services.AddScoped<ILoginRepository<User>, LoginRepository>();
+builder.Services.AddScoped<ILoginService, LoginService>();
 
 builder.Services.AddControllersWithViews()
     .AddJsonOptions(o =>
@@ -66,13 +74,21 @@ builder.Services.AddControllersWithViews()
         o.JsonSerializerOptions.PropertyNamingPolicy = null;
     });
 
+// Configurar autenticación con cookies
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Login/Index";  // Ruta para redirigir al login si no está autenticado
+        options.LogoutPath = "/Login/Logout"; // Ruta para cerrar sesión
+    });
+
+
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Configurar el pipeline de middleware
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
@@ -81,10 +97,16 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-app.UseAuthorization();
+app.UseAuthentication(); // Habilitar la autenticación con cookies
+app.UseAuthorization();  // Habilitar la autorización
 
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
+// Asegúrate de que las rutas de login estén excluidas del middleware de autenticación
+app.MapControllerRoute(
+    name: "login",
+    pattern: "Login/{action=Index}",
+    defaults: new { controller = "Login", action = "Index" });
 app.Run();

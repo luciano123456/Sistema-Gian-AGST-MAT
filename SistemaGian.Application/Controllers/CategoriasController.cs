@@ -3,10 +3,14 @@ using SistemaGian.Application.Models;
 using SistemaGian.Application.Models.ViewModels;
 using SistemaGian.BLL.Service;
 using SistemaGian.Models;
+using Microsoft.AspNetCore.Authorization;
 using System.Diagnostics;
 
 namespace SistemaGian.Application.Controllers
 {
+
+    [Authorize]
+
     public class CategoriasController : Controller
     {
         private readonly ICategoriaService _Categoriaservice;

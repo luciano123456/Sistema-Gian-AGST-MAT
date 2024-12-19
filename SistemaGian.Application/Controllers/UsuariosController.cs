@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using SistemaGian.Application.Models;
 using SistemaGian.Application.Models.ViewModels;
@@ -8,9 +9,11 @@ using System.Diagnostics;
 
 namespace SistemaGian.Application.Controllers
 {
+    //[Authorize]
     public class UsuariosController : Controller
     {
         private readonly IUsuariosService _Usuarioservice;
+        private readonly SessionHelper _sessionHelper;  // Inyección de SessionHelper
 
         public UsuariosController(IUsuariosService Usuarioservice)
         {
@@ -20,6 +23,31 @@ namespace SistemaGian.Application.Controllers
         public IActionResult Index()
         {
             return View();
+        }
+
+
+        public async Task<IActionResult> Configuracion()
+        {
+            // Obtener el usuario actual desde la sesión usando el helper inyectado
+            var userSession = await SessionHelper.GetUsuarioSesion(HttpContext);
+
+            // Si no se pudo obtener el usuario de la sesión
+            if (userSession == null)
+            {
+                return RedirectToAction("Login", "Index");
+            }
+
+            // Obtener los detalles del usuario desde la base de datos
+            var user = await _Usuarioservice.Obtener(userSession.Id);
+
+            // Si el usuario no existe, redirigir al login
+            if (user == null)
+            {
+                return RedirectToAction("Login", "Index");
+            }
+
+            // Pasar los datos del usuario a la vista
+            return View(user);
         }
 
         [HttpGet]
