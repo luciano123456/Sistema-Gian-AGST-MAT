@@ -484,9 +484,6 @@ function guardarCambios() {
     }
 }
 
-function parseDecimal(value) {
-    return parseFloat(value.replace(',', '.'));
-}
 
 function validarCamposAumentarPrecioCosto() {
     const aumento = $("#txtAumentoPrecioCosto").val();

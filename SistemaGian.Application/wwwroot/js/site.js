@@ -72,3 +72,7 @@ function formatoNumero(valor) {
     // Reemplaza la coma por punto y elimina otros caracteres no numéricos (como $)
     return parseFloat(valor.replace(/[^0-9,]+/g, '').replace(',', '.')) || 0;
 }
+
+function parseDecimal(value) {
+    return parseFloat(value.replace(',', '.'));
+}

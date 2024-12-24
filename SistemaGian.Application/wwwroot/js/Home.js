@@ -496,6 +496,172 @@ function limpiarModalUsuario() {
 }
 
 
+//##########################################################################################################################################################
+//##########################################################################################################################################################
+//#########################################################################PRODUCTOS########################################################################
+
+function nuevoProducto() {
+
+    limpiarModalProducto();
+    listaMarcasProducto();
+    listaCategoriasProducto();
+    listaMonedasProducto();
+    listaUnidadesDeMedidaProducto();
+    document.getElementById("MarcasProducto").removeAttribute("disabled");
+    document.getElementById("txtDescripcionProducto").removeAttribute("disabled");
+    document.getElementById("CategoriasProducto").removeAttribute("disabled");
+    document.getElementById("MonedasProducto").removeAttribute("disabled");
+    document.getElementById("Imagen").removeAttribute("disabled");
+    document.getElementById("UnidadesDeMedidasProducto").removeAttribute("disabled");
+    document.getElementById("txtPrecioCostoProducto").classList.remove("txtEdicion");
+    document.getElementById("txtPorcentajeGananciaProducto").classList.remove("txtEdicion");
+    document.getElementById("txtPrecioVentaProducto").classList.remove("txtEdicion");
+    $('#modalEdicionProductos').modal('show');
+    $("#btnGuardarProducto").text("Registrar");
+    $("#modalEdicionProductoLabel").text("Nuevo Producto");
+    asignarCamposObligatoriosProducto()
+}
+
+
+function asignarCamposObligatoriosProducto() {
+    $('#lblDescripcionProducto').css('color', 'red');
+    $('#txtDescripcionProducto').css('border-color', 'red');
+    $('#lblPrecioCostoProducto').css('color', 'red');
+    $('#txtPrecioCostoProducto').css('border-color', 'red');
+    $('#lblPorcentajeGananciaProducto').css('color', 'red');
+    $('#txtPorcentajeGananciaProducto').css('border-color', 'red');
+}
+
+async function listaMarcasProducto() {
+    const url = `/Marcas/Lista`;
+    const response = await fetch(url);
+    const data = await response.json();
+
+    $('#MarcasProducto option').remove();
+
+    select = document.getElementById("MarcasProducto");
+
+    for (i = 0; i < data.length; i++) {
+        option = document.createElement("option");
+        option.value = data[i].Id;
+        option.text = data[i].Nombre;
+        select.appendChild(option);
+
+    }
+}
+
+async function listaCategoriasProducto() {
+    const url = `/Categorias/Lista`;
+    const response = await fetch(url);
+    const data = await response.json();
+
+    $('#CategoriasProducto option').remove();
+
+    select = document.getElementById("CategoriasProducto");
+
+    for (i = 0; i < data.length; i++) {
+        option = document.createElement("option");
+        option.value = data[i].Id;
+        option.text = data[i].Nombre;
+        select.appendChild(option);
+
+    }
+}
+
+async function listaMonedasProducto() {
+    const url = `/Monedas/Lista`;
+    const response = await fetch(url);
+    const data = await response.json();
+
+    $('#MonedasProducto option').remove();
+
+    select = document.getElementById("MonedasProducto");
+
+    for (i = 0; i < data.length; i++) {
+        option = document.createElement("option");
+        option.value = data[i].Id;
+        option.text = data[i].Nombre;
+        select.appendChild(option);
+
+    }
+}
+
+async function listaUnidadesDeMedidaProducto() {
+    const url = `/UnidadesDeMedidas/Lista`;
+    const response = await fetch(url);
+    const data = await response.json();
+
+    $('#UnidadesDeMedidasProducto option').remove();
+
+    select = document.getElementById("UnidadesDeMedidasProducto");
+
+    for (i = 0; i < data.length; i++) {
+        option = document.createElement("option");
+        option.value = data[i].Id;
+        option.text = data[i].Nombre;
+        select.appendChild(option);
+
+    }
+}
+
+function limpiarModalProducto() {
+    const campos = ["IdProducto", "DescripcionProducto", "PrecioCostoProducto", "PrecioVentaProducto", "PorcentajeGananciaProducto"];
+    campos.forEach(campo => {
+        $(`#txt${campo}`).val("");
+    });
+
+    $("#imgProducto").attr("src", "");
+    $("#imgProd").val("");
+
+}
+
+function registrarProducto() {
+    if (validarCamposProducto()) {
+        sumarPorcentajeProducto(); //Por si las dudas
+        const idProducto = $("#txtIdProducto").val();
+        const nuevoModelo = {
+            IdCliente: -1,
+            IdProveedor: -1,
+            "Id": idProducto !== "" ? idProducto : 0,
+            "Descripcion": $("#txtDescripcionProducto").val(),
+            "IdMarca": $("#MarcasProducto").val(),
+            "IdCategoria": $("#CategoriasProducto").val(),
+            "IdMoneda": $("#MonedasProducto").val(),
+            "IdUnidadDeMedida": $("#UnidadesDeMedidasProducto").val(),
+            "PCosto": parseDecimal($("#txtPrecioCostoProducto").val()),
+            "PVenta": parseDecimal($("#txtPrecioVentaProducto").val()),
+            "PorcGanancia": parseDecimal($("#txtPorcentajeGananciaProducto").val()),
+            "Image": document.getElementById("imgProd").value,
+        };
+
+        const url = "Productos/Insertar";
+        const method = "POST";
+
+        fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json;charset=utf-8'
+            },
+            body: JSON.stringify(nuevoModelo)
+        })
+            .then(response => {
+                if (!response.ok) throw new Error(response.statusText);
+                return response.json();
+            })
+            .then(dataJson => {
+                const mensaje = "Producto registrado correctamente";
+                $('#modalEdicionProductos').modal('hide');
+                exitoModal(mensaje);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    } else {
+        errorModal('Debes completar los campos requeridos');
+    }
+}
+
+
 function abrirConfiguraciones() {
     $('#ModalEdicionConfiguraciones').modal('show');
     $("#btnGuardarConfiguracion").text("Aceptar");
@@ -526,7 +692,105 @@ async function listaConfiguracion() {
 
 }
 
+$('#txtDescripcionProducto, #txtPorcentajeGananciaProducto').on('input', function () {
+    validarCamposProducto()
+});
 
+$('#txtPrecioCostoProducto').on('input', function () {
+    validarCamposProducto()
+    sumarPorcentajeProducto()
+
+});
+$('#txtPorcentajeGananciaProducto').on('input', function () {
+    sumarPorcentajeProducto()
+});
+
+$('#txtPrecioVentaProducto').on('input', function () {
+    calcularPorcentajeProducto()
+});
+
+const fileInput = document.getElementById("Imagen");
+
+fileInput.addEventListener("change", (e) => {
+    var files = e.target.files
+    let base64String = "";
+    let baseTotal = "";
+
+    // get a reference to the file
+    const file = e.target.files[0];
+
+
+
+    // encode the file using the FileReader API
+    const reader = new FileReader();
+    reader.onloadend = () => {
+        // use a regex to remove data url part
+
+        base64String = reader.result
+            .replace("data:", "")
+            .replace(/^.+,/, "");
+
+
+        var inputImg = document.getElementById("imgProd");
+        inputImg.value = base64String;
+
+        $("#imgProducto").removeAttr('hidden');
+        $("#imgProducto").attr("src", "data:image/png;base64," + base64String);
+
+    };
+
+    reader.readAsDataURL(file);
+
+}
+);
+
+function sumarPorcentajeProducto() {
+    let precioCosto = Number($("#txtPrecioCostoProducto").val());
+    let porcentajeGanancia = Number($("#txtPorcentajeGananciaProducto").val());
+
+    if (!isNaN(precioCosto) && !isNaN(porcentajeGanancia)) {
+        let precioVenta = precioCosto + (precioCosto * (porcentajeGanancia / 100));
+        // Limitar el precio de venta a 2 decimales
+        precioVenta = precioVenta.toFixed(2);
+        $("#txtPrecioVentaProducto").val(precioVenta);
+    }
+}
+
+
+function calcularPorcentajeProducto() {
+    let precioCosto = Number($("#txtPrecioCostoProducto").val());
+    let precioVenta = Number($("#txtPrecioVentaProducto").val());
+
+    if (!isNaN(precioCosto) && !isNaN(precioVenta) && precioCosto !== 0) {
+        let porcentajeGanancia = ((precioVenta - precioCosto) / precioCosto) * 100;
+        // Limitar el porcentaje de ganancia a 2 decimales
+        porcentajeGanancia = porcentajeGanancia.toFixed(2);
+        $("#txtPorcentajeGananciaProducto").val(porcentajeGanancia);
+    }
+}
+
+function validarCamposProducto() {
+    const descripcion = $("#txtDescripcionProducto").val();
+    const precioCosto = $("#txtPrecioCostoProducto").val();
+    const precioVenta = $("#txtPrecioVentaProducto").val();
+    const porcentajeGanancia = $("#txtPorcentajeGananciaProducto").val();
+
+    const descripcionValida = descripcion !== "";
+    const precioCostoValido = precioCosto !== "" && !isNaN(precioCosto);
+    const precioVentaValido = precioVenta !== "" && !isNaN(precioVenta);
+    const porcentajeGananciaValido = porcentajeGanancia !== "" && !isNaN(porcentajeGanancia);
+
+    $("#lblDescripcionProducto").css("color", descripcionValida ? "" : "red");
+    $("#txtDescripcionProducto").css("border-color", descripcionValida ? "" : "red");
+
+    $("#lblPrecioCostoProducto").css("color", precioCostoValido ? "" : "red");
+    $("#txtPrecioCostoProducto").css("border-color", precioCostoValido ? "" : "red");
+
+    $("#lblPorcentajeGananciaProducto").css("color", porcentajeGananciaValido ? "" : "red");
+    $("#txtPorcentajeGananciaProducto").css("border-color", porcentajeGananciaValido ? "" : "red");
+
+    return descripcionValida && precioCostoValido && precioVentaValido && porcentajeGananciaValido;
+}
 
 
 async function abrirConfiguracion(_nombreConfiguracion, _controllerConfiguracion) {
