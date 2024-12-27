@@ -69,8 +69,13 @@ const formatoMoneda = new Intl.NumberFormat('es-AR', {
 
 
 function formatoNumero(valor) {
-    // Reemplaza la coma por punto y elimina otros caracteres no numéricos (como $)
-    return parseFloat(valor.replace(/[^0-9,]+/g, '').replace(',', '.')) || 0;
+    // Asegurarse de que valor sea una cadena de texto
+    if (typeof valor !== 'string') {
+        valor = String(valor);  // Convertir a cadena si no lo es
+    }
+
+    // Ahora puedes usar .replace() de manera segura
+    return valor.replace(/,/g, '').replace('.', ','); // Ejemplo de formato
 }
 
 function parseDecimal(value) {

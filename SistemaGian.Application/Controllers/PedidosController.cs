@@ -82,10 +82,11 @@ namespace SistemaGian.Application.Controllers
                     {
                         IdProducto = g.Key,
                         Nombre = _Productoservice.ObtenerDatos(g.FirstOrDefault().IdProducto).Result.Descripcion, // Suponiendo que Nombre es un campo del producto
-                        Precios = g.Select(p => new
+                        Precios = g.Select(async p => new
                         {
                             Id = p.Id,
-                            Monto = p.PVentaNuevo // O el precio que desees mostrar
+                            PrecioVenta = p.PVentaNuevo, // O el precio que desees mostrar
+                            PrecioCosto = p.PCostoNuevo
                         }).ToList()
                     }).ToList();
 
@@ -114,7 +115,8 @@ namespace SistemaGian.Application.Controllers
                         Precios = g.Select(p => new
                         {
                             Id = p.Id,
-                            Monto = p.PVentaNuevo // O el precio que desees mostrar
+                            PrecioVenta = p.PVentaNuevo, // O el precio que desees mostrar
+                            PrecioCosto = p.PCostoNuevo
                         }).ToList()
                     }).ToList();
 

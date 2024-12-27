@@ -287,7 +287,8 @@ async function cargarDataTableProductos(data) {
         autoWidth: false,
         columns: [
             { data: 'Nombre', width: "15%" },
-            { data: 'Precio', width: "15%" },
+            { data: 'PrecioCosto', width: "15%" },
+            { data: 'PrecioVenta', width: "15%" },
             { data: 'Cantidad', width: "15%" },
             { data: 'Total', width: "15%" },
             {
@@ -470,6 +471,7 @@ async function cargarDataTableProveedores(data) {
     });
 
 }
+
 async function anadirProducto() {
     let idCliente = parseInt($("#idCliente").val());
     let idProveedor = parseInt($("#idProveedor").val());
@@ -511,7 +513,7 @@ async function anadirProducto() {
 
             // Deshabilitar si el producto ya está en la tabla
             if (productosEnTabla.includes(producto.IdProducto)) {
-                option.prop('disabled', true);  // Deshabilitar la opción si ya está en la tabla
+                option.prop('disabled', true); // Deshabilitar la opción si ya está en la tabla
             }
 
             productoSelect.append(option);
@@ -533,10 +535,23 @@ async function anadirProducto() {
             precioSelect.empty();
             if (selectedProduct && Array.isArray(selectedProduct.Precios) && selectedProduct.Precios.length > 0) {
                 selectedProduct.Precios.forEach(precio => {
-                    precioSelect.append(`<option value="${precio.Monto}">${formatoMoneda.format(precio.Monto)}</option>`);
+                    precioSelect.append(
+                        `<option value="${precio.Result.PrecioVenta},${precio.Result.PrecioCosto}">
+                    ${formatoMoneda.format(precio.Result.PrecioVenta)}
+                </option>`
+                    );
                 });
 
-                precioInput.val(formatoMoneda.format(selectedProduct.Precios[0].Monto));
+                // Establecer el precio inicial en el input
+                const precioVenta = selectedProduct.Precios[0].Result.PrecioVenta;
+                const precioCosto = selectedProduct.Precios[0].Result.PrecioCosto;
+                const diferencia = precioVenta - precioCosto;
+
+                console.log("Precio Venta:", precioVenta);
+                console.log("Precio Costo:", precioCosto);
+                console.log("Diferencia:", diferencia);
+
+                precioInput.val(formatoMoneda.format(precioVenta));
             } else {
                 precioInput.val("");
             }
@@ -544,19 +559,21 @@ async function anadirProducto() {
 
         // Evento para actualizar el input de precio cuando se cambia el precio en el select
         precioSelect.on("change", function () {
+            const selectedValue = this.value; // Obtener el valor del option seleccionado
+            const [precioVenta, precioCosto] = selectedValue.split(",").map(Number); // Dividir PrecioVenta y PrecioCosto
+            const diferencia = precioVenta - precioCosto;
 
-            const preciosSelect = document.getElementById(`precioSelect`);
+            console.log("Precio Venta:", precioVenta);
+            console.log("Precio Costo:", precioCosto);
+            console.log("Diferencia:", diferencia);
 
-            const selectedProduct = preciosSelect.options[preciosSelect.selectedIndex]?.text
-
-           /* const selectedProduct = productos.find(p => p.IdProducto === this.value);*/
-
-            precioInput.val(selectedProduct);
+            precioInput.val(formatoMoneda.format(precioVenta));
         });
+
 
         // Disparar el evento 'change' para cargar el precio del primer producto
         productoSelect.trigger("change");
-        cantidadInput.val("1")
+        cantidadInput.val("1");
         $("#productoSelect").prop("disabled", false);
 
         modal.attr('data-editing', 'false');
@@ -570,6 +587,10 @@ async function anadirProducto() {
         console.error("No se pudieron obtener los productos o la lista está vacía.");
     }
 }
+
+
+
+
 async function ObtenerUltimosPrecios(idCliente, idProveedor) {
     const url = `/Pedidos/ListaUltimosPrecios?idCliente=${idCliente}&idProveedor=${idProveedor}`;
 
@@ -614,7 +635,17 @@ function guardarProducto() {
     const cantidadInput = parseInt(document.getElementById('cantidadInput').value) || 1; // Obtener cantidad, por defecto 1 si no es válida
     const productoId = productoSelect.value;
     const productoNombre = productoSelect.options[productoSelect.selectedIndex]?.text || '';
-    const precioFinal = formatoNumero(precioManual);
+
+    // Separar PrecioVenta y PrecioCosto
+    if (precioManual && typeof precioManual === 'string') {
+        const [precioVenta, precioCosto] = precioManual.split(",").map(Number); // Separar en PrecioVenta y PrecioCosto
+        const precioFinal = formatoNumero(precioVenta); // Llamar a formatoNumero con precioVenta
+        const precioCostoFinal = formatoNumero(precioCosto); // Llamar a formatoNumero con precioCosto
+    } else {
+        console.error("Precio no válido: ", precioManual);
+    }
+
+    const precioFinal = formatoNumero(precioVenta); // PrecioVenta final para mostrar
     const modal = $('#productosModal');
     const isEditing = modal.attr('data-editing') === 'true';
     const editId = modal.attr('data-id');
@@ -628,9 +659,10 @@ function guardarProducto() {
             const data = this.data();
             if (data.Id == editId) {
                 data.Nombre = productoNombre;
-                data.Precio = formatoMoneda.format(precioFinal);
+                data.PrecioVenta = formatoMoneda.format(precioVenta); // Guardar PrecioVenta
+                data.PrecioCosto = formatoMoneda.format(precioCosto); // Guardar PrecioCosto
                 data.Cantidad = cantidadInput; // Usar la cantidad del input
-                data.Total = formatoMoneda.format(precioFinal * cantidadInput); // Recalcular el total con formato de moneda
+                data.Total = formatoMoneda.format(precioVenta * cantidadInput); // Recalcular el total con formato de moneda
                 this.data(data).draw();
             }
         });
@@ -641,7 +673,7 @@ function guardarProducto() {
             if (data.Id == productoId) {
                 // Producto existe, sumamos las cantidades y recalculamos el total
                 data.Cantidad += cantidadInput; // Sumar la cantidad proporcionada
-                data.Total = formatoMoneda.format(formatoNumero(data.Precio) * data.Cantidad); // Recalcular el total con formato de moneda
+                data.Total = formatoMoneda.format(precioVenta * data.Cantidad); // Recalcular el total con formato de moneda
                 this.data(data).draw();
                 productoExistente = true;
             }
@@ -652,9 +684,10 @@ function guardarProducto() {
             grdProductos.row.add({
                 Id: productoId,
                 Nombre: productoNombre,
-                Precio: formatoMoneda.format(precioFinal),
+                PrecioVenta: formatoMoneda.format(precioVenta), // Agregar PrecioVenta
+                PrecioCosto: formatoMoneda.format(precioCosto), // Agregar PrecioCosto
                 Cantidad: cantidadInput, // Usar la cantidad proporcionada
-                Total: formatoMoneda.format(precioFinal * cantidadInput) // Recalcular el total con formato de moneda
+                Total: formatoMoneda.format(precioVenta * cantidadInput) // Recalcular el total con formato de moneda
             }).draw();
         }
     }
@@ -662,6 +695,9 @@ function guardarProducto() {
     // Limpiar y cerrar el modal
     modal.modal('hide');
 }
+
+
+
 function eliminarProducto(id) {
     grdProductos.rows().every(function (rowIdx, tableLoop, rowLoop) {
         const data = this.data();
@@ -739,7 +775,7 @@ async function abrirModalProducto(isEdit = false, productoId = null) {
                     // Procesa los precios
                     const precioSelect = $('#precioSelect');
                     producto.Precios.forEach(precio => {
-                        const option = $(`<option value="${precio.Id}">${formatoMoneda.format(precio.Monto)}</option>`);
+                        const option = $(`<option value="${precio.Id}">${formatoMoneda.format(precio.PrecioVenta)}</option>`);
                         precioSelect.append(option);
                     });
                 }
@@ -895,8 +931,8 @@ function editarPago(tipo, id) {
     }
 
     const row = grid.rows().data().toArray().find(row => row.Id === id);
-   
-    
+
+
     if (row) {
         // Cargar los datos en el modal
         document.getElementById(`fechapago${tipo}`).value = moment(row.Fecha, 'DD/MM/YYYY').format('YYYY-MM-DD');
