@@ -56,6 +56,19 @@ namespace SistemaGian.DAL.Repository
 
         }
 
+        public async Task<bool> InsertarProductos(List<PedidosProducto> productos)
+        {
+            foreach (PedidosProducto p in productos)
+            {
+                _dbcontext.PedidosProductos.Add(p);
+            }
+
+            await _dbcontext.SaveChangesAsync();
+            return true;
+
+        }
+
+
         public async Task<bool> InsertarPagosProveedor(List<PagosPedidosProveedor> pagos)
         {
             foreach (PagosPedidosProveedor p in pagos)
