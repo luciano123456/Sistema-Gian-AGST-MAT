@@ -67,17 +67,46 @@ const formatoMoneda = new Intl.NumberFormat('es-AR', {
     minimumFractionDigits: 2
 });
 
+function convertirMonedaAFloat(moneda) {
+    // Eliminar el símbolo de la moneda y otros caracteres no numéricos
+    const soloNumeros = moneda.replace(/[^0-9,.-]/g, '');
+
+    // Eliminar separadores de miles y convertir la coma en punto
+    const numeroFormateado = soloNumeros.replace(/\./g, '').replace(',', '.');
+
+    // Convertir a flotante
+    const numero = parseFloat(numeroFormateado);
+
+    // Devolver el número formateado como cadena, asegurando los decimales
+    return numero.toFixed(2); // Asegura siempre dos decimales en la salida
+}
+function convertirAMonedaDecimal(valor) {
+    // Reemplazar coma por punto
+    if (typeof valor === 'string') {
+        valor = valor.replace(',', '.'); // Cambiar la coma por el punto
+    }
+    // Convertir a número flotante
+    return parseFloat(valor);
+}
 
 function formatoNumero(valor) {
-    // Asegurarse de que valor sea una cadena de texto
-    if (typeof valor !== 'string') {
-        valor = String(valor);  // Convertir a cadena si no lo es
-    }
-
-    // Ahora puedes usar .replace() de manera segura
-    return valor.replace(/,/g, '').replace('.', ','); // Ejemplo de formato
+    // Reemplaza la coma por punto y elimina otros caracteres no numéricos (como $)
+    return parseFloat(valor.replace(/[^0-9,]+/g, '').replace(',', '.')) || 0;
 }
 
 function parseDecimal(value) {
     return parseFloat(value.replace(',', '.'));
 }
+
+
+function formatMoneda(valor) {
+    // Convertir a string, cambiar el punto decimal a coma y agregar separadores de miles
+    let formateado = valor
+        .toString()
+        .replace('.', ',') // Cambiar punto decimal a coma
+        .replace(/\B(?=(\d{3})+(?!\d))/g, "."); // Agregar separadores de miles
+
+    // Agregar el símbolo $ al inicio
+    return `$ ${formateado}`;
+}
+

@@ -6,6 +6,7 @@ using SistemaGian.Models;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Authorization;
+using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,6 +18,13 @@ builder.Services.AddDbContext<SistemaGianContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("cadenaSQL"));
 });
+
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true; // Insensible a mayúsculas
+        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase; // Acepta camelCase
+    });
 
 // Agregar Razor Pages
 builder.Services.AddRazorPages().AddRazorRuntimeCompilation();
@@ -84,6 +92,16 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
 
 
 var app = builder.Build();
+
+// Middleware para habilitar el buffering y registrar el cuerpo de la solicitud
+app.Use(async (context, next) =>
+{
+    context.Request.EnableBuffering();
+    var body = await new StreamReader(context.Request.Body).ReadToEndAsync();
+    Console.WriteLine(body); // Imprime el contenido del cuerpo en la consola
+    context.Request.Body.Position = 0; // Resetea el stream para que otros puedan leerlo
+    await next.Invoke();
+});
 
 // Configurar el pipeline de middleware
 if (!app.Environment.IsDevelopment())

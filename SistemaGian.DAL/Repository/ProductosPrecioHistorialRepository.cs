@@ -95,7 +95,12 @@ namespace SistemaGian.DAL.Repository
                 {
                     // Filtra el historial de precios para el producto actual y el cliente específico
                     var historialPrecios = producto.ProductosPreciosHistorial
-                        .Where(h => h.IdCliente == idCliente || idCliente == -1 && h.IdProveedor == idProveedor || idProveedor == -1)
+                        .Where(h =>
+                    (idCliente == -1 && idProveedor == -1) || // Si ambos son -1, traer todos
+                    (idCliente == -1 && h.IdProveedor == idProveedor) || // Si idCliente es -1, coincidir por proveedor
+                    (idProveedor == -1 && h.IdCliente == idCliente) || // Si idProveedor es -1, coincidir por cliente
+                    (h.IdCliente == idCliente && h.IdProveedor == idProveedor) // Coincidencia exacta
+                )
                         .OrderByDescending(h => h.Id) // Ordenar por Id descendente para obtener los precios más recientes
                         .Take(3) // Tomar los últimos 3 precios
                         .ToList();
@@ -112,6 +117,7 @@ namespace SistemaGian.DAL.Repository
                         {
                             IdProducto = producto.Id,
                             PVentaNuevo = producto.PVenta, // Precio base del producto
+                            PCostoNuevo = producto.PCosto, // Precio base del producto
                             IdCliente = idCliente,
                             IdProveedor = idProveedor,
                             IdProductoNavigation = producto
@@ -144,8 +150,11 @@ namespace SistemaGian.DAL.Repository
 
                 // Filtrar el historial de precios para el producto específico, el cliente y el proveedor
                 var historialPrecios = producto.ProductosPreciosHistorial
-                    .Where(h => (h.IdCliente == idCliente || idCliente == -1) &&
-                                (h.IdProveedor == idProveedor || idProveedor == -1))
+                    .Where(h =>
+                    (idCliente == -1 && idProveedor == -1) || // Si ambos son -1, traer todos
+                    (idCliente == -1 && h.IdProveedor == idProveedor) || // Si idCliente es -1, coincidir por proveedor
+                    (idProveedor == -1 && h.IdCliente == idCliente) || // Si idProveedor es -1, coincidir por cliente
+                    (h.IdCliente == idCliente && h.IdProveedor == idProveedor)) // Coincidencia exacta
                     .OrderByDescending(h => h.Id) // Ordenar por Id descendente para obtener los precios más recientes
                     .Take(3) // Tomar los últimos 3 precios
                     .ToList();
@@ -157,6 +166,7 @@ namespace SistemaGian.DAL.Repository
                     {
                         IdProducto = producto.Id,
                         PVentaNuevo = producto.PVenta, // Precio base del producto
+                        PCostoNuevo = producto.PCosto, // Precio base del producto
                         IdCliente = idCliente,
                         IdProveedor = idProveedor,
                         IdProductoNavigation = producto

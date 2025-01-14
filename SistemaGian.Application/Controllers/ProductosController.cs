@@ -195,6 +195,8 @@ namespace SistemaGian.Application.Controllers
 
             bool respuesta = await _Productoservice.Insertar(Producto);
 
+            await _Productoservice.Actualizar(Producto);
+
             return Ok(new { valor = respuesta });
         }
 

@@ -112,11 +112,15 @@
             </div>
         </div>
 
+        <!-- Contenido de la solapa 'Datos del Pedido' -->
         <div class="tab-pane fade" id="pedido" role="tabpanel" aria-labelledby="pedido-tab">
             <div class="card mb-4">
                 <div class="card-body">
                     <h3 class="card-title">Datos del Pedido</h3>
+                    <input type="text" class="input-nuevo" id="Id" name="Id" hidden>
+                    <input type="text" class="input-nuevo" id="idZona" name="idZona" hidden>
                     <div class="form-container">
+                        <!-- Sección de Datos del Pedido -->
                         <div class="form-group">
                             <label for="fechaPedido">Fecha</label>
                             <input type="date" class="input-nuevo" id="fechaPedido" name="fechaPedido">
@@ -129,9 +133,8 @@
                             <label for="nroRemito">Nro Remito</label>
                             <input type="text" class="input-nuevo" id="nroRemito" name="nroRemito">
                         </div>
-
-                         <div class="form-group">
-                            <input type="text" class="input-nuevo" id="IdZona" name="IdZona" hidden>
+                        <div class="form-group">
+                          
                             <label for="zona">Zona</label>
                             <div style="display: flex; align-items: center;">
                                 <input type="text" class="input-nuevo" id="Zona" name="Zona" style="flex: 1;" readonly>
@@ -141,9 +144,8 @@
                                 </button>
                             </div>
                         </div>
-
                         <div class="form-group">
-                            <input type="text" class="input-nuevo" id="IdChofer" name="IdChofer" hidden>
+                            <input type="text" class="input-nuevo" id="idChofer" name="idChofer" hidden>
                             <label for="chofer">Chofer</label>
                             <div style="display: flex; align-items: center;">
                                 <input type="text" class="input-nuevo" id="Chofer" name="Chofer" style="flex: 1;" readonly>
@@ -154,42 +156,67 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="zona">Costo Envio</label>
-                            <input type="text" class="input-nuevo" id="costoEnvio" name="zona" placeholder="$0.00">
+                            <label for="zona">Costo Flete</label>
+                            <input type="text" class="input-nuevo" id="costoFlete" name="zona" placeholder="$0.00">
                         </div>
-
                         <div class="form-group">
+                            <label class="">Estado</label>
+                            <select id="estado" name="select" class="input-nuevo select-modal-personalizado">
+                                <option value="Pendiente" selected>Pendiente</option>
+                                <option value="Entregado">Entregado</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="observacion">Observacion</label>
+                            <input type="text" class="input-nuevo" id="observacion" name="observacion">
+                        </div>
+                       
+                        @* <div class="form-group">
                             <label for="total">Total</label>
                             <input type="text" class="input-nuevo" id="total" name="total">
+                        </div> *@
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sección de Detalle de Pagos dentro de la misma solapa -->
+            <div class="card mb-4 mt-4">
+                <div class="card-body">
+                    <h3 class="card-title">Detalle de Pagos</h3>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <label for="totalPagoProveedor">Total a pagar a proveedor:</label>
+                            <input type="text" class="input-nuevo form-control" id="totalPagoProveedor" name="totalPagoProveedor" readonly>
                         </div>
-                        <div class="form-group">
-                            <label for="totalPagoProveedor">Total Pago Proveedor</label>
-                            <input type="text" class="input-nuevo" id="totalPagoProveedor" name="totalPagoProveedor" readonly>
+                        <div class="col-md-4">
+                            <label for="totalPagadoaProveedor">Total pagado a proveedor:</label>
+                            <input type="text" class="input-nuevo form-control" id="totalPagadoaProveedor" name="totalPagadoaProveedor" readonly>
                         </div>
-                        <div class="form-group">
-                            <label for="totalPagoCliente">Total Pago Cliente</label>
-                            <input type="text" class="input-nuevo" id="totalPagoCliente" name="totalPagoCliente" readonly>
+                        <div class="col-md-4">
+                            <label for="restanteProveedor">Total restante proveedor:</label>
+                            <input type="text" class="input-nuevo form-control" id="restanteProveedor" name="restanteProveedor" readonly>
                         </div>
-                        <div class="form-group">
-                            <label for="restanteProveedor">Restante Proveedor</label>
-                            <input type="text" class="input-nuevo" id="restanteProveedor" name="restanteProveedor">
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-md-4">
+                            <label for="totalPagoCliente">Total a pagar el cliente:</label>
+                            <input type="text" class="input-nuevo form-control" id="totalPagoCliente" name="totalPagoCliente" readonly>
                         </div>
-                        <div class="form-group">
-                            <label for="restanteCliente">Restante Cliente</label>
-                            <input type="text" class="input-nuevo" id="restanteCliente" name="restanteCliente">
+                        <div class="col-md-4">
+                            <label for="totalPagadoCliente">Total pago cliente:</label>
+                            <input type="text" class="input-nuevo form-control" id="totalPagadoCliente" name="totalPagadoCliente" readonly>
                         </div>
-                        <div class="form-group">
-                            <label for="estado">Estado</label>
-                            <input type="text" class="input-nuevo" id="estado" name="estado">
-                        </div>
-                        <div class="form-group">
-                            <label for="observacion">Observación</label>
-                            <input type="text" class="input-nuevo" id="observacion" name="observacion">
+                        <div class="col-md-4">
+                            <label for="restanteCliente">Total restante cliente:</label>
+                            <input type="text" class="input-nuevo form-control" id="restanteCliente" name="restanteCliente" readonly>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
+
+
+
     </div>
 
     <!-- Pestañas -->
@@ -215,7 +242,7 @@
                         <thead>
                             <tr>
                                 <th>Nombre</th>
-                                <th>Precio Costo</th>
+                                <th hidden>Precio Costo</th>
                                 <th>Precio Venta</th>
                                 <th>Cantidad</th>
                                 <th>Total</th>
@@ -320,7 +347,7 @@
     </div>
 
 
-    <button type="submit" class="btn btn-primary mt-3">Registrar</button>
+    <button type="submit" class="btn btn-primary mt-3" onclick="guardarCambios()">Registrar</button>
 
     <div id="proveedorModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="proveedorModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg" role="document">

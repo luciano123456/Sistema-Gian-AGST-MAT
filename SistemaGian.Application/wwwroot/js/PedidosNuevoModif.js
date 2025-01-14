@@ -7,7 +7,7 @@ const cantidadPagoClienteInput = document.getElementById('cantidadPagoCliente');
 const cotizacionPagoClienteInput = document.getElementById('cotizacionPagoCliente');
 const cantidadPagoProveedorInput = document.getElementById('cantidadPagoProveedor');
 const cotizacionPagoProveedorInput = document.getElementById('cotizacionPagoProveedor');
-const costoEnvioInput = document.getElementById('costoEnvio');
+const costoFleteInput = document.getElementById('costoFlete');
 
 
 $(document).ready(async function () {
@@ -19,11 +19,21 @@ $(document).ready(async function () {
 
     document.getElementById(`fechaPedido`).value = moment().format('YYYY-MM-DD');
     document.getElementById(`fechaEntrega`).value = moment().add(3, 'days').format('YYYY-MM-DD');
-    document.getElementById(`costoEnvio`).value = "$0.00";
+    document.getElementById(`costoFlete`).value = "$0.00";
 
 
     calcularTotalPago('Cliente');
     calcularTotalPago('Proveedor');
+    calcularDatosPedido();
+
+    const selectedValue = document.getElementById("estado").value;
+    const selectElement = document.getElementById("estado");
+
+    if (selectedValue === "Pendiente") {
+        selectElement.style.setProperty('color', 'yellow', 'important');
+    } else if (selectedValue === "Entregado") {
+        selectElement.style.setProperty('color', 'white', 'important');
+    }
 
 });
 
@@ -251,7 +261,8 @@ function cargarDatosChofer(data) {
 function cargarDatosZona(data) {
     $('#idZona').val(data.Id);
     $('#Zona').val(data.Nombre);
-    $('#costoEnvio').val(formatNumber(data.Precio));
+    $('#costoFlete').val(formatNumber(data.Precio));
+    calcularDatosPedido();
 }
 
 
@@ -287,7 +298,7 @@ async function cargarDataTableProductos(data) {
         autoWidth: false,
         columns: [
             { data: 'Nombre', width: "15%" },
-            { data: 'PrecioCosto', width: "15%" },
+            { data: 'PrecioCosto', width: "15%", visible: false },
             { data: 'PrecioVenta', width: "15%" },
             { data: 'Cantidad', width: "15%" },
             { data: 'Total', width: "15%" },
@@ -528,7 +539,7 @@ async function anadirProducto() {
         }
 
         // Evento para actualizar precios cuando se selecciona un producto
-        productoSelect.on("change", function () {
+        productoSelect.on("change", async function () {
             const selectedProductId = parseInt(this.value);
             const selectedProduct = productos.find(p => p.IdProducto === selectedProductId);
 
@@ -547,18 +558,18 @@ async function anadirProducto() {
                 const precioCosto = selectedProduct.Precios[0].Result.PrecioCosto;
                 const diferencia = precioVenta - precioCosto;
 
-                console.log("Precio Venta:", precioVenta);
-                console.log("Precio Costo:", precioCosto);
-                console.log("Diferencia:", diferencia);
-
                 precioInput.val(formatoMoneda.format(precioVenta));
+
+                // Calcular el total
+                await calcularTotal();
+
             } else {
                 precioInput.val("");
             }
         });
 
         // Evento para actualizar el input de precio cuando se cambia el precio en el select
-        precioSelect.on("change", function () {
+        precioSelect.on("change", async function () {
             const selectedValue = this.value; // Obtener el valor del option seleccionado
             const [precioVenta, precioCosto] = selectedValue.split(",").map(Number); // Dividir PrecioVenta y PrecioCosto
             const diferencia = precioVenta - precioCosto;
@@ -568,6 +579,10 @@ async function anadirProducto() {
             console.log("Diferencia:", diferencia);
 
             precioInput.val(formatoMoneda.format(precioVenta));
+
+            // Calcular el total
+            await calcularTotal();
+
         });
 
 
@@ -629,23 +644,35 @@ function seleccionarProducto(idProducto) {
     // Lógica para seleccionar el producto
     console.log(`Producto seleccionado: ${idProducto}, Precio: ${precioSeleccionado.precio}`);
 }
-function guardarProducto() {
+
+async function guardarProducto() {
+    const precioSelect = document.getElementById('precioSelect');
     const productoSelect = document.getElementById('productoSelect');
-    const precioManual = document.getElementById('precioInput').value;
+    const precioManual = convertirMonedaAFloat(document.getElementById('precioInput').value);
+    const totalInput = convertirMonedaAFloat(document.getElementById('totalInput').value);
     const cantidadInput = parseInt(document.getElementById('cantidadInput').value) || 1; // Obtener cantidad, por defecto 1 si no es válida
     const productoId = productoSelect.value;
     const productoNombre = productoSelect.options[productoSelect.selectedIndex]?.text || '';
+    const primerOptionValue = precioSelect.options[0].value;
+    let [precioVenta, precioCosto] = primerOptionValue.split(",").map(Number);
 
-    // Separar PrecioVenta y PrecioCosto
-    if (precioManual && typeof precioManual === 'string') {
-        const [precioVenta, precioCosto] = precioManual.split(",").map(Number); // Separar en PrecioVenta y PrecioCosto
-        const precioFinal = formatoNumero(precioVenta); // Llamar a formatoNumero con precioVenta
-        const precioCostoFinal = formatoNumero(precioCosto); // Llamar a formatoNumero con precioCosto
-    } else {
-        console.error("Precio no válido: ", precioManual);
-    }
+    let i = 0;
 
-    const precioFinal = formatoNumero(precioVenta); // PrecioVenta final para mostrar
+    Array.from(precioSelect.options).forEach(option => {
+
+        const value = option.value; // Obtener el valor del atributo value
+
+        // Si necesitas trabajar con precios separados por coma
+        const [precioVentaSelect, precioCostoSelect] = value.split(',').map(Number); // Separar precios y convertir a números
+
+        if (precioVentaSelect == parseFloat(precioManual)) {
+            precioVenta = precioVentaSelect;
+            precioCosto = precioCostoSelect;
+        }
+
+        i++;
+    });
+
     const modal = $('#productosModal');
     const isEditing = modal.attr('data-editing') === 'true';
     const editId = modal.attr('data-id');
@@ -659,10 +686,10 @@ function guardarProducto() {
             const data = this.data();
             if (data.Id == editId) {
                 data.Nombre = productoNombre;
-                data.PrecioVenta = formatoMoneda.format(precioVenta); // Guardar PrecioVenta
+                data.PrecioVenta = formatoMoneda.format(precioManual); // Guardar PrecioVenta
                 data.PrecioCosto = formatoMoneda.format(precioCosto); // Guardar PrecioCosto
                 data.Cantidad = cantidadInput; // Usar la cantidad del input
-                data.Total = formatoMoneda.format(precioVenta * cantidadInput); // Recalcular el total con formato de moneda
+                data.Total = formatoMoneda.format(totalInput); // Recalcular el total con formato de moneda
                 this.data(data).draw();
             }
         });
@@ -673,7 +700,7 @@ function guardarProducto() {
             if (data.Id == productoId) {
                 // Producto existe, sumamos las cantidades y recalculamos el total
                 data.Cantidad += cantidadInput; // Sumar la cantidad proporcionada
-                data.Total = formatoMoneda.format(precioVenta * data.Cantidad); // Recalcular el total con formato de moneda
+                data.Total = formatoMoneda.format(precioManual * data.Cantidad); // Recalcular el total con formato de moneda
                 this.data(data).draw();
                 productoExistente = true;
             }
@@ -684,18 +711,72 @@ function guardarProducto() {
             grdProductos.row.add({
                 Id: productoId,
                 Nombre: productoNombre,
-                PrecioVenta: formatoMoneda.format(precioVenta), // Agregar PrecioVenta
+                PrecioVenta: formatoMoneda.format(precioManual), // Agregar PrecioVenta
                 PrecioCosto: formatoMoneda.format(precioCosto), // Agregar PrecioCosto
                 Cantidad: cantidadInput, // Usar la cantidad proporcionada
-                Total: formatoMoneda.format(precioVenta * cantidadInput) // Recalcular el total con formato de moneda
+                Total: formatoMoneda.format(totalInput) // Recalcular el total con formato de moneda
             }).draw();
         }
     }
 
     // Limpiar y cerrar el modal
     modal.modal('hide');
+
+    await calcularDatosPedido();
 }
 
+async function calcularDatosPedido() {
+    let pedidoVenta = 0, pedidoCosto = 0, pagosaproveedores = 0, pagosclientes = 0, restantecliente = 0, restanteproveedor = 0, pedidoVentaFinal = 0;
+    const inputRestanteProveedor = document.getElementById("restanteProveedor");
+    const inputRestanteCliente = document.getElementById("restanteCliente");
+    const costoFlete = document.getElementById("costoFlete");
+
+    grdProductos.rows().every(function () {
+        const producto = this.data();
+        pedidoVenta += parseFloat(convertirMonedaAFloat(producto.PrecioVenta));
+        pedidoCosto += parseFloat(convertirMonedaAFloat(producto.PrecioCosto));
+    });
+
+    grdPagosaProveedores.rows().every(function () {
+        const pago = this.data();
+        pagosaproveedores += parseFloat(convertirMonedaAFloat(pago.TotalArs));
+    });
+
+    grdPagosaClientes.rows().every(function () {
+        const pago = this.data();
+        pagosclientes += parseFloat(convertirMonedaAFloat(pago.TotalArs));
+    });
+
+    restanteproveedor = pedidoCosto - pagosaproveedores;
+    pedidoVentaFinal = pedidoVenta + parseFloat(convertirMonedaAFloat(costoFlete.value));
+    restantecliente = pedidoVentaFinal - pagosclientes
+
+    //document.getElementById("total").value = formatoMoneda.format(pedidoVenta);
+    document.getElementById("totalPagoProveedor").value = formatoMoneda.format(pedidoCosto);
+    document.getElementById("totalPagadoaProveedor").value = formatoMoneda.format(pagosaproveedores);
+    document.getElementById("totalPagoCliente").value = formatoMoneda.format(pedidoVentaFinal);
+    document.getElementById("totalPagadoCliente").value = formatoMoneda.format(pagosclientes);
+
+
+    inputRestanteProveedor.value = formatoMoneda.format(restanteproveedor);
+
+    // Cambiar el color según el valor de restanteproveedor
+    if (restanteproveedor < 0) {
+        inputRestanteProveedor.style.setProperty("color", "red", "important"); // Aplicar color rojo con !important
+    } else {
+        inputRestanteProveedor.style.setProperty("color", "white", "important"); // Aplicar color blanco con !important
+    }
+
+    inputRestanteCliente.value = formatoMoneda.format(restantecliente);
+
+    // Cambiar el color según el valor de restanteproveedor
+    if (restantecliente < 0) {
+        inputRestanteCliente.style.setProperty("color", "red", "important"); // Aplicar color rojo con !important
+    } else {
+        inputRestanteCliente.style.setProperty("color", "white", "important"); // Aplicar color blanco con !important
+    }
+
+}
 
 
 function eliminarProducto(id) {
@@ -705,6 +786,8 @@ function eliminarProducto(id) {
             grdProductos.row(rowIdx).remove().draw();
         }
     });
+
+    calcularDatosPedido();
 }
 function editarProducto(id) {
     // Buscar el producto en el DataTable por su ID
@@ -740,6 +823,8 @@ async function abrirModalProducto(isEdit = false, productoId = null) {
     const precioInput = document.getElementById('precioInput');  // El select donde se cargarán los precios
     const cantidadInput = document.getElementById('cantidadInput');
 
+    let i = 0, optionSeleccionado = 0;
+
     productoSelect.value = '';
     precioSelect.innerHTML = '';  // Limpiar precios anteriores
     cantidadInput.value = '';
@@ -762,6 +847,7 @@ async function abrirModalProducto(isEdit = false, productoId = null) {
             // Llamada a la función para obtener los precios del producto
             const productosResponse = await ObtenerUltimosPreciosProducto(idCliente, idProveedor, productoId);
 
+
             // Verifica la estructura de productosResponse y valor
             console.log("Respuesta de productos:", productosResponse);
 
@@ -775,21 +861,38 @@ async function abrirModalProducto(isEdit = false, productoId = null) {
                     // Procesa los precios
                     const precioSelect = $('#precioSelect');
                     producto.Precios.forEach(precio => {
-                        const option = $(`<option value="${precio.Id}">${formatoMoneda.format(precio.PrecioVenta)}</option>`);
+                        const option = $(`<option value="${precio.PrecioVenta},${precio.PrecioCosto}">
+                                        ${formatoMoneda.format(precio.PrecioVenta)}
+                                        </option>`);
+
                         precioSelect.append(option);
+
+                        if (parseFloat(convertirMonedaAFloat(productoData.PrecioVenta)) == parseFloat(precio.PrecioVenta)) {
+                            optionSeleccionado = i;
+                        }
+
+                        i++;
                     });
+
+
+
+
                 }
             } else {
                 console.log("No se encontraron productos en la respuesta o la propiedad 'valor' está vacía.");
             }
 
+
+
             // Cargar datos del producto en el producto select
             productoSelect.value = productoId;
             cantidadInput.value = productoData.Cantidad;
-            precioInput.value = productoData.Precio;
+            precioInput.value = productoData.PrecioVenta;
 
             // Deshabilitar el select si estamos editando el producto
             productoSelect.disabled = true;
+
+            precioSelect.options[optionSeleccionado].selected = true;
 
             // Calcular el total
             await calcularTotal();
@@ -829,11 +932,10 @@ document.getElementById('cantidadInput').addEventListener('input', function () {
 });
 
 document.getElementById('precioInput').addEventListener('blur', function () {
-    const rawValue = this.value.replace(/[^0-9.,]/g, '').replace(',', '.');
-    const parsedValue = parseFloat(rawValue) || 0;
+
 
     // Formatear el número al finalizar la edición
-    this.value = formatNumber(parsedValue);
+    this.value = formatMoneda(convertirMonedaAFloat(this.value));
 
     // Recalcular el total cada vez que cambia el precio
     calcularTotal();
@@ -938,7 +1040,7 @@ function editarPago(tipo, id) {
         document.getElementById(`fechapago${tipo}`).value = moment(row.Fecha, 'DD/MM/YYYY').format('YYYY-MM-DD');
         document.getElementById(`MonedasPago${tipo}`).value = row.IdMoneda;
         document.getElementById(`cotizacionPago${tipo}`).value = formatoMoneda.format(formatoNumero(row.Cotizacion));
-        document.getElementById(`cantidadPago${tipo}`).value = row.Total;
+        document.getElementById(`cantidadPago${tipo}`).value = parseFloat(convertirMonedaAFloat(row.Total));
         document.getElementById(`observacionPago${tipo}`).value = row.Observacion;
 
         calcularTotalCotizacionPago(tipo);
@@ -981,13 +1083,15 @@ function eliminarPago(tipo, id) {
 
         calcularTotalPago(tipo);
     });
+
+    calcularDatosPedido();
 }
 function guardarPago(tipo) {
     const modal = $(`#pagos${tipo}Modal`);
     const monedaSelect = document.getElementById(`MonedasPago${tipo}`);
     const cotizacion = formatoNumero(document.getElementById(`cotizacionPago${tipo}`).value);
-    const cantidadInput = parseInt(document.getElementById(`cantidadPago${tipo}`).value) || 1; // Obtener cantidad, por defecto 1 si no es válida
-    const total = parseInt(document.getElementById(`totalARSPago${tipo}`).value) || 1; // Obtener cantidad, por defecto 1 si no es válida
+    const cantidadInput = parseFloat(document.getElementById(`cantidadPago${tipo}`).value) || 1; // Obtener cantidad, por defecto 1 si no es válida
+    const total = parseFloat(document.getElementById(`totalARSPago${tipo}`).value) || 1; // Obtener cantidad, por defecto 1 si no es válida
     const observacion = document.getElementById(`observacionPago${tipo}`).value; // Obtener cantidad, por defecto 1 si no es válida
     const fechapago = document.getElementById(`fechapago${tipo}`).value; // Obtener cantidad, por defecto 1 si no es válida
     const pagoId = `pago_${Date.now()}`; // Identificador basado en el timestamp
@@ -1010,7 +1114,7 @@ function guardarPago(tipo) {
                     data.IdMoneda = monedaSelect.value,
                     data.Moneda = monedaSelect.options[monedaSelect.selectedIndex]?.text || '',
                     data.Cotizacion = formatoMoneda.format(cotizacion),
-                    data.Total = cantidadInput, // Usar la cantidad proporcionada
+                    data.Total = formatoMoneda.format(cantidadInput), // Usar la cantidad proporcionada
                     data.TotalArs = formatoMoneda.format(cotizacion * cantidadInput), // Recalcular el total con formato de moneda
                     data.Observacion = observacion
                 this.data(data).draw();
@@ -1024,13 +1128,14 @@ function guardarPago(tipo) {
             IdMoneda: monedaSelect.value,
             Moneda: monedaSelect.options[monedaSelect.selectedIndex]?.text || '',
             Cotizacion: formatoMoneda.format(cotizacion),
-            Total: cantidadInput, // Usar la cantidad proporcionada
+            Total: formatoMoneda.format(cantidadInput), // Usar la cantidad proporcionada
             TotalArs: formatoMoneda.format(cotizacion * cantidadInput), // Recalcular el total con formato de moneda
             Observacion: observacion
         }).draw();
     }
 
     calcularTotalPago(tipo);
+    calcularDatosPedido();
     // Limpiar y cerrar el modal
     modal.modal('hide');
 }
@@ -1109,7 +1214,11 @@ async function anadirPago(tipo) {
 
             calcularTotalCotizacionPago(tipo);
 
+
         });
+
+
+
     } else {
         console.warn('No se pudieron cargar las monedas.');
     }
@@ -1161,12 +1270,13 @@ cotizacionPagoProveedorInput.addEventListener('blur', function () {
 });
 
 
-costoEnvioInput.addEventListener('blur', function () {
+costoFleteInput.addEventListener('blur', function () {
     const rawValue = this.value.replace(/[^0-9.,]/g, '').replace(',', '.');
     const parsedValue = parseFloat(rawValue) || 0;
 
     // Formatear el número al finalizar la edición
     this.value = formatNumber(parsedValue);
+    calcularDatosPedido();
 });
 
 async function ObtenerMonedas() {
@@ -1183,4 +1293,112 @@ async function ObtenerMonedas() {
         console.error('Error:', error);
         return null; // Maneja el caso de error
     }
+}
+
+document.getElementById("estado").addEventListener("change", function () {
+    const selectedValue = this.value;
+    const selectElement = this;
+
+    // Cambiar el color de la opción seleccionada
+    if (selectedValue === "Pendiente") {
+        selectElement.style.setProperty('color', 'yellow', 'important');  // Cambia a amarillo si es "Pendiente"
+    } else if (selectedValue === "Entregado") {
+        selectElement.style.setProperty('color', 'green', 'important');  // Cambia a blanco si es "Entregado"
+    }
+});
+
+
+function guardarCambios() {
+    const idPedido = $("#Id").val();
+
+    // Función reutilizable para recolectar los pagos
+    function obtenerPagos(grd) {
+        let pagos = [];
+        grd.rows().every(function () {
+            const pago = this.data();
+            const pagoJson = {
+                "Id": 0,
+                "Fecha": moment(pago.Fecha, 'YYYY-MM-DD').format('YYYY-MM-DD'),
+                "IdMoneda": parseInt(pago.IdMoneda),
+                "Cotizacion": parseFloat(convertirMonedaAFloat(pago.Cotizacion)),
+                "Total": parseFloat(convertirMonedaAFloat(pago.Total)),
+                "TotalArs": parseFloat(convertirMonedaAFloat(pago.TotalArs)),
+                "Observacion": pago.Observacion // Ajusta si es necesario
+            };
+            pagos.push(pagoJson);
+        });
+        return pagos;
+    }
+
+    function obtenerProductos(grd) {
+        let productos = [];
+        grd.rows().every(function () {
+            const producto = this.data();
+            const productoJson = {
+                "Id": 0,
+                "IdProducto": parseInt(producto.Id),
+                "Nombre": producto.Nombre,
+                "Precio": parseFloat(convertirMonedaAFloat(producto.PrecioVenta)),
+                "Cantidad": parseInt(producto.Cantidad),
+                
+            };
+            productos.push(productoJson);
+        });
+        return productos;
+    }
+
+    // Obtener los pagos de clientes y proveedores usando la función reutilizable
+    const pagosClientes = obtenerPagos(grdPagosaClientes);
+    const pagosaProveedores = obtenerPagos(grdPagosaProveedores);
+    const productos = obtenerProductos(grdProductos);
+
+    // Construcción del objeto para el modelo
+    const nuevoModelo = {
+        "Id": idPedido !== "" ? idPedido : 0,
+        "Fecha": moment($("#fechaPedido").val(), 'YYYY-MM-DD').format('YYYY-MM-DD'),
+        "IdCliente": parseInt($("#idCliente").val()),
+        "FechaEntrega": moment($("#fechaEntrega").val(), 'YYYY-MM-DD').format('YYYY-MM-DD'),
+        "NroRemito": $("#nroRemito").val(),
+        "CostoFlete": parseFloat(convertirMonedaAFloat($("#costoFlete").val())),
+        "IdProveedor": parseInt($("#idProveedor").val()),
+        "IdZona": parseInt($("#idZona").val()),
+        "IdChofer": parseInt($("#idChofer").val()),
+        "TotalCliente": parseFloat(convertirMonedaAFloat($("#totalPagoCliente").val())),
+        "RestanteCliente": parseFloat(convertirMonedaAFloat($("#restanteCliente").val())),
+        "TotalProveedor": parseFloat(convertirMonedaAFloat($("#totalPagoProveedor").val())),
+        "RestanteProveedor": parseFloat(convertirMonedaAFloat($("#restanteProveedor").val())),
+        "Estado": $("#estado").val(),
+        "Observacion": $("#observacion").val(),
+        "PagosPedidosClientes": pagosClientes,
+        "PagosPedidosProveedores": pagosaProveedores,
+        "PedidosProductos": productos
+    };
+
+    // Definir la URL y el método para el envío
+    const url = idPedido === "" ? "Insertar" : "Actualizar";
+    const method = idPedido === "" ? "POST" : "PUT";
+
+    console.log(JSON.stringify(nuevoModelo))
+
+    // Enviar los datos al servidor
+    fetch(url, {
+        method: method,
+        headers: {
+            'Content-Type': 'application/json;charset=utf-8'
+        },
+        body: JSON.stringify(nuevoModelo)
+    })
+        .then(response => {
+           
+            if (!response.ok) throw new Error(response.statusText);
+            return response.json();
+        })
+        .then(dataJson => {
+            console.log("Respuesta del servidor:", dataJson);
+            const mensaje = idPedido === "" ? "Pedido registrado correctamente" : "Pedido modificado correctamente";
+            exitoModal(mensaje);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
 }

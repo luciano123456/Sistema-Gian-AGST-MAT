@@ -35,6 +35,11 @@ namespace SistemaGian.BLL.Service
             return await _contactRepo.InsertarPagosCliente(pagos);
         }
 
+        public async Task<bool> InsertarProductos(List<PedidosProducto> productos)
+        {
+            return await _contactRepo.InsertarProductos(productos);
+        }
+
         public async Task<bool> InsertarPagosProveedor(List<PagosPedidosProveedor> pagos)
         {
             return await _contactRepo.InsertarPagosProveedor(pagos);
