@@ -37,12 +37,28 @@ namespace SistemaGian.DAL.Repository
             return true;
         }
 
-        public async Task<bool> EliminarPedido(int idPedido)
+        public async Task<bool> Eliminar(int idPedido)
         {
-            Pedido pedido = _dbcontext.Pedidos.First(c => c.Id == idPedido);
-            await _dbcontext.SaveChangesAsync();
-            return true;
+            try
+            {
+                Pedido pedido = _dbcontext.Pedidos.FirstOrDefault(c => c.Id == idPedido);
+                if (pedido == null)
+                {
+                    return false; // No se encontró el pedido
+                }
+
+                _dbcontext.Pedidos.Remove(pedido);
+                await _dbcontext.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                // Aquí podrías registrar el error para depuración
+                Console.WriteLine(ex.Message);
+                return false;
+            }
         }
+
 
         public async Task<bool> InsertarPagosCliente(List<PagosPedidosCliente> pagos)
         {
@@ -113,14 +129,27 @@ namespace SistemaGian.DAL.Repository
 
         public async Task<Pedido> ObtenerPedido(int idPedido)
         {
-            Pedido pedido = _dbcontext.Pedidos.FirstOrDefault(c => c.Id == idPedido);
+            Pedido pedido = _dbcontext.Pedidos
+                .Include(c => c.IdClienteNavigation)
+                .Include(c => c.IdProveedorNavigation)
+                .FirstOrDefault(c => c.Id == idPedido);
             return pedido;
         }
 
         public async Task<List<PedidosProducto>> ObtenerProductosPedido(int idPedido)
         {
-            List<PedidosProducto> productos = _dbcontext.PedidosProductos.Where(c => c.IdPedido == idPedido).ToList();
+            List<PedidosProducto> productos = _dbcontext.PedidosProductos
+                .Include(c => c.IdProductoNavigation)
+                .Where(c => c.IdPedido == idPedido).ToList();
             return productos;
+        }
+
+        public async Task<IQueryable<Pedido>> ObtenerTodos()
+        {
+            IQueryable<Pedido> query = _dbcontext.Pedidos
+                .Include(c => c.IdClienteNavigation)
+                .Include(c => c.IdProveedorNavigation);
+            return await Task.FromResult(query);
         }
     }
 }

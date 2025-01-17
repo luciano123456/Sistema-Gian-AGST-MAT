@@ -10,7 +10,7 @@ public partial class Pedido
 
     public DateTime? Fecha { get; set; }
 
-    public int IdCliente { get; set; }
+    public int? IdCliente { get; set; }
 
     public DateTime? FechaEntrega { get; set; }
 
@@ -18,19 +18,21 @@ public partial class Pedido
 
     public decimal? CostoFlete { get; set; }
 
-    public int IdProveedor { get; set; }
+    public int? IdProveedor { get; set; }
 
     public int? IdZona { get; set; }
 
     public int? IdChofer { get; set; }
 
-    public decimal TotalCliente { get; set; }
+    public decimal? TotalCliente { get; set; }
 
-    public decimal RestanteCliente { get; set; }
+    public decimal? RestanteCliente { get; set; }
 
-    public decimal TotalProveedor { get; set; }
+    public decimal? TotalProveedor { get; set; }
 
-    public decimal RestanteProveedor { get; set; }
+    public decimal? RestanteProveedor { get; set; }
+    public decimal? TotalGanancia { get; set; }
+    public decimal? PorcGanancia { get; set; }
 
     public string? Estado { get; set; }
 

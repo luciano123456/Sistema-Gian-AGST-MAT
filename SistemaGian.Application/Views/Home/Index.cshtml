@@ -108,8 +108,8 @@
 
                             <div class="col">
                                 <div class="d-flex flex-column align-items-center">
-                                    <img src="~/Imagenes/Menu Principal/Ventas.png" class="img-fluid max-img-size" alt="Historial de Ventas" title="Historial de Ventas">
-                                    <button type="button" class="btn mt-2 btnMenu bg-danger">Historial de Ventas</button>
+                                    <img src="~/Imagenes/Menu Principal/Ventas.png" class="img-fluid max-img-size" alt="Ventas" title="Ventas">
+                                    <button type="button" class="btn mt-2 btnMenu bg-success" onclick="window.location.href='@Url.Action("Index", "Ventas")'">Ventas</button>
                                 </div>
                             </div>
                             <div class="col">
@@ -120,8 +120,8 @@
                             </div>
                             <div class="col">
                                 <div class="d-flex flex-column align-items-center">
-                                    <img src="~/Imagenes/Menu Principal/Pedidos.png" class="img-fluid max-img-size" alt="Historial de Pedidos" title="Historial de Pedidos">
-                                    <button type="button" class="btn mt-2 btnMenu bg-danger">Historial de Pedidos</button>
+                                    <img src="~/Imagenes/Menu Principal/Pedidos.png" class="img-fluid max-img-size" alt="Pedidos" title="Pedidos">
+                                    <button type="button" class="btn mt-2 btnMenu bg-success" onclick="window.location.href='@Url.Action("Index", "Pedidos")'">Pedidos</button>
                                 </div>
                             </div>
                             <div class="col">
@@ -160,7 +160,8 @@
                             <div class="col">
                                 <div class="d-flex flex-column align-items-center">
                                     <img src="~/Imagenes/Menu Principal/Analisis.png" class="img-fluid max-img-size" alt="Analisis de Datos" title="Analisis de Datos">
-                                    <button type="button" class="btn mt-2 btnMenu bg-danger">Analisis de Datos</button>
+                                    <button type="button" class="btn mt-2 btnMenu" onclick="errorModal('El analisis de datos no se encuentra disponible en este momento.')">Analisis de Datos</button>
+
                                 </div>
                             </div>
                         </div>

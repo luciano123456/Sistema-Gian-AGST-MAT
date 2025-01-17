@@ -24,20 +24,22 @@ async function MakeAjaxFormData(options) {
 }
 
 
+// Formatear el número de manera correcta
 function formatNumber(number) {
     if (typeof number !== 'number' || isNaN(number)) {
-        return "$0.00"; // Devuelve un valor predeterminado si 'number' no es válido
+        return "$ 0,00"; // Si el número no es válido, retornar un valor por defecto
     }
 
-    // Asegúrate de que el número tenga dos decimales
-    const parts = number.toFixed(2).split(".");
+    // Asegurarse de que el número tenga dos decimales
+    const parts = number.toFixed(2).split("."); // Dividir en parte entera y decimal
 
-    // Formatea la parte entera con puntos como separadores de miles
-    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    // Formatear la parte entera con puntos como separadores de miles
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, "."); // Usar punto para miles
 
-    // Combina la parte entera y la parte decimal
-    return "$" + parts.join(",");
+    // Devolver el número con la coma como separador decimal
+    return "$ " + parts.join(",");
 }
+
 
 
 function mostrarModalConContador(modal, texto, tiempo) {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace SistemaGian.Models;
 
-public partial class PedidosProducto
+public partial class VMPedidosProducto
 {
     public int Id { get; set; }
 
@@ -13,6 +13,8 @@ public partial class PedidosProducto
 
     public decimal? PrecioVenta { get; set; }
     public decimal? PrecioCosto { get; set; }
+    public decimal? Total { get; set; }
+    public string Nombre { get; set; }
 
     public int? Cantidad { get; set; }
 

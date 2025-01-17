@@ -40,7 +40,7 @@ function guardarCambios() {
             "Direccion": $("#txtDireccion").val(),
             "IdProvincia": $("#Provincias").val(),
             "Localidad": $("#txtLocalidad").val(),
-            "DNI": $("#txtDNI").val()
+            "Dni": $("#txtDni").val()
         };
 
         const url = idCliente === "" ? "Clientes/Insertar" : "Clientes/Actualizar";

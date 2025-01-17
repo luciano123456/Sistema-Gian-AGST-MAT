@@ -13,17 +13,21 @@
     <Content Remove="wwwroot\js\Login.js" />
     <Content Remove="wwwroot\js\Monedas.js" />
     <Content Remove="wwwroot\js\NavBarLogin.js" />
+    <Content Remove="wwwroot\js\Pedidos.js" />
     <Content Remove="wwwroot\js\PedidosNuevoModif.js" />
     <Content Remove="wwwroot\js\Proveedores.js" />
     <Content Remove="wwwroot\js\Usuarios.js" />
     <Content Remove="wwwroot\js\UsuariosConfiguracion.js" />
     <Content Remove="wwwroot\js\Utils\moment.js" />
+    <Content Remove="wwwroot\js\Ventas.js" />
     <Content Remove="wwwroot\js\Zonas.js" />
   </ItemGroup>
 
   <ItemGroup>
     <None Include="wwwroot\Imagenes\Clientes.png" />
     <None Include="wwwroot\js\Login.js" />
+    <None Include="wwwroot\js\Ventas.js" />
+    <None Include="wwwroot\js\Pedidos.js" />
     <None Include="wwwroot\js\UsuariosConfiguracion.js" />
     <None Include="wwwroot\js\Usuarios.js" />
     <None Include="wwwroot\js\Zonas.js" />

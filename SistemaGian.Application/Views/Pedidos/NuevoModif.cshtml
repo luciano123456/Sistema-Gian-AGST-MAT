@@ -117,7 +117,7 @@
             <div class="card mb-4">
                 <div class="card-body">
                     <h3 class="card-title">Datos del Pedido</h3>
-                    <input type="text" class="input-nuevo" id="Id" name="Id" hidden>
+                    <input type="text" class="input-nuevo" id="IdPedido" name="IdPedido" hidden>
                     <input type="text" class="input-nuevo" id="idZona" name="idZona" hidden>
                     <div class="form-container">
                         <!-- Sección de Datos del Pedido -->
@@ -155,9 +155,18 @@
                                 </button>
                             </div>
                         </div>
+
                         <div class="form-group">
                             <label for="zona">Costo Flete</label>
                             <input type="text" class="input-nuevo" id="costoFlete" name="zona" placeholder="$0.00">
+                        </div>
+                         <div class="form-group">
+                            <label for="zona">Total Ganancia</label>
+                            <input type="text" class="input-nuevo" id="totalGanancia" name="totalGanancia" placeholder="$0.00" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="zona">Porc. Ganancia</label>
+                            <input type="text" class="input-nuevo" id="porcGanancia" name="porcGanancia" placeholder="$0.00" readonly>
                         </div>
                         <div class="form-group">
                             <label class="">Estado</label>
@@ -316,6 +325,7 @@
                         <thead>
                             <tr>
                                 <th>Fecha</th>
+                                <th hidden>IdMoneda</th>
                                 <th>Moneda</th>
                                 <th>Cotizacion</th>
                                 <th>Total</th>
@@ -613,5 +623,9 @@
         <script src="~/js/pedidosnuevomodif.js">
 
        <script src="~/js/site.js"></script>
+
+            <script>
+                var pedidoData = @Html.Raw(Json.Serialize(ViewBag.Data ?? new { }));
+            </script>
 
 }

@@ -19,9 +19,10 @@ namespace SistemaGian.DAL.Repository
         Task<bool> InsertarPagosProveedor(List<PagosPedidosProveedor> pagos);
         Task<bool> InsertarProductos(List<PedidosProducto> productos);
         Task<Pedido> ObtenerPedido(int idPedido);
-        Task<bool> EliminarPedido(int idPedido);
+        Task<bool> Eliminar(int idPedido);
         Task<bool> EliminarPagoCliente(int idPago);
         Task<bool> EliminarPagoProveedor(int idPago);
+        Task<IQueryable<Pedido>> ObtenerTodos();
 
     }
 }

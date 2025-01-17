@@ -25,9 +25,9 @@ namespace SistemaGian.BLL.Service
             return await _contactRepo.EliminarPagoProveedor(idPago);
         }
 
-        public async Task<bool> EliminarPedido(int idPedido)
+        public async Task<bool> Eliminar(int idPedido)
         {
-            return await _contactRepo.EliminarPedido(idPedido);
+            return await _contactRepo.Eliminar(idPedido);
         }
 
         public async Task<bool> InsertarPagosCliente(List<PagosPedidosCliente> pagos)
@@ -79,5 +79,11 @@ namespace SistemaGian.BLL.Service
         {
             return await _contactRepo.ObtenerProductosPedido(idPedido);
         }
+
+        public async Task<IQueryable<Pedido>> ObtenerTodos()
+        {
+            return await _contactRepo.ObtenerTodos();
+        }
+
     }
 }
