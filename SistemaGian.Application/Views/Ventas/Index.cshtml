@@ -21,57 +21,58 @@
 
 <div class="container-fluid mt-5">
 
-
-    <div class="row mt-4 table-bordered table-borderless">
-
-        <div id="Filtros" class="divFiltros">
-
-            <label for="txtFechaDesde" class="lblfiltro">Fecha Desde</label>
-            <input type="date" class="input-nuevo" id="txtFechaDesde">
-
-            <label for="txtFechaHasta" class="lblfiltro">Fecha Hasta</label>
-            <input type="date" class="input-nuevo" id="txtFechaHasta">
-
-            <br />
-                
-            <label class="lblfiltro">Proveedor</label>
-            <select id="Proveedoresfiltro" name="select" class="input-nuevo">
-                <option value="" selected>Proveedor</option>
-            </select>
-
-            <label class="lblfiltro">Cliente</label>
-            <select id="clientesfiltro" name="select" class="input-nuevo">
-                <option value="" selected>Cliente</option>
-            </select>
-
-            
-
-            <div class="vw-75 d-flex float-lg-end mt-2">
-                <a class="btn btn-success" id="aplicarFiltros" onclick="aplicarFiltros()">Aplicar</a>
-            </div>
-
-        </div>
-    </div>
-
-
     <div class="container-fluid mt-5">
-        <div class="row">
-            <partial name="~/Views/Shared/Partials/BotonMenu.cshtml" />
-            <div class="col-lg-10">
-                <div class="card" style="width: 88%; position: absolute; left: 7vw; border: none;">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <span>Pedidos</span>
 
-                        <div class="dropdown">
-                            <button class="btn btn-secondary dropdown-toggle d-flex align-items-center" type="button" id="dropdownColumnas" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fa fa-cog me-2"></i> Config. Columnas
-                            </button>
-                            <ul class="dropdown-menu" aria-labelledby="dropdownColumnas">
-                            </ul>
+
+        <div class="row mt-4 table-bordered table-borderless">
+
+            <div id="Filtros" class="divFiltros">
+
+                <label for="txtFechaDesde" class="lblfiltro">Fecha Desde</label>
+                <input type="date" class="input-nuevo" id="txtFechaDesde">
+
+                <label for="txtFechaHasta" class="lblfiltro">Fecha Hasta</label>
+                <input type="date" class="input-nuevo" id="txtFechaHasta">
+
+                <br />
+
+                <label class="lblfiltro">Proveedor</label>
+                <select id="Proveedoresfiltro" name="select" class="input-nuevo">
+                    <option value="" selected>Proveedor</option>
+                </select>
+
+                <label class="lblfiltro">Cliente</label>
+                <select id="clientesfiltro" name="select" class="input-nuevo">
+                    <option value="" selected>Cliente</option>
+                </select>
+
+
+
+                <div class="vw-75 d-flex float-lg-end mt-2">
+                    <a class="btn btn-success" id="aplicarFiltros" onclick="aplicarFiltros()">Aplicar</a>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="container-fluid mt-5">
+            <div class="row">
+                <partial name="~/Views/Shared/Partials/BotonMenu.cshtml" />
+                <div class="col-lg-10">
+                    <div class="card" style="width: 88%; position: absolute; left: 7vw; border: none;">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <span>Ventas</span>
+
+                            <div class="dropdown">
+                                <button class="btn btn-secondary dropdown-toggle d-flex align-items-center" type="button" id="dropdownColumnas" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fa fa-cog me-2"></i> Config. Columnas
+                                </button>
+                                <ul class="dropdown-menu" aria-labelledby="dropdownColumnas">
+                                </ul>
+                            </div>
                         </div>
-                    </div>
                 <div class="card-body">
-                    <table class="display nowrap" id="grd_pedidos" style="width:100%">
+                    <table class="display nowrap" id="grd_ventas" style="width:100%">
                         <thead>
                             <tr>
                                 <th>Fecha</th>
@@ -82,8 +83,8 @@
                                 <th>Restante Cliente</th>
                                 <th>Total Proveedor</th>
                                 <th>Restante Proveedor</th>
-                                <th>Total Ganancia</th>
-                                <th>Porc. Ganancia</th>
+                                        <th>Total Ganancia</th>
+                                        <th>Porc. Ganancia</th>
                                 <th>Estado</th>
                                 <th>Observacion</th>
                                 <th>Acciones</th>
@@ -95,9 +96,9 @@
                     </table>
                 </div>
 
-                <div class="d-flex justify-content-end mt-2 mb-4">
+                @* <div class="d-flex justify-content-end mt-2 mb-4">
                     <a class="btn btn-primary btnnuevo" onclick="nuevoPedido()">Nuevo</a>
-                </div>
+                </div> *@
 
             </div>
         </div>
@@ -133,6 +134,6 @@
 
 
     <script src="~/js/utils/moment.js"></script>
-    <script src="~/js/pedidos.js"></script>
+    <script src="~/js/Ventas.js"></script>
 
 }

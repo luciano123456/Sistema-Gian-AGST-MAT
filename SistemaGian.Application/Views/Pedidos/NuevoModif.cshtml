@@ -26,6 +26,7 @@
 
 
 <partial name="~/Views/Shared/Partials/BotonMenu.cshtml" />
+<partial name="~/Views/Utils/Modals.cshtml" />
 
 
 <div class="container mt-5 ">
@@ -73,7 +74,7 @@
                         </div>
                     </div>
                     <div class="text-end mt-3">
-                        <button type="button" class="btn btn-success" data-toggle="modal" data-target="#clienteModal" onclick="abrirCliente()">
+                        <button type="button" id="btnSeleccionarCliente" class="btn btn-success" data-toggle="modal" data-target="#clienteModal" onclick="abrirCliente()">
                             <i class="fa fa-search"></i> Seleccionar Cliente
                         </button>
                     </div>
@@ -96,7 +97,7 @@
                         </div>
                         <div class="form-group">
                             <label for="telefonoCliente">Dirección</label>
-                            <input type="text" class="input-nuevo" id="direccionProveedor" name="direccionProveedor" readonly >
+                            <input type="text" class="input-nuevo" id="direccionProveedor" name="direccionProveedor" readonly>
                         </div>
                         <div class="form-group">
                             <label for="direccion">Telefono</label>
@@ -104,7 +105,7 @@
                         </div>
                     </div>
                     <div class="text-end mt-3">
-                        <button type="button" class="btn btn-success" data-toggle="modal" data-target="#proveedorModal" onclick="abrirProveedor()">
+                        <button type="button" id="btnSeleccionarProveedor" class="btn btn-success" data-toggle="modal" data-target="#proveedorModal" onclick="abrirProveedor()">
                             <i class="fa fa-search"></i> Seleccionar Proveedor
                         </button>
                     </div>
@@ -117,7 +118,7 @@
             <div class="card mb-4">
                 <div class="card-body">
                     <h3 class="card-title">Datos del Pedido</h3>
-                    <input type="text" class="input-nuevo" id="Id" name="Id" hidden>
+                    <input type="text" class="input-nuevo" id="IdPedido" name="IdPedido" hidden>
                     <input type="text" class="input-nuevo" id="idZona" name="idZona" hidden>
                     <div class="form-container">
                         <!-- Sección de Datos del Pedido -->
@@ -134,7 +135,7 @@
                             <input type="text" class="input-nuevo" id="nroRemito" name="nroRemito">
                         </div>
                         <div class="form-group">
-                          
+
                             <label for="zona">Zona</label>
                             <div style="display: flex; align-items: center;">
                                 <input type="text" class="input-nuevo" id="Zona" name="Zona" style="flex: 1;" readonly>
@@ -145,7 +146,7 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <input type="text" class="input-nuevo" id="idChofer" name="idChofer" hidden>
+                            <input type="text" class="input-nuevo" id="idChofer" name="idChofer" value="0" hidden>
                             <label for="chofer">Chofer</label>
                             <div style="display: flex; align-items: center;">
                                 <input type="text" class="input-nuevo" id="Chofer" name="Chofer" style="flex: 1;" readonly>
@@ -155,9 +156,18 @@
                                 </button>
                             </div>
                         </div>
+
                         <div class="form-group">
                             <label for="zona">Costo Flete</label>
-                            <input type="text" class="input-nuevo" id="costoFlete" name="zona" placeholder="$0.00">
+                            <input type="text" class="input-nuevo" id="costoFlete" name="costoFlete" placeholder="$0.00" value="$0.00" ">
+                        </div>
+                        <div class="form-group">
+                            <label for="zona">Total Ganancia</label>
+                            <input type="text" class="input-nuevo" id="totalGanancia" name="totalGanancia" placeholder="$0.00" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="zona">Porc. Ganancia</label>
+                            <input type="text" class="input-nuevo" id="porcGanancia" name="porcGanancia" placeholder="$0.00" readonly>
                         </div>
                         <div class="form-group">
                             <label class="">Estado</label>
@@ -170,10 +180,10 @@
                             <label for="observacion">Observacion</label>
                             <input type="text" class="input-nuevo" id="observacion" name="observacion">
                         </div>
-                       
-                        @* <div class="form-group">
-                            <label for="total">Total</label>
-                            <input type="text" class="input-nuevo" id="total" name="total">
+
+                            @* <div class="form-group">
+                        <label for="total">Total</label>
+                        <input type="text" class="input-nuevo" id="total" name="total">
                         </div> *@
                     </div>
                 </div>
@@ -217,401 +227,392 @@
 
 
 
-    </div>
+        </div>
 
-    <!-- Pestañas -->
-    <ul class="nav nav-tabs" id="myTab" role="tablist">
-        <li class="nav-item" role="presentation">
-            <a class="nav-link active" id="productos-tab" data-bs-toggle="tab" href="#productos" role="tab" aria-controls="productos-tab" aria-selected="true">Productos</a>
-        </li>
-        <li class="nav-item" role="presentation">
-            <a class="nav-link" id="cliente-pagos-tab" data-bs-toggle="tab" href="#cliente-pagos" role="tab" aria-controls="cliente-pagos" aria-selected="false">Pagos del Cliente</a>
-        </li>
-        <li class="nav-item" role="presentation">
-            <a class="nav-link" id="proveedor-pagos-tab" data-bs-toggle="tab" href="#proveedor-pagos" role="tab" aria-controls="proveedor-pagos" aria-selected="false">Pagos a Proveedor</a>
-        </li>
-    </ul>
+        <!-- Pestañas -->
+        <ul class="nav nav-tabs" id="myTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <a class="nav-link active" id="productos-tab" data-bs-toggle="tab" href="#productos" role="tab" aria-controls="productos-tab" aria-selected="true">Productos</a>
+            </li>
+            <li class="nav-item" role="presentation">
+                <a class="nav-link" id="cliente-pagos-tab" data-bs-toggle="tab" href="#cliente-pagos" role="tab" aria-controls="cliente-pagos" aria-selected="false">Pagos del Cliente</a>
+            </li>
+            <li class="nav-item" role="presentation">
+                <a class="nav-link" id="proveedor-pagos-tab" data-bs-toggle="tab" href="#proveedor-pagos" role="tab" aria-controls="proveedor-pagos" aria-selected="false">Pagos a Proveedor</a>
+            </li>
+        </ul>
 
-    <!-- Contenido de las pestañas -->
-    <div class="tab-content mt-4" id="myTabContent">
-        <div class="tab-pane fade show active" id="productos" role="tabpanel" aria-labelledby="productos-tab">
-            <div class="card mb-12">
-                <div class="card-body">
-                    <h3 class="card-title">Productos</h3>
-                    <table class="display nowrap" id="grd_Productos" style="width:100%">
-                        <thead>
-                            <tr>
-                                <th>Nombre</th>
-                                <th hidden>Precio Costo</th>
-                                <th>Precio Venta</th>
-                                <th>Cantidad</th>
-                                <th>Total</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Aquí va el contenido de tu DataTable de Productos -->
-                        </tbody>
-                    </table>
-                    <div class="d-flex justify-content-end mt-3">
-                        <div class="btn-group" role="group">
-                            <button type="button" class="btn btn-danger me-2">
-                                <i class="fa fa-trash"></i> Eliminar
-                            </button>
-                            <button type="button" class="btn btn-secondary me-2">
-                                <i class="fa fa-pencil"></i> Modificar
-                            </button>
-                            <button type="button" class="btn btn-success" onclick="anadirProducto()">
-                                <i class="fa fa-plus"></i> Añadir
-                            </button>
+        <!-- Contenido de las pestañas -->
+        <div class="tab-content mt-4" id="myTabContent">
+            <div class="tab-pane fade show active" id="productos" role="tabpanel" aria-labelledby="productos-tab">
+                <div class="card mb-12">
+                    <div class="card-body">
+                        <h3 class="card-title">Productos</h3>
+                        <table class="display nowrap" id="grd_Productos" style="width:100%">
+                            <thead>
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th hidden>Precio Costo</th>
+                                    <th>Precio Venta</th>
+                                    <th>Cantidad</th>
+                                    <th>Total</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Aquí va el contenido de tu DataTable de Productos -->
+                            </tbody>
+                        </table>
+                        <div class="d-flex justify-content-end mt-3">
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-success" onclick="anadirProducto()">
+                                    <i class="fa fa-plus"></i> Añadir
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane fade " id="cliente-pagos" role="tabpanel" aria-labelledby="cliente-pagos-tab">
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h3 class="card-title">Pagos del Cliente</h3>
+                        <table class="display nowrap" id="grd_pagosClientes" style="width:100%">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th hidden>IdMoneda</th>
+                                    <th>Moneda</th>
+                                    <th>Cotizacion</th>
+                                    <th>Total</th>
+                                    <th>TotalARS</th>
+                                    <th>Observacion</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Aquí va el contenido de tu DataTable de Pagos del Cliente -->
+                            </tbody>
+                        </table>
+                        <div class="d-flex justify-content-end mt-3">
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-success" onclick="anadirPago('Cliente')">
+                                    <i class="fa fa-plus"></i> Añadir
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="proveedor-pagos" role="tabpanel" aria-labelledby="proveedor-pagos-tab">
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h3 class="card-title">Pagos a Proveedor</h3>
+                        <table class="display nowrap" id="grd_pagosaProveedores" style="width:100%">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th hidden>IdMoneda</th>
+                                    <th>Moneda</th>
+                                    <th>Cotizacion</th>
+                                    <th>Total</th>
+                                    <th>TotalARS</th>
+                                    <th>Observacion</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Aquí va el contenido de tu DataTable de Pagos a Proveedor -->
+                            </tbody>
+                        </table>
+                        <div class="d-flex justify-content-end mt-3">
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-success" onclick="anadirPago('Proveedor')">
+                                    <i class="fa fa-plus"></i> Añadir
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="tab-pane fade " id="cliente-pagos" role="tabpanel" aria-labelledby="cliente-pagos-tab">
-            <div class="card mb-4">
-                <div class="card-body">
-                    <h3 class="card-title">Pagos del Cliente</h3>
-                    <table class="display nowrap" id="grd_pagosClientes" style="width:100%">
-                        <thead>
-                            <tr>
-                                <th>Fecha</th>
-                                <th hidden>IdMoneda</th>
-                                <th>Moneda</th>
-                                <th>Cotizacion</th>
-                                <th>Total</th>
-                                <th>TotalARS</th>
-                                <th>Observacion</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Aquí va el contenido de tu DataTable de Pagos del Cliente -->
-                        </tbody>
-                    </table>
-                    <div class="d-flex justify-content-end mt-3">
-                        <div class="btn-group" role="group">
-                            <button type="button" class="btn btn-danger me-2">
-                                <i class="fa fa-trash"></i> Eliminar
-                            </button>
-                            <button type="button" class="btn btn-secondary me-2">
-                                <i class="fa fa-pencil"></i> Modificar
-                            </button>
-                            <button type="button" class="btn btn-success" onclick="anadirPago('Cliente')">
-                                <i class="fa fa-plus"></i> Añadir
-                            </button>
+
+        <button type="submit" id="btnNuevoModificar" class="btn btn-primary mt-3" onclick="guardarCambios()">Registrar</button>
+
+        <div id="proveedorModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="proveedorModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="proveedorModalLabel">Seleccionar Proveedor</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <table id="tablaProveedores" class="table table-striped table-bordered" style="width:100%">
+                            <thead>
+                                <tr>
+                                    <th>Id</th>
+                                    <th>Nombre</th>
+                                    <th>Apodo</th>
+                                    <th>Direccion</th>
+                                    <th>Telefono</th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                    <div class="modal-footer">
+
+
+                        <button type="button" class="btn btn-success" id="btnSeleccionarProveedor"><i class="fa fa-check"> Seleccionar</i></button>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="clienteModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="clienteModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="proveedorModalLabel">Seleccionar Cliente</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <table id="tablaClientes" class="table table-striped table-bordered" style="width:100%">
+                            <thead>
+                                <tr>
+                                    <th>Id</th>
+                                    <th>Nombre</th>
+                                    <th>Dni</th>
+                                    <th>Direccion</th>
+                                    <th>Telefono</th>
+
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-success" id="btnSeleccionarCliente"><i class="fa fa-check"> Seleccionar</i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="choferModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="choferModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="proveedorModalLabel">Seleccionar Chofer</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <table id="tablaChoferes" class="table table-striped table-bordered" style="width:100%">
+                            <thead>
+                                <tr>
+                                    <th>Id</th>
+                                    <th>Nombre</th>
+                                    <th>Direccion</th>
+                                    <th>Telefono</th>
+
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-success" id="btnSeleccionarChofer"><i class="fa fa-check"> Seleccionar</i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div id="zonaModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="zonaModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="proveedorModalLabel">Seleccionar Zona</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <table id="tablaZonas" class="table table-striped table-bordered" style="width:100%">
+                            <thead>
+                                <tr>
+                                    <th>Id</th>
+                                    <th>Nombre</th>
+                                    <th>Precio</th>
+
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-success" id="btnSeleccionarZona"><i class="fa fa-check"> Seleccionar</i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
+
+
+        <div class="modal fade" id="productosModal" tabindex="-1" role="dialog" aria-labelledby="productosModalLabel" aria-hidden="true" data-editing="false">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="productosModalLabel">Seleccionar Producto</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="productoSelect" class="text-black">Producto</label>
+                            <select id="productoSelect" class="form-control"></select>
                         </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="tab-pane fade" id="proveedor-pagos" role="tabpanel" aria-labelledby="proveedor-pagos-tab">
-            <div class="card mb-4">
-                <div class="card-body">
-                    <h3 class="card-title">Pagos a Proveedor</h3>
-                    <table class="display nowrap" id="grd_pagosaProveedores" style="width:100%">
-                        <thead>
-                            <tr>
-                                <th>Fecha</th>
-                                <th>Moneda</th>
-                                <th>Cotizacion</th>
-                                <th>Total</th>
-                                <th>TotalARS</th>
-                                <th>Observacion</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Aquí va el contenido de tu DataTable de Pagos a Proveedor -->
-                        </tbody>
-                    </table>
-                    <div class="d-flex justify-content-end mt-3">
-                        <div class="btn-group" role="group">
-                            <button type="button" class="btn btn-danger me-2">
-                                <i class="fa fa-trash"></i> Eliminar
-                            </button>
-                            <button type="button" class="btn btn-secondary me-2">
-                                <i class="fa fa-pencil"></i> Modificar
-                            </button>
-                            <button type="button" class="btn btn-success" onclick="anadirPago('Proveedor')">
-                                <i class="fa fa-plus"></i> Añadir
-                            </button>
+                        <div class="form-group">
+                            <label for="precioSelect" class="text-black">Historial de Precios</label>
+                            <select id="precioSelect" class="form-control"></select>
                         </div>
+                        <div class="form-group">
+                            <label for="precioInput" class="text-black">Precio</label>
+                            <input type="text" id="precioInput" class="form-control" placeholder="Ingrese precio manual" step="0.01">
+                        </div>
+                        <div class="form-group">
+                            <label for="cantidadInput" class="text-black">Cantidad</label>
+                            <input type="number" id="cantidadInput" class="form-control" placeholder="Ingrese cantidad">
+                        </div>
+                        <div class="form-group">
+                            <label for="totalInput" class="text-black">Total</label>
+                            <input type="text" id="totalInput" class="form-control" disabled>
+                        </div>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                        <button type="button" id="btnGuardarProducto" class="btn btn-primary" onclick="guardarProducto()">Añadir Producto</button>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
 
-    <button type="submit" class="btn btn-primary mt-3" onclick="guardarCambios()">Registrar</button>
+        <div class="modal fade" id="pagosClienteModal" tabindex="-1" role="dialog" aria-labelledby="pagosClienteModalLabel" aria-hidden="true" data-editing="false">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="pagosClienteModalLabel">Pago de cliente</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="fechapagoCliente" class="text-black">Fecha del pago</label>
+                            <input type="date" id="fechapagoCliente" class="form-control" placeholder="Fecha">
+                        </div>
+                        <div class="form-group">
+                            <label for="MonedasPagoCliente" class="text-black">Moneda</label>
+                            <select id="MonedasPagoCliente" class="form-control"></select>
+                        </div>
+                        <div class="form-group">
+                            <label for="cotizacionInput" class="text-black">Cotizacion</label>
+                            <input type="text" id="cotizacionPagoCliente" class="form-control" placeholder="Cotizacion" step="0.01">
+                        </div>
+                        <div class="form-group">
+                            <label for="cantidadPagoCliente" class="text-black">Cantidad</label>
+                            <input type="number" id="cantidadPagoCliente" class="form-control" placeholder="Ingrese cantidad">
+                        </div>
+                        <div class="form-group">
+                            <label for="totalInput" class="text-black">Total ARS</label>
+                            <input type="text" id="totalARSPagoCliente" class="form-control" disabled>
+                        </div>
+                        <div class="form-group">
+                            <label for="totalInput" class="text-black">Observaciones</label>
+                            <input type="text" id="observacionPagoCliente" class="form-control">
+                        </div>
 
-    <div id="proveedorModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="proveedorModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="proveedorModalLabel">Seleccionar Proveedor</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <table id="tablaProveedores" class="table table-striped table-bordered" style="width:100%">
-                        <thead>
-                            <tr>
-                                <th>Id</th>
-                                <th>Nombre</th>
-                                <th>Apodo</th>
-                                <th>Direccion</th>
-                                <th>Telefono</th>
-                            </tr>
-                        </thead>
-                    </table>
-                </div>
-                <div class="modal-footer">
-
-
-                    <button type="button" class="btn btn-success" id="btnSeleccionarProveedor"><i class="fa fa-check"> Seleccionar</i></button>
-                    
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                        <button type="button" id="btnGuardarPagoCliente" class="btn btn-primary" onclick="guardarPago('Cliente')">Añadir Pago</button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-     <div id="clienteModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="clienteModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="proveedorModalLabel">Seleccionar Cliente</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <table id="tablaClientes" class="table table-striped table-bordered" style="width:100%">
-                        <thead>
-                            <tr>
-                                <th>Id</th>
-                                <th>Nombre</th>
-                                <th>Dni</th>
-                                <th>Direccion</th>
-                                <th>Telefono</th>
-                                
-                            </tr>
-                        </thead>
-                    </table>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-success" id="btnSeleccionarCliente"><i class="fa fa-check"> Seleccionar</i></button>
+        <div class="modal fade" id="pagosProveedorModal" tabindex="-1" role="dialog" aria-labelledby="pagosProveedorModalLabel" aria-hidden="true" data-editing="false">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="pagosProveedorModalLabel">Pago de proveedor</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="fechapagoProveedor" class="text-black">Fecha del pago</label>
+                            <input type="date" id="fechapagoProveedor" class="form-control" placeholder="Fecha">
+                        </div>
+                        <div class="form-group">
+                            <label for="MonedasPagoProveedor" class="text-black">Moneda</label>
+                            <select id="MonedasPagoProveedor" class="form-control"></select>
+                        </div>
+                        <div class="form-group">
+                            <label for="cotizacionInput" class="text-black">Cotizacion</label>
+                            <input type="text" id="cotizacionPagoProveedor" class="form-control" placeholder="Cotizacion" step="0.01">
+                        </div>
+                        <div class="form-group">
+                            <label for="cantidadPagoProveedor" class="text-black">Cantidad</label>
+                            <input type="number" id="cantidadPagoProveedor" class="form-control" placeholder="Ingrese cantidad">
+                        </div>
+                        <div class="form-group">
+                            <label for="totalInput" class="text-black">Total ARS</label>
+                            <input type="text" id="totalARSPagoProveedor" class="form-control" disabled>
+                        </div>
+                        <div class="form-group">
+                            <label for="totalInput" class="text-black">Observaciones</label>
+                            <input type="text" id="observacionPagoProveedor" class="form-control">
+                        </div>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                        <button type="button" id="btnGuardarPagoProveedor" class="btn btn-primary" onclick="guardarPago('Proveedor')">Añadir Pago</button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-
-    <div id="choferModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="choferModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="proveedorModalLabel">Seleccionar Chofer</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <table id="tablaChoferes" class="table table-striped table-bordered" style="width:100%">
-                        <thead>
-                            <tr>
-                                <th>Id</th>
-                                <th>Nombre</th>
-                                <th>Direccion</th>
-                                <th>Telefono</th>
-
-                            </tr>
-                        </thead>
-                    </table>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-success" id="btnSeleccionarChofer"><i class="fa fa-check"> Seleccionar</i></button>
-                </div>
-            </div>
-        </div>
-    </div>
 
 
-    <div id="zonaModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="zonaModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="proveedorModalLabel">Seleccionar Zona</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <table id="tablaZonas" class="table table-striped table-bordered" style="width:100%">
-                        <thead>
-                            <tr>
-                                <th>Id</th>
-                                <th>Nombre</th>
-                                <th>Precio</th>
-
-                            </tr>
-                        </thead>
-                    </table>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-success" id="btnSeleccionarZona"><i class="fa fa-check"> Seleccionar</i></button>
-                </div>
-            </div>
-        </div>
-    </div>
+ <partial name="~/Views/Utils/Modals.cshtml" />
 
 
 
 
 
-    <div class="modal fade" id="productosModal" tabindex="-1" role="dialog" aria-labelledby="productosModalLabel" aria-hidden="true" data-editing="false">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="productosModalLabel">Seleccionar Producto</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="form-group">
-                        <label for="productoSelect" class="text-black">Producto</label>
-                        <select id="productoSelect" class="form-control"></select>
-                    </div>
-                    <div class="form-group">
-                        <label for="precioSelect" class="text-black">Historial de Precios</label>
-                        <select id="precioSelect" class="form-control"></select>
-                    </div>
-                    <div class="form-group">
-                        <label for="precioInput" class="text-black">Precio</label>
-                        <input type="text" id="precioInput" class="form-control" placeholder="Ingrese precio manual" step="0.01">
-                    </div>
-                    <div class="form-group">
-                        <label for="cantidadInput" class="text-black">Cantidad</label>
-                        <input type="number" id="cantidadInput" class="form-control" placeholder="Ingrese cantidad">
-                    </div>
-                    <div class="form-group">
-                        <label for="totalInput" class="text-black">Total</label>
-                        <input type="text" id="totalInput" class="form-control" disabled>
-                    </div>
-                   
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                    <button type="button" id="btnGuardarProducto" class="btn btn-primary" onclick="guardarProducto()">Añadir Producto</button>
-                </div>
-            </div>
-        </div>
-    </div>
 
 
-    <div class="modal fade" id="pagosClienteModal" tabindex="-1" role="dialog" aria-labelledby="pagosClienteModalLabel" aria-hidden="true" data-editing="false">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="pagosClienteModalLabel">Pago de cliente</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="form-group">
-                        <label for="fechapagoCliente" class="text-black">Fecha del pago</label>
-                        <input type="date" id="fechapagoCliente" class="form-control" placeholder="Fecha">
-                    </div>
-                    <div class="form-group">
-                        <label for="MonedasPagoCliente" class="text-black">Moneda</label>
-                        <select id="MonedasPagoCliente" class="form-control"></select>
-                    </div>
-                    <div class="form-group">
-                        <label for="cotizacionInput" class="text-black">Cotizacion</label>
-                        <input type="text" id="cotizacionPagoCliente" class="form-control" placeholder="Cotizacion" step="0.01">
-                    </div>
-                    <div class="form-group">
-                        <label for="cantidadPagoCliente" class="text-black">Cantidad</label>
-                        <input type="number" id="cantidadPagoCliente" class="form-control" placeholder="Ingrese cantidad">
-                    </div>
-                    <div class="form-group">
-                        <label for="totalInput" class="text-black">Total ARS</label>
-                        <input type="text" id="totalARSPagoCliente" class="form-control" disabled>
-                    </div>
-                    <div class="form-group">
-                        <label for="totalInput" class="text-black">Observaciones</label>
-                        <input type="text" id="observacionPagoCliente" class="form-control">
-                    </div>
+                            @section Scripts {
 
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                    <button type="button" id="btnGuardarPagoCliente" class="btn btn-primary" onclick="guardarPago('Cliente')">Añadir Pago</button>
-                </div>
-            </div>
-        </div>
-    </div>
+            <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
 
-    <div class="modal fade" id="pagosProveedorModal" tabindex="-1" role="dialog" aria-labelledby="pagosProveedorModalLabel" aria-hidden="true" data-editing="false">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="pagosProveedorModalLabel">Pago de proveedor</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="form-group">
-                        <label for="fechapagoProveedor" class="text-black">Fecha del pago</label>
-                        <input type="date" id="fechapagoProveedor" class="form-control" placeholder="Fecha">
-                    </div>
-                    <div class="form-group">
-                        <label for="MonedasPagoProveedor" class="text-black">Moneda</label>
-                        <select id="MonedasPagoProveedor" class="form-control"></select>
-                    </div>
-                    <div class="form-group">
-                        <label for="cotizacionInput" class="text-black">Cotizacion</label>
-                        <input type="text" id="cotizacionPagoProveedor" class="form-control" placeholder="Cotizacion" step="0.01">
-                    </div>
-                    <div class="form-group">
-                        <label for="cantidadPagoProveedor" class="text-black">Cantidad</label>
-                        <input type="number" id="cantidadPagoProveedor" class="form-control" placeholder="Ingrese cantidad">
-                    </div>
-                    <div class="form-group">
-                        <label for="totalInput" class="text-black">Total ARS</label>
-                        <input type="text" id="totalARSPagoProveedor" class="form-control" disabled>
-                    </div>
-                    <div class="form-group">
-                        <label for="totalInput" class="text-black">Observaciones</label>
-                        <input type="text" id="observacionPagoProveedor" class="form-control">
-                    </div>
-
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                    <button type="button" id="btnGuardarPagoProveedor" class="btn btn-primary" onclick="guardarPago('Proveedor')">Añadir Pago</button>
-                </div>
-            </div>
-        </div>
-    </div>
+                                @*SCRIPTS DE BOTONES*@
+            < src="https://cdn.datatables.net/buttons/2.2.2/js/dataTables.buttons.min.js">
 
 
-    <partial name="~/Views/Utils/Modals.cshtml" />
+            <script src="~/js/utils/moment.js"></script>
+            <script src="~/js/pedidosnuevomodif.js">
 
+                <script src="~/js/site.js"></script>
 
+            <script>
+                var pedidoData = @Html.Raw(Json.Serialize(ViewBag.Data ?? new { }));
+            </script>
 
-@section Scripts {
-
-    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
-
-    @*SCRIPTS DE BOTONES*@
-    < src="https://cdn.datatables.net/buttons/2.2.2/js/dataTables.buttons.min.js">
-
-
-        <script src="~/js/utils/moment.js"></script>
-        <script src="~/js/pedidosnuevomodif.js">
-
-       <script src="~/js/site.js"></script>
-
-}
+                            }

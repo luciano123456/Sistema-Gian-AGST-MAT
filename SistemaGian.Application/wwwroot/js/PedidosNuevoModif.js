@@ -1,4 +1,4 @@
-﻿let grdProveedores, grdClientes, grdChoferes, grdZonas, grdPagosaClientes, grdPagosaProveedores;
+﻿let grdProveedores, grdClientes, grdChoferes, grdZonas, grdPagosaClientes, grdPagosaProveedores, grdProductos;
 
 let editandopagoCliente = false;  // Indica si estamos en modo edición
 let pagoClienteIdEdicion = null;  // Almacena el ID del pago que estamos editando
@@ -8,35 +8,95 @@ const cotizacionPagoClienteInput = document.getElementById('cotizacionPagoClient
 const cantidadPagoProveedorInput = document.getElementById('cantidadPagoProveedor');
 const cotizacionPagoProveedorInput = document.getElementById('cotizacionPagoProveedor');
 const costoFleteInput = document.getElementById('costoFlete');
-
+const IdPedido = document.getElementById('IdPedido').value;
 
 $(document).ready(async function () {
-    const idPedido = 0; // Reemplaza con el id correspondiente
-    const datosPedido = await ObtenerDatosPedido(idPedido);
-    await cargarDataTableProductos(datosPedido.productos);
-    await cargarDataTablePagoaProveedores(datosPedido.pagosaProveedores);
-    await cargarDataTablePagoaClientes(datosPedido.pagosClientes);
 
-    document.getElementById(`fechaPedido`).value = moment().format('YYYY-MM-DD');
-    document.getElementById(`fechaEntrega`).value = moment().add(3, 'days').format('YYYY-MM-DD');
-    document.getElementById(`costoFlete`).value = "$0.00";
+    if (pedidoData && pedidoData.Id > 0) {
+        await cargarDatosPedido()
+    } else {
+
+        const idPedido = 0; // Reemplaza con el id correspondiente
+
+        await cargarDataTableProductos(null);
+        await cargarDataTablePagoaProveedores(null);
+        await cargarDataTablePagoaClientes(null);
+
+        document.getElementById(`fechaPedido`).value = moment().format('YYYY-MM-DD');
+        document.getElementById(`fechaEntrega`).value = moment().add(3, 'days').format('YYYY-MM-DD');
+        document.getElementById(`idZona`).value = 0;
+        document.getElementById(`idChofer`).value = 0;
 
 
-    calcularTotalPago('Cliente');
-    calcularTotalPago('Proveedor');
-    calcularDatosPedido();
+        calcularTotalPago('Cliente');
+        calcularTotalPago('Proveedor');
+        calcularDatosPedido();
 
-    const selectedValue = document.getElementById("estado").value;
-    const selectElement = document.getElementById("estado");
+        const selectedValue = document.getElementById("estado").value;
+        const selectElement = document.getElementById("estado");
 
-    if (selectedValue === "Pendiente") {
-        selectElement.style.setProperty('color', 'yellow', 'important');
-    } else if (selectedValue === "Entregado") {
-        selectElement.style.setProperty('color', 'white', 'important');
+        if (selectedValue === "Pendiente") {
+            selectElement.style.setProperty('color', 'yellow', 'important');
+        } else if (selectedValue === "Entregado") {
+            selectElement.style.setProperty('color', 'white', 'important');
+        }
     }
-
 });
 
+async function cargarDatosPedido() {
+    if (pedidoData && pedidoData.Id > 0) {
+
+        const datosPedido = await ObtenerDatosPedido(pedidoData.Id);
+        await cargarDataTableProductos(datosPedido.productos);
+        await cargarDataTablePagoaProveedores(datosPedido.pagosaProveedores);
+        await cargarDataTablePagoaClientes(datosPedido.pagosClientes);
+        await insertarDatosPedido(datosPedido.pedido);
+
+    }
+}
+
+async function insertarDatosPedido(datosPedido) {
+
+    document.getElementById("IdPedido").value = datosPedido.Id;
+
+    //Cargamos Datos del Cliente
+    document.getElementById("idCliente").value = datosPedido.IdCliente;
+    document.getElementById("nombreCliente").value = datosPedido.Cliente;
+    document.getElementById("direccionCliente").value = datosPedido.DireccionCliente;
+    document.getElementById("telefonoCliente").value = datosPedido.TelefonoCliente;
+    document.getElementById("dniCliente").value = datosPedido.DniCliente;
+
+    //Cargamos Datos del Proveedor
+    document.getElementById("idProveedor").value = datosPedido.IdProveedor;
+    document.getElementById("nombreProveedor").value = datosPedido.Proveedor;
+    document.getElementById("apodoProveedor").value = datosPedido.ApodoProveedor;
+    document.getElementById("telefonoProveedor").value = datosPedido.TelefonoProveedor;
+    document.getElementById("direccionProveedor").value = datosPedido.DireccionProveedor;
+
+
+    document.getElementById("fechaPedido").value = moment(datosPedido.Fecha, 'YYYY-MM-DD').format('YYYY-MM-DD');
+    document.getElementById("fechaEntrega").value = moment(datosPedido.FechaEntrega, 'YYYY-MM-DD').format('YYYY-MM-DD');
+    document.getElementById("nroRemito").value = datosPedido.NroRemito;
+    //document.getElementById("costoFlete").value = formatoMoneda.format(datosPedido.CostoFlete);
+    document.getElementById("costoFlete").value = formatoMoneda.format(datosPedido.CostoFlete.toFixed(2));
+    document.getElementById("idZona").value = datosPedido.IdZona != null ? datosPedido.IdZona : 0,
+        document.getElementById("idChofer").value = datosPedido.IdChofer != null ? datosPedido.IdChofer : 0,
+        document.getElementById("Zona").value = datosPedido.Zona;
+    document.getElementById("Chofer").value = datosPedido.Chofer;
+
+
+    document.getElementById("estado").value = datosPedido.Estado;
+    document.getElementById("observacion").value = datosPedido.Observacion;
+
+    if (datosPedido.Estado == "Entregado") {
+        document.getElementById("btnSeleccionarCliente").setAttribute('disabled', 'disabled');
+        document.getElementById("btnSeleccionarProveedor").setAttribute('disabled', 'disabled');
+    }
+
+    document.getElementById("btnNuevoModificar").textContent = "Modificar";
+
+    await calcularDatosPedido();
+}
 async function abrirProveedor() {
     const proveedores = await obtenerProveedores();
     await cargarDataTableProveedores(proveedores);
@@ -244,6 +304,9 @@ function cargarDatosProveedor(data) {
     $('#apodoProveedor').val(data.Apodo);
     $('#direccionProveedor').val(data.Ubicacion);
     $('#telefonoProveedor').val(data.Telefono);
+    // Limpiar la grilla de productos
+    var table = $('#grd_Productos').DataTable();
+    table.clear().draw();
 }
 function cargarDatosCliente(data) {
     $('#idCliente').val(data.Id);
@@ -251,6 +314,9 @@ function cargarDatosCliente(data) {
     $('#dniCliente').val(data.Dni);
     $('#direccionCliente').val(data.Direccion);
     $('#telefonoCliente').val(data.Telefono);
+    // Limpiar solo los registros de la grilla de productos
+    var table = $('#grd_Productos').DataTable();
+    table.clear().draw();
 }
 
 function cargarDatosChofer(data) {
@@ -282,14 +348,14 @@ $('a[data-bs-toggle="tab"]').on('shown.bs.tab', function () {
     // Agregar aquí más tablas si es necesario
 });
 async function ObtenerDatosPedido(id) {
-    const url = `/Pedidos/ObtenerDatosPedido/${id}`;
+    const url = `/Pedidos/ObtenerDatosPedido?idPedido=${id}`;
     const response = await fetch(url);
     const data = await response.json();
     return data;
 }
 async function cargarDataTableProductos(data) {
     grdProductos = $('#grd_Productos').DataTable({
-        data: data,
+        data: data != null ? data.$values : data,
         language: {
             sLengthMenu: "Mostrar _MENU_ registros",
             url: "//cdn.datatables.net/plug-ins/2.0.7/i18n/es-MX.json"
@@ -306,10 +372,10 @@ async function cargarDataTableProductos(data) {
                 data: "Id",
                 render: function (data, type, row) {
                     return `
-                <button class='btn btn-sm btneditar btnacciones' type='button' onclick='abrirModalProducto(true, "${data}")' title='Editar'>
+                <button class='btn btn-sm btneditar btnacciones' type='button' onclick='abrirModalProducto(true, "${row.IdProducto}")' title='Editar'>
                     <i class='fa fa-pencil-square-o fa-lg text-white' aria-hidden='true'></i>
                 </button>
-                <button class='btn btn-sm btneditar btnacciones' type='button' onclick='eliminarProducto(${data})' title='Eliminar'>
+                <button class='btn btn-sm btneditar btnacciones' type='button' onclick='eliminarProducto(${row.IdProducto})' title='Eliminar'>
                     <i class='fa fa-trash-o fa-lg text-danger' aria-hidden='true'></i>
                 </button>`;
                 },
@@ -319,6 +385,17 @@ async function cargarDataTableProductos(data) {
         ],
         orderCellsTop: true,
         fixedHeader: true,
+
+        "columnDefs": [
+            {
+                "render": function (data, type, row) {
+                    return formatNumber(data); // Formatear número en la columna
+                },
+                "targets": [1, 2, 4] // Columna Precio
+            }
+        ],
+
+
 
         initComplete: async function () {
             setTimeout(function () {
@@ -364,6 +441,8 @@ async function cargarDataTableZonas(data) {
                 "targets": [2] // Columna Precio
             }
         ],
+
+
 
         initComplete: async function () {
             setTimeout(function () {
@@ -515,7 +594,7 @@ async function anadirProducto() {
         const productosEnTabla = [];
         grdProductos.rows().every(function () {
             const data = this.data();
-            productosEnTabla.push(Number(data.Id));
+            productosEnTabla.push(Number(data.IdProducto));
         });
 
         // Llenar el select de productos, deshabilitar los ya agregados
@@ -648,8 +727,8 @@ function seleccionarProducto(idProducto) {
 async function guardarProducto() {
     const precioSelect = document.getElementById('precioSelect');
     const productoSelect = document.getElementById('productoSelect');
-    const precioManual = convertirMonedaAFloat(document.getElementById('precioInput').value);
-    const totalInput = convertirMonedaAFloat(document.getElementById('totalInput').value);
+    const precioManual = parseFloat(convertirMonedaAFloat(document.getElementById('precioInput').value));
+    const totalInput = parseFloat(convertirMonedaAFloat(document.getElementById('totalInput').value));
     const cantidadInput = parseInt(document.getElementById('cantidadInput').value) || 1; // Obtener cantidad, por defecto 1 si no es válida
     const productoId = productoSelect.value;
     const productoNombre = productoSelect.options[productoSelect.selectedIndex]?.text || '';
@@ -684,12 +763,12 @@ async function guardarProducto() {
         // Si estamos editando, solo actualizamos la fila correspondiente
         grdProductos.rows().every(function () {
             const data = this.data();
-            if (data.Id == editId) {
+            if (data.IdProducto == editId) {
                 data.Nombre = productoNombre;
-                data.PrecioVenta = formatoMoneda.format(precioManual); // Guardar PrecioVenta
-                data.PrecioCosto = formatoMoneda.format(precioCosto); // Guardar PrecioCosto
+                data.PrecioVenta = precioManual; // Guardar PrecioVenta
+                data.PrecioCosto = precioCosto; // Guardar PrecioCosto
                 data.Cantidad = cantidadInput; // Usar la cantidad del input
-                data.Total = formatoMoneda.format(totalInput); // Recalcular el total con formato de moneda
+                data.Total = totalInput; // Recalcular el total con formato de moneda
                 this.data(data).draw();
             }
         });
@@ -697,10 +776,10 @@ async function guardarProducto() {
         // Buscar si el producto ya existe en la tabla
         grdProductos.rows().every(function () {
             const data = this.data();
-            if (data.Id == productoId) {
+            if (data.IdProducto == productoId) {
                 // Producto existe, sumamos las cantidades y recalculamos el total
                 data.Cantidad += cantidadInput; // Sumar la cantidad proporcionada
-                data.Total = formatoMoneda.format(precioManual * data.Cantidad); // Recalcular el total con formato de moneda
+                data.Total = precioManual * data.Cantidad; // Recalcular el total con formato de moneda
                 this.data(data).draw();
                 productoExistente = true;
             }
@@ -709,12 +788,12 @@ async function guardarProducto() {
         if (!productoExistente) {
             // Si no existe, agregar un nuevo producto
             grdProductos.row.add({
-                Id: productoId,
+                IdProducto: productoId,
                 Nombre: productoNombre,
-                PrecioVenta: formatoMoneda.format(precioManual), // Agregar PrecioVenta
-                PrecioCosto: formatoMoneda.format(precioCosto), // Agregar PrecioCosto
+                PrecioVenta: precioManual, // Agregar PrecioVenta
+                PrecioCosto: precioCosto, // Agregar PrecioCosto
                 Cantidad: cantidadInput, // Usar la cantidad proporcionada
-                Total: formatoMoneda.format(totalInput) // Recalcular el total con formato de moneda
+                Total: totalInput // Recalcular el total con formato de moneda
             }).draw();
         }
     }
@@ -727,35 +806,52 @@ async function guardarProducto() {
 
 async function calcularDatosPedido() {
     let pedidoVenta = 0, pedidoCosto = 0, pagosaproveedores = 0, pagosclientes = 0, restantecliente = 0, restanteproveedor = 0, pedidoVentaFinal = 0;
+
     const inputRestanteProveedor = document.getElementById("restanteProveedor");
     const inputRestanteCliente = document.getElementById("restanteCliente");
     const costoFlete = document.getElementById("costoFlete");
 
-    grdProductos.rows().every(function () {
-        const producto = this.data();
-        pedidoVenta += parseFloat(convertirMonedaAFloat(producto.PrecioVenta));
-        pedidoCosto += parseFloat(convertirMonedaAFloat(producto.PrecioCosto));
-    });
+    if (grdProductos != null && grdProductos.rows().count() > 0) {
+        grdProductos.rows().every(function () {
+            const producto = this.data();
+            pedidoVenta += parseFloat(producto.PrecioVenta) * producto.Cantidad;
+            pedidoCosto += parseFloat(producto.PrecioCosto) * producto.Cantidad;
+        });
+    }
 
-    grdPagosaProveedores.rows().every(function () {
-        const pago = this.data();
-        pagosaproveedores += parseFloat(convertirMonedaAFloat(pago.TotalArs));
-    });
+    if (grdPagosaProveedores != null && grdPagosaProveedores.rows().count() > 0) {
+        grdPagosaProveedores.rows().every(function () {
+            const pago = this.data();
+            pagosaproveedores += parseFloat(pago.TotalArs);
+        });
+    }
 
-    grdPagosaClientes.rows().every(function () {
-        const pago = this.data();
-        pagosclientes += parseFloat(convertirMonedaAFloat(pago.TotalArs));
-    });
+    if (grdPagosaClientes != null && grdPagosaClientes.rows().count() > 0) {
+        grdPagosaClientes.rows().every(function () {
+            const pago = this.data();
+            pagosclientes += parseFloat(pago.TotalArs);
+        });
+    }
+
+
+    totalGanancia = pedidoVenta - pedidoCosto;
+    porcGanancia = pedidoCosto > 0 ? (totalGanancia / pedidoCosto) * 100 : 0;
 
     restanteproveedor = pedidoCosto - pagosaproveedores;
     pedidoVentaFinal = pedidoVenta + parseFloat(convertirMonedaAFloat(costoFlete.value));
     restantecliente = pedidoVentaFinal - pagosclientes
 
     //document.getElementById("total").value = formatoMoneda.format(pedidoVenta);
-    document.getElementById("totalPagoProveedor").value = formatoMoneda.format(pedidoCosto);
-    document.getElementById("totalPagadoaProveedor").value = formatoMoneda.format(pagosaproveedores);
-    document.getElementById("totalPagoCliente").value = formatoMoneda.format(pedidoVentaFinal);
-    document.getElementById("totalPagadoCliente").value = formatoMoneda.format(pagosclientes);
+    document.getElementById("totalPagoProveedor").value = formatoMoneda.format(parseFloat(pedidoCosto));
+    document.getElementById("totalPagadoaProveedor").value = formatoMoneda.format(parseFloat(pagosaproveedores));
+    document.getElementById("totalPagoCliente").value = formatoMoneda.format(parseFloat(pedidoVentaFinal));
+    document.getElementById("totalPagadoCliente").value = formatoMoneda.format(parseFloat(pagosclientes));
+    document.getElementById("totalGanancia").value = formatoMoneda.format(parseFloat(totalGanancia));
+    document.getElementById("porcGanancia").value = `${porcGanancia.toFixed(2)}%`;
+
+
+
+
 
 
     inputRestanteProveedor.value = formatoMoneda.format(restanteproveedor);
@@ -782,7 +878,7 @@ async function calcularDatosPedido() {
 function eliminarProducto(id) {
     grdProductos.rows().every(function (rowIdx, tableLoop, rowLoop) {
         const data = this.data();
-        if (data.Id == id) {
+        if (data.IdProducto == id) {
             grdProductos.row(rowIdx).remove().draw();
         }
     });
@@ -836,7 +932,7 @@ async function abrirModalProducto(isEdit = false, productoId = null) {
     if (isEdit && productoId) {
         // Cargar datos del producto en el modal si estamos editando
         const productoData = grdProductos.row(function (idx, data) {
-            return data.Id == productoId;
+            return data.IdProducto == productoId;
         }).data();
 
         if (productoData) {
@@ -845,8 +941,38 @@ async function abrirModalProducto(isEdit = false, productoId = null) {
             const idProveedor = parseInt($("#idProveedor").val());  // Lo mismo para el proveedor
 
             // Llamada a la función para obtener los precios del producto
-            const productosResponse = await ObtenerUltimosPreciosProducto(idCliente, idProveedor, productoId);
+            const productosResponse = await ObtenerUltimosPreciosProducto(idCliente, idProveedor, productoData.IdProducto);
 
+            const productos = productosResponse ? productosResponse.valor : [];
+
+            if (Array.isArray(productos) && productos.length > 0) {
+                const productoSelect = $("#productoSelect");
+                const precioSelect = $("#precioSelect");
+                const precioInput = $("#precioInput");
+                const cantidadInput = $("#cantidadInput");
+
+                productoSelect.empty();
+                precioSelect.empty();
+
+                // Obtener los productos que ya están en la tabla (evitar duplicados)
+                const productosEnTabla = [];
+                grdProductos.rows().every(function () {
+                    const data = this.data();
+                    productosEnTabla.push(Number(data.IdProducto));
+                });
+
+                // Llenar el select de productos, deshabilitar los ya agregados
+                productos.forEach(producto => {
+                    const option = $(`<option value="${producto.IdProducto}">${producto.Nombre}</option>`);
+
+                    // Deshabilitar si el producto ya está en la tabla
+                    if (productosEnTabla.includes(producto.IdProducto)) {
+                        option.prop('disabled', true); // Deshabilitar la opción si ya está en la tabla
+                    }
+
+                    productoSelect.append(option);
+                });
+            }
 
             // Verifica la estructura de productosResponse y valor
             console.log("Respuesta de productos:", productosResponse);
@@ -867,7 +993,7 @@ async function abrirModalProducto(isEdit = false, productoId = null) {
 
                         precioSelect.append(option);
 
-                        if (parseFloat(convertirMonedaAFloat(productoData.PrecioVenta)) == parseFloat(precio.PrecioVenta)) {
+                        if (productoData.PrecioVenta == precio.PrecioVenta) {
                             optionSeleccionado = i;
                         }
 
@@ -885,9 +1011,9 @@ async function abrirModalProducto(isEdit = false, productoId = null) {
 
 
             // Cargar datos del producto en el producto select
-            productoSelect.value = productoId;
+            productoSelect.value = productoData.IdProducto;
             cantidadInput.value = productoData.Cantidad;
-            precioInput.value = productoData.PrecioVenta;
+            precioInput.value = formatoMoneda.format(productoData.PrecioVenta);
 
             // Deshabilitar el select si estamos editando el producto
             productoSelect.disabled = true;
@@ -948,7 +1074,7 @@ async function cargarDataTablePagoaProveedores(data) {
         $('#grd_pagosaProveedores thead tr').clone(true).addClass('filters').appendTo('#grd_Proveedores thead');
 
         grdPagosaProveedores = $('#grd_pagosaProveedores').DataTable({
-            data: data,
+            data: data != null ? data.$values : data,
             language: {
                 sLengthMenu: "Mostrar _MENU_ registros",
                 url: "//cdn.datatables.net/plug-ins/2.0.7/i18n/es-MX.json"
@@ -957,7 +1083,7 @@ async function cargarDataTablePagoaProveedores(data) {
             autoWidth: false,
             columns: [
                 { data: 'Fecha', width: "15%" },
-
+                { data: 'IdMoneda', width: "15%", visible: false },
                 { data: 'Moneda', width: "15%" },
                 { data: 'Cotizacion', width: "15%" },
                 { data: 'Total', width: "15%" },
@@ -976,6 +1102,26 @@ async function cargarDataTablePagoaProveedores(data) {
             orderCellsTop: true,
             fixedHeader: true,
 
+            "columnDefs": [
+                {
+                    "render": function (data, type, row) {
+                        // Formatear fecha desde el formato ISO
+                        if (data) {
+                            return moment(data, 'YYYY-MM-DD').format('DD/MM/YYYY')
+                        }
+                    },
+                    "targets": [0] // Índices de las columnas de fechas
+                },
+
+                {
+                    "render": function (data, type, row) {
+                        return formatNumber(data); // Formatear números
+                    },
+                    "targets": [3, 5] // Índices de las columnas de números
+                },
+
+            ],
+
             initComplete: async function () {
                 setTimeout(function () {
                     grdPagosaProveedores.columns.adjust();
@@ -991,7 +1137,7 @@ async function cargarDataTablePagoaProveedores(data) {
 }
 async function cargarDataTablePagoaClientes(data) {
     grdPagosaClientes = $('#grd_pagosClientes').DataTable({
-        data: data,
+        data: data != null ? data.$values : data,
         language: {
             sLengthMenu: "Mostrar _MENU_ registros",
             url: "//cdn.datatables.net/plug-ins/2.0.7/i18n/es-MX.json"
@@ -1017,11 +1163,40 @@ async function cargarDataTablePagoaClientes(data) {
                 width: "10%"
             }
         ],
+
+
+
         orderCellsTop: true,
-        fixedHeader: true
+        fixedHeader: true,
+
+        "columnDefs": [
+            {
+                "render": function (data, type, row) {
+                    // Formatear fecha desde el formato ISO
+                    if (data) {
+                        return moment(data, 'YYYY-MM-DD').format('DD/MM/YYYY')
+                    }
+                },
+                "targets": [0] // Índices de las columnas de fechas
+            },
+
+            {
+                "render": function (data, type, row) {
+                    return formatNumber(data); // Formatear números
+                },
+                "targets": [3, 5] // Índices de las columnas de números
+            },
+
+        ],
+
+        initComplete: async function () {
+            setTimeout(function () {
+                grdPagosaClientes.columns.adjust();
+            }, 1000);
+        }
     });
 }
-function editarPago(tipo, id) {
+async function editarPago(tipo, id) {
     // Buscar el pago por su ID
 
     let grid = null;
@@ -1032,20 +1207,43 @@ function editarPago(tipo, id) {
         grid = $('#grd_pagosaProveedores').DataTable();
     }
 
-    const row = grid.rows().data().toArray().find(row => row.Id === id);
+    const idPedido = $("#IdPedido").val();
+
+    let row = null;
+
+
+    if (String(id).includes("pago_")) {
+        row = grid.rows().data().toArray().find(x => x.Id === id);
+    } else {
+        row = grid.rows().data().toArray().find(x => x.Id === parseInt(id));
+    }
 
 
     if (row) {
         // Cargar los datos en el modal
-        document.getElementById(`fechapago${tipo}`).value = moment(row.Fecha, 'DD/MM/YYYY').format('YYYY-MM-DD');
+        document.getElementById(`fechapago${tipo}`).value = moment(row.Fecha, 'YYYY-MM-DD').format('YYYY-MM-DD');
         document.getElementById(`MonedasPago${tipo}`).value = row.IdMoneda;
-        document.getElementById(`cotizacionPago${tipo}`).value = formatoMoneda.format(formatoNumero(row.Cotizacion));
-        document.getElementById(`cantidadPago${tipo}`).value = parseFloat(convertirMonedaAFloat(row.Total));
+        document.getElementById(`cotizacionPago${tipo}`).value = formatoMoneda.format(parseFloat(row.Cotizacion));
+        document.getElementById(`cantidadPago${tipo}`).value = parseFloat(row.Total);
         document.getElementById(`observacionPago${tipo}`).value = row.Observacion;
 
-        calcularTotalCotizacionPago(tipo);
         const cotizacionInput = document.getElementById(`cotizacionPago${tipo}`);
         const monedasSelect = document.getElementById(`MonedasPago${tipo}`);
+
+        const monedas = await ObtenerMonedas();
+
+        if (monedas) {
+            monedas.forEach(moneda => {
+                const option = document.createElement('option');
+                option.value = moneda.Id; // Asume que cada moneda tiene un ID
+                option.textContent = moneda.Nombre; // Asume que cada moneda tiene un nombre
+                option.dataset.cotizacion = formatoMoneda.format(moneda.Cotizacion); // Guarda la cotización en un atributo personalizado
+                monedasSelect.appendChild(option);
+            });
+        }
+
+        calcularTotalCotizacionPago(tipo);
+
 
 
         const selectedOption = monedasSelect.options[monedasSelect.selectedIndex];
@@ -1076,7 +1274,18 @@ function eliminarPago(tipo, id) {
         grid = $('#grd_pagosaProveedores').DataTable();
     }
 
+    const idPedido = $("#IdPedido").val();
+
+
+
     grid.rows().data().toArray().forEach(function (row, index) {
+
+        if (!String(id).includes("pago_")) {
+            id = parseInt(id);
+        } else {
+            id = grid.rows().data().toArray().find(x => x.Id === id).Id;
+        }
+
         if (row.Id === id) {
             grid.row(index).remove().draw();
         }
@@ -1110,12 +1319,12 @@ function guardarPago(tipo) {
         grid.rows().every(function () {
             const data = this.data();
             if (data.Id == editId) {
-                data.Fecha = moment(fechapago, 'YYYY-MM-DD').format('DD/MM/YYYY'),
+                data.Fecha = moment(fechapago, 'YYYY-MM-DD'),
                     data.IdMoneda = monedaSelect.value,
                     data.Moneda = monedaSelect.options[monedaSelect.selectedIndex]?.text || '',
-                    data.Cotizacion = formatoMoneda.format(cotizacion),
-                    data.Total = formatoMoneda.format(cantidadInput), // Usar la cantidad proporcionada
-                    data.TotalArs = formatoMoneda.format(cotizacion * cantidadInput), // Recalcular el total con formato de moneda
+                    data.Cotizacion = cotizacion,
+                    data.Total = cantidadInput, // Usar la cantidad proporcionada
+                    data.TotalArs = cotizacion * cantidadInput, // Recalcular el total con formato de moneda
                     data.Observacion = observacion
                 this.data(data).draw();
             }
@@ -1124,12 +1333,12 @@ function guardarPago(tipo) {
         // Si no existe, agregar un nuevo producto
         grid.row.add({
             Id: pagoId, // Identificador único
-            Fecha: moment(fechapago, 'YYYY-MM-DD').format('DD/MM/YYYY'),
+            Fecha: moment(fechapago, 'YYYY-MM-DD'),
             IdMoneda: monedaSelect.value,
             Moneda: monedaSelect.options[monedaSelect.selectedIndex]?.text || '',
-            Cotizacion: formatoMoneda.format(cotizacion),
-            Total: formatoMoneda.format(cantidadInput), // Usar la cantidad proporcionada
-            TotalArs: formatoMoneda.format(cotizacion * cantidadInput), // Recalcular el total con formato de moneda
+            Cotizacion: cotizacion,
+            Total: cantidadInput, // Usar la cantidad proporcionada
+            TotalArs: cotizacion * cantidadInput, // Recalcular el total con formato de moneda
             Observacion: observacion
         }).draw();
     }
@@ -1271,13 +1480,25 @@ cotizacionPagoProveedorInput.addEventListener('blur', function () {
 
 
 costoFleteInput.addEventListener('blur', function () {
-    const rawValue = this.value.replace(/[^0-9.,]/g, '').replace(',', '.');
-    const parsedValue = parseFloat(rawValue) || 0;
+    let rawValue = this.value.trim();
 
-    // Formatear el número al finalizar la edición
-    this.value = formatNumber(parsedValue);
-    calcularDatosPedido();
+    // Verificamos si ya tiene el formato correcto (p. ej. $12.800,00)
+    if (!rawValue.includes('$') && !rawValue.includes(',')) {
+        // Si no tiene símbolo de moneda ni coma decimal, formateamos el valor
+        let parsedValue = parseFloat(rawValue.replace('.', '').replace(',', '.')) || 0;
+        this.value = formatNumber(parsedValue);
+    } else {
+        // Si ya tiene formato, no tocamos el valor
+        // Solo nos aseguramos de que sea un número válido para la operación
+        rawValue = rawValue.replace(/[^\d,\.]/g, ''); // Eliminar caracteres no numéricos, excepto coma y punto
+        let parsedValue = parseFloat(rawValue.replace('.', '').replace(',', '.')) || 0;
+        this.value = formatNumber(parsedValue);
+    }
+
+    calcularDatosPedido(); // Si necesitas realizar alguna operación adicional con el valor
 });
+
+
 
 async function ObtenerMonedas() {
     const url = `/Monedas/Lista`;
@@ -1309,96 +1530,137 @@ document.getElementById("estado").addEventListener("change", function () {
 
 
 function guardarCambios() {
-    const idPedido = $("#Id").val();
+    const idPedido = $("#IdPedido").val();
 
-    // Función reutilizable para recolectar los pagos
-    function obtenerPagos(grd) {
-        let pagos = [];
-        grd.rows().every(function () {
-            const pago = this.data();
-            const pagoJson = {
-                "Id": 0,
-                "Fecha": moment(pago.Fecha, 'YYYY-MM-DD').format('YYYY-MM-DD'),
-                "IdMoneda": parseInt(pago.IdMoneda),
-                "Cotizacion": parseFloat(convertirMonedaAFloat(pago.Cotizacion)),
-                "Total": parseFloat(convertirMonedaAFloat(pago.Total)),
-                "TotalArs": parseFloat(convertirMonedaAFloat(pago.TotalArs)),
-                "Observacion": pago.Observacion // Ajusta si es necesario
-            };
-            pagos.push(pagoJson);
-        });
-        return pagos;
+    if (isValidPedido()) {
+        // Función reutilizable para recolectar los pagos
+        function obtenerPagos(grd) {
+            let pagos = [];
+            grd.rows().every(function () {
+                const pago = this.data();
+                const pagoJson = {
+                    Id: idPedido !== ""
+                        ? (String(pago.Id).includes("pago_") ? 0 : pago.Id)
+                        : 0,
+                    "Fecha": moment(pago.Fecha, 'YYYY-MM-DD').format('YYYY-MM-DD'),
+                    "IdMoneda": parseInt(pago.IdMoneda),
+                    "Cotizacion": parseFloat(pago.Cotizacion),
+                    "Total": parseFloat(pago.Total),
+                    "TotalArs": parseFloat(pago.TotalArs),
+                    "Observacion": pago.Observacion // Ajusta si es necesario
+                };
+                pagos.push(pagoJson);
+            });
+            return pagos;
+        }
+
+        function obtenerProductos(grd) {
+            let productos = [];
+            grd.rows().every(function () {
+                const producto = this.data();
+                const productoJson = {
+                    "Id": idPedido != "" ? producto.Id : 0,
+                    "IdProducto": parseInt(producto.IdProducto),
+                    "Nombre": producto.Nombre,
+                    "PrecioCosto": parseFloat(producto.PrecioCosto),
+                    "PrecioVenta": parseFloat(producto.PrecioVenta),
+                    "Cantidad": parseInt(producto.Cantidad),
+
+                };
+                productos.push(productoJson);
+            });
+            return productos;
+        }
+
+        // Obtener los pagos de clientes y proveedores usando la función reutilizable
+        const pagosClientes = obtenerPagos(grdPagosaClientes);
+        const pagosaProveedores = obtenerPagos(grdPagosaProveedores);
+        const productos = obtenerProductos(grdProductos);
+
+        // Construcción del objeto para el modelo
+        const nuevoModelo = {
+            "Id": idPedido !== "" ? parseInt(idPedido) : 0,
+            "Fecha": moment($("#fechaPedido").val(), 'YYYY-MM-DD').format('YYYY-MM-DD'),
+            "IdCliente": parseInt($("#idCliente").val()),
+            "FechaEntrega": moment($("#fechaEntrega").val(), 'YYYY-MM-DD').format('YYYY-MM-DD'),
+            "NroRemito": $("#nroRemito").val(),
+            "CostoFlete": parseFloat(convertirMonedaAFloat($("#costoFlete").val())),
+            "IdProveedor": parseInt($("#idProveedor").val()),
+            "IdZona": parseInt($("#idZona").val()),
+            "IdChofer": parseInt($("#idChofer").val()),
+            "TotalCliente": parseFloat(convertirMonedaAFloat($("#totalPagoCliente").val())),
+            "RestanteCliente": parseFloat(convertirMonedaAFloat($("#restanteCliente").val())),
+            "TotalProveedor": parseFloat(convertirMonedaAFloat($("#totalPagoProveedor").val())),
+            "RestanteProveedor": parseFloat(convertirMonedaAFloat($("#restanteProveedor").val())),
+            "TotalGanancia": parseFloat(convertirMonedaAFloat($("#totalGanancia").val())),
+            "PorcGanancia": parseFloat($("#porcGanancia").val()),
+            "Estado": $("#estado").val(),
+            "Observacion": $("#observacion").val(),
+            "PagosPedidosClientes": pagosClientes,
+            "PagosPedidosProveedores": pagosaProveedores,
+            "PedidosProductos": productos
+        };
+
+        // Definir la URL y el método para el envío
+        const url = idPedido === "" ? "/Pedidos/Insertar" : "/Pedidos/Actualizar";
+        const method = idPedido === "" ? "POST" : "PUT";
+
+        console.log(JSON.stringify(nuevoModelo))
+
+        // Enviar los datos al servidor
+        fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json;charset=utf-8'
+            },
+            body: JSON.stringify(nuevoModelo)
+        })
+            .then(response => {
+
+                if (!response.ok) throw new Error(response.statusText);
+                return response.json();
+            })
+            .then(dataJson => {
+                console.log("Respuesta del servidor:", dataJson);
+                const mensaje = idPedido === "" ? "Pedido registrado correctamente" : "Pedido modificado correctamente";
+                exitoModal(mensaje);
+                if (localStorage.getItem('EditandoPedidoDesdeVenta') == 'true') {
+                    window.location.href = "/Ventas/Index";
+                    localStorage.removeItem('EditandoPedidoDesdeVenta');
+                } else {
+                    window.location.href = "/Pedidos/Index";
+                }
+
+
+
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    }
+}
+
+function isValidPedido() {
+    // Assuming grd_productos is a table with an id 'grd_productos'
+    var cantidadFilas = $('#grd_Productos').DataTable().rows().count();
+    var restanteProveedor = parseFloat(convertirMonedaAFloat($("#restanteProveedor").val()));
+    var restanteCliente = parseFloat(convertirMonedaAFloat($("#restanteCliente").val()));
+    const IdPedido = document.getElementById('IdPedido').value;
+
+    if (cantidadFilas <= 0) {
+        if (IdPedido == "") {
+            errorModal('No puedes crear un pedido sin productos.') 
+        } else {
+            errorModal('No puedes modificar un pedido sin productos.')
+        }
+        return false;
     }
 
-    function obtenerProductos(grd) {
-        let productos = [];
-        grd.rows().every(function () {
-            const producto = this.data();
-            const productoJson = {
-                "Id": 0,
-                "IdProducto": parseInt(producto.Id),
-                "Nombre": producto.Nombre,
-                "Precio": parseFloat(convertirMonedaAFloat(producto.PrecioVenta)),
-                "Cantidad": parseInt(producto.Cantidad),
-                
-            };
-            productos.push(productoJson);
-        });
-        return productos;
+    if (restanteProveedor < 0 || restanteCliente < 0) {
+        errorModal('No puedes tener un saldo de pago negativo')
+        return false;
     }
 
-    // Obtener los pagos de clientes y proveedores usando la función reutilizable
-    const pagosClientes = obtenerPagos(grdPagosaClientes);
-    const pagosaProveedores = obtenerPagos(grdPagosaProveedores);
-    const productos = obtenerProductos(grdProductos);
 
-    // Construcción del objeto para el modelo
-    const nuevoModelo = {
-        "Id": idPedido !== "" ? idPedido : 0,
-        "Fecha": moment($("#fechaPedido").val(), 'YYYY-MM-DD').format('YYYY-MM-DD'),
-        "IdCliente": parseInt($("#idCliente").val()),
-        "FechaEntrega": moment($("#fechaEntrega").val(), 'YYYY-MM-DD').format('YYYY-MM-DD'),
-        "NroRemito": $("#nroRemito").val(),
-        "CostoFlete": parseFloat(convertirMonedaAFloat($("#costoFlete").val())),
-        "IdProveedor": parseInt($("#idProveedor").val()),
-        "IdZona": parseInt($("#idZona").val()),
-        "IdChofer": parseInt($("#idChofer").val()),
-        "TotalCliente": parseFloat(convertirMonedaAFloat($("#totalPagoCliente").val())),
-        "RestanteCliente": parseFloat(convertirMonedaAFloat($("#restanteCliente").val())),
-        "TotalProveedor": parseFloat(convertirMonedaAFloat($("#totalPagoProveedor").val())),
-        "RestanteProveedor": parseFloat(convertirMonedaAFloat($("#restanteProveedor").val())),
-        "Estado": $("#estado").val(),
-        "Observacion": $("#observacion").val(),
-        "PagosPedidosClientes": pagosClientes,
-        "PagosPedidosProveedores": pagosaProveedores,
-        "PedidosProductos": productos
-    };
-
-    // Definir la URL y el método para el envío
-    const url = idPedido === "" ? "Insertar" : "Actualizar";
-    const method = idPedido === "" ? "POST" : "PUT";
-
-    console.log(JSON.stringify(nuevoModelo))
-
-    // Enviar los datos al servidor
-    fetch(url, {
-        method: method,
-        headers: {
-            'Content-Type': 'application/json;charset=utf-8'
-        },
-        body: JSON.stringify(nuevoModelo)
-    })
-        .then(response => {
-           
-            if (!response.ok) throw new Error(response.statusText);
-            return response.json();
-        })
-        .then(dataJson => {
-            console.log("Respuesta del servidor:", dataJson);
-            const mensaje = idPedido === "" ? "Pedido registrado correctamente" : "Pedido modificado correctamente";
-            exitoModal(mensaje);
-        })
-        .catch(error => {
-            console.error('Error:', error);
-        });
+    return true;
 }

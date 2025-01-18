@@ -31,9 +31,23 @@ namespace SistemaGian.Application.Models.ViewModels
 
         public decimal? RestanteProveedor { get; set; }
 
+        public decimal? TotalGanancia { get; set; }
+        public decimal? PorcGanancia { get; set; }
+
+
         public string? Estado { get; set; }
 
         public string? Observacion { get; set; }
+        public string? Chofer { get; set; }
+        public string? Cliente { get; set; }
+        public string? Proveedor { get; set; }
+        public string? DniCliente { get; set; }
+        public string? TelefonoCliente { get; set; }
+        public string? DireccionCliente { get; set; }
+        public string? ApodoProveedor { get; set; }
+        public string? DireccionProveedor { get; set; }
+        public string? TelefonoProveedor { get; set; }
+        public string? Zona { get; set; }
 
         public virtual Cliente? IdClienteNavigation { get; set; }
 
@@ -43,6 +57,6 @@ namespace SistemaGian.Application.Models.ViewModels
 
         public virtual ICollection<PagosPedidosProveedor>? PagosPedidosProveedores { get; set; } = new List<PagosPedidosProveedor>();
 
-        public virtual ICollection<PedidosProducto>? PedidosProductos { get; set; } = new List<PedidosProducto>();
+        public virtual ICollection<VMPedidosProducto>? PedidosProductos { get; set; } = new List<VMPedidosProducto>();
     }
 }
