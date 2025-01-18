@@ -44,22 +44,30 @@
     </div>
 </div>
     
+
 <div class="container-fluid mt-5">
-
-    <partial name="~/Views/Shared/Partials/BotonMenu.cshtml" />
-
-
     <div class="row">
+        <partial name="~/Views/Shared/Partials/BotonMenu.cshtml" />
         <div class="col-lg-10">
-            <div class="card" style="width: 88%;position: absolute; left: 7vw; border: none;">
-                <div class="card-header">
-                    Productos
+            <div class="card" style="width: 88%; position: absolute; left: 7vw; border: none;">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>Productos</span>
+
+                    <div class="dropdown">
+                        <button class="btn btn-secondary dropdown-toggle d-flex align-items-center" type="button" id="dropdownColumnas" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fa fa-cog me-2"></i> Config. Columnas
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="dropdownColumnas">
+                           
+                        </ul>
+                    </div>
                 </div>
+
                 <div class="card-body">
                     <table class="display nowrap" id="grd_Productos" style="width:100%">
                         <thead>
                             <tr>
-                                <th>Imagen</th>
+                                @* <th>Imagen</th> *@
                                 <th>Descripcion</th>
                                 <th>Proveedor</th>
                                 <th>Marca</th>
@@ -70,7 +78,6 @@
                                 <th>P. Venta</th>
                                 <th>Porc. Ganancia</th>
                                 <th>Acciones</th>
-                                
                             </tr>
                         </thead>
                         <tbody>
@@ -86,17 +93,17 @@
                     <a id="btnBajarPrecios" class="btn btn-secondary btnnuevo me-2" onclick="abrirmodalBajarPrecios()" hidden>
                         <i class="fa fa-arrow-down text-danger"></i> Bajar Precios
                     </a>
-                     <a id="btnAsignarProveedor" class="btn btn-success btnnuevo me-2" onclick="abrirmodalProveedor()" hidden>Asignar Proveedor</a>
-                     <a id="btnAsignarCliente" class="btn btn-success btnnuevo me-2" onclick="abrirmodalCliente()" hidden>Asignar Cliente</a>
+                    <a id="btnAsignarProveedor" class="btn btn-success btnnuevo me-2" onclick="abrirmodalProveedor()" hidden>Asignar Proveedor</a>
+                    <a id="btnAsignarCliente" class="btn btn-success btnnuevo me-2" onclick="abrirmodalCliente()" hidden>Asignar Cliente</a>
 
                     <a class="btn btn-primary btnnuevo" id="btnNuevo" onclick="nuevoProducto()">Nuevo</a>
                 </div>
-
-
             </div>
         </div>
     </div>
 </div>
+
+
 
 <div class="modal fade centered-modal-importar" id="modalProveedores" tabindex="-1" aria-labelledby="modalProveedoresLabel" aria-hidden="true">
     <div class="modal-dialog estilowpp">
