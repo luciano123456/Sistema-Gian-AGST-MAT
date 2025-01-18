@@ -13,6 +13,7 @@ const columnConfig = [
     { index: 9, filterType: 'text' },
     { index: 10, filterType: 'text' },
     { index: 11, filterType: 'text' },
+    { index: 12, filterType: 'text' },
 ];
 
 
@@ -102,6 +103,29 @@ async function configurarDataTable(data) {
             scrollX: "100px",
             scrollCollapse: true,
             columns: [
+                {
+                    data: "Id",
+                    title: '',
+                    width: "1%", // Ancho fijo para la columna
+                    render: function (data) {
+                        return `
+                <div class="acciones-menu" data-id="${data}">
+                    <button class='btn btn-sm btnacciones' type='button' onclick='toggleAcciones(${data})' title='Acciones'>
+                        <i class='fa fa-ellipsis-v fa-lg text-white' aria-hidden='true'></i>
+                    </button>
+                    <div class="acciones-dropdown" style="display: none;">
+                        <button class='btn btn-sm btneditar' type='button' onclick='editarPedido(${data})' title='Editar'>
+                            <i class='fa fa-pencil-square-o fa-lg text-success' aria-hidden='true'></i> Editar
+                        </button>
+                        <button class='btn btn-sm btneliminar' type='button' onclick='eliminarPedido(${data})' title='Eliminar'>
+                            <i class='fa fa-trash-o fa-lg text-danger' aria-hidden='true'></i> Eliminar
+                        </button>
+                    </div>
+                </div>`;
+                    },
+                    orderable: false,
+                    searchable: false,
+                },
                 { data: 'Fecha' },
                 { data: 'FechaEntrega' },
                 { data: 'Cliente' },
@@ -122,15 +146,7 @@ async function configurarDataTable(data) {
                 },
                 { data: 'Estado' },
                 { data: 'Observacion' },
-                {
-                    data: "Id",
-                    render: function (data) {
-                        return "<button class='btn btn-sm btneditar btnacciones' type='button' onclick='editarPedido(" + data + ")' title='Editar'><i class='fa fa-pencil-square-o fa-lg text-white' aria-hidden='true'></i></button>" +
-                            "<button class='btn btn-sm btneditar btnacciones' type='button' onclick='eliminarPedido(" + data + ")' title='Eliminar'><i class='fa fa-trash-o fa-lg text-danger' aria-hidden='true'></i></button>";
-                    },
-                    orderable: true,
-                    searchable: true,
-                }
+                
             ],
             dom: 'Bfrtip',
             buttons: [
@@ -140,7 +156,7 @@ async function configurarDataTable(data) {
                     filename: 'Reporte Ventas',
                     title: '',
                     exportOptions: {
-                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+                        columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
                     },
                     className: 'btn-exportar-excel',
                 },
@@ -150,7 +166,7 @@ async function configurarDataTable(data) {
                     filename: 'Reporte pedidos',
                     title: '',
                     exportOptions: {
-                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+                        columns: [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
                     },
                     className: 'btn-exportar-pdf',
                 },
@@ -159,7 +175,7 @@ async function configurarDataTable(data) {
                     text: 'Imprimir',
                     title: '',
                     exportOptions: {
-                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+                        columns: [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
                     },
                     className: 'btn-exportar-print'
                 },
@@ -178,16 +194,16 @@ async function configurarDataTable(data) {
                             return date.toLocaleDateString('es-ES'); // Formato: 'DD/MM/YYYY'
                         }
                     },
-                    "targets": [0, 1] // Índices de las columnas de fechas
+                    "targets": [1, 2] // Índices de las columnas de fechas
                 },
                 {
                     "render": function (data, type, row) {
                         return formatNumber(data); // Formatear números
                     },
-                    "targets": [4, 5,6,7,8] // Índices de las columnas de números
+                    "targets": [5, 6,7,8,9] // Índices de las columnas de números
                 },
                 {
-                    "targets": [10], // Índice de la columna 'Estado'
+                    "targets": [11], // Índice de la columna 'Estado'
                     "createdCell": function (cell, cellData, rowData, rowIndex, colIndex) {
                         // Si el estado es "Entregado", pintar de verde
                         if (cellData === "Entregado") {
@@ -221,8 +237,7 @@ async function configurarDataTable(data) {
                     }
                 });
 
-                var lastColIdx = api.columns().indexes().length - 1;
-                $('.filters th').eq(lastColIdx).html(''); // Limpiar la última columna si es necesario
+                $('.filters th').eq(0).html(''); // Limpiar la última columna si es necesario
 
 
                 configurarOpcionesColumnas();
@@ -340,3 +355,12 @@ function configurarOpcionesColumnas() {
         grid.column(columnIdx).visible(isChecked);
     });
 }
+
+
+
+$(document).on('click', function (e) {
+    // Verificar si el clic está fuera de cualquier dropdown
+    if (!$(e.target).closest('.acciones-menu').length) {
+        $('.acciones-dropdown').hide(); // Cerrar todos los dropdowns
+    }
+});

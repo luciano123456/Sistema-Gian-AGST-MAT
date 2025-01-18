@@ -1,16 +1,16 @@
 html {
-  font-size: 14px;
+    font-size: 14px;
 }
 
 @media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
+    html {
+        font-size: 16px;
+    }
 }
 
 html {
-  position: relative;
-  min-height: 100%;
+    position: relative;
+    min-height: 100%;
 }
 
 
@@ -297,9 +297,7 @@ label {
 
 .estiloError {
     max-width: 800px !important;
-
     width: 95% !important;
-
 }
 
 /* Estilo personalizado para la colección de botones */
@@ -308,19 +306,19 @@ div.dt-button-collection {
     border-color: #0D82F7 !important; /* Cambia el color del borde */
 }
 
-div.dt-button-collection .dt-button {
-    color: white; /* Cambia el color del texto */
-    background-color: #0D82F7; /* Cambia el color de fondo */
-    border-color: #0D82F7 !important; /* Cambia el color del borde */
-}
+    div.dt-button-collection .dt-button {
+        color: white; /* Cambia el color del texto */
+        background-color: #0D82F7; /* Cambia el color de fondo */
+        border-color: #0D82F7 !important; /* Cambia el color del borde */
+    }
 
-div.dt-button-collection .dt-button:hover {
-    background-color: #0E21E3 !important; /* Cambia el color de fondo al pasar el mouse */
-}
+        div.dt-button-collection .dt-button:hover {
+            background-color: #0E21E3 !important; /* Cambia el color de fondo al pasar el mouse */
+        }
 
-   
 
-   
+
+
 
 
 
@@ -407,52 +405,52 @@ div.dt-button-collection .dt-button:hover {
     }
 }
 
-    @media (max-width: 900px) {
+@media (max-width: 900px) {
 
-        .lblNombreInput {
-            font-size: 3vw !important;
-        }
-
-        .input-nuevomodif {
-            font-size: 2.8vw !important;
-        }
+    .lblNombreInput {
+        font-size: 3vw !important;
     }
 
+    .input-nuevomodif {
+        font-size: 2.8vw !important;
+    }
+}
 
-    @media (max-width: 600px) {
-        .lblNombreInput {
-            font-size: 3.5vw !important;
-        }
 
-        .input-nuevomodif {
-            font-size: 3.3vw !important;
-        }
+@media (max-width: 600px) {
+    .lblNombreInput {
+        font-size: 3.5vw !important;
     }
 
-    @media (max-width: 450px) {
-        .lblNombreInput {
-            font-size: 3.8vw !important;
-        }
+    .input-nuevomodif {
+        font-size: 3.3vw !important;
+    }
+}
 
-        .input-nuevomodif {
-            font-size: 3.6vw !important;
-        }
+@media (max-width: 450px) {
+    .lblNombreInput {
+        font-size: 3.8vw !important;
     }
 
-
-
-
-    @media (max-width: 400px) {
-        .imageMenu {
-            height: 60px;
-            width: 60px;
-        }
+    .input-nuevomodif {
+        font-size: 3.6vw !important;
     }
+}
 
 
-    .dataTables_scrollHeadInner {
-        margin: 0 auto;
+
+
+@media (max-width: 400px) {
+    .imageMenu {
+        height: 60px;
+        width: 60px;
     }
+}
+
+
+.dataTables_scrollHeadInner {
+    margin: 0 auto;
+}
 
 
 .dataTables_wrapper .dataTables_length select {
@@ -462,4 +460,39 @@ div.dt-button-collection .dt-button:hover {
 .input-nuevo::-webkit-calendar-picker-indicator {
     filter: invert(1); /* Invierte los colores del icono */
     opacity: 0.8; /* Ajusta la opacidad si es necesario */
+}
+
+.acciones-menu {
+    position: relative;
+    z-index: 9999999 !important; /* Asegura que este contenedor se apile correctamente */
+}
+
+.acciones-dropdown {
+    position: absolute;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    z-index: 10000; /* Eleva este elemento para superar otros */
+    margin-top: -30px;
+    padding: 5px;
+    border-radius: 4px;
+    min-width: 150px; /* Ajusta el ancho mínimo si es necesario */
+}
+
+    .acciones-dropdown button {
+        display: block;
+        width: 100%;
+        text-align: left;
+        padding: 5px;
+        border: none;
+        background: none;
+    }
+
+        .acciones-dropdown button:hover {
+            background-color: #f0f0f0;
+        }
+
+
+.dataTables_wrapper {
+    position: relative;
+    z-index: 1; /* Este valor debe ser menor que el del menú */
 }

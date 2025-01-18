@@ -4,17 +4,18 @@ let idProveedorFiltro = -1, idClienteFiltro = -1;
 let proveedorVisible = false;
 
 const columnConfig = [
-    { index: 0, filterType: 'text' },
     { index: 1, filterType: 'text' },
-    { index: 2, filterType: 'select', fetchDataFunc: listaMarcasFilter }, // Columna con un filtro de selección (de provincias)
-    { index: 3, filterType: 'select', fetchDataFunc: listaCategoriasFilter }, // Columna con un filtro de selección (de provincias)
-    { index: 4, filterType: 'select', fetchDataFunc: listaUnidadesDeMedidaFilter }, // Columna con un filtro de selección (de provincias)
-    { index: 5, filterType: 'select', fetchDataFunc: listaMonedasFilter }, // Columna con un filtro de selección (de provincias)
-    { index: 6, filterType: 'text' },
+    { index: 2, filterType: 'text' },
+    { index: 3, filterType: 'select', fetchDataFunc: listaMarcasFilter }, // Columna con un filtro de selección (de provincias)
+    { index: 4, filterType: 'select', fetchDataFunc: listaCategoriasFilter }, // Columna con un filtro de selección (de provincias)
+    { index: 5, filterType: 'select', fetchDataFunc: listaUnidadesDeMedidaFilter }, // Columna con un filtro de selección (de provincias)
+    { index: 6, filterType: 'select', fetchDataFunc: listaMonedasFilter }, // Columna con un filtro de selección (de provincias)
     { index: 7, filterType: 'text' },
     { index: 8, filterType: 'text' },
     { index: 9, filterType: 'text' },
     { index: 10, filterType: 'text' },
+    { index: 11, filterType: 'text' },
+    { index: 12, filterType: 'text' },
 ];
 
 const Modelo_base = {
@@ -251,12 +252,12 @@ async function aplicarFiltros() {
 
         if (producto != "") {
             await actualizarVisibilidadProveedor(true);
-            gridProductos.column(1).visible(true);
-            gridProductos.column(9).visible(false);
+            gridProductos.column(2).visible(true);
+            gridProductos.column(0).visible(false);
             
         } else {
-            gridProductos.column(1).visible(false);
-            gridProductos.column(9).visible(true);
+            gridProductos.column(2).visible(false);
+            gridProductos.column(0).visible(true);
             await actualizarVisibilidadProveedor(false);
         }
 
@@ -876,19 +877,30 @@ async function configurarDataTable(data) {
             scrollX: "100px",
             scrollCollapse: true,
             columns: [
-                //{
-                //    "data": "Image", "render": function (data) {
-                //        if (!data) {
-                //            var img = "/Imagenes/sin-imagen.png";
-                //            return '<img src="' + img + '" width="40%" />';
-                //        }
-                //        else {
-                //            var img = 'data:image/png;base64,' + data;
-                //            return '<img src="' + img + '" width="60%" />';
-                //        }
-                //    }
-                //},
 
+                {
+                    data: "Id",
+                    title: '',
+                    width: "1%", // Ancho fijo para la columna
+                    render: function (data) {
+                        return `
+                <div class="acciones-menu" data-id="${data}">
+                    <button class='btn btn-sm btnacciones' type='button' onclick='toggleAcciones(${data})' title='Acciones'>
+                        <i class='fa fa-ellipsis-v fa-lg text-white' aria-hidden='true'></i>
+                    </button>
+                    <div class="acciones-dropdown" style="display: none;">
+                        <button class='btn btn-sm btneditar' type='button' onclick='editarPedido(${data})' title='Editar'>
+                            <i class='fa fa-pencil-square-o fa-lg text-success' aria-hidden='true'></i> Editar
+                        </button>
+                        <button class='btn btn-sm btneliminar' type='button' onclick='eliminarPedido(${data})' title='Eliminar'>
+                            <i class='fa fa-trash-o fa-lg text-danger' aria-hidden='true'></i> Eliminar
+                        </button>
+                    </div>
+                </div>`;
+                    },
+                    orderable: false,
+                    searchable: false,
+                },
                 { data: 'Descripcion' },
                 { data: 'Proveedor' },
                 { data: 'Marca' },
@@ -899,41 +911,19 @@ async function configurarDataTable(data) {
                 { data: 'PVenta' },
                 { data: 'PorcGanancia' },
 
-                {
-                    data: "Id",
-                    render: function (data) {
-
-                        const isChecked = false;
-
-                        const checkboxClass = isChecked ? 'fa-check-square-o' : 'fa-square-o';
-
-                        return `
-                                <button class='btn btn-sm btneditar btnacciones' type='button' onclick='editarProducto(${data})' title='Editar'>
-                                    <i class='fa fa-pencil-square-o fa-lg text-white' aria-hidden='true'></i>
-                                </button>
-                                <button class='btn btn-sm btneditar btnacciones' type='button' onclick='eliminarProducto(${data})' title='Eliminar'>
-                                    <i class='fa fa-trash-o fa-lg text-danger' aria-hidden='true'></i>
-                                </button>
-                                <span class="custom-checkbox" data-id='${data}'>
-                                    <i class="fa ${checkboxClass} checkbox"></i>
-                                </span>`;
-                    },
-                    orderable: true,
-                    searchable: true,
-                }
-
+               
             ],
             dom: 'Bfrtip',
             buttons: [
-                { extend: 'excelHtml5', text: 'Exportar Excel', filename: 'Reporte Productos', exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6, 7] }, className: 'btn-exportar-excel' },
-                { extend: 'pdfHtml5', text: 'Exportar PDF', filename: 'Reporte Productos', exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6, 7] }, className: 'btn-exportar-pdf' },
+                { extend: 'excelHtml5', text: 'Exportar Excel', filename: 'Reporte Productos', exportOptions: { columns: [ 1, 2, 3, 4, 5, 6, 7,8] }, className: 'btn-exportar-excel' },
+                { extend: 'pdfHtml5', text: 'Exportar PDF', filename: 'Reporte Productos', exportOptions: { columns: [ 1, 2, 3, 4, 5, 6, 7, 8] }, className: 'btn-exportar-pdf' },
                 { extend: 'print', text: 'Imprimir', exportOptions: { columns: [1, 2, 3, 4, 5, 6, 7, 8] }, className: 'btn-exportar-print' },
                 'pageLength'
             ],
             orderCellsTop: true,
             fixedHeader: true,
             columnDefs: [
-                { "render": function (data) { return formatNumber(data); }, "targets": [6, 7] }
+                { "render": function (data) { return formatNumber(data); }, "targets": [7, 8] }
             ],
             initComplete: async function () {
                 var api = this.api();
@@ -972,8 +962,7 @@ async function configurarDataTable(data) {
                     }
                 });
 
-                var lastColIdx = api.columns().indexes().length - 1;
-                $('.filters th').eq(lastColIdx).html(''); // Limpiar la última columna si es necesario
+                $('.filters th').eq(0).html('');
 
                 // Establecer la visibilidad de la columna 'Proveedor' (por defecto oculta)
                 actualizarVisibilidadProveedor(false); // Establecer la visibilidad por defecto
@@ -1007,12 +996,12 @@ async function configurarDataTable(data) {
 
 // Actualizar la visibilidad de la columna 'Proveedor'
 async function actualizarVisibilidadProveedor(visible) {
-    var column = gridProductos.column(1); // Asumimos que la columna 'Proveedor' es la tercera columna (índice 2)
+    var column = gridProductos.column(2); // Asumimos que la columna 'Proveedor' es la tercera columna (índice 2)
     column.visible(visible);
 
     // Si la columna es visible, configurar su filtro select
     if (visible) {
-        var cell = $('.filters th').eq(1);
+        var cell = $('.filters th').eq(2);
         var select = $('<select id="filter2"><option value="">Seleccionar</option></select>')
             .appendTo(cell.empty())
             .on('change', function () {
@@ -1021,7 +1010,7 @@ async function actualizarVisibilidadProveedor(visible) {
                 var selectedText = $(this).find('option:selected').text(); // Obtener el texto del nombre visible
                 //await api.column(config.index).search(val ? '^' + selectedText + '$' : '', true, false).draw(); // Buscar el texto del nombre
 
-                gridProductos.column(1).search(val ? '^' + selectedText + '$' : '', true, false).draw();
+                gridProductos.column(2).search(val ? '^' + selectedText + '$' : '', true, false).draw();
             });
 
         try {
@@ -1196,3 +1185,11 @@ function configurarOpcionesColumnas() {
         grid.column(columnIdx).visible(isChecked);
     });
 }
+
+
+$(document).on('click', function (e) {
+    // Verificar si el clic está fuera de cualquier dropdown
+    if (!$(e.target).closest('.acciones-menu').length) {
+        $('.acciones-dropdown').hide(); // Cerrar todos los dropdowns
+    }
+});

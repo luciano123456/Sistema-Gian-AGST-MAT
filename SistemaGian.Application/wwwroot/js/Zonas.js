@@ -166,7 +166,30 @@ async function configurarDataTable(data) {
             scrollX: "100px",
             scrollCollapse: true,
             columns: [
-                { data: 'Nombre', title: 'Nombre' },
+                {
+                    data: "Id",
+                    title: '',
+                    width: "1%", // Ancho fijo para la columna
+                    render: function (data) {
+                        return `
+                <div class="acciones-menu" data-id="${data}">
+                    <button class='btn btn-sm btnacciones' type='button' onclick='toggleAcciones(${data})' title='Acciones'>
+                        <i class='fa fa-ellipsis-v fa-lg text-white' aria-hidden='true'></i>
+                    </button>
+                    <div class="acciones-dropdown" style="display: none;">
+                        <button class='btn btn-sm btneditar' type='button' onclick='editarZona(${data})' title='Editar'>
+                            <i class='fa fa-pencil-square-o fa-lg text-success' aria-hidden='true'></i> Editar
+                        </button>
+                        <button class='btn btn-sm btneliminar' type='button' onclick='eliminarZona(${data})' title='Eliminar'>
+                            <i class='fa fa-trash-o fa-lg text-danger' aria-hidden='true'></i> Eliminar
+                        </button>
+                    </div>
+                </div>`;
+                    },
+                    orderable: false,
+                    searchable: false,
+                },
+                { data: 'Nombre', title: 'Nombre', },
                 {
                     data: 'Precio',
                     title: 'Precio',
@@ -174,21 +197,6 @@ async function configurarDataTable(data) {
                         return formatNumber(data);
                     }
                 },
-                {
-                    data: "Id",
-                    title: 'Acciones',
-                    render: function (data) {
-                        return `
-                <button class='btn btn-sm btneditar btnacciones' type='button' onclick='editarZona(${data})' title='Editar'>
-                    <i class='fa fa-pencil-square-o fa-lg text-white' aria-hidden='true'></i>
-                </button>
-                <button class='btn btn-sm btneditar btnacciones' type='button' onclick='eliminarZona(${data})' title='Eliminar'>
-                    <i class='fa fa-trash-o fa-lg text-danger' aria-hidden='true'></i>
-                </button>`;
-                    },
-                    orderable: true,
-                    searchable: true,
-                }
             ],
             dom: 'Bfrtip',
             buttons: [
@@ -224,11 +232,12 @@ async function configurarDataTable(data) {
                 'pageLength'
             ],
             "columnDefs": [
+               
                 {
                     "render": function (data, type, row) {
                         return formatNumber(data); // Formatear número en la columna
                     },
-                    "targets": [1] // Columna Precio
+                    "targets": [2] // Columna Precio
                 }
             ],
             orderCellsTop: true,
@@ -273,8 +282,8 @@ async function configurarDataTable(data) {
                     }
                 });
 
-                var lastColIdx = api.columns().indexes().length - 1;
-                $('.filters th').eq(lastColIdx).html(''); // Limpiar la última columna si es necesario
+                var firstColIdx = 0;  // Índice de la primera columna
+                $('.filters th').eq(firstColIdx).html(''); // Limpiar la primera columna
 
                 setTimeout(function () {
                     gridZonas.columns.adjust();
@@ -354,3 +363,11 @@ function configurarOpcionesColumnas() {
         grid.column(columnIdx).visible(isChecked);
     });
 }
+
+
+$(document).on('click', function (e) {
+    // Verificar si el clic está fuera de cualquier dropdown
+    if (!$(e.target).closest('.acciones-menu').length) {
+        $('.acciones-dropdown').hide(); // Cerrar todos los dropdowns
+    }
+});

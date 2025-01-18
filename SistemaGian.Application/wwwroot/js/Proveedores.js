@@ -1,10 +1,10 @@
 ﻿let gridProveedores;
 
 const columnConfig = [
-    { index: 0, filterType: 'text' },
     { index: 1, filterType: 'text' },
     { index: 2, filterType: 'text' },
     { index: 3, filterType: 'text' },
+    { index: 4, filterType: 'text' },
 ];
 
 const Modelo_base = {
@@ -176,6 +176,29 @@ async function configurarDataTable(data) {
             scrollX: "100px",
             scrollCollapse: true,
             columns: [
+                {
+                    data: "Id",
+                    title: '',
+                    width: "1%", // Ancho fijo para la columna
+                    render: function (data) {
+                        return `
+                <div class="acciones-menu" data-id="${data}">
+                    <button class='btn btn-sm btnacciones' type='button' onclick='toggleAcciones(${data})' title='Acciones'>
+                        <i class='fa fa-ellipsis-v fa-lg text-white' aria-hidden='true'></i>
+                    </button>
+                    <div class="acciones-dropdown" style="display: none;">
+                        <button class='btn btn-sm btneditar' type='button' onclick='editarProveedor(${data})' title='Editar'>
+                            <i class='fa fa-pencil-square-o fa-lg text-success' aria-hidden='true'></i> Editar
+                        </button>
+                        <button class='btn btn-sm btneliminar' type='button' onclick='eliminarProveedor(${data})' title='Eliminar'>
+                            <i class='fa fa-trash-o fa-lg text-danger' aria-hidden='true'></i> Eliminar
+                        </button>
+                    </div>
+                </div>`;
+                    },
+                    orderable: false,
+                    searchable: false,
+                },
                 { data: 'Nombre' },
                 { data: 'Apodo' },
                 {
@@ -185,15 +208,7 @@ async function configurarDataTable(data) {
                 },
 
                 { data: 'Telefono' },
-                {
-                    data: "Id",
-                    render: function (data) {
-                        return "<button class='btn btn-sm btneditar btnacciones' type='button' onclick='editarProveedor(" + data + ")' title='Editar'><i class='fa fa-pencil-square-o fa-lg text-white' aria-hidden='true'></i></button>" +
-                            "<button class='btn btn-sm btneditar btnacciones' type='button' onclick='eliminarProveedor(" + data + ")' title='Eliminar'><i class='fa fa-trash-o fa-lg text-danger' aria-hidden='true'></i></button>";
-                    },
-                    orderable: true,
-                    searchable: true,
-                }
+               
             ],
             dom: 'Bfrtip',
             buttons: [
@@ -203,7 +218,7 @@ async function configurarDataTable(data) {
                     filename: 'Reporte Proveedores',
                     title: '',
                     exportOptions: {
-                        columns: [0, 1, 2, 3]
+                        columns:  [1, 2, 3, 4]
                     },
                     className: 'btn-exportar-excel',
                 },
@@ -213,7 +228,7 @@ async function configurarDataTable(data) {
                     filename: 'Reporte Proveedores',
                     title: '',
                     exportOptions: {
-                        columns: [0, 1, 2, 3]
+                        columns: [1, 2, 3, 4]
                     },
                     className: 'btn-exportar-pdf',
                 },
@@ -222,7 +237,7 @@ async function configurarDataTable(data) {
                     text: 'Imprimir',
                     title: '',
                     exportOptions: {
-                        columns: [0, 1, 2, 3]
+                        columns: [1, 2, 3, 4]
                     },
                     className: 'btn-exportar-print'
                 },
@@ -268,8 +283,7 @@ async function configurarDataTable(data) {
                     }
                 });
 
-                var lastColIdx = api.columns().indexes().length - 1;
-                $('.filters th').eq(lastColIdx).html(''); // Limpiar la última columna si es necesario
+                $('.filters th').eq(0).html(''); // Limpiar la última columna si es necesario
 
                 configurarOpcionesColumnas();
 
@@ -315,7 +329,7 @@ function configurarOpcionesColumnas() {
             // Asegúrate de que la columna esté visible si el valor es 'true'
             grid.column(index).visible(isChecked);
 
-            const columnName = index != 2 ? col.data : "Direccion";
+            const columnName = index != 3 ? col.data : "Direccion";
 
             // Ahora agregamos el checkbox, asegurándonos de que se marque solo si 'isChecked' es 'true'
             container.append(`
@@ -338,3 +352,10 @@ function configurarOpcionesColumnas() {
         grid.column(columnIdx).visible(isChecked);
     });
 }
+
+$(document).on('click', function (e) {
+    // Verificar si el clic está fuera de cualquier dropdown
+    if (!$(e.target).closest('.acciones-menu').length) {
+        $('.acciones-dropdown').hide(); // Cerrar todos los dropdowns
+    }
+});
