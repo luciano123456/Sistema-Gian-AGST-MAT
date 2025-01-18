@@ -164,7 +164,13 @@ async function configurarDataTable(data) {
                 { data: 'Telefono' },
                 {
                     data: function (row) {
-                        return row.Direccion && row.Direccion.trim() !== "" ? '<div class="location-cell"><i title="Ir a Google Maps" class="fa fa-map-marker fa-2x text-warning"></i> ' + row.Direccion + '</div>' : row.Direccion;
+                        return row.Direccion && row.Direccion.trim() !== ""
+                            ? '<div class="location-cell"><i title="Ir a Google Maps" class="fa fa-map-marker fa-2x text-warning"></i> ' + row.Direccion + '</div>'
+                            : ''; // Asegúrate de manejar la dirección vacía correctamente
+                    },
+                    createdCell: function (td, cellData, rowData, row, col) {
+                        // Este código asegura que el HTML se procese y renderice correctamente
+                        $(td).html(cellData); // Pasa el HTML procesado a la celda
                     }
                 },
                 {
@@ -221,46 +227,64 @@ async function configurarDataTable(data) {
             initComplete: async function () {
                 var api = this.api();
 
-                // Iterar sobre las columnas y aplicar la configuración de filtros
+                // Obtener los índices de las columnas visibles
+                var visibleColumns = api.columns(':visible').indexes().toArray();
+
+                // Iterar sobre la configuración de filtros y aplicar a las columnas visibles
                 columnConfig.forEach(async (config) => {
-                    var cell = $('.filters th').eq(config.index);
+                    var columnIndex = config.index;
 
-                    if (config.filterType === 'select') {
-                        var select = $('<select id="filter' + config.index + '"><option value="">Seleccionar</option></select>')
-                            .appendTo(cell.empty())
-                            .on('change', async function () {
-                                var val = $(this).val();
-                                var selectedText = $(this).find('option:selected').text(); // Obtener el texto del nombre visible
-                                await api.column(config.index).search(val ? '^' + selectedText + '$' : '', true, false).draw(); // Buscar el texto del nombre
+                    // Verificar si la columna está visible
+                    if (visibleColumns.indexOf(columnIndex) !== -1) {
+
+                        // Si la columna está oculta, sumamos 1 al índice de la celda
+                        var adjustedIndex = visibleColumns.indexOf(columnIndex);
+
+                        // Obtener la celda en la fila de filtros
+                        var cell = $('.filters th').eq(adjustedIndex);
+
+                        if (config.filterType === 'select') {
+                            var select = $('<select id="filter' + columnIndex + '"><option value="">Seleccionar</option></select>')
+                                .appendTo(cell.empty())
+                                .on('change', async function () {
+                                    var val = $(this).val();
+                                    var selectedText = $(this).find('option:selected').text(); // Obtener el texto del nombre visible
+                                    await api.column(columnIndex).search(val ? '^' + selectedText + '$' : '', true, false).draw(); // Buscar el texto del nombre
+                                });
+
+                            var data = await config.fetchDataFunc(); // Llamada a la función para obtener los datos
+                            data.forEach(function (item) {
+                                select.append('<option value="' + item.Id + '">' + item.Nombre + '</option>')
                             });
 
-                        var data = await config.fetchDataFunc(); // Llamada a la función para obtener los datos
-                        data.forEach(function (item) {
-                            select.append('<option value="' + item.Id + '">' + item.Nombre + '</option>')
-                        });
-
-                    } else if (config.filterType === 'text') {
-                        var input = $('<input type="text" placeholder="Buscar..." />')
-                            .appendTo(cell.empty())
-                            .off('keyup change') // Desactivar manejadores anteriores
-                            .on('keyup change', function (e) {
-                                e.stopPropagation();
-                                var regexr = '({search})';
-                                var cursorPosition = this.selectionStart;
-                                api.column(config.index)
-                                    .search(this.value != '' ? regexr.replace('{search}', '(((' + this.value + ')))') : '', this.value != '', this.value == '')
-                                    .draw();
-                                $(this).focus()[0].setSelectionRange(cursorPosition, cursorPosition);
-                            });
+                        } else if (config.filterType === 'text') {
+                            var input = $('<input type="text" placeholder="Buscar..." />')
+                                .appendTo(cell.empty())
+                                .off('keyup change') // Desactivar manejadores anteriores
+                                .on('keyup change', function (e) {
+                                    e.stopPropagation();
+                                    var regexr = '({search})';
+                                    var cursorPosition = this.selectionStart;
+                                    api.column(columnIndex)
+                                        .search(this.value != '' ? regexr.replace('{search}', '(((' + this.value + ')))') : '', this.value != '', this.value == '')
+                                        .draw();
+                                    $(this).focus()[0].setSelectionRange(cursorPosition, cursorPosition);
+                                });
+                        }
                     }
                 });
+
 
                 var lastColIdx = api.columns().indexes().length - 1;
                 $('.filters th').eq(lastColIdx).html(''); // Limpiar la última columna si es necesario
 
+                configurarOpcionesColumnas()
+
                 setTimeout(function () {
                     gridChoferes.columns.adjust();
                 }, 10);
+
+               
 
                 $('body').on('mouseenter', '#grd_Choferes .fa-map-marker', function () {
                     $(this).css('cursor', 'pointer');
@@ -279,4 +303,48 @@ async function configurarDataTable(data) {
     } else {
     gridChoferes.clear().rows.add(data).draw();
 }
+}
+
+
+function configurarOpcionesColumnas() {
+    const grid = $('#grd_Choferes').DataTable(); // Accede al objeto DataTable utilizando el id de la tabla
+    const columnas = grid.settings().init().columns; // Obtiene la configuración de columnas
+    const container = $('.dropdown-menu'); // El contenedor del dropdown, cambia a .dropdown-menu
+
+    const storageKey = `Choferes_Columnas`; // Clave única para esta pantalla
+
+    const savedConfig = JSON.parse(localStorage.getItem(storageKey)) || {}; // Recupera configuración guardada o inicializa vacía
+
+    container.empty(); // Limpia el contenedor
+
+    columnas.forEach((col, index) => {
+        if (col.data && col.data !== "Id") { // Solo agregar columnas que no sean "Id"
+            // Recupera el valor guardado en localStorage, si existe. Si no, inicializa en 'false' para no estar marcado.
+            const isChecked = savedConfig && savedConfig[`col_${index}`] !== undefined ? savedConfig[`col_${index}`] : true;
+
+            // Asegúrate de que la columna esté visible si el valor es 'true'
+            grid.column(index).visible(isChecked);
+
+            const columnName = index != 2 ? col.data : "Direccion";
+
+            // Ahora agregamos el checkbox, asegurándonos de que se marque solo si 'isChecked' es 'true'
+            container.append(`
+                <li>
+                    <label class="dropdown-item">
+                        <input type="checkbox" class="toggle-column" data-column="${index}" ${isChecked ? 'checked' : ''}>
+                        ${columnName}
+                    </label>
+                </li>
+            `);
+        }
+    });
+
+    // Asocia el evento para ocultar/mostrar columnas
+    $('.toggle-column').on('change', function () {
+        const columnIdx = parseInt($(this).data('column'), 10);
+        const isChecked = $(this).is(':checked');
+        savedConfig[`col_${columnIdx}`] = isChecked;
+        localStorage.setItem(storageKey, JSON.stringify(savedConfig));
+        grid.column(columnIdx).visible(isChecked);
+    });
 }

@@ -20,14 +20,23 @@
 }
 
 <div class="container-fluid mt-5">
-
     <div class="row">
         <partial name="~/Views/Shared/Partials/BotonMenu.cshtml" />
         <div class="col-lg-10">
-            <div class="card" style="width: 88%;position: absolute; left: 7vw; border: none;">
-                <div class="card-header">
-                    Zonas
+            <div class="card" style="width: 88%; position: absolute; left: 7vw; border: none;">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>Zonas</span>
+
+                    <div class="dropdown">
+                        <button class="btn btn-secondary dropdown-toggle d-flex align-items-center" type="button" id="dropdownColumnas" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fa fa-cog me-2"></i> Config. Columnas
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="dropdownColumnas">
+                           
+                        </ul>
+                    </div>
                 </div>
+
                 <div class="card-body">
                     <table class="display nowrap" id="grd_Zonas" style="width:100%">
                         <thead>
@@ -46,11 +55,11 @@
                 <div class="d-flex justify-content-end mt-2 mb-4">
                     <a class="btn btn-primary btnnuevo" onclick="nuevaZona()">Nuevo</a>
                 </div>
-
             </div>
         </div>
     </div>
 </div>
+
 
 
 <!-- HTML para el modal de edición -->
