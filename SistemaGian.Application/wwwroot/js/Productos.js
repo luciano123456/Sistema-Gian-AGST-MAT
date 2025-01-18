@@ -1,6 +1,7 @@
 ﻿let gridProductos;
 var selectedProductos = [];
 let idProveedorFiltro = -1, idClienteFiltro = -1;
+let proveedorVisible = false;
 
 const columnConfig = [
     { index: 0, filterType: 'text' },
@@ -250,12 +251,12 @@ async function aplicarFiltros() {
 
         if (producto != "") {
             await actualizarVisibilidadProveedor(true);
-            gridProductos.column(2).visible(true);
-            gridProductos.column(10).visible(false);
+            gridProductos.column(1).visible(true);
+            gridProductos.column(9).visible(false);
             
         } else {
-            gridProductos.column(2).visible(false);
-            gridProductos.column(10).visible(true);
+            gridProductos.column(1).visible(false);
+            gridProductos.column(9).visible(true);
             await actualizarVisibilidadProveedor(false);
         }
 
@@ -875,21 +876,21 @@ async function configurarDataTable(data) {
             scrollX: "100px",
             scrollCollapse: true,
             columns: [
-                {
-                    "data": "Image", "render": function (data) {
-                        if (!data) {
-                            var img = "/Imagenes/sin-imagen.png";
-                            return '<img src="' + img + '" width="40%" />';
-                        }
-                        else {
-                            var img = 'data:image/png;base64,' + data;
-                            return '<img src="' + img + '" width="60%" />';
-                        }
-                    }
-                },
+                //{
+                //    "data": "Image", "render": function (data) {
+                //        if (!data) {
+                //            var img = "/Imagenes/sin-imagen.png";
+                //            return '<img src="' + img + '" width="40%" />';
+                //        }
+                //        else {
+                //            var img = 'data:image/png;base64,' + data;
+                //            return '<img src="' + img + '" width="60%" />';
+                //        }
+                //    }
+                //},
 
                 { data: 'Descripcion' },
-                { data: 'Proveedor', visible: false },
+                { data: 'Proveedor' },
                 { data: 'Marca' },
                 { data: 'Categoria' },
                 { data: 'UnidadDeMedida' },
@@ -924,51 +925,16 @@ async function configurarDataTable(data) {
             ],
             dom: 'Bfrtip',
             buttons: [
-                {
-                    extend: 'excelHtml5',
-                    text: 'Exportar Excel',
-                    filename: 'Reporte Productos',
-                    title: '',
-                    exportOptions: {
-                        columns: [1, 2, 3, 4, 5, 6, 7, 8]
-                    },
-                    className: 'btn-exportar-excel',
-                },
-                {
-                    extend: 'pdfHtml5',
-                    text: 'Exportar PDF',
-                    filename: 'Reporte Productos',
-                    title: '',
-                    exportOptions: {
-                        columns: [1, 2, 3, 4, 5, 6, 7, 8]
-                    },
-                    className: 'btn-exportar-pdf',
-                },
-                {
-                    extend: 'print',
-                    text: 'Imprimir',
-                    title: '',
-                    exportOptions: {
-                        columns: [1, 2, 3, 4, 5, 6, 7, 8]
-                    },
-                    className: 'btn-exportar-print'
-                },
+                { extend: 'excelHtml5', text: 'Exportar Excel', filename: 'Reporte Productos', exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6, 7] }, className: 'btn-exportar-excel' },
+                { extend: 'pdfHtml5', text: 'Exportar PDF', filename: 'Reporte Productos', exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6, 7] }, className: 'btn-exportar-pdf' },
+                { extend: 'print', text: 'Imprimir', exportOptions: { columns: [1, 2, 3, 4, 5, 6, 7, 8] }, className: 'btn-exportar-print' },
                 'pageLength'
             ],
             orderCellsTop: true,
             fixedHeader: true,
-
-            "columnDefs": [
-                {
-                    "render": function (data, type, row) {
-                        return formatNumber(data); // Formatear número en la columna
-                    },
-                    "targets": [7, 8] // Columnas Venta, Cobro, Capital Final
-                }
+            columnDefs: [
+                { "render": function (data) { return formatNumber(data); }, "targets": [6, 7] }
             ],
-
-
-
             initComplete: async function () {
                 var api = this.api();
 
@@ -1008,53 +974,54 @@ async function configurarDataTable(data) {
 
                 var lastColIdx = api.columns().indexes().length - 1;
                 $('.filters th').eq(lastColIdx).html(''); // Limpiar la última columna si es necesario
-                $('.filters th').eq(0).html('');
-                setTimeout(function () {
-                    gridProductos.columns.adjust();
-                }, 10);
+
+                // Establecer la visibilidad de la columna 'Proveedor' (por defecto oculta)
+                actualizarVisibilidadProveedor(false); // Establecer la visibilidad por defecto
+
+                configurarOpcionesColumnas();
 
 
+                // Redibujar la tabla después de aplicar filtros y cambios de visibilidad
+                api.columns().every(function () {
+                    var column = this;
+                    var input = $('.filters th').eq(column.index()).find('input');
+                    var select = $('.filters th').eq(column.index()).find('select');
 
+                    // Aplicar los filtros de texto
+                    if (input.length > 0) {
+                        input.val('');
+                    }
 
-
-                $('body').on('click', '#grd_Productos .fa-map-marker', function () {
-                    var locationText = $(this).parent().text().trim().replace(' ', ' '); // Obtener el texto visible
-                    var url = 'https://www.google.com/maps?q=' + encodeURIComponent(locationText);
-                    window.open(url, '_blank');
+                    // Aplicar los filtros de selección
+                    if (select.length > 0) {
+                        select.val('');
+                    }
                 });
             },
         });
 
-        $('#grd_Productos').on('draw.dt', function () {
-            $(document).off('click', '.custom-checkbox'); // Desvincular el evento para evitar duplicaciones
-            $(document).on('click', '.custom-checkbox', handleCheckboxClick);
-        });
-
-        $(document).on('click', '.custom-checkbox', function (event) {
-            handleCheckboxClick();
-        });
-
-        $('body').on('mouseenter', '#grd_Productos .fa-map-marker', function () {
-            $(this).css('cursor', 'pointer');
-        });
     } else {
         gridProductos.clear().rows.add(data).draw();
     }
 }
 
-
-
+// Actualizar la visibilidad de la columna 'Proveedor'
 async function actualizarVisibilidadProveedor(visible) {
-    var column = gridProductos.column(2); // Asumiendo que la columna "Proveedor" es la tercera columna (índice 2)
+    var column = gridProductos.column(1); // Asumimos que la columna 'Proveedor' es la tercera columna (índice 2)
     column.visible(visible);
 
+    // Si la columna es visible, configurar su filtro select
     if (visible) {
-        var cell = $('.filters th').eq(2);
+        var cell = $('.filters th').eq(1);
         var select = $('<select id="filter2"><option value="">Seleccionar</option></select>')
             .appendTo(cell.empty())
             .on('change', function () {
+
                 var val = $(this).val();
-                gridProductos.column(2).search(val ? '^' + val + '$' : '', true, false).draw();
+                var selectedText = $(this).find('option:selected').text(); // Obtener el texto del nombre visible
+                //await api.column(config.index).search(val ? '^' + selectedText + '$' : '', true, false).draw(); // Buscar el texto del nombre
+
+                gridProductos.column(1).search(val ? '^' + selectedText + '$' : '', true, false).draw();
             });
 
         try {
@@ -1064,11 +1031,12 @@ async function actualizarVisibilidadProveedor(visible) {
             });
         } catch (error) {
             console.error("Error al obtener datos de proveedores:", error);
-            // Manejar el error según sea necesario
         }
     }
-}
 
+    // Redibujar la tabla después de cambiar la visibilidad
+    gridProductos.draw();
+}
 
 async function listaProveedoresFilter() {
     const url = `/Proveedores/Lista`;
@@ -1087,26 +1055,6 @@ async function listaProveedoresFilter() {
     }));
 
     return proveedores;
-}
-
-function agregarFiltroDesplegable(column, obtenerOpciones, opcionPredeterminada = "Seleccionar") {
-    var select = $('<select><option value="">' + opcionPredeterminada + '</option></select>')
-        .appendTo($(column.header()).empty())
-        .on('change', function () {
-            var val = $.fn.dataTable.util.escapeRegex(
-                $(this).val()
-            );
-
-            column
-                .search(val ? '^' + val + '$' : '', true, false)
-                .draw();
-        });
-
-    obtenerOpciones(function (opciones) {
-        opciones.forEach(function (opcion) {
-            select.append('<option value="' + opcion.valor + '">' + opcion.texto + '</option>');
-        });
-    });
 }
 
 const fileInput = document.getElementById("Imagen");
@@ -1203,4 +1151,48 @@ async function listaClientes() {
         selectClientes.appendChild(option);
 
     }
+}
+
+
+function configurarOpcionesColumnas() {
+    const grid = $('#grd_Productos').DataTable(); // Accede al objeto DataTable utilizando el id de la tabla
+    const columnas = grid.settings().init().columns; // Obtiene la configuración de columnas
+    const container = $('.dropdown-menu'); // El contenedor del dropdown, cambia a .dropdown-menu
+
+    const storageKey = `Productos_Columnas`; // Clave única para esta pantalla
+
+    const savedConfig = JSON.parse(localStorage.getItem(storageKey)) || {}; // Recupera configuración guardada o inicializa vacía
+
+    container.empty(); // Limpia el contenedor
+
+    columnas.forEach((col, index) => {
+        if (col.data && col.data !== "Id" && col.data !== "Proveedor") { // Solo agregar columnas que no sean "Id"
+            // Recupera el valor guardado en localStorage, si existe. Si no, inicializa en 'false' para no estar marcado.
+            const isChecked = savedConfig && savedConfig[`col_${index}`] !== undefined ? savedConfig[`col_${index}`] : true;
+
+            // Asegúrate de que la columna esté visible si el valor es 'true'
+            grid.column(index).visible(isChecked);
+
+            const columnName = col.data
+
+            // Ahora agregamos el checkbox, asegurándonos de que se marque solo si 'isChecked' es 'true'
+            container.append(`
+                <li>
+                    <label class="dropdown-item">
+                        <input type="checkbox" class="toggle-column" data-column="${index}" ${isChecked ? 'checked' : ''}>
+                        ${columnName}
+                    </label>
+                </li>
+            `);
+        }
+    });
+
+    // Asocia el evento para ocultar/mostrar columnas
+    $('.toggle-column').on('change', function () {
+        const columnIdx = parseInt($(this).data('column'), 20);
+        const isChecked = $(this).is(':checked');
+        savedConfig[`col_${columnIdx}`] = isChecked;
+        localStorage.setItem(storageKey, JSON.stringify(savedConfig));
+        grid.column(columnIdx).visible(isChecked);
+    });
 }

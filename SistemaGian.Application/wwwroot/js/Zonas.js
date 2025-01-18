@@ -108,6 +108,7 @@ async function listaZonas() {
     const response = await fetch(url);
     const data = await response.json();
     await configurarDataTable(data);
+
 }
 
 const editarZona = id => {
@@ -165,23 +166,25 @@ async function configurarDataTable(data) {
             scrollX: "100px",
             scrollCollapse: true,
             columns: [
-                { data: 'Nombre' },
+                { data: 'Nombre', title: 'Nombre' },
                 {
                     data: 'Precio',
+                    title: 'Precio',
                     render: function (data) {
-                        return formatNumber(data); // Formatear el número antes de mostrarlo
+                        return formatNumber(data);
                     }
                 },
                 {
                     data: "Id",
+                    title: 'Acciones',
                     render: function (data) {
                         return `
-                            <button class='btn btn-sm btneditar btnacciones' type='button' onclick='editarZona(${data})' title='Editar'>
-                                <i class='fa fa-pencil-square-o fa-lg text-white' aria-hidden='true'></i>
-                            </button>
-                            <button class='btn btn-sm btneditar btnacciones' type='button' onclick='eliminarZona(${data})' title='Eliminar'>
-                                <i class='fa fa-trash-o fa-lg text-danger' aria-hidden='true'></i>
-                            </button>`;
+                <button class='btn btn-sm btneditar btnacciones' type='button' onclick='editarZona(${data})' title='Editar'>
+                    <i class='fa fa-pencil-square-o fa-lg text-white' aria-hidden='true'></i>
+                </button>
+                <button class='btn btn-sm btneditar btnacciones' type='button' onclick='eliminarZona(${data})' title='Eliminar'>
+                    <i class='fa fa-trash-o fa-lg text-danger' aria-hidden='true'></i>
+                </button>`;
                     },
                     orderable: true,
                     searchable: true,
@@ -231,6 +234,9 @@ async function configurarDataTable(data) {
             orderCellsTop: true,
             fixedHeader: true,
             initComplete: async function () {
+
+                // Ahora que gridZonas está inicializado, configuramos las opciones de columnas
+
                 var api = this.api();
 
                 // Iterar sobre las columnas y aplicar la configuración de filtros
@@ -274,6 +280,8 @@ async function configurarDataTable(data) {
                     gridZonas.columns.adjust();
                 }, 10);
 
+                configurarOpcionesColumnas();
+
                 // Agregar eventos al marcador
                 $('body').on('mouseenter', '#grd_Zonas .fa-map-marker', function () {
                     $(this).css('cursor', 'pointer');
@@ -302,4 +310,47 @@ precioInput.addEventListener('blur', function () {
 
 function formatNumber(number) {
     return '$' + number.toLocaleString('es-AR');
+}
+
+function configurarOpcionesColumnas() {
+    const grid = $('#grd_Zonas').DataTable(); // Accede al objeto DataTable utilizando el id de la tabla
+    const columnas = grid.settings().init().columns; // Obtiene la configuración de columnas
+    const container = $('.dropdown-menu'); // El contenedor del dropdown, cambia a .dropdown-menu
+
+    const storageKey = `Zonas_Columnas`; // Clave única para esta pantalla
+
+    const savedConfig = JSON.parse(localStorage.getItem(storageKey)) || {}; // Recupera configuración guardada o inicializa vacía
+
+    container.empty(); // Limpia el contenedor
+
+    columnas.forEach((col, index) => {
+        if (col.data && col.data !== "Id") { // Solo agregar columnas que no sean "Id"
+            // Recupera el valor guardado en localStorage, si existe. Si no, inicializa en 'false' para no estar marcado.
+            const isChecked = savedConfig && savedConfig[`col_${index}`] !== undefined ? savedConfig[`col_${index}`] : true;
+
+            // Asegúrate de que la columna esté visible si el valor es 'true'
+            grid.column(index).visible(isChecked);
+
+            const columnName = col.data
+
+            // Ahora agregamos el checkbox, asegurándonos de que se marque solo si 'isChecked' es 'true'
+            container.append(`
+                <li>
+                    <label class="dropdown-item">
+                        <input type="checkbox" class="toggle-column" data-column="${index}" ${isChecked ? 'checked' : ''}>
+                        ${columnName}
+                    </label>
+                </li>
+            `);
+        }
+    });
+
+    // Asocia el evento para ocultar/mostrar columnas
+    $('.toggle-column').on('change', function () {
+        const columnIdx = parseInt($(this).data('column'), 10);
+        const isChecked = $(this).is(':checked');
+        savedConfig[`col_${columnIdx}`] = isChecked;
+        localStorage.setItem(storageKey, JSON.stringify(savedConfig));
+        grid.column(columnIdx).visible(isChecked);
+    });
 }
