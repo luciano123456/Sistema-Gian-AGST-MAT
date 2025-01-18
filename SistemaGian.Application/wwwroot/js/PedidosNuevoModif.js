@@ -17,14 +17,15 @@ $(document).ready(async function () {
     } else {
 
         const idPedido = 0; // Reemplaza con el id correspondiente
-        const datosPedido = await ObtenerDatosPedido(idPedido);
-        await cargarDataTableProductos(datosPedido.productos);
-        await cargarDataTablePagoaProveedores(datosPedido.pagosaProveedores);
-        await cargarDataTablePagoaClientes(datosPedido.pagosClientes);
+
+        await cargarDataTableProductos(null);
+        await cargarDataTablePagoaProveedores(null);
+        await cargarDataTablePagoaClientes(null);
 
         document.getElementById(`fechaPedido`).value = moment().format('YYYY-MM-DD');
         document.getElementById(`fechaEntrega`).value = moment().add(3, 'days').format('YYYY-MM-DD');
-        document.getElementById(`costoFlete`).value = "$0.00";
+        document.getElementById(`idZona`).value = 0;
+        document.getElementById(`idChofer`).value = 0;
 
 
         calcularTotalPago('Cliente');
@@ -56,6 +57,7 @@ async function cargarDatosPedido() {
 
 async function insertarDatosPedido(datosPedido) {
 
+    document.getElementById("IdPedido").value = datosPedido.Id;
 
     //Cargamos Datos del Cliente
     document.getElementById("idCliente").value = datosPedido.IdCliente;
@@ -77,12 +79,21 @@ async function insertarDatosPedido(datosPedido) {
     document.getElementById("nroRemito").value = datosPedido.NroRemito;
     //document.getElementById("costoFlete").value = formatoMoneda.format(datosPedido.CostoFlete);
     document.getElementById("costoFlete").value = formatoMoneda.format(datosPedido.CostoFlete.toFixed(2));
-    document.getElementById("idZona").value = datosPedido.IdZona,
+    document.getElementById("idZona").value = datosPedido.IdZona != null ? datosPedido.IdZona : 0,
+        document.getElementById("idChofer").value = datosPedido.IdChofer != null ? datosPedido.IdChofer : 0,
         document.getElementById("Zona").value = datosPedido.Zona;
+    document.getElementById("Chofer").value = datosPedido.Chofer;
 
 
     document.getElementById("estado").value = datosPedido.Estado;
     document.getElementById("observacion").value = datosPedido.Observacion;
+
+    if (datosPedido.Estado == "Entregado") {
+        document.getElementById("btnSeleccionarCliente").setAttribute('disabled', 'disabled');
+        document.getElementById("btnSeleccionarProveedor").setAttribute('disabled', 'disabled');
+    }
+
+    document.getElementById("btnNuevoModificar").textContent = "Modificar";
 
     await calcularDatosPedido();
 }
@@ -293,6 +304,9 @@ function cargarDatosProveedor(data) {
     $('#apodoProveedor').val(data.Apodo);
     $('#direccionProveedor').val(data.Ubicacion);
     $('#telefonoProveedor').val(data.Telefono);
+    // Limpiar la grilla de productos
+    var table = $('#grd_Productos').DataTable();
+    table.clear().draw();
 }
 function cargarDatosCliente(data) {
     $('#idCliente').val(data.Id);
@@ -300,6 +314,9 @@ function cargarDatosCliente(data) {
     $('#dniCliente').val(data.Dni);
     $('#direccionCliente').val(data.Direccion);
     $('#telefonoCliente').val(data.Telefono);
+    // Limpiar solo los registros de la grilla de productos
+    var table = $('#grd_Productos').DataTable();
+    table.clear().draw();
 }
 
 function cargarDatosChofer(data) {
@@ -830,7 +847,12 @@ async function calcularDatosPedido() {
     document.getElementById("totalPagoCliente").value = formatoMoneda.format(parseFloat(pedidoVentaFinal));
     document.getElementById("totalPagadoCliente").value = formatoMoneda.format(parseFloat(pagosclientes));
     document.getElementById("totalGanancia").value = formatoMoneda.format(parseFloat(totalGanancia));
-    document.getElementById("porcGanancia").value = `${porcGanancia.toFixed(2)}%`;;
+    document.getElementById("porcGanancia").value = `${porcGanancia.toFixed(2)}%`;
+
+
+
+
+
 
     inputRestanteProveedor.value = formatoMoneda.format(restanteproveedor);
 
@@ -1082,21 +1104,21 @@ async function cargarDataTablePagoaProveedores(data) {
 
             "columnDefs": [
                 {
-                "render": function (data, type, row) {
-                    // Formatear fecha desde el formato ISO
-                    if (data) {
-                        return moment(data, 'YYYY-MM-DD').format('DD/MM/YYYY')
-                    }
-                },
-                "targets": [0] // Índices de las columnas de fechas
+                    "render": function (data, type, row) {
+                        // Formatear fecha desde el formato ISO
+                        if (data) {
+                            return moment(data, 'YYYY-MM-DD').format('DD/MM/YYYY')
+                        }
+                    },
+                    "targets": [0] // Índices de las columnas de fechas
                 },
 
-            {
-                "render": function (data, type, row) {
-                    return formatNumber(data); // Formatear números
+                {
+                    "render": function (data, type, row) {
+                        return formatNumber(data); // Formatear números
+                    },
+                    "targets": [3, 5] // Índices de las columnas de números
                 },
-                "targets": [3, 5] // Índices de las columnas de números
-            },
 
             ],
 
@@ -1108,9 +1130,9 @@ async function cargarDataTablePagoaProveedores(data) {
 
 
         });
-} else {
-    grdPagosaProveedores.clear().rows.add(data).draw();
-}
+    } else {
+        grdPagosaProveedores.clear().rows.add(data).draw();
+    }
 
 }
 async function cargarDataTablePagoaClientes(data) {
@@ -1162,7 +1184,7 @@ async function cargarDataTablePagoaClientes(data) {
                 "render": function (data, type, row) {
                     return formatNumber(data); // Formatear números
                 },
-                "targets": [3,  5] // Índices de las columnas de números
+                "targets": [3, 5] // Índices de las columnas de números
             },
 
         ],
@@ -1174,7 +1196,7 @@ async function cargarDataTablePagoaClientes(data) {
         }
     });
 }
-function editarPago(tipo, id) {
+async function editarPago(tipo, id) {
     // Buscar el pago por su ID
 
     let grid = null;
@@ -1185,20 +1207,43 @@ function editarPago(tipo, id) {
         grid = $('#grd_pagosaProveedores').DataTable();
     }
 
-    const row = grid.rows().data().toArray().find(row => row.Id === parseInt(id));
+    const idPedido = $("#IdPedido").val();
+
+    let row = null;
+
+
+    if (String(id).includes("pago_")) {
+        row = grid.rows().data().toArray().find(x => x.Id === id);
+    } else {
+        row = grid.rows().data().toArray().find(x => x.Id === parseInt(id));
+    }
 
 
     if (row) {
         // Cargar los datos en el modal
-        document.getElementById(`fechapago${tipo}`).value = moment(row.Fecha, 'DD/MM/YYYY').format('YYYY-MM-DD');
+        document.getElementById(`fechapago${tipo}`).value = moment(row.Fecha, 'YYYY-MM-DD').format('YYYY-MM-DD');
         document.getElementById(`MonedasPago${tipo}`).value = row.IdMoneda;
         document.getElementById(`cotizacionPago${tipo}`).value = formatoMoneda.format(parseFloat(row.Cotizacion));
         document.getElementById(`cantidadPago${tipo}`).value = parseFloat(row.Total);
         document.getElementById(`observacionPago${tipo}`).value = row.Observacion;
 
-        calcularTotalCotizacionPago(tipo);
         const cotizacionInput = document.getElementById(`cotizacionPago${tipo}`);
         const monedasSelect = document.getElementById(`MonedasPago${tipo}`);
+
+        const monedas = await ObtenerMonedas();
+
+        if (monedas) {
+            monedas.forEach(moneda => {
+                const option = document.createElement('option');
+                option.value = moneda.Id; // Asume que cada moneda tiene un ID
+                option.textContent = moneda.Nombre; // Asume que cada moneda tiene un nombre
+                option.dataset.cotizacion = formatoMoneda.format(moneda.Cotizacion); // Guarda la cotización en un atributo personalizado
+                monedasSelect.appendChild(option);
+            });
+        }
+
+        calcularTotalCotizacionPago(tipo);
+
 
 
         const selectedOption = monedasSelect.options[monedasSelect.selectedIndex];
@@ -1229,7 +1274,18 @@ function eliminarPago(tipo, id) {
         grid = $('#grd_pagosaProveedores').DataTable();
     }
 
+    const idPedido = $("#IdPedido").val();
+
+
+
     grid.rows().data().toArray().forEach(function (row, index) {
+
+        if (!String(id).includes("pago_")) {
+            id = parseInt(id);
+        } else {
+            id = grid.rows().data().toArray().find(x => x.Id === id).Id;
+        }
+
         if (row.Id === id) {
             grid.row(index).remove().draw();
         }
@@ -1476,96 +1532,135 @@ document.getElementById("estado").addEventListener("change", function () {
 function guardarCambios() {
     const idPedido = $("#IdPedido").val();
 
-    // Función reutilizable para recolectar los pagos
-    function obtenerPagos(grd) {
-        let pagos = [];
-        grd.rows().every(function () {
-            const pago = this.data();
-            const pagoJson = {
-                "Id": 0,
-                "Fecha": moment(pago.Fecha, 'YYYY-MM-DD').format('YYYY-MM-DD'),
-                "IdMoneda": parseInt(pago.IdMoneda),
-                "Cotizacion": parseFloat(pago.Cotizacion),
-                "Total": parseFloat(pago.Total),
-                "TotalArs": parseFloat(pago.TotalArs),
-                "Observacion": pago.Observacion // Ajusta si es necesario
-            };
-            pagos.push(pagoJson);
-        });
-        return pagos;
+    if (isValidPedido()) {
+        // Función reutilizable para recolectar los pagos
+        function obtenerPagos(grd) {
+            let pagos = [];
+            grd.rows().every(function () {
+                const pago = this.data();
+                const pagoJson = {
+                    Id: idPedido !== ""
+                        ? (String(pago.Id).includes("pago_") ? 0 : pago.Id)
+                        : 0,
+                    "Fecha": moment(pago.Fecha, 'YYYY-MM-DD').format('YYYY-MM-DD'),
+                    "IdMoneda": parseInt(pago.IdMoneda),
+                    "Cotizacion": parseFloat(pago.Cotizacion),
+                    "Total": parseFloat(pago.Total),
+                    "TotalArs": parseFloat(pago.TotalArs),
+                    "Observacion": pago.Observacion // Ajusta si es necesario
+                };
+                pagos.push(pagoJson);
+            });
+            return pagos;
+        }
+
+        function obtenerProductos(grd) {
+            let productos = [];
+            grd.rows().every(function () {
+                const producto = this.data();
+                const productoJson = {
+                    "Id": idPedido != "" ? producto.Id : 0,
+                    "IdProducto": parseInt(producto.IdProducto),
+                    "Nombre": producto.Nombre,
+                    "PrecioCosto": parseFloat(producto.PrecioCosto),
+                    "PrecioVenta": parseFloat(producto.PrecioVenta),
+                    "Cantidad": parseInt(producto.Cantidad),
+
+                };
+                productos.push(productoJson);
+            });
+            return productos;
+        }
+
+        // Obtener los pagos de clientes y proveedores usando la función reutilizable
+        const pagosClientes = obtenerPagos(grdPagosaClientes);
+        const pagosaProveedores = obtenerPagos(grdPagosaProveedores);
+        const productos = obtenerProductos(grdProductos);
+
+        // Construcción del objeto para el modelo
+        const nuevoModelo = {
+            "Id": idPedido !== "" ? parseInt(idPedido) : 0,
+            "Fecha": moment($("#fechaPedido").val(), 'YYYY-MM-DD').format('YYYY-MM-DD'),
+            "IdCliente": parseInt($("#idCliente").val()),
+            "FechaEntrega": moment($("#fechaEntrega").val(), 'YYYY-MM-DD').format('YYYY-MM-DD'),
+            "NroRemito": $("#nroRemito").val(),
+            "CostoFlete": parseFloat(convertirMonedaAFloat($("#costoFlete").val())),
+            "IdProveedor": parseInt($("#idProveedor").val()),
+            "IdZona": parseInt($("#idZona").val()),
+            "IdChofer": parseInt($("#idChofer").val()),
+            "TotalCliente": parseFloat(convertirMonedaAFloat($("#totalPagoCliente").val())),
+            "RestanteCliente": parseFloat(convertirMonedaAFloat($("#restanteCliente").val())),
+            "TotalProveedor": parseFloat(convertirMonedaAFloat($("#totalPagoProveedor").val())),
+            "RestanteProveedor": parseFloat(convertirMonedaAFloat($("#restanteProveedor").val())),
+            "TotalGanancia": parseFloat(convertirMonedaAFloat($("#totalGanancia").val())),
+            "PorcGanancia": parseFloat($("#porcGanancia").val()),
+            "Estado": $("#estado").val(),
+            "Observacion": $("#observacion").val(),
+            "PagosPedidosClientes": pagosClientes,
+            "PagosPedidosProveedores": pagosaProveedores,
+            "PedidosProductos": productos
+        };
+
+        // Definir la URL y el método para el envío
+        const url = idPedido === "" ? "/Pedidos/Insertar" : "/Pedidos/Actualizar";
+        const method = idPedido === "" ? "POST" : "PUT";
+
+        console.log(JSON.stringify(nuevoModelo))
+
+        // Enviar los datos al servidor
+        fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json;charset=utf-8'
+            },
+            body: JSON.stringify(nuevoModelo)
+        })
+            .then(response => {
+
+                if (!response.ok) throw new Error(response.statusText);
+                return response.json();
+            })
+            .then(dataJson => {
+                console.log("Respuesta del servidor:", dataJson);
+                const mensaje = idPedido === "" ? "Pedido registrado correctamente" : "Pedido modificado correctamente";
+                exitoModal(mensaje);
+                if (localStorage.getItem('EditandoPedidoDesdeVenta') == 'true') {
+                    window.location.href = "/Ventas/Index";
+                    localStorage.removeItem('EditandoPedidoDesdeVenta');
+                } else {
+                    window.location.href = "/Pedidos/Index";
+                }
+
+
+
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    }
+}
+
+function isValidPedido() {
+    // Assuming grd_productos is a table with an id 'grd_productos'
+    var cantidadFilas = $('#grd_Productos').DataTable().rows().count();
+    var restanteProveedor = parseFloat(convertirMonedaAFloat($("#restanteProveedor").val()));
+    var restanteCliente = parseFloat(convertirMonedaAFloat($("#restanteCliente").val()));
+    const IdPedido = document.getElementById('IdPedido').value;
+
+    if (cantidadFilas <= 0) {
+        if (IdPedido == "") {
+            errorModal('No puedes crear un pedido sin productos.') 
+        } else {
+            errorModal('No puedes modificar un pedido sin productos.')
+        }
+        return false;
     }
 
-    function obtenerProductos(grd) {
-        let productos = [];
-        grd.rows().every(function () {
-            const producto = this.data();
-            const productoJson = {
-                "Id": 0,
-                "IdProducto": parseInt(producto.IdProducto),
-                "Nombre": producto.Nombre,
-                "PrecioCosto": parseFloat(producto.PrecioCosto),
-                "PrecioVenta": parseFloat(producto.PrecioVenta),
-                "Cantidad": parseInt(producto.Cantidad),
-
-            };
-            productos.push(productoJson);
-        });
-        return productos;
+    if (restanteProveedor < 0 || restanteCliente < 0) {
+        errorModal('No puedes tener un saldo de pago negativo')
+        return false;
     }
 
-    // Obtener los pagos de clientes y proveedores usando la función reutilizable
-    const pagosClientes = obtenerPagos(grdPagosaClientes);
-    const pagosaProveedores = obtenerPagos(grdPagosaProveedores);
-    const productos = obtenerProductos(grdProductos);
 
-    // Construcción del objeto para el modelo
-    const nuevoModelo = {
-        "Id": idPedido !== "" ? idPedido : 0,
-        "Fecha": moment($("#fechaPedido").val(), 'YYYY-MM-DD').format('YYYY-MM-DD'),
-        "IdCliente": parseInt($("#idCliente").val()),
-        "FechaEntrega": moment($("#fechaEntrega").val(), 'YYYY-MM-DD').format('YYYY-MM-DD'),
-        "NroRemito": $("#nroRemito").val(),
-        "CostoFlete": parseFloat(convertirMonedaAFloat($("#costoFlete").val())),
-        "IdProveedor": parseInt($("#idProveedor").val()),
-        "IdZona": parseInt($("#idZona").val()),
-        "IdChofer": parseInt($("#idChofer").val()),
-        "TotalCliente": parseFloat(convertirMonedaAFloat($("#totalPagoCliente").val())),
-        "RestanteCliente": parseFloat(convertirMonedaAFloat($("#restanteCliente").val())),
-        "TotalProveedor": parseFloat(convertirMonedaAFloat($("#totalPagoProveedor").val())),
-        "RestanteProveedor": parseFloat(convertirMonedaAFloat($("#restanteProveedor").val())),
-        "Estado": $("#estado").val(),
-        "Observacion": $("#observacion").val(),
-        "PagosPedidosClientes": pagosClientes,
-        "PagosPedidosProveedores": pagosaProveedores,
-        "PedidosProductos": productos
-    };
-
-    // Definir la URL y el método para el envío
-    const url = idPedido === "" ? "Insertar" : "Actualizar";
-    const method = idPedido === "" ? "POST" : "PUT";
-
-    console.log(JSON.stringify(nuevoModelo))
-
-    // Enviar los datos al servidor
-    fetch(url, {
-        method: method,
-        headers: {
-            'Content-Type': 'application/json;charset=utf-8'
-        },
-        body: JSON.stringify(nuevoModelo)
-    })
-        .then(response => {
-
-            if (!response.ok) throw new Error(response.statusText);
-            return response.json();
-        })
-        .then(dataJson => {
-            console.log("Respuesta del servidor:", dataJson);
-            const mensaje = idPedido === "" ? "Pedido registrado correctamente" : "Pedido modificado correctamente";
-            window.location.href = "/Pedidos/Index";
-            exitoModal(mensaje);
-        })
-        .catch(error => {
-            console.error('Error:', error);
-        });
+    return true;
 }

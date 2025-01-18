@@ -50,6 +50,26 @@ namespace SistemaGian.BLL.Service
             return await _contactRepo.NuevoPedido(model);
         }
 
+        public async Task<bool> ActualizarPagosCliente(List<PagosPedidosCliente> pagos)
+        {
+            return await _contactRepo.ActualizarPagosCliente(pagos);
+        }
+
+        public async Task<bool> ActualizarProductos(List<PedidosProducto> productos)
+        {
+            return await _contactRepo.ActualizarProductos(productos);
+        }
+
+        public async Task<bool> ActualizarPagosProveedor(List<PagosPedidosProveedor> pagos)
+        {
+            return await _contactRepo.ActualizarPagosProveedor(pagos);
+        }
+
+        public async Task<bool> Actualizar(Pedido model)
+        {
+            return await _contactRepo.Actualizar(model);
+        }
+
         public async Task<PagosPedidosProveedor> ObtenerPagoaProveedor(int idpago)
         {
            return await _contactRepo.ObtenerPagoaProveedor(idpago);

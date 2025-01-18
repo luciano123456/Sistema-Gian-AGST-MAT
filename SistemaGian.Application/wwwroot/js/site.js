@@ -52,7 +52,7 @@ function mostrarModalConContador(modal, texto, tiempo) {
 }
 
 function exitoModal(texto) {
-    mostrarModalConContador('exitoModal', texto, 1000);
+    mostrarModalConContador('exitoModal', texto, 10000);
 }
 
 function errorModal(texto) {

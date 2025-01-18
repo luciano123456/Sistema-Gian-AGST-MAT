@@ -54,13 +54,22 @@
     </div>
 
 
-    <div class="row mt-5">
-        <partial name="~/Views/Shared/Partials/BotonMenu.cshtml" />
-        <div class="col-lg-10">
-            <div class="card" style="width: 88%;position: absolute; left: 7vw; border: none;">
-                <div class="card-header">
-                    Pedidos
-                </div>
+    <div class="container-fluid mt-5">
+        <div class="row">
+            <partial name="~/Views/Shared/Partials/BotonMenu.cshtml" />
+            <div class="col-lg-10">
+                <div class="card" style="width: 88%; position: absolute; left: 7vw; border: none;">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>Pedidos</span>
+
+                        <div class="dropdown">
+                            <button class="btn btn-secondary dropdown-toggle d-flex align-items-center" type="button" id="dropdownColumnas" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fa fa-cog me-2"></i> Config. Columnas
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="dropdownColumnas">
+                            </ul>
+                        </div>
+                    </div>
                 <div class="card-body">
                     <table class="display nowrap" id="grd_pedidos" style="width:100%">
                         <thead>
@@ -73,6 +82,8 @@
                                 <th>Restante Cliente</th>
                                 <th>Total Proveedor</th>
                                 <th>Restante Proveedor</th>
+                                <th>Total Ganancia</th>
+                                <th>Porc. Ganancia</th>
                                 <th>Estado</th>
                                 <th>Observacion</th>
                                 <th>Acciones</th>
