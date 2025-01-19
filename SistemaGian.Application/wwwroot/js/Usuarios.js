@@ -1,15 +1,15 @@
 ﻿let gridUsuarios;
 
 const columnConfig = [
-    { index: 0, filterType: 'text' },
     { index: 1, filterType: 'text' },
     { index: 2, filterType: 'text' },
     { index: 3, filterType: 'text' },
     { index: 4, filterType: 'text' },
     { index: 5, filterType: 'text' },
-    { index: 6, filterType: 'select', fetchDataFunc: listaRolesFilter },
-    { index: 7, filterType: 'select', fetchDataFunc: listaEstadosFilter },
-    { index: 8, filterType: 'text' },
+    { index: 6, filterType: 'text' },
+    { index: 7, filterType: 'select', fetchDataFunc: listaRolesFilter },
+    { index: 8, filterType: 'select', fetchDataFunc: listaEstadosFilter },
+    { index: 9, filterType: 'text' },
 ];
 
 const Modelo_base = {
@@ -235,6 +235,29 @@ async function configurarDataTable(data) {
             scrollX: "100px",
             scrollCollapse: true,
             columns: [
+                {
+                    data: "Id",
+                    title: '',
+                    width: "1%", // Ancho fijo para la columna
+                    render: function (data) {
+                        return `
+                <div class="acciones-menu" data-id="${data}">
+                    <button class='btn btn-sm btnacciones' type='button' onclick='toggleAcciones(${data})' title='Acciones'>
+                        <i class='fa fa-ellipsis-v fa-lg text-white' aria-hidden='true'></i>
+                    </button>
+                    <div class="acciones-dropdown" style="display: none;">
+                        <button class='btn btn-sm btneditar' type='button' onclick='editarUsuario(${data})' title='Editar'>
+                            <i class='fa fa-pencil-square-o fa-lg text-success' aria-hidden='true'></i> Editar
+                        </button>
+                        <button class='btn btn-sm btneliminar' type='button' onclick='eliminarUsuario(${data})' title='Eliminar'>
+                            <i class='fa fa-trash-o fa-lg text-danger' aria-hidden='true'></i> Eliminar
+                        </button>
+                    </div>
+                </div>`;
+                    },
+                    orderable: false,
+                    searchable: false,
+                },
                 { data: 'Usuario' },
                 { data: 'Nombre' },
                 { data: 'Apellido' },
@@ -249,20 +272,7 @@ async function configurarDataTable(data) {
                         return data === "Bloqueado" ? `<span style="color: red">${data}</span>` : data;
                     }
                 },
-                {
-                    data: "Id",
-                    render: function (data) {
-                        return `
-                <button class='btn btn-sm btneditar btnacciones' type='button' onclick='editarUsuario(${data})' title='Editar'>
-                    <i class='fa fa-pencil-square-o fa-lg text-white' aria-hidden='true'></i>
-                </button>
-                <button class='btn btn-sm btneditar btnacciones' type='button' onclick='eliminarUsuario(${data})' title='Eliminar'>
-                    <i class='fa fa-trash-o fa-lg text-danger' aria-hidden='true'></i>
-                </button>`;
-                    },
-                    orderable: true,
-                    searchable: true,
-                }
+                
             ],
             dom: 'Bfrtip',
             buttons: [
@@ -337,8 +347,7 @@ async function configurarDataTable(data) {
                     }
                 });
 
-                var lastColIdx = api.columns().indexes().length - 1;
-                $('.filters th').eq(lastColIdx).html(''); // Limpiar la última columna si es necesario
+                $('.filters th').eq(0).html('');
 
                 configurarOpcionesColumnas();
 
@@ -445,7 +454,7 @@ function configurarOpcionesColumnas() {
             // Asegúrate de que la columna esté visible si el valor es 'true'
             grid.column(index).visible(isChecked);
 
-            const columnName = index != 5 ? col.data : "Direccion";
+            const columnName = index != 6 ? col.data : "Direccion";
 
             // Ahora agregamos el checkbox, asegurándonos de que se marque solo si 'isChecked' es 'true'
             container.append(`
@@ -468,3 +477,25 @@ function configurarOpcionesColumnas() {
         grid.column(columnIdx).visible(isChecked);
     });
 }
+
+
+
+function toggleAcciones(id) {
+    var $dropdown = $(`.acciones-menu[data-id="${id}"] .acciones-dropdown`);
+
+    // Si está visible, lo ocultamos, si está oculto lo mostramos
+    if ($dropdown.is(":visible")) {
+        $dropdown.hide();
+    } else {
+        // Ocultar todos los dropdowns antes de mostrar el seleccionado
+        $('.acciones-dropdown').hide();
+        $dropdown.show();
+    }
+}
+
+$(document).on('click', function (e) {
+    // Verificar si el clic está fuera de cualquier dropdown
+    if (!$(e.target).closest('.acciones-menu').length) {
+        $('.acciones-dropdown').hide(); // Cerrar todos los dropdowns
+    }
+});

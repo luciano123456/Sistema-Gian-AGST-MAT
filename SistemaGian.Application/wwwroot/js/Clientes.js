@@ -4,9 +4,10 @@ const columnConfig = [
     { index: 0, filterType: 'text' },
     { index: 1, filterType: 'text' },
     { index: 2, filterType: 'text' },
-    { index: 3, filterType: 'select', fetchDataFunc: listaProvinciasFilter }, // Columna con un filtro de selección (de provincias)
-    { index: 4, filterType: 'text' },
+    { index: 3, filterType: 'text' },
+    { index: 4, filterType: 'select', fetchDataFunc: listaProvinciasFilter }, // Columna con un filtro de selección (de provincias)
     { index: 5, filterType: 'text' },
+    { index: 6, filterType: 'text' },
 ];
 
 const Modelo_base = {
@@ -216,25 +217,40 @@ async function configurarDataTable(data) {
             scrollX: "100px",
             scrollCollapse: true,
             columns: [
-                { data: 'Nombre' },
-                { data: 'Telefono' },
+                {
+                    data: "Id",
+                    title: '',
+                    width: "1%", // Ancho fijo para la columna
+                    render: function (data) {
+                        return `
+                <div class="acciones-menu" data-id="${data}">
+                    <button class='btn btn-sm btnacciones' type='button' onclick='toggleAcciones(${data})' title='Acciones'>
+                        <i class='fa fa-ellipsis-v fa-lg text-white' aria-hidden='true'></i>
+                    </button>
+                    <div class="acciones-dropdown" style="display: none;">
+                        <button class='btn btn-sm btneditar' type='button' onclick='editarCliente(${data})' title='Editar'>
+                            <i class='fa fa-pencil-square-o fa-lg text-success' aria-hidden='true'></i> Editar
+                        </button>
+                        <button class='btn btn-sm btneliminar' type='button' onclick='eliminarCliente(${data})' title='Eliminar'>
+                            <i class='fa fa-trash-o fa-lg text-danger' aria-hidden='true'></i> Eliminar
+                        </button>
+                    </div>
+                </div>`;
+                    },
+                    orderable: false,
+                    searchable: false,
+                     
+                },
+                { data: 'Nombre', width: "25%" },
+                { data: 'Telefono', width: "20" },
                 {
                     data: function (row) {
                         return row.Direccion && row.Direccion.trim() !== "" ? '<div class="location-cell"><i title="Ir a Google Maps" class="fa fa-map-marker fa-2x text-warning"></i> ' + row.Direccion + '</div>' : row.Direccion;
                     }
                 },
-                { data: 'Provincia' },
-                { data: 'Localidad' },
-                { data: 'Dni' },
-                {
-                    data: "Id",
-                    render: function (data) {
-                        return "<button class='btn btn-sm btneditar btnacciones' type='button' onclick='editarCliente(" + data + ")' title='Editar'><i class='fa fa-pencil-square-o fa-lg text-white' aria-hidden='true'></i></button>" +
-                            "<button class='btn btn-sm btneditar btnacciones' type='button' onclick='eliminarCliente(" + data + ")' title='Eliminar'><i class='fa fa-trash-o fa-lg text-danger' aria-hidden='true'></i></button>";
-                    },
-                    orderable: true,
-                    searchable: true,
-                }
+                { data: 'Provincia',width: "22%" },
+                { data: 'Localidad', width: "18%" },
+                { data: 'Dni', width: "14%" },
             ],
             dom: 'Bfrtip',
             buttons: [
@@ -271,6 +287,13 @@ async function configurarDataTable(data) {
             ],
             orderCellsTop: true,
             fixedHeader: true,
+
+            "columnDefs": [
+                {
+                    targets: 0, // Índice de la columna "Acciones"
+                    width: '1%' // Ancho fijo de la columna
+                },
+            ],
 
             initComplete: async function () {
                 var api = this.api();
@@ -309,8 +332,8 @@ async function configurarDataTable(data) {
                     }
                 });
 
-                var lastColIdx = api.columns().indexes().length - 1;
-                $('.filters th').eq(lastColIdx).html(''); // Limpiar la última columna si es necesario
+                var firstColIdx = 0;  // Índice de la primera columna
+                $('.filters th').eq(firstColIdx).html(''); // Limpiar la primera columna
 
                 configurarOpcionesColumnas()
 
@@ -330,10 +353,10 @@ async function configurarDataTable(data) {
                     window.open(url, '_blank');
                 });
             },
-});
+        });
     } else {
-    gridClientes.clear().rows.add(data).draw();
-}
+        gridClientes.clear().rows.add(data).draw();
+    }
 }
 
 
@@ -356,7 +379,7 @@ function configurarOpcionesColumnas() {
             // Asegúrate de que la columna esté visible si el valor es 'true'
             grid.column(index).visible(isChecked);
 
-            const columnName = index != 2 ? col.data : "Direccion";
+            const columnName = index != 3 ? col.data : "Direccion";
 
             // Ahora agregamos el checkbox, asegurándonos de que se marque solo si 'isChecked' es 'true'
             container.append(`
@@ -379,3 +402,12 @@ function configurarOpcionesColumnas() {
         grid.column(columnIdx).visible(isChecked);
     });
 }
+
+
+
+$(document).on('click', function (e) {
+    // Verificar si el clic está fuera de cualquier dropdown
+    if (!$(e.target).closest('.acciones-menu').length) {
+        $('.acciones-dropdown').hide(); // Cerrar todos los dropdowns
+    }
+});
