@@ -285,10 +285,19 @@ namespace SistemaGian.DAL.Repository
 
         public async Task<List<PedidosProducto>> ObtenerProductosPedido(int idPedido)
         {
-            List<PedidosProducto> productos = _dbcontext.PedidosProductos
-                .Include(c => c.IdProductoNavigation)
-                .Where(c => c.IdPedido == idPedido).ToList();
-            return productos;
+            try
+            {
+
+                List<PedidosProducto> productos = _dbcontext.PedidosProductos
+                    .Include(c => c.IdProductoNavigation)
+                    .Where(c => c.IdPedido == idPedido).ToList();
+                return productos;
+
+            } catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                return null;
+            }
         }
 
         public async Task<IQueryable<Pedido>> ObtenerTodos()

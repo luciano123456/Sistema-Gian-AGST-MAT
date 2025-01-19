@@ -883,19 +883,27 @@ async function configurarDataTable(data) {
                     title: '',
                     width: "1%", // Ancho fijo para la columna
                     render: function (data) {
+                        const isChecked = false;
+
+                        const checkboxClass = isChecked ? 'fa-check-square-o' : 'fa-square-o';
                         return `
+                            
                 <div class="acciones-menu" data-id="${data}">
                     <button class='btn btn-sm btnacciones' type='button' onclick='toggleAcciones(${data})' title='Acciones'>
                         <i class='fa fa-ellipsis-v fa-lg text-white' aria-hidden='true'></i>
                     </button>
                     <div class="acciones-dropdown" style="display: none;">
-                        <button class='btn btn-sm btneditar' type='button' onclick='editarPedido(${data})' title='Editar'>
+                        <button class='btn btn-sm btneditar' type='button' onclick='editarProducto(${data})' title='Editar'>
                             <i class='fa fa-pencil-square-o fa-lg text-success' aria-hidden='true'></i> Editar
                         </button>
-                        <button class='btn btn-sm btneliminar' type='button' onclick='eliminarPedido(${data})' title='Eliminar'>
+                        <button class='btn btn-sm btneliminar' type='button' onclick='eliminarProducto(${data})' title='Eliminar'>
                             <i class='fa fa-trash-o fa-lg text-danger' aria-hidden='true'></i> Eliminar
                         </button>
+                     
                     </div>
+                    <span class="custom-checkbox" data-id='${data}'>
+                                    <i class="fa ${checkboxClass} checkbox"></i>
+                                </span>
                 </div>`;
                     },
                     orderable: false,
@@ -962,12 +970,24 @@ async function configurarDataTable(data) {
                     }
                 });
 
+                $('#grd_Productos').on('draw.dt', function () {
+                    $(document).off('click', '.custom-checkbox'); // Desvincular el evento para evitar duplicaciones
+                    $(document).on('click', '.custom-checkbox', handleCheckboxClick);
+                });
+
+                $(document).on('click', '.custom-checkbox', function (event) {
+                    handleCheckboxClick();
+                });
+
+
                 $('.filters th').eq(0).html('');
 
                 // Establecer la visibilidad de la columna 'Proveedor' (por defecto oculta)
                 actualizarVisibilidadProveedor(false); // Establecer la visibilidad por defecto
 
                 configurarOpcionesColumnas();
+
+
 
 
                 // Redibujar la tabla después de aplicar filtros y cambios de visibilidad
