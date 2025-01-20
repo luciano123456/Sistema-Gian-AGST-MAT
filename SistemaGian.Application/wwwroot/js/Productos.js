@@ -5,12 +5,11 @@ let proveedorVisible = false;
 
 const columnConfig = [
     { index: 1, filterType: 'text' },
-    { index: 2, filterType: 'text' },
     { index: 3, filterType: 'select', fetchDataFunc: listaMarcasFilter }, // Columna con un filtro de selección (de provincias)
     { index: 4, filterType: 'select', fetchDataFunc: listaCategoriasFilter }, // Columna con un filtro de selección (de provincias)
     { index: 5, filterType: 'select', fetchDataFunc: listaUnidadesDeMedidaFilter }, // Columna con un filtro de selección (de provincias)
-    { index: 6, filterType: 'text'}, // Columna con un filtro de selección (de provincias)
-    { index: 7, filterType: 'select', fetchDataFunc: listaMonedasFilter }, // Columna con un filtro de selección (de provincias)
+    { index: 6, filterType: 'text' }, // Columna con un filtro de selección (de provincias)
+    { index: 7, filterType: 'text' },
     { index: 8, filterType: 'text' },
     { index: 9, filterType: 'text' },
     { index: 10, filterType: 'text' },

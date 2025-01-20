@@ -842,7 +842,7 @@ async function calcularDatosPedido() {
     }
 
 
-    totalGanancia = pedidoVenta - pedidoCosto;
+    totalGanancia = pedidoVenta - pedidoCosto - parseFloat(convertirMonedaAFloat(costoFlete.value));
     porcGanancia = pedidoCosto > 0 ? (totalGanancia / pedidoCosto) * 100 : 0;
 
     restanteproveedor = pedidoCosto - pagosaproveedores;
