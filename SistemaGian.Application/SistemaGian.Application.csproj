@@ -9,6 +9,7 @@
   <ItemGroup>
     <Content Remove="wwwroot\css\NavBarLogin.css~RF1f800e21.TMP" />
     <Content Remove="wwwroot\js\Choferes.js" />
+    <Content Remove="wwwroot\js\HistorialPRecios.js" />
     <Content Remove="wwwroot\js\Home.js" />
     <Content Remove="wwwroot\js\Login.js" />
     <Content Remove="wwwroot\js\Monedas.js" />
@@ -30,6 +31,7 @@
     <None Include="wwwroot\js\Pedidos.js" />
     <None Include="wwwroot\js\UsuariosConfiguracion.js" />
     <None Include="wwwroot\js\Usuarios.js" />
+    <None Include="wwwroot\js\HistorialPrecios.js" />
     <None Include="wwwroot\js\Zonas.js" />
     <None Include="wwwroot\js\PedidosNuevoModif.js" />
     <None Include="wwwroot\js\Home.js" />

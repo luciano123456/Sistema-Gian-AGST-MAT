@@ -56,6 +56,7 @@ builder.Services.AddScoped<IProductosPrecioClienteRepository<ProductosPreciosCli
 builder.Services.AddScoped<IProductosPrecioClienteService, ProductosPrecioClienteService>();
 
 builder.Services.AddScoped<IProductosPrecioHistorialRepository<ProductosPreciosHistorial>, ProductosPrecioHistorialRepository>();
+builder.Services.AddScoped<IProductosPrecioHistorialService, ProductosPrecioHistorialService>();
 
 builder.Services.AddScoped<IPedidosRepository<Pedido>, PedidosRepository>();
 builder.Services.AddScoped<IPedidoService, PedidoService>();

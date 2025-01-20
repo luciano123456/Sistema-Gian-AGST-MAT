@@ -18,17 +18,17 @@ namespace SistemaGian.Application.Models.ViewModels
         public string Proveedor { get; set; } = null!;
 
         public int? IdMarca { get; set; }
+        public int? ProductoCantidad { get; set; }
+        public decimal? Total { get; set; }
 
         public int? IdCategoria { get; set; }
 
         public int? IdUnidadDeMedida { get; set; }
         public int IdMoneda { get; set; }
-        public int? ProductoCantidad { get; set; }
 
         public decimal PCosto { get; set; }
 
         public decimal PVenta { get; set; }
-        public decimal Total { get; set; }
 
         public decimal PorcGanancia { get; set; }
 
@@ -45,7 +45,7 @@ namespace SistemaGian.Application.Models.ViewModels
 
         public virtual ICollection<ProductosPreciosCliente> ProductosPreciosClientes { get; set; } = new List<ProductosPreciosCliente>();
 
-        public virtual ICollection<ProductosPreciosHistorial> ProductosPreciosHistorial { get; set; } = new List<ProductosPreciosHistorial>();
+        public virtual ICollection<VMProductosPreciosHistorial> ProductosPreciosHistorial { get; set; } = new List<VMProductosPreciosHistorial>();
 
         public virtual ICollection<ProductosPreciosProveedor> ProductosPreciosProveedor { get; set; } = new List<ProductosPreciosProveedor>();
 

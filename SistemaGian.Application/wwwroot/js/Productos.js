@@ -473,6 +473,7 @@ function asignarCliente() {
 function guardarCambios() {
     if (validarCampos()) {
         sumarPorcentaje(); //Por si las dudas
+        let productoCantidad = $("#txtProductoCantidad").val();
         const idProducto = $("#txtId").val();
         const nuevoModelo = {
             IdCliente: idClienteFiltro,
@@ -486,7 +487,7 @@ function guardarCambios() {
             "PCosto": parseDecimal($("#txtPrecioCosto").val()),
             "PVenta": parseDecimal($("#txtPrecioVenta").val()),
             "PorcGanancia": parseDecimal($("#txtPorcentajeGanancia").val()),
-            "ProductoCantidad": $("#txtProductoCantidad").val(),
+            "ProductoCantidad": (isNaN(productoCantidad) || productoCantidad === null || productoCantidad.trim() === "") ? 1 : parseFloat(productoCantidad),
             "Image": null,
         };
 
@@ -1286,8 +1287,5 @@ function actualizarProductoCantidad() {
 }
 
 $('#txtProductoCantidad').on('input blur', function () {
-    if ($(this).val() === '' || parseInt($(this).val()) <= 0) {
-        // Si el valor es vacío o menor o igual a 0, restablece a 1
-        $(this).val(1);
-    }
+    calcularTotal();
 });
