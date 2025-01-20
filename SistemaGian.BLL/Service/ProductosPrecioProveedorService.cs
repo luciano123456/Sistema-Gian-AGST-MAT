@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using SistemaGian.DAL.Repository;
 using SistemaGian.Models;
 
@@ -43,6 +44,7 @@ namespace SistemaGian.BLL.Service
                     PorcGanancia = prod.PorcGanancia,
                     PCosto = prod.PCosto,
                     PVenta = prod.PVenta,
+                    ProductoCantidad = (int)prod.ProductoCantidad
                 };
 
                 productosList.Add(productoPrecio);
@@ -61,6 +63,14 @@ namespace SistemaGian.BLL.Service
 
         }
 
+        public async Task<ProductosPreciosProveedor> ObtenerProductoProveedor(int idProducto, int idProveedor)
+        {
+            ProductosPreciosProveedor prod = await _productospreciorepo.ObtenerProductoProveedor(idProveedor, idProducto);
+
+            return prod;
+        }
+
+
         public async Task<bool> ActualizarProductoProveedor(Producto model, int idProveedor)
         {
             ProductosPreciosProveedor prod = await _productospreciorepo.ObtenerProductoProveedor(idProveedor, model.Id);
@@ -73,6 +83,7 @@ namespace SistemaGian.BLL.Service
                 prod.PorcGanancia = model.PorcGanancia;
                 prod.PCosto = model.PCosto;
                 prod.PVenta = model.PVenta;
+                prod.ProductoCantidad = model.ProductoCantidad;
             };
 
                 result = await _productospreciorepo.Actualizar(prod);

@@ -77,12 +77,14 @@ namespace SistemaGian.BLL.Service
             var producto = await _contactRepo.Obtener(id);
             ProductosPreciosCliente ProductoPrecioCliente = null;
             ProductosPreciosProveedor ProductoPrecioProveedor = null;
+            ProductosPreciosProveedor ProductoPrecioProveedorDos = null;
 
             if (idProveedor > 0 && idCliente <= 0)
             {
                 ProductoPrecioProveedor = await _proveedorRepo.ObtenerProductoProveedor(idProveedor, id);
             } else if(idProveedor > 0 && idCliente > 0){
                 ProductoPrecioCliente = await _clienteRepo.ObtenerProductoCliente(idCliente,idProveedor, id);
+                ProductoPrecioProveedorDos = await _proveedorRepo.ObtenerProductoProveedor(idProveedor, id);
             }
 
             if (ProductoPrecioProveedor != null || ProductoPrecioCliente != null)
@@ -99,7 +101,8 @@ namespace SistemaGian.BLL.Service
                     PCosto = ProductoPrecioCliente != null ? ProductoPrecioCliente.PCosto : ProductoPrecioProveedor.PCosto,
                     PVenta = ProductoPrecioCliente != null ? ProductoPrecioCliente.PVenta : ProductoPrecioProveedor.PVenta,
                     PorcGanancia = ProductoPrecioCliente != null ? ProductoPrecioCliente.PorcGanancia : ProductoPrecioProveedor.PorcGanancia,
-                    Image = producto.Image
+                    Image = producto.Image,
+                    ProductoCantidad = ProductoPrecioCliente != null ? ProductoPrecioProveedorDos.ProductoCantidad : ProductoPrecioProveedor.ProductoCantidad,
                 };
 
                 return productoConPrecio;
@@ -179,7 +182,8 @@ namespace SistemaGian.BLL.Service
                             IdCategoriaNavigation = prod.IdCategoriaNavigation,
                             IdUnidadDeMedidaNavigation = prod.IdUnidadDeMedidaNavigation,
                             IdMonedaNavigation = prod.IdMonedaNavigation,
-                            Image = prod.Image
+                            Image = prod.Image,
+                            ProductoCantidad = prod.ProductoCantidad
                         };
 
                         listaFiltrada.Add(productoNuevo);
@@ -200,12 +204,17 @@ namespace SistemaGian.BLL.Service
                         producto.PCosto = precioProveedor.PCosto;
                         producto.PVenta = precioProveedor.PVenta;
                         producto.PorcGanancia = precioProveedor.PorcGanancia;
+                        producto.ProductoCantidad = precioProveedor.ProductoCantidad;
                     }
                     else if (preciosClienteDict.TryGetValue(producto.Id, out var precioCliente))
                     {
                         producto.PCosto = precioCliente.PCosto;
                         producto.PVenta = precioCliente.PVenta;
                         producto.PorcGanancia = precioCliente.PorcGanancia;
+                        var productoProveedor = await _proveedorRepo.ObtenerProductoProveedor(idProveedor, producto.Id);
+
+                        // Verificando si ProductoCantidad tiene valor
+                        producto.ProductoCantidad = productoProveedor.ProductoCantidad ?? 0;
                     }
                 }
             }

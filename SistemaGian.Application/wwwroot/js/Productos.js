@@ -9,13 +9,14 @@ const columnConfig = [
     { index: 3, filterType: 'select', fetchDataFunc: listaMarcasFilter }, // Columna con un filtro de selección (de provincias)
     { index: 4, filterType: 'select', fetchDataFunc: listaCategoriasFilter }, // Columna con un filtro de selección (de provincias)
     { index: 5, filterType: 'select', fetchDataFunc: listaUnidadesDeMedidaFilter }, // Columna con un filtro de selección (de provincias)
-    { index: 6, filterType: 'select', fetchDataFunc: listaMonedasFilter }, // Columna con un filtro de selección (de provincias)
-    { index: 7, filterType: 'text' },
+    { index: 6, filterType: 'text'}, // Columna con un filtro de selección (de provincias)
+    { index: 7, filterType: 'select', fetchDataFunc: listaMonedasFilter }, // Columna con un filtro de selección (de provincias)
     { index: 8, filterType: 'text' },
     { index: 9, filterType: 'text' },
     { index: 10, filterType: 'text' },
     { index: 11, filterType: 'text' },
     { index: 12, filterType: 'text' },
+    { index: 13, filterType: 'text' },
 ];
 
 const Modelo_base = {
@@ -59,14 +60,20 @@ $(document).ready(() => {
     $('#txtPrecioCosto').on('input', function () {
         validarCampos()
         sumarPorcentaje()
-
     });
+
+    $('#txtProductoCantidad').on('input', function () {
+        validarCampos()
+        sumarPorcentaje()
+    });
+
     $('#txtPorcentajeGanancia').on('input', function () {
         sumarPorcentaje()
     });
 
     $('#txtPrecioVenta').on('input', function () {
         calcularPorcentaje()
+        calcularTotal()
     });
 
     $('#Proveedoresfiltro, #clientesfiltro').on('change', function () {
@@ -161,19 +168,37 @@ function desmarcarCheckboxes() {
 function sumarPorcentaje() {
     let precioCosto = Number($("#txtPrecioCosto").val());
     let porcentajeGanancia = Number($("#txtPorcentajeGanancia").val());
+    let productoCantidad = Number($("#txtProductoCantidad").val());
 
     if (!isNaN(precioCosto) && !isNaN(porcentajeGanancia)) {
         let precioVenta = precioCosto + (precioCosto * (porcentajeGanancia / 100));
+        let total = precioVenta * productoCantidad
         // Limitar el precio de venta a 2 decimales
         precioVenta = precioVenta.toFixed(2);
         $("#txtPrecioVenta").val(precioVenta);
+        $("#txtTotal").val(total);
+        calcularTotal();
     }
 }
 
+function calcularTotal() {
+    let precioCosto = Number($("#txtPrecioCosto").val());
+    let porcentajeGanancia = Number($("#txtPorcentajeGanancia").val());
+    let productoCantidad = Number($("#txtProductoCantidad").val());
+
+    if (!isNaN(precioCosto) && !isNaN(porcentajeGanancia)) {
+        let precioVenta = precioCosto + (precioCosto * (porcentajeGanancia / 100));
+        let total = precioVenta * productoCantidad
+        // Limitar el precio de venta a 2 decimales
+        $("#txtTotal").val(total);
+    }
+}
 
 function calcularPorcentaje() {
     let precioCosto = Number($("#txtPrecioCosto").val());
     let precioVenta = Number($("#txtPrecioVenta").val());
+
+
 
     if (!isNaN(precioCosto) && !isNaN(precioVenta) && precioCosto !== 0) {
         let porcentajeGanancia = ((precioVenta - precioCosto) / precioCosto) * 100;
@@ -310,9 +335,15 @@ function asignarProveedor() {
             return response.json();
         })
         .then(dataJson => {
-            const mensaje = "Proveedor asignado correctamente";
-            exitoModal(mensaje);
-            $("#modalProveedores").modal("hide");
+            if (dataJson != null) {
+                const mensaje = "Proveedor asignado correctamente";
+                exitoModal(mensaje);
+            } else {
+                const mensaje = "Ha ocurrido un error al asignar el proveedor";
+                errorModal(mensaje);
+            }
+                $("#modalProveedores").modal("hide");
+          
             //desmarcarCheckboxes();
             //listaProductos();
 
@@ -455,7 +486,8 @@ function guardarCambios() {
             "PCosto": parseDecimal($("#txtPrecioCosto").val()),
             "PVenta": parseDecimal($("#txtPrecioVenta").val()),
             "PorcGanancia": parseDecimal($("#txtPorcentajeGanancia").val()),
-            "Image": document.getElementById("imgProd").value,
+            "ProductoCantidad": $("#txtProductoCantidad").val(),
+            "Image": null,
         };
 
         const url = idProducto === "" ? "Productos/Insertar" : "Productos/Actualizar";
@@ -578,11 +610,13 @@ function nuevoProducto() {
     document.getElementById("txtDescripcion").removeAttribute("disabled");
     document.getElementById("Categorias").removeAttribute("disabled");
     document.getElementById("Monedas").removeAttribute("disabled");
-    document.getElementById("Imagen").removeAttribute("disabled");
+    //document.getElementById("Imagen").removeAttribute("disabled");
     document.getElementById("UnidadesDeMedidas").removeAttribute("disabled");
     document.getElementById("txtPrecioCosto").classList.remove("txtEdicion");
     document.getElementById("txtPorcentajeGanancia").classList.remove("txtEdicion");
     document.getElementById("txtPrecioVenta").classList.remove("txtEdicion");
+    document.getElementById('txtTotal').setAttribute('hidden', 'hidden');
+    document.getElementById('lblTotal').setAttribute('hidden', 'hidden');
     $('#modalEdicion').modal('show');
     $("#btnGuardar").text("Registrar");
     $("#modalEdicionLabel").text("Nuevo Producto");
@@ -611,13 +645,13 @@ async function mostrarModal(modelo) {
         document.getElementById("txtPrecioCosto").classList.add("txtEdicion");
         document.getElementById("txtPorcentajeGanancia").classList.add("txtEdicion");
         document.getElementById("txtPrecioVenta").classList.add("txtEdicion");
-        document.getElementById("Imagen").setAttribute("disabled", "disabled");
+        //document.getElementById("Imagen").setAttribute("disabled", "disabled");
     } else {
         document.getElementById("Marcas").removeAttribute("disabled");
         document.getElementById("txtDescripcion").removeAttribute("disabled");
         document.getElementById("Categorias").removeAttribute("disabled");
         document.getElementById("Monedas").removeAttribute("disabled");
-        document.getElementById("Imagen").removeAttribute("disabled");
+        //document.getElementById("Imagen").removeAttribute("disabled");
         document.getElementById("UnidadesDeMedidas").removeAttribute("disabled");
         document.getElementById("txtPrecioCosto").classList.remove("txtEdicion");
         document.getElementById("txtPorcentajeGanancia").classList.remove("txtEdicion");
@@ -635,8 +669,8 @@ async function mostrarModal(modelo) {
     await listaUnidadesDeMedida();
 
 
-    $("#imgProducto").attr("src", "data:image/png;base64," + modelo.Image);
-    $("#imgProd").val(modelo.Image);
+    //$("#imgProducto").attr("src", "data:image/png;base64," + modelo.Image);
+    //$("#imgProd").val(modelo.Image);
     document.getElementById("txtPrecioCosto").value = modelo.PCosto;
     document.getElementById("txtPrecioVenta").value = modelo.PVenta;
     document.getElementById("txtPorcentajeGanancia").value = modelo.PorcGanancia;
@@ -646,6 +680,11 @@ async function mostrarModal(modelo) {
     document.getElementById("UnidadesDeMedidas").value = modelo.IdUnidadDeMedida;
 
 
+    document.getElementById('txtProductoCantidad').value = modelo.ProductoCantidad;
+
+    document.getElementById('txtTotal').value = (modelo.PVenta * modelo.ProductoCantidad);
+
+    actualizarProductoCantidad();
 
     $('#modalEdicion').modal('show');
     $("#btnGuardar").text("Guardar");
@@ -663,8 +702,8 @@ function limpiarModal() {
         $(`#txt${campo}`).val("");
     });
 
-    $("#imgProducto").attr("src", "");
-    $("#imgProd").val("");
+    //$("#imgProducto").attr("src", "");
+    //$("#imgProd").val("");
 
 }
 
@@ -914,9 +953,13 @@ async function configurarDataTable(data) {
                 { data: 'Marca' },
                 { data: 'Categoria' },
                 { data: 'UnidadDeMedida' },
-                { data: 'Moneda' },
+                
+                //{ data: 'Moneda' },
                 { data: 'PCosto' },
                 { data: 'PVenta' },
+                { data: 'ProductoCantidad' },
+                { data: 'Total' },
+
                 { data: 'PorcGanancia' },
 
                
@@ -931,7 +974,7 @@ async function configurarDataTable(data) {
             orderCellsTop: true,
             fixedHeader: true,
             columnDefs: [
-                { "render": function (data) { return formatNumber(data); }, "targets": [7, 8] }
+                { "render": function (data) { return formatNumber(data); }, "targets": [6, 7, 9] }
             ],
             initComplete: async function () {
                 var api = this.api();
@@ -1066,40 +1109,40 @@ async function listaProveedoresFilter() {
     return proveedores;
 }
 
-const fileInput = document.getElementById("Imagen");
+//const fileInput = document.getElementById("Imagen");
 
-fileInput.addEventListener("change", (e) => {
-    var files = e.target.files
-    let base64String = "";
-    let baseTotal = "";
+//fileInput.addEventListener("change", (e) => {
+//    var files = e.target.files
+//    let base64String = "";
+//    let baseTotal = "";
 
-    // get a reference to the file
-    const file = e.target.files[0];
-
-
-
-    // encode the file using the FileReader API
-    const reader = new FileReader();
-    reader.onloadend = () => {
-        // use a regex to remove data url part
-
-        base64String = reader.result
-            .replace("data:", "")
-            .replace(/^.+,/, "");
+//    // get a reference to the file
+//    const file = e.target.files[0];
 
 
-        var inputImg = document.getElementById("imgProd");
-        inputImg.value = base64String;
 
-        $("#imgProducto").removeAttr('hidden');
-        $("#imgProducto").attr("src", "data:image/png;base64," + base64String);
+//    // encode the file using the FileReader API
+//    const reader = new FileReader();
+//    reader.onloadend = () => {
+//        // use a regex to remove data url part
 
-    };
+//        base64String = reader.result
+//            .replace("data:", "")
+//            .replace(/^.+,/, "");
 
-    reader.readAsDataURL(file);
 
-}
-);
+//        var inputImg = document.getElementById("imgProd");
+//        inputImg.value = base64String;
+
+//        $("#imgProducto").removeAttr('hidden');
+//        $("#imgProducto").attr("src", "data:image/png;base64," + base64String);
+
+//    };
+
+//    reader.readAsDataURL(file);
+
+//}
+//);
 
 function abrirmodalProveedor() {
     listaProveedores();
@@ -1211,5 +1254,40 @@ $(document).on('click', function (e) {
     // Verificar si el clic está fuera de cualquier dropdown
     if (!$(e.target).closest('.acciones-menu').length) {
         $('.acciones-dropdown').hide(); // Cerrar todos los dropdowns
+    }
+});
+
+$('#UnidadesDeMedidas').on('change', function () {
+    document.getElementById('txtProductoCantidad').value = 1;
+    actualizarProductoCantidad();
+});
+
+function actualizarProductoCantidad() {
+    const selectedText = $('#UnidadesDeMedidas option:selected').text(); // Obtiene el texto seleccionado
+    const idCliente = parseInt(document.getElementById("clientesfiltro").value);
+    
+    if (selectedText === 'Pallet') {
+        // Muestra el label y el input
+        document.getElementById('txtProductoCantidad').removeAttribute('hidden');
+        document.getElementById('lblProductoCantidad').removeAttribute('hidden');
+        document.getElementById('txtTotal').removeAttribute('hidden');
+        document.getElementById('lblTotal').removeAttribute('hidden');
+
+        if (idCliente > 0) {
+            document.getElementById('txtProductoCantidad').setAttribute('readonly', 'readonly');
+        } else {
+            document.getElementById('txtProductoCantidad').removeAttribute('readonly');
+        }
+    } else {
+        // Oculta el label y el input
+        document.getElementById('txtTotal').setAttribute('hidden', 'hidden');
+        document.getElementById('lblTotal').setAttribute('hidden', 'hidden');
+    }
+}
+
+$('#txtProductoCantidad').on('input blur', function () {
+    if ($(this).val() === '' || parseInt($(this).val()) <= 0) {
+        // Si el valor es vacío o menor o igual a 0, restablece a 1
+        $(this).val(1);
     }
 });

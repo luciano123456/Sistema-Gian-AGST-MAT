@@ -93,6 +93,7 @@ namespace SistemaGian.DAL.Repository
 
                 foreach (var producto in productos)
                 {
+
                     // Filtra el historial de precios para el producto actual y el cliente específico
                     var historialPrecios = producto.ProductosPreciosHistorial
                         .Where(h =>

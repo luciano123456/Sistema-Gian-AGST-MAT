@@ -20,14 +20,16 @@ namespace SistemaGian.Application.Controllers
         private readonly IZonasService _zonaService;
         private readonly IChoferService _choferService;
         private readonly IMonedaService _monedaService;
+        private readonly IProductosPrecioProveedorService _productosPrecioProveedorService;
 
-        public PedidosController(IPedidoService pedidoservice, IProductoService Productoservice, IZonasService zonaService, IMonedaService monedaService, IChoferService choferService)
+        public PedidosController(IPedidoService pedidoservice, IProductoService Productoservice, IZonasService zonaService, IMonedaService monedaService, IChoferService choferService, IProductosPrecioProveedorService productosPrecioProveedorService)
         {
             _pedidoservice = pedidoservice;
             _Productoservice = Productoservice;
             _zonaService = zonaService;
             _monedaService = monedaService;
             _choferService = choferService;
+            _productosPrecioProveedorService = productosPrecioProveedorService;
         }
 
         public IActionResult Index()
@@ -159,7 +161,8 @@ namespace SistemaGian.Application.Controllers
         {
             Pedido pedido = await _pedidoservice.ObtenerPedido((int)model.Id);
 
-            if(pedido != null) {
+            if (pedido != null)
+            {
 
                 pedido.Fecha = model.Fecha ?? DateTime.Now;
                 pedido.IdCliente = model.IdCliente;
@@ -500,23 +503,41 @@ namespace SistemaGian.Application.Controllers
         {
             try
             {
-                // Obtener los productos
+                // Obtener los productos con sus precios históricos
                 var productos = await _Productoservice.ObtenerUltimosPrecios(idCliente, idProveedor);
 
-                // Mapea los productos a DTO
-                var productosDto = productos.GroupBy(p => p.IdProducto) // Agrupar por IdProducto
-                    .Select(g => new
+                // Crear una lista para almacenar los DTO
+                var productosDto = new List<object>();
+
+                foreach (var grupo in productos.GroupBy(p => p.IdProducto))
+                {
+                    var primerProducto = grupo.FirstOrDefault();
+
+                    // Obtener datos adicionales para el producto
+                    var productoDatos = await _Productoservice.ObtenerDatos(primerProducto.IdProducto);
+
+                    // Resolver ProductoCantidad
+                    var productoCantidad = await _productosPrecioProveedorService.ObtenerProductoProveedor(primerProducto.IdProducto, idProveedor);
+                    var cantidadFinal = productoCantidad?.ProductoCantidad ?? productoDatos.ProductoCantidad;
+
+                    // Crear DTO del producto
+                    var productoDto = new
                     {
-                        IdProducto = g.Key,
-                        Nombre = _Productoservice.ObtenerDatos(g.FirstOrDefault().IdProducto).Result.Descripcion, // Suponiendo que Nombre es un campo del producto
-                        Precios = g.Select(async p => new
+                        IdProducto = grupo.Key,
+                        Nombre = productoDatos.Descripcion, // Asumiendo que Descripcion es el nombre del producto
+                        ProductoCantidad = cantidadFinal,
+                        Precios = grupo.Select(p => new
                         {
                             Id = p.Id,
-                            PrecioVenta = p.PVentaNuevo, // O el precio que desees mostrar
-                            PrecioCosto = p.PCostoNuevo
-                        }).ToList()
-                    }).ToList();
+                            PrecioVenta = Math.Round(p.PVentaNuevo, 2) * cantidadFinal,
+                            PrecioCosto = Math.Round(p.PCostoNuevo, 2) * cantidadFinal
+                }).ToList()
+                    };
 
+                    productosDto.Add(productoDto);
+                }
+
+                // Retornar los resultados
                 return Ok(new { valor = productosDto });
             }
             catch (Exception ex)
@@ -524,6 +545,7 @@ namespace SistemaGian.Application.Controllers
                 return BadRequest($"Error al obtener los productos: {ex.Message}");
             }
         }
+
 
         [HttpGet]
         public async Task<IActionResult> ListaUltimosPreciosProducto(int idCliente, int idProveedor, int idProducto)

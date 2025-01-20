@@ -89,8 +89,8 @@ async function insertarDatosPedido(datosPedido) {
     document.getElementById("observacion").value = datosPedido.Observacion;
 
     if (datosPedido.Estado == "Entregado") {
-        document.getElementById("btnSeleccionarCliente").setAttribute('disabled', 'disabled');
-        document.getElementById("btnSeleccionarProveedor").setAttribute('disabled', 'disabled');
+        document.getElementById("btnSeleccionarClienteModal").setAttribute('disabled', 'disabled');
+        document.getElementById("btnSeleccionarProveedorModal").setAttribute('disabled', 'disabled');
     }
 
     document.getElementById("btnNuevoModificar").textContent = "Modificar";
@@ -110,7 +110,7 @@ async function abrirProveedor() {
         $('#proveedorModal').modal('hide');
     });
 
-    $('#btnSeleccionarProveedor').on('click', function () {
+    $('#btnSeleccionarProveedorModal').on('click', function () {
         var data = $('#tablaProveedores').DataTable().row('.selected').data();
         if (data) {
             cargarDatosProveedor(data);
@@ -161,19 +161,40 @@ async function obtenerClientes() {
     const data = await response.json();
     return data;
 }
-async function abrirCliente() {
-    const clientes = await obtenerClientes();
-    await cargarDataTableClientes(clientes);
 
-    // Configura eventos de selección
+async function abrirCliente() {
+    try {
+        // Obtener y cargar los clientes antes de configurar eventos
+        const clientes = await obtenerClientes();
+        await cargarDataTableClientes(clientes); // Asegúrate de que esta función termine antes de seguir
+
+        // Configura eventos de selección
+        configurarEventosTablaClientes();
+
+        // Abre el modal después de que todo esté configurado
+        $('#clienteModal').modal('show');
+    } catch (error) {
+        console.error("Error al cargar clientes:", error);
+        errorModal('Ocurrió un error al cargar los clientes. Intente nuevamente.');
+    }
+}
+
+function configurarEventosTablaClientes() {
+    let filaSeleccionada = null; // Variable para almacenar la fila seleccionada
+
+    // Doble clic en fila para seleccionar cliente
     $('#tablaClientes tbody').on('dblclick', 'tr', function () {
-        var data = $('#tablaClientes').DataTable().row(this).data();
-        cargarDatosCliente(data);
-        $('#clienteModal').modal('hide');
+        const data = $('#tablaClientes').DataTable().row(this).data();
+        if (data) {
+            cargarDatosCliente(data);
+            $('#clienteModal').modal('hide');
+        }
     });
 
-    $('#btnSeleccionarCliente').on('click', function () {
-        var data = $('#tablaClientes').DataTable().row('.selected').data();
+    // Botón para seleccionar cliente
+    $('#btnSeleccionarClienteModal').on('click', function () {
+        // Busca la fila seleccionada
+        const data = $('#tablaClientes').DataTable().row('.selected').data();
         if (data) {
             cargarDatosCliente(data);
             $('#clienteModal').modal('hide');
@@ -182,28 +203,23 @@ async function abrirCliente() {
         }
     });
 
-    let filaSeleccionada = null; // Variable para almacenar la fila seleccionada
+ 
 
+    // Selección de fila en la tabla
     $('#tablaClientes tbody').on('click', 'tr', function () {
-        // Remover la clase de la fila anteriormente seleccionada
         if (filaSeleccionada) {
             $(filaSeleccionada).removeClass('selected');
             $('td', filaSeleccionada).removeClass('selected');
-
         }
 
-        // Obtener la fila actual
         filaSeleccionada = $(this);
-
-        // Agregar la clase a la fila actual
         $(filaSeleccionada).addClass('selected');
         $('td', filaSeleccionada).addClass('selected');
     });
 
-    // Abre el modal
-    $('#clienteModal').modal('show');
 
 }
+
 
 async function abrirChofer() {
     const choferes = await obtenerChoferes();
@@ -216,15 +232,7 @@ async function abrirChofer() {
         $('#choferModal').modal('hide');
     });
 
-    $('#btnSeleccionarChofer').on('click', function () {
-        var data = $('#tablaChoferes').DataTable().row('.selected').data();
-        if (data) {
-            cargarDatosChofer(data);
-            $('#choferModal').modal('hide');
-        } else {
-            errorModal('Seleccione un Chofer');
-        }
-    });
+
 
     let filaSeleccionada = null; // Variable para almacenar la fila seleccionada
 
@@ -626,15 +634,15 @@ async function anadirProducto() {
             if (selectedProduct && Array.isArray(selectedProduct.Precios) && selectedProduct.Precios.length > 0) {
                 selectedProduct.Precios.forEach(precio => {
                     precioSelect.append(
-                        `<option value="${precio.Result.PrecioVenta},${precio.Result.PrecioCosto}">
-                    ${formatoMoneda.format(precio.Result.PrecioVenta)}
+                        `<option value="${precio.PrecioVenta},${precio.PrecioCosto}">
+                    ${formatoMoneda.format(precio.PrecioVenta)}
                 </option>`
                     );
                 });
 
                 // Establecer el precio inicial en el input
-                const precioVenta = selectedProduct.Precios[0].Result.PrecioVenta;
-                const precioCosto = selectedProduct.Precios[0].Result.PrecioCosto;
+                const precioVenta = selectedProduct.Precios[0].PrecioVenta;
+                const precioCosto = selectedProduct.Precios[0].PrecioCosto;
                 const diferencia = precioVenta - precioCosto;
 
                 precioInput.val(formatoMoneda.format(precioVenta));
@@ -805,7 +813,7 @@ async function guardarProducto() {
 }
 
 async function calcularDatosPedido() {
-    let pedidoVenta = 0, pedidoCosto = 0, pagosaproveedores = 0, pagosclientes = 0, restantecliente = 0, restanteproveedor = 0, pedidoVentaFinal = 0;
+    let pedidoVenta = 0, pedidoCosto = 0, pagosaproveedores = 0, pagosclientes = 0, restantecliente = 0, restanteproveedor = 0, pedidoVentaFinal = 0, totalPagaraProveedor = 0;
 
     const inputRestanteProveedor = document.getElementById("restanteProveedor");
     const inputRestanteCliente = document.getElementById("restanteCliente");
@@ -841,8 +849,10 @@ async function calcularDatosPedido() {
     pedidoVentaFinal = pedidoVenta + parseFloat(convertirMonedaAFloat(costoFlete.value));
     restantecliente = pedidoVentaFinal - pagosclientes
 
+    totalPagaraProveedor = pedidoCosto + parseFloat(convertirMonedaAFloat(costoFlete.value));
+
     //document.getElementById("total").value = formatoMoneda.format(pedidoVenta);
-    document.getElementById("totalPagoProveedor").value = formatoMoneda.format(parseFloat(pedidoCosto));
+    document.getElementById("totalPagoProveedor").value = formatoMoneda.format(parseFloat(totalPagaraProveedor));
     document.getElementById("totalPagadoaProveedor").value = formatoMoneda.format(parseFloat(pagosaproveedores));
     document.getElementById("totalPagoCliente").value = formatoMoneda.format(parseFloat(pedidoVentaFinal));
     document.getElementById("totalPagadoCliente").value = formatoMoneda.format(parseFloat(pagosclientes));

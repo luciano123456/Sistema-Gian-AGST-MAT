@@ -53,14 +53,21 @@ namespace SistemaGian.DAL.Repository
 
         public async Task<IQueryable<Producto>> ObtenerTodos()
         {
-            var productos = await _dbcontext.Productos
-                .Include(p => p.IdMarcaNavigation)
-                .Include(p => p.IdCategoriaNavigation)
-                .Include(p => p.IdUnidadDeMedidaNavigation)
-                .Include(p => p.IdMonedaNavigation)
-                .ToListAsync();
+            try
+            {
+                var productos = await _dbcontext.Productos
+                    .Include(p => p.IdMarcaNavigation)
+                    .Include(p => p.IdCategoriaNavigation)
+                    .Include(p => p.IdUnidadDeMedidaNavigation)
+                    .Include(p => p.IdMonedaNavigation)
+                    .ToListAsync();
 
-            return productos.AsQueryable();
+                return productos.AsQueryable();
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
         }
 
         public async Task<IQueryable<ProductosMarca>> ObtenerMarcas()
