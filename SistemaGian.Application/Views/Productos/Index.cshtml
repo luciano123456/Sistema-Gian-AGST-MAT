@@ -74,9 +74,12 @@
                                 <th>Marca</th>
                                 <th>Categoria</th>
                                 <th>Unidad de Medida</th>
-                                <th>Moneda</th>
+                                
+                                @* <th>Moneda</th> *@
                                 <th>P. Costo</th>
                                 <th>P. Venta</th>
+                                <th>Cantidad</th>
+                                <th>Total</th>
                                 <th>Porc. Ganancia</th>
                                
                             </tr>
@@ -232,32 +235,39 @@
                                 </select>
                             </div>
                             <div class="form-group">
-                            <label for="txtMoneda" class="lblNombreInput">Moneda (*)</label>
-                            <select id="Monedas" name="select" class="input-nuevomodif select-modal-personalizado mt-2">
-                                <option value="" selected>Moneda</option>
-                            </select>
-                        </div>
-                            <div class="form-group">
-                                <label id="lblPrecioCosto" for="txtPrecioCosto" class="lblNombreInput">Precio Costo (*)</label>
-                                <input type="number" class="input-nuevomodif" id="txtPrecioCosto" required step="0.01">
+                                <label id="lblProductoCantidad" for="txtProductoCantidad" class="lblNombreInput" hidden>Cantidad</label>
+                                <input type="number" class="input-nuevomodif" id="txtProductoCantidad" value="1" placeholder="1" hidden required>
                             </div>
-
                         </div>
                         <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="txtMoneda" class="lblNombreInput">Moneda (*)</label>
+                                <select id="Monedas" name="select" class="input-nuevomodif select-modal-personalizado mt-2">
+                                    <option value="" selected>Moneda</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label id="lblPrecioCosto" for="txtPrecioCosto" class="lblNombreInput">Precio Costo U. (*)</label>
+                                <input type="number" class="input-nuevomodif" id="txtPrecioCosto" required step="0.01">
+                            </div>
                             <div class="form-group">
                                 <label id="lblPorcentajeGanancia" for="txtPorcentajeGanancia" class="lblNombreInput">Porc. Ganancia (*)</label>
                                 <input type="number" class="input-nuevomodif" id="txtPorcentajeGanancia" required step="0.01">
                             </div>
                             <div class="form-group">
-                                <label id="lblPrecioVenta" for="txtPrecioVenta" class="lblNombreInput">Precio Venta</label>
+                                <label id="lblPrecioVenta" for="txtPrecioVenta" class="lblNombreInput">Precio Venta U.</label>
                                 <input type="number" class="input-nuevomodif" id="txtPrecioVenta" step="0.01">
                             </div>
-                            <div class="form-group divImagen">
+                            <div class="form-group">
+                                <label id="lblTotal" for="txtTotal" class="lblNombreInput">Total</label>
+                                <input type="number" class="input-nuevomodif" id="txtTotal" step="0.01" value="0" readonly hidden>
+                            </div>
+                           @*  <div class="form-group divImagen">
                                 <label for="txtImagen" class="lblNombreInput">Imagen</label>
                                 <img id="imgProducto" class="mb-3" style="width: 150px; height: 80px;" src="" />
                                 <p id="imgProd" class="" hidden></p>
                             </div>
-                            <input id="Imagen" class="input-imagen" type="file" placeholder="Imagen" name="adjunto" accept=".pdf,.jpg,.png" />
+                            <input id="Imagen" class="input-imagen" type="file" placeholder="Imagen" name="adjunto" accept=".pdf,.jpg,.png" /> *@
                         </div>
                     </div>
                 </form>

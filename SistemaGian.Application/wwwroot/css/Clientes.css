@@ -1,0 +1,10 @@
+#grd_clientes tbody tr {
+    border-bottom: none; /* Elimina el borde inferior de cada fila */
+    margin: 0; /* Asegúrate de que no haya margen entre filas */
+    padding: 0; /* Asegúrate de que no haya relleno entre filas */
+}
+
+    #grd_clientes tbody tr:nth-child(odd),
+    #grd_clientes tbody tr:nth-child(even) {
+        border-bottom: none; /* Asegúrate de que los estilos alternos tampoco tengan bordes */
+    }

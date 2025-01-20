@@ -26,17 +26,24 @@ namespace SistemaGian.DAL.Repository
         }
 
 
-       
+
         public async Task<bool> AsignarProveedor(List<Models.ProductosPreciosProveedor> productos)
         {
-            foreach (Models.ProductosPreciosProveedor producto in productos)
+            try
             {
-                _dbcontext.ProductosPreciosProveedores.Add(producto);
+                foreach (Models.ProductosPreciosProveedor producto in productos)
+                {
+                    _dbcontext.ProductosPreciosProveedores.Add(producto);
+                }
+
+                await _dbcontext.SaveChangesAsync();
+
+                return true;
             }
-
-            await _dbcontext.SaveChangesAsync();
-
-            return true;
+            catch (Exception ex)
+            {
+                return false;
+            }
         }
 
         public async Task<bool> Actualizar(ProductosPreciosProveedor model)
@@ -57,7 +64,7 @@ namespace SistemaGian.DAL.Repository
         {
             return await _dbcontext.ProductosPreciosProveedores
                 .Where(x => x.IdProducto == idProducto && x.IdProveedor == idProveedor)
-                .OrderByDescending(x => x.FechaActualizacion) 
+                .OrderByDescending(x => x.FechaActualizacion)
                 .FirstOrDefaultAsync();
         }
 
@@ -163,7 +170,8 @@ namespace SistemaGian.DAL.Repository
             return Task.FromResult(productos);
         }
 
-        public async Task<bool> AumentarPrecio(string productos, int idProveedor, decimal porcentajeCosto, decimal porcentajeVenta)
+
+            public async Task<bool> AumentarPrecio(string productos, int idProveedor, decimal porcentajeCosto, decimal porcentajeVenta)
         {
             return await ModificarPrecio(productos, idProveedor, porcentajeCosto, porcentajeVenta, true);
         }

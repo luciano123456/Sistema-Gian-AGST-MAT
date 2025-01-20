@@ -123,6 +123,8 @@ namespace SistemaGian.Application.Controllers
                 PCosto = c.PCosto,
                 PVenta = c.PVenta,
                 PorcGanancia = c.PorcGanancia,
+                ProductoCantidad = c.ProductoCantidad,
+                Total = c.PVenta * (int)c.ProductoCantidad,
                 Image = c.Image
                 
             }).ToList();
@@ -150,6 +152,8 @@ namespace SistemaGian.Application.Controllers
                     PCosto = c.PCosto,
                     PVenta = c.PVenta,
                     PorcGanancia = c.PorcGanancia,
+                    ProductoCantidad = c.ProductoCantidad,
+                    Total = c.PVenta * (int)c.ProductoCantidad,
                     Image = c.Image
 
                 }).ToList();
@@ -190,6 +194,7 @@ namespace SistemaGian.Application.Controllers
                 PCosto = model.PCosto,
                 PVenta = model.PVenta,
                 PorcGanancia = model.PorcGanancia,
+                ProductoCantidad = model.ProductoCantidad != null ? model.ProductoCantidad : 1,
                 Image = model.Image
             };
 
@@ -218,6 +223,7 @@ namespace SistemaGian.Application.Controllers
                 PCosto = model.PCosto,
                 PVenta = model.PVenta,
                 PorcGanancia = model.PorcGanancia,
+                ProductoCantidad = model.ProductoCantidad,
                 Image = model.Image
             };
 
@@ -267,7 +273,23 @@ namespace SistemaGian.Application.Controllers
         [HttpGet]
         public async Task<IActionResult> EditarInfo(int id, int idCliente, int idProveedor)
         {
-            var Producto = await _Productoservice.Obtener(id, idCliente, idProveedor);
+            var model = await _Productoservice.Obtener(id, idCliente, idProveedor);
+
+            var Producto = new VMProducto
+            {
+                Id = model.Id,
+                Descripcion = model.Descripcion,
+                IdMarca = model.IdMarca,
+                IdCategoria = model.IdCategoria,
+                IdUnidadDeMedida = model.IdUnidadDeMedida,
+                IdMoneda = model.IdMoneda,
+                PCosto = model.PCosto,
+                PVenta = model.PVenta,
+                PorcGanancia = model.PorcGanancia,
+                ProductoCantidad = model.ProductoCantidad != null ? model.ProductoCantidad : 1,
+                Image = model.Image
+            };
+
 
             if (Producto != null)
             {

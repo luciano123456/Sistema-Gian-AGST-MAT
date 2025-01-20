@@ -23,10 +23,12 @@ namespace SistemaGian.Application.Models.ViewModels
 
         public int? IdUnidadDeMedida { get; set; }
         public int IdMoneda { get; set; }
+        public int? ProductoCantidad { get; set; }
 
         public decimal PCosto { get; set; }
 
         public decimal PVenta { get; set; }
+        public decimal Total { get; set; }
 
         public decimal PorcGanancia { get; set; }
 

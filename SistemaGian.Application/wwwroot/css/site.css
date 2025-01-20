@@ -496,3 +496,11 @@ div.dt-button-collection {
     position: relative;
     z-index: 1; /* Este valor debe ser menor que el del menú */
 }
+
+.dataTables_wrapper .dataTable tbody tr {
+    border-bottom: none !important; /* Sobrescribe cualquier borde inferior */
+}
+
+.dataTables_wrapper .dataTable tbody tr td {
+    border: none !important; /* Elimina bordes dentro de las celdas */
+}
