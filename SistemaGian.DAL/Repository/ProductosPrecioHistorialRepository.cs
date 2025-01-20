@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
@@ -182,6 +183,31 @@ namespace SistemaGian.DAL.Repository
                 throw;
             }
         }
+
+        public async Task<List<ProductosPreciosHistorial>> ObtenerUltimosPreciosProductoFecha(int idProducto, int idProveedor, DateTime FechaDesde, DateTime FechaHasta)
+        {
+            try
+            {
+                // Ajustar FechaHasta al final del día
+                FechaHasta = FechaHasta.Date.AddDays(1).AddTicks(-1);
+
+                var historialPrecios = await _dbcontext.ProductosPreciosHistorial
+                    .Include(p => p.IdProductoNavigation)
+                    .Where(x => x.IdProveedor == idProveedor
+                                && x.IdProducto == idProducto
+                                && x.Fecha >= FechaDesde
+                                && x.Fecha <= FechaHasta)
+                    .ToListAsync();
+
+                return historialPrecios;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al obtener los últimos precios: {ex.Message}");
+                throw;
+            }
+        }
+
 
 
     }
