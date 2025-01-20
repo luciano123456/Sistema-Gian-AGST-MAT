@@ -42,7 +42,7 @@ async function aplicarFiltros() {
 
 async function listapedidos(fechaDesde, fechaHasta, idProveedor, idCliente) {
     // Construir la URL con los parámetros como query string
-    const url = `/HistorialPrecios/Lista?IdProducto=${idProducto}&IdProveedor=${idProveedor}&FechaDesde=${encodeURIComponent(fechaDesde)}&FechaHasta=${encodeURIComponent(fechaHasta)}`;
+    const url = `/HistorialPrecios/Lista?IdProveedor=${idProveedor}&FechaDesde=${encodeURIComponent(fechaDesde)}&FechaHasta=${encodeURIComponent(fechaHasta)}`;
 
 
     try {
