@@ -96,6 +96,7 @@ namespace SistemaGian.Application.Controllers
             {
                 var result = await _productoPrecioClienteService.AsignarCliente(modelo.productos, modelo.idCliente, modelo.idProveedor);
 
+
                 return Json(result);
             }
             catch (Exception ex)

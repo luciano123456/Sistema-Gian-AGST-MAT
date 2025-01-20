@@ -193,7 +193,7 @@ namespace SistemaGian.DAL.Repository
 
                 var historialPrecios = await _dbcontext.ProductosPreciosHistorial
                     .Include(p => p.IdProductoNavigation)
-                    .Where(x => x.IdProveedor == idProveedor
+                    .Where(x => x.IdProveedor == idProveedor && x.IdCliente == null
                                 && x.IdProducto == idProducto
                                 && x.Fecha >= FechaDesde
                                 && x.Fecha <= FechaHasta)

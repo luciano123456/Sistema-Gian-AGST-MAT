@@ -48,6 +48,7 @@ namespace SistemaGian.BLL.Service
                 };
 
                 productosList.Add(productoPrecio);
+                await _productospreciorepo.Actualizar(productoPrecio);
                 }
 
             }

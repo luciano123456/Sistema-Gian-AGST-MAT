@@ -48,12 +48,16 @@ namespace SistemaGian.BLL.Service
                 };
 
                 productosList.Add(productoPrecio);
+                await _productospreciorepo.Actualizar(productoPrecio);
                 }
+
+
 
             }
 
             if(productosList.Count > 0)
             {
+               
                 return await _productospreciorepo.AsignarCliente(productosList);
             } else
             {
