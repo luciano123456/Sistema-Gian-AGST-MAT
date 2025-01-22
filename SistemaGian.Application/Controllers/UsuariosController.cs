@@ -20,8 +20,20 @@ namespace SistemaGian.Application.Controllers
             _Usuarioservice = Usuarioservice;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
+            // Obtener el usuario actual desde la sesión usando el helper inyectado
+            var userSession = await SessionHelper.GetUsuarioSesion(HttpContext);
+
+            // Si no se pudo obtener el usuario de la sesión
+            if (userSession != null)
+            {
+                // Verificar si el usuario está en modo vendedor
+                if (userSession.ModoVendedor == 1)
+                {
+                    return RedirectToAction("Index", "Home");
+                }
+            }
             return View();
         }
 
@@ -91,7 +103,8 @@ namespace SistemaGian.Application.Controllers
                 Direccion = model.Direccion,
                 IdRol = model.IdRol,
                 IdEstado = model.IdEstado,
-                Contrasena = passwordHasher.HashPassword(null, model.Contrasena)
+                Contrasena = passwordHasher.HashPassword(null, model.Contrasena),
+                ModoVendedor = 0
             };
 
             bool respuesta = await _Usuarioservice.Insertar(Usuario);
@@ -135,6 +148,50 @@ namespace SistemaGian.Application.Controllers
             bool respuesta = await _Usuarioservice.Actualizar(userbase);
 
             return Ok(new { valor = respuesta ? "OK" : "Error" });
+        }
+
+
+        [HttpPut]
+        public async Task<IActionResult> ActualizarModoVendedor(int id, int modo)
+        {
+            var passwordHasher = new PasswordHasher<User>();
+
+            // Obtiene el usuario de la base de datos
+            User userbase = await _Usuarioservice.Obtener(id);
+
+            if (userbase != null)
+            {
+                // Actualiza las propiedades del objeto ya cargado
+                userbase.ModoVendedor = modo;
+
+                // Realiza la actualización en la base de datos
+                bool respuesta = await _Usuarioservice.Actualizar(userbase);
+
+                return Ok(new { valor = respuesta ? "OK" : "Error" });
+            } else
+            {
+                return StatusCode(StatusCodes.Status404NotFound);
+            }
+        }
+
+
+        [HttpGet]
+        public async Task<IActionResult> Obtener(int id)
+        {
+
+            // Obtiene el usuario de la base de datos
+            User userbase = await _Usuarioservice.Obtener(id);
+
+            if (userbase != null)
+            {
+                // Retorna la propiedad ModoVendedor
+                return Ok(userbase.ModoVendedor); // Usamos Ok() para devolver una respuesta HTTP correcta.
+            }
+            else
+            {
+                // Si el usuario no existe, retornamos un NotFound
+                return NotFound(); // En caso de que no se encuentre el usuario, retornamos 404
+            }
         }
 
 
