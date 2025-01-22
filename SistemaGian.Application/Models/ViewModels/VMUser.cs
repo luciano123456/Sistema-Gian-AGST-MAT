@@ -27,6 +27,7 @@ namespace SistemaGian.Application.Models.ViewModels
         public int CambioAdmin { get; set; } = 0;
 
         public int IdEstado { get; set; }
+        public int? ModoVendedor { get; set; } = 0;
 
 
     }

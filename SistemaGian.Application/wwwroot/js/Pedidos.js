@@ -16,9 +16,12 @@ const columnConfig = [
 ];
 
 
+var userSession = JSON.parse(localStorage.getItem('userSession'));
+
 $(document).ready(() => {
     // Usando Moment.js para obtener la fecha actual
     const hoy = moment();
+
 
     localStorage.removeItem('EditandoPedidoDesdeVenta'); //POR SI LAS DUDAS
 
@@ -41,6 +44,9 @@ async function aplicarFiltros() {
 
 
 async function listapedidos(fechaDesde, fechaHasta, idProveedor, idCliente) {
+
+  
+
     // Construir la URL con los parámetros como query string
     const url = `/Pedidos/Lista?FechaDesde=${encodeURIComponent(fechaDesde)}&FechaHasta=${encodeURIComponent(fechaHasta)}&IdProveedor=${idProveedor}&IdCliente=${idCliente}`;
 
@@ -105,6 +111,7 @@ async function eliminarPedido(id) {
 }
 
 async function configurarDataTable(data) {
+
     if (!gridpedidos) {
         $('#grd_pedidos thead tr').clone(true).addClass('filters').appendTo('#grd_pedidos thead');
         gridpedidos = $('#grd_pedidos').DataTable({
@@ -248,8 +255,18 @@ async function configurarDataTable(data) {
 
                 $('.filters th').eq(0).html(''); // Limpiar la última columna si es necesario
 
+                
+
                 configurarOpcionesColumnas();
 
+                // Condicional para ocultar columnas si ModoVendedor == 1
+                if (userSession.ModoVendedor == 1) {
+                    gridpedidos.column(9).visible(false); // Ocultar la columna PorcGanancia
+                    gridpedidos.column(10).visible(false); // Ocultar la columna TotalGanancia
+                }
+
+
+                
                 setTimeout(function () {
                     gridpedidos.columns.adjust();
                 }, 10);
@@ -357,7 +374,7 @@ function configurarOpcionesColumnas() {
     container.empty(); // Limpia el contenedor
 
     columnas.forEach((col, index) => {
-        if (col.data && col.data !== "Id") { // Solo agregar columnas que no sean "Id"
+        if (col.data && col.data !== "Id" && (userSession.ModoVendedor == 1 && col.data != "PorcGanancia" && col.data != "TotalGanancia" || userSession.ModoVendedor == 0)) { // Solo agregar columnas que no sean "Id"
             // Recupera el valor guardado en localStorage, si existe. Si no, inicializa en 'false' para no estar marcado.
             const isChecked = savedConfig && savedConfig[`col_${index}`] !== undefined ? savedConfig[`col_${index}`] : true;
 

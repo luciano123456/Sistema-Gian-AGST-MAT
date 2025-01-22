@@ -17,9 +17,21 @@ namespace SistemaGian.Application.Controllers
         {
             _loginService = loginService;
         }
-      
-        public IActionResult Index()
+
+        public async Task<IActionResult> Index()
         {
+            // Obtener el usuario actual desde la sesión usando el helper inyectado
+            var userSession = await SessionHelper.GetUsuarioSesion(HttpContext);
+
+            // Si no se pudo obtener el usuario de la sesión
+            if (userSession != null)
+            {
+                // Verificar si el usuario está en modo vendedor
+                if (userSession.ModoVendedor == 1)
+                {
+                    return RedirectToAction("Index", "Home");
+                }
+            }
             return View();
         }
 
@@ -55,6 +67,7 @@ namespace SistemaGian.Application.Controllers
                         Direccion = user.Direccion,
                         Dni = user.Dni,
                         Telefono = user.Telefono,
+                        ModoVendedor = user.ModoVendedor,
                     };
 
                     // Configurar la sesión con el usuario
