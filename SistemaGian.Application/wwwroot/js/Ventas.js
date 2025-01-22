@@ -16,6 +16,8 @@ const columnConfig = [
     { index: 12, filterType: 'text' },
 ];
 
+var userSession = JSON.parse(localStorage.getItem('userSession'));
+
 
 $(document).ready(() => {
     // Usando Moment.js para obtener la fecha actual
@@ -242,6 +244,12 @@ async function configurarDataTable(data) {
 
                 configurarOpcionesColumnas();
 
+                // Condicional para ocultar columnas si ModoVendedor == 1
+                if (userSession.ModoVendedor == 1) {
+                    gridventas.column(9).visible(false); // Ocultar la columna PorcGanancia
+                    gridventas.column(10).visible(false); // Ocultar la columna TotalGanancia
+                }
+
                 setTimeout(function () {
                     gridventas.columns.adjust();
                 }, 10);
@@ -325,7 +333,8 @@ function configurarOpcionesColumnas() {
     container.empty(); // Limpia el contenedor
 
     columnas.forEach((col, index) => {
-        if (col.data && col.data !== "Id") { // Solo agregar columnas que no sean "Id"
+        if (col.data && col.data !== "Id" && (userSession.ModoVendedor == 1 && col.data != "PorcGanancia" && col.data != "TotalGanancia" || userSession.ModoVendedor == 0)) { // Solo agregar columnas que no sean "Id"
+        // Recupera el valor guardado en localStorage, si existe. Si no, inicializa en 'false' para no estar marcado.
             // Recupera el valor guardado en localStorage, si existe. Si no, inicializa en 'false' para no estar marcado.
             const isChecked = savedConfig && savedConfig[`col_${index}`] !== undefined ? savedConfig[`col_${index}`] : true;
 

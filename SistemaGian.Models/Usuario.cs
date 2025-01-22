@@ -24,6 +24,7 @@ public partial class User
     public string Contrasena { get; set; } = null!;
 
     public int IdEstado { get; set; }
+    public int? ModoVendedor { get; set; } = 0;
 
     public virtual EstadosUsuario IdEstadoNavigation { get; set; } = null!;
 

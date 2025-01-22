@@ -14,17 +14,34 @@ namespace SistemaGian.Application.Controllers
     {
         private readonly IChoferService _Chofereservice;
         private readonly IProvinciaService _provinciaService;
+        private readonly IUsuariosService _userService;
 
-        public ChoferesController(IChoferService Chofereservice, IProvinciaService provinciaService)
+        public ChoferesController(IChoferService Chofereservice, IProvinciaService provinciaService, IUsuariosService userService)
         {
             _Chofereservice = Chofereservice;
             _provinciaService = provinciaService;
+            _userService = userService;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
+            // Obtener el usuario actual desde la sesión usando el helper inyectado
+            var userSession = await SessionHelper.GetUsuarioSesion(HttpContext);
+
+            // Si no se pudo obtener el usuario de la sesión
+            if (userSession != null)
+            {
+                // Verificar si el usuario está en modo vendedor
+                if (userSession.ModoVendedor == 1)
+                {
+                    return RedirectToAction("Index", "Home");
+                }
+            }
+
+            // Si no está en modo vendedor, continúa con el flujo normal
             return View();
         }
+
 
         [HttpGet]
         public async Task<IActionResult> Lista()
