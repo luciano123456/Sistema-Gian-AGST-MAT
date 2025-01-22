@@ -123,19 +123,19 @@ async function configurarDataTable(data) {
                     width: "1%", // Ancho fijo para la columna
                     render: function (data) {
                         return `
-                <div class="acciones-menu" data-id="${data}">
-                    <button class='btn btn-sm btnacciones' type='button' onclick='toggleAcciones(${data})' title='Acciones'>
-                        <i class='fa fa-ellipsis-v fa-lg text-white' aria-hidden='true'></i>
-                    </button>
-                    <div class="acciones-dropdown" style="display: none;">
-                        <button class='btn btn-sm btneditar' type='button' onclick='editarPedido(${data})' title='Editar'>
-                            <i class='fa fa-pencil-square-o fa-lg text-success' aria-hidden='true'></i> Editar
-                        </button>
-                        <button class='btn btn-sm btneliminar' type='button' onclick='eliminarPedido(${data})' title='Eliminar'>
-                            <i class='fa fa-trash-o fa-lg text-danger' aria-hidden='true'></i> Eliminar
-                        </button>
-                    </div>
-                </div>`;
+                            <div class="acciones-menu" data-id="${data}">
+                                <button class='btn btn-sm btnacciones' type='button' onclick='toggleAcciones(${data})' title='Acciones'>
+                                    <i class='fa fa-ellipsis-v fa-lg text-white' aria-hidden='true'></i>
+                                </button>
+                                <div class="acciones-dropdown" style="display: none;">
+                                    <button class='btn btn-sm btneditar' type='button' onclick='editarPedido(${data})' title='Editar'>
+                                        <i class='fa fa-pencil-square-o fa-lg text-success' aria-hidden='true'></i> Editar
+                                    </button>
+                                    <button class='btn btn-sm btneliminar' type='button' onclick='eliminarPedido(${data})' title='Eliminar'>
+                                        <i class='fa fa-trash-o fa-lg text-danger' aria-hidden='true'></i> Eliminar
+                                    </button>
+                                </div>
+                            </div>`;
                     },
                     orderable: false,
                     searchable: false,
@@ -160,7 +160,6 @@ async function configurarDataTable(data) {
                 },
                 { data: 'Estado' },
                 { data: 'Observacion' },
-
             ],
             dom: 'Bfrtip',
             buttons: [
@@ -200,9 +199,7 @@ async function configurarDataTable(data) {
 
             "columnDefs": [
                 {
-
                     "render": function (data, type, row) {
-                        // Formatear fecha desde el formato ISO
                         if (data) {
                             const date = new Date(data); // Convierte la cadena en un objeto Date
                             return date.toLocaleDateString('es-ES'); // Formato: 'DD/MM/YYYY'
@@ -219,14 +216,12 @@ async function configurarDataTable(data) {
                 {
                     "targets": [11], // Índice de la columna 'Estado'
                     "createdCell": function (cell, cellData, rowData, rowIndex, colIndex) {
-                        // Si el estado es "Entregado", pintar de verde
                         if (cellData === "Pendiente") {
-                            $(cell).css('color', 'yellow'); // Cambiar el fondo a verde y el texto a blanco
+                            $(cell).css('color', 'yellow');
                         }
                     }
                 }
             ],
-
 
             initComplete: async function () {
                 var api = this.api();
@@ -238,7 +233,7 @@ async function configurarDataTable(data) {
                     if (config.filterType === 'text') {
                         var input = $('<input type="text" placeholder="Buscar..." />')
                             .appendTo(cell.empty())
-                            .off('keyup change') // Desactivar manejadores anteriores
+                            .off('keyup change')
                             .on('keyup change', function (e) {
                                 e.stopPropagation();
                                 var regexr = '({search})';
@@ -259,13 +254,34 @@ async function configurarDataTable(data) {
                     gridpedidos.columns.adjust();
                 }, 10);
 
-                $('body').on('mouseenter', '#grd_pedidos .fa-map-marker', function () {
+                // Cambiar el cursor a 'pointer' cuando pase sobre cualquier fila o columna
+                $('#grd_pedidos tbody').on('mouseenter', 'tr', function () {
                     $(this).css('cursor', 'pointer');
                 });
 
+                // Doble clic para ejecutar la función editarPedido(id)
+                $('#grd_pedidos tbody').on('dblclick', 'tr', function () {
+                    var id = gridpedidos.row(this).data().Id; // Obtener el ID de la fila seleccionada
+                    editarPedido(id); // Llamar a la función de editar
+                });
 
+                let filaSeleccionada = null; // Variable para almacenar la fila seleccionada
+                $('#grd_pedidos tbody').on('click', 'tr', function () {
+                    // Remover la clase de la fila anteriormente seleccionada
+                    if (filaSeleccionada) {
+                        $(filaSeleccionada).removeClass('seleccionada');
+                        $('td', filaSeleccionada).removeClass('seleccionada');
 
+                    }
 
+                    // Obtener la fila actual
+                    filaSeleccionada = $(this);
+
+                    // Agregar la clase a la fila actual
+                    $(filaSeleccionada).addClass('seleccionada');
+                    $('td', filaSeleccionada).addClass('seleccionada');
+
+                });
             },
         });
     } else {

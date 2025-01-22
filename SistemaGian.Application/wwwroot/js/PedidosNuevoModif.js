@@ -93,7 +93,7 @@ async function insertarDatosPedido(datosPedido) {
         document.getElementById("btnSeleccionarProveedorModal").setAttribute('disabled', 'disabled');
     }
 
-    document.getElementById("btnNuevoModificar").textContent = "Modificar";
+    document.getElementById("btnNuevoModificar").textContent = "Guardar";
 
     await calcularDatosPedido();
 }
@@ -224,6 +224,16 @@ function configurarEventosTablaClientes() {
 async function abrirChofer() {
     const choferes = await obtenerChoferes();
     await cargarDataTableChoferes(choferes);
+
+    $('#btnSeleccionarChofer').on('click', function () {
+        var data = $('#tablaChoferes').DataTable().row('.selected').data();
+        if (data) {
+            cargarDatosChofer(data);
+            $('#choferModal').modal('hide');
+        } else {
+            errorModal('Seleccione un Proveedor');
+        }
+    });
 
     // Configura eventos de selección
     $('#tablaChoferes tbody').on('dblclick', 'tr', function () {
