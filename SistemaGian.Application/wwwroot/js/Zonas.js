@@ -324,7 +324,7 @@ function formatNumber(number) {
 function configurarOpcionesColumnas() {
     const grid = $('#grd_Zonas').DataTable(); // Accede al objeto DataTable utilizando el id de la tabla
     const columnas = grid.settings().init().columns; // Obtiene la configuración de columnas
-    const container = $('.dropdown-menu'); // El contenedor del dropdown, cambia a .dropdown-menu
+    const container = $('#configColumnasMenu'); // El contenedor del dropdown específico para configurar columnas
 
     const storageKey = `Zonas_Columnas`; // Clave única para esta pantalla
 
@@ -334,13 +334,12 @@ function configurarOpcionesColumnas() {
 
     columnas.forEach((col, index) => {
         if (col.data && col.data !== "Id") { // Solo agregar columnas que no sean "Id"
-            // Recupera el valor guardado en localStorage, si existe. Si no, inicializa en 'false' para no estar marcado.
-            const isChecked = savedConfig && savedConfig[`col_${index}`] !== undefined ? savedConfig[`col_${index}`] : true;
+            const isChecked = savedConfig[`col_${index}`] !== undefined ? savedConfig[`col_${index}`] : true;
 
             // Asegúrate de que la columna esté visible si el valor es 'true'
             grid.column(index).visible(isChecked);
 
-            const columnName = col.data
+            const columnName = col.data;
 
             // Ahora agregamos el checkbox, asegurándonos de que se marque solo si 'isChecked' es 'true'
             container.append(`
@@ -355,7 +354,7 @@ function configurarOpcionesColumnas() {
     });
 
     // Asocia el evento para ocultar/mostrar columnas
-    $('.toggle-column').on('change', function () {
+    container.find('.toggle-column').on('change', function () {
         const columnIdx = parseInt($(this).data('column'), 10);
         const isChecked = $(this).is(':checked');
         savedConfig[`col_${columnIdx}`] = isChecked;
@@ -363,7 +362,6 @@ function configurarOpcionesColumnas() {
         grid.column(columnIdx).visible(isChecked);
     });
 }
-
 
 $(document).on('click', function (e) {
     // Verificar si el clic está fuera de cualquier dropdown

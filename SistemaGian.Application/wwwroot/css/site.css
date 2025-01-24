@@ -144,13 +144,21 @@ tbody tr {
 
 /* Cambia el color de fondo de todas las celdas, incluida la primera columna, en filas pares */
 table.dataTable.display tbody tr:nth-child(even) td {
-    background-color: #353c48 !important;
+    background-color: #353c48 !important; /* Color para filas pares */
 }
 
 /* Cambia el color de fondo de todas las celdas, incluida la primera columna, en filas impares */
 table.dataTable.display tbody tr:nth-child(odd) td {
-    background-color: #2a303a !important;
+    background-color: #2a303a !important; /* Color para filas impares */
 }
+
+/* Estilo para la fila seleccionada */
+table.dataTable.display tbody tr.seleccionada,
+table.dataTable.display tbody tr.seleccionada td {
+    background-color: #065f8c !important;
+    color: white !important;
+}
+
 
 table.dataTable {
     width: 100%;

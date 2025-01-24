@@ -438,7 +438,7 @@ async function listaRolesFilter() {
 function configurarOpcionesColumnas() {
     const grid = $('#grd_Usuarios').DataTable(); // Accede al objeto DataTable utilizando el id de la tabla
     const columnas = grid.settings().init().columns; // Obtiene la configuración de columnas
-    const container = $('.dropdown-menu'); // El contenedor del dropdown, cambia a .dropdown-menu
+    const container = $('#configColumnasMenu'); // El contenedor del dropdown específico para configurar columnas
 
     const storageKey = `Usuarios_Columnas`; // Clave única para esta pantalla
 

@@ -1,20 +1,21 @@
 ﻿<link href="~/css/navbarlogin.css" rel="stylesheet" />
 
 
-<nav class="navbar navbar-expand navbar-light nav-user">
+<nav class="navbar navbar-expand navbar-light nav-user" id="navbarLogin">
     <div class="container-fluid d-flex justify-content-between align-items-center">
         <!-- Nombre de usuario y menú desplegable -->
         <ul class="navbar-nav">
             <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle text-white" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <a class="nav-link dropdown-toggle text-white" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" onclick="event.stopPropagation();">
                     <span id="userName">Usuario</span>
                 </a>
-                <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                <div class="dropdown-menu" id="userMenu" aria-labelledby="navbarDropdown">
                     <a class="dropdown-item" href="#" onclick="window.location.href='/Usuarios/Configuracion';">Configuración</a>
                     <div class="dropdown-divider"></div>
                     <a class="dropdown-item" href="#" onclick="window.location.href='/Login/Logout';">Cerrar sesión</a>
                 </div>
             </li>
+
         </ul>
         <!-- Interruptor Modo Vendedor -->
         <div class="d-flex align-items-center ms-auto">

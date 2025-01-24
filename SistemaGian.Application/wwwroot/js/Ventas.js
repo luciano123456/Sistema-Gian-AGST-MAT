@@ -254,8 +254,33 @@ async function configurarDataTable(data) {
                     gridventas.columns.adjust();
                 }, 10);
 
-                $('body').on('mouseenter', '#grd_ventas .fa-map-marker', function () {
+                // Cambiar el cursor a 'pointer' cuando pase sobre cualquier fila o columna
+                $('#grd_ventas tbody').on('mouseenter', 'tr', function () {
                     $(this).css('cursor', 'pointer');
+                });
+
+                // Doble clic para ejecutar la función editarPedido(id)
+                $('#grd_ventas tbody').on('dblclick', 'tr', function () {
+                    var id = gridventas.row(this).data().Id; // Obtener el ID de la fila seleccionada
+                    editarPedido(id); // Llamar a la función de editar
+                });
+
+                let filaSeleccionada = null; // Variable para almacenar la fila seleccionada
+                $('#grd_ventas tbody').on('click', 'tr', function () {
+                    // Remover la clase de la fila anteriormente seleccionada
+                    if (filaSeleccionada) {
+                        $(filaSeleccionada).removeClass('seleccionada');
+                        $('td', filaSeleccionada).removeClass('seleccionada');
+
+                    }
+
+                    // Obtener la fila actual
+                    filaSeleccionada = $(this);
+
+                    // Agregar la clase a la fila actual
+                    $(filaSeleccionada).addClass('seleccionada');
+                    $('td', filaSeleccionada).addClass('seleccionada');
+
                 });
 
 
@@ -324,7 +349,7 @@ function editarPedido(id) {
 function configurarOpcionesColumnas() {
     const grid = $('#grd_ventas').DataTable(); // Accede al objeto DataTable utilizando el id de la tabla
     const columnas = grid.settings().init().columns; // Obtiene la configuración de columnas
-    const container = $('.dropdown-menu'); // El contenedor del dropdown, cambia a .dropdown-menu
+    const container = $('#configColumnasMenu'); // El contenedor del dropdown específico para configurar columnas
 
     const storageKey = `Ventas_Columnas`; // Clave única para esta pantalla
 
@@ -369,7 +394,7 @@ function configurarOpcionesColumnas() {
 
 $(document).on('click', function (e) {
     // Verificar si el clic está fuera de cualquier dropdown
-    if (!$(e.target).closest('.acciones-menu').length) {
+    if (!$(e.target).closest('.acciones-menu, #navbarDropdown, .dropdown-menu').length) {
         $('.acciones-dropdown').hide(); // Cerrar todos los dropdowns
     }
 });

@@ -81,14 +81,64 @@ namespace SistemaGian.DAL.Repository
             return result;
         }
 
+        //public async Task<List<ProductosPreciosHistorial>> ObtenerUltimosPrecios(int idProveedor, int idCliente)
+        //{
+        //    try
+        //    {
+        //        // Obtener todos los productos
+        //        var productos = await _dbcontext.Productos
+        //            .Include(p => p.ProductosPreciosHistorial)
+        //            .ToListAsync();
+
+        //        var resultados = new List<ProductosPreciosHistorial>();
+
+        //        foreach (var producto in productos)
+        //        {
+        //            // Filtra el historial de precios para el producto actual y el cliente específico
+        //            var historialPrecios = producto.ProductosPreciosHistorial
+        //                .Where(h => h.IdCliente == idCliente || idCliente == -1 && h.IdProveedor == idProveedor || idProveedor == -1)
+        //                .OrderByDescending(h => h.Id) // Ordenar por Id descendente para obtener los precios más recientes
+        //                .Take(3) // Tomar los últimos 3 precios
+        //                .ToList();
+
+        //            if (historialPrecios.Any())
+        //            {
+        //                // Si hay historial, agrega esos precios
+        //                resultados.AddRange(historialPrecios);
+        //            }
+        //            else
+        //            {
+        //                // Si no hay historial, agrega un nuevo objeto usando el precio base del producto
+        //                resultados.Add(new ProductosPreciosHistorial
+        //                {
+        //                    IdProducto = producto.Id,
+        //                    PVentaNuevo = producto.PVenta, // Precio base del producto
+        //                    IdCliente = idCliente,
+        //                    IdProveedor = idProveedor,
+        //                    IdProductoNavigation = producto
+        //                });
+        //            }
+        //        }
+
+        //        return resultados;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.WriteLine($"Error al obtener los últimos precios: {ex.Message}");
+        //        throw;
+        //    }
+        //}
+
         public async Task<List<ProductosPreciosHistorial>> ObtenerUltimosPrecios(int idProveedor, int idCliente)
         {
             try
             {
-                // Obtener todos los productos
+
                 var productos = await _dbcontext.Productos
-                    .Include(p => p.ProductosPreciosHistorial)
-                    .ToListAsync();
+           .Include(p => p.ProductosPreciosHistorial)
+           .Include(p => p.ProductosPreciosProveedor) // Incluye la relación con ProductosPreciosProveedores
+           .Where(p => p.ProductosPreciosHistorial.Any(ppp => (ppp.IdProveedor == idProveedor && ppp.IdCliente == idCliente) || (ppp.IdProveedor == idProveedor && ppp.IdCliente == null))) // Filtra por proveedor específico
+           .ToListAsync();
 
                 var resultados = new List<ProductosPreciosHistorial>();
 
@@ -140,10 +190,12 @@ namespace SistemaGian.DAL.Repository
         {
             try
             {
-                // Obtener el producto específico
+
                 var producto = await _dbcontext.Productos
-                    .Include(p => p.ProductosPreciosHistorial)
-                    .FirstOrDefaultAsync(p => p.Id == idProducto);
+           .Include(p => p.ProductosPreciosHistorial)
+           .Include(p => p.ProductosPreciosProveedor) // Incluye la relación con ProductosPreciosProveedores
+           .Where(p => p.ProductosPreciosProveedor.Any(ppp => ppp.IdProveedor == idProveedor)) // Filtra por proveedor específico
+           .FirstOrDefaultAsync(p => p.Id == idProducto);
 
                 if (producto == null)
                 {

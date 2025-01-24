@@ -29,11 +29,12 @@ public partial class ProductosPreciosHistorial
 
     public virtual Cliente? IdClienteNavigation { get; set; }
 
-    public virtual Producto IdProductoNavigation { get; set; } = null!;
 
     public virtual Proveedor? IdProveedorNavigation { get; set; }
 
     public List<PrecioDto> Precios { get; set; }
+
+    public virtual Producto IdProductoNavigation { get; set; } = null!;
 
 }
 

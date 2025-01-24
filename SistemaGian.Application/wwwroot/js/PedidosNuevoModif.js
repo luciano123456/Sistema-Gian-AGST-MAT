@@ -9,6 +9,7 @@ const cantidadPagoProveedorInput = document.getElementById('cantidadPagoProveedo
 const cotizacionPagoProveedorInput = document.getElementById('cotizacionPagoProveedor');
 const costoFleteInput = document.getElementById('costoFlete');
 const IdPedido = document.getElementById('IdPedido').value;
+let productos = [];
 
 $(document).ready(async function () {
 
@@ -93,7 +94,7 @@ async function insertarDatosPedido(datosPedido) {
         document.getElementById("btnSeleccionarProveedorModal").setAttribute('disabled', 'disabled');
     }
 
-    document.getElementById("btnNuevoModificar").textContent = "Modificar";
+    document.getElementById("btnNuevoModificar").textContent = "Guardar";
 
     await calcularDatosPedido();
 }
@@ -224,6 +225,16 @@ function configurarEventosTablaClientes() {
 async function abrirChofer() {
     const choferes = await obtenerChoferes();
     await cargarDataTableChoferes(choferes);
+
+    $('#btnSeleccionarChofer').on('click', function () {
+        var data = $('#tablaChoferes').DataTable().row('.selected').data();
+        if (data) {
+            cargarDatosChofer(data);
+            $('#choferModal').modal('hide');
+        } else {
+            errorModal('Seleccione un Proveedor');
+        }
+    });
 
     // Configura eventos de selección
     $('#tablaChoferes tbody').on('dblclick', 'tr', function () {
@@ -374,6 +385,7 @@ async function cargarDataTableProductos(data) {
             { data: 'Nombre', width: "15%" },
             { data: 'PrecioCosto', width: "15%", visible: false },
             { data: 'PrecioVenta', width: "15%" },
+            { data: 'ProductoCantidad', width: "15%" },
             { data: 'Cantidad', width: "15%" },
             { data: 'Total', width: "15%" },
             {
@@ -399,7 +411,7 @@ async function cargarDataTableProductos(data) {
                 "render": function (data, type, row) {
                     return formatNumber(data); // Formatear número en la columna
                 },
-                "targets": [1, 2, 4] // Columna Precio
+                "targets": [1, 2, 5] // Columna Precio
             }
         ],
 
@@ -587,16 +599,24 @@ async function anadirProducto() {
 
     // Obtener los productos con los últimos precios
     const productosResponse = await ObtenerUltimosPrecios(idCliente, idProveedor);
-    const productos = productosResponse ? productosResponse.valor : [];
+
+    if (productosResponse.valor.length == 0) {
+        errorModal("El proveedor no tiene productos asignados");
+        return false;
+    }
+
+    productos = productosResponse ? productosResponse.valor : [];
 
     if (Array.isArray(productos) && productos.length > 0) {
         const productoSelect = $("#productoSelect");
         const precioSelect = $("#precioSelect");
         const precioInput = $("#precioInput");
         const cantidadInput = $("#cantidadInput");
+        const productoCantidadInput = $("#productoCantidad");
 
         productoSelect.empty();
         precioSelect.empty();
+        productoCantidadInput.empty();
 
         // Obtener los productos que ya están en la tabla (evitar duplicados)
         const productosEnTabla = [];
@@ -621,7 +641,7 @@ async function anadirProducto() {
         const todosYaAgregados = productos.every(producto => productosEnTabla.includes(producto.IdProducto));
 
         if (todosYaAgregados) {
-            advertenciaModal("¡Ya has agregado todos los productos del sistema!");
+            advertenciaModal("¡Ya has agregado todos los productos del proveedor!");
             return false; // No continuar con la adición si todos ya están añadidos
         }
 
@@ -643,9 +663,12 @@ async function anadirProducto() {
                 // Establecer el precio inicial en el input
                 const precioVenta = selectedProduct.Precios[0].PrecioVenta;
                 const precioCosto = selectedProduct.Precios[0].PrecioCosto;
+                const productoCantidad = selectedProduct.ProductoCantidad;
                 const diferencia = precioVenta - precioCosto;
 
+                productoCantidadInput.val(productoCantidad);
                 precioInput.val(formatoMoneda.format(precioVenta));
+
 
                 // Calcular el total
                 await calcularTotal();
@@ -666,6 +689,7 @@ async function anadirProducto() {
             console.log("Diferencia:", diferencia);
 
             precioInput.val(formatoMoneda.format(precioVenta));
+            
 
             // Calcular el total
             await calcularTotal();
@@ -764,6 +788,8 @@ async function guardarProducto() {
     const isEditing = modal.attr('data-editing') === 'true';
     const editId = modal.attr('data-id');
 
+    const selectedProduct = productos.find(p => p.IdProducto === parseInt(productoId));
+
     // Verificar si el producto ya existe en la tabla
     let productoExistente = false;
 
@@ -775,6 +801,7 @@ async function guardarProducto() {
                 data.Nombre = productoNombre;
                 data.PrecioVenta = precioManual; // Guardar PrecioVenta
                 data.PrecioCosto = precioCosto; // Guardar PrecioCosto
+                data.ProductoCantidad = selectedProduct.ProductoCantidad; // Usar la cantidad del input
                 data.Cantidad = cantidadInput; // Usar la cantidad del input
                 data.Total = totalInput; // Recalcular el total con formato de moneda
                 this.data(data).draw();
@@ -798,6 +825,7 @@ async function guardarProducto() {
             grdProductos.row.add({
                 IdProducto: productoId,
                 Nombre: productoNombre,
+                ProductoCantidad: selectedProduct.ProductoCantidad, // Usar la cantidad del input,
                 PrecioVenta: precioManual, // Agregar PrecioVenta
                 PrecioCosto: precioCosto, // Agregar PrecioCosto
                 Cantidad: cantidadInput, // Usar la cantidad proporcionada
@@ -822,8 +850,8 @@ async function calcularDatosPedido() {
     if (grdProductos != null && grdProductos.rows().count() > 0) {
         grdProductos.rows().every(function () {
             const producto = this.data();
-            pedidoVenta += parseFloat(producto.PrecioVenta) * producto.Cantidad;
-            pedidoCosto += parseFloat(producto.PrecioCosto) * producto.Cantidad;
+            pedidoVenta += (parseFloat(producto.PrecioVenta) * producto.ProductoCantidad) * producto.Cantidad;
+            pedidoCosto += (parseFloat(producto.PrecioCosto) * producto.ProductoCantidad) * producto.Cantidad;
         });
     }
 
@@ -928,6 +956,7 @@ async function abrirModalProducto(isEdit = false, productoId = null) {
     const precioSelect = document.getElementById('precioSelect');  // El select donde se cargarán los precios
     const precioInput = document.getElementById('precioInput');  // El select donde se cargarán los precios
     const cantidadInput = document.getElementById('cantidadInput');
+    const productoCantidadInput = document.getElementById('productoCantidad');
 
     let i = 0, optionSeleccionado = 0;
 
@@ -935,6 +964,7 @@ async function abrirModalProducto(isEdit = false, productoId = null) {
     precioSelect.innerHTML = '';  // Limpiar precios anteriores
     cantidadInput.value = '';
     precioInput.value = '';
+    productoCantidadInput.value = '';
 
     // Configurar modal para añadir o editar
     const modal = $('#productosModal');
@@ -945,6 +975,8 @@ async function abrirModalProducto(isEdit = false, productoId = null) {
             return data.IdProducto == productoId;
         }).data();
 
+       
+
         if (productoData) {
             // Obtener los productos con los últimos precios
             const idCliente = parseInt($("#idCliente").val());  // Asegúrate de que este valor esté disponible
@@ -953,7 +985,8 @@ async function abrirModalProducto(isEdit = false, productoId = null) {
             // Llamada a la función para obtener los precios del producto
             const productosResponse = await ObtenerUltimosPreciosProducto(idCliente, idProveedor, productoData.IdProducto);
 
-            const productos = productosResponse ? productosResponse.valor : [];
+            productos = productosResponse ? productosResponse.valor : [];
+            const selectedProduct = productos.find(p => p.IdProducto === parseInt(productoId));
 
             if (Array.isArray(productos) && productos.length > 0) {
                 const productoSelect = $("#productoSelect");
@@ -1022,8 +1055,11 @@ async function abrirModalProducto(isEdit = false, productoId = null) {
 
             // Cargar datos del producto en el producto select
             productoSelect.value = productoData.IdProducto;
+            productoCantidadInput.value = productoData.ProductoCantidad;
             cantidadInput.value = productoData.Cantidad;
-            precioInput.value = formatoMoneda.format(productoData.PrecioVenta);
+
+            let precioTotal = productoData.PrecioVenta;
+            precioInput.value = formatoMoneda.format(precioTotal);
 
             // Deshabilitar el select si estamos editando el producto
             productoSelect.disabled = true;
@@ -1049,11 +1085,12 @@ async function abrirModalProducto(isEdit = false, productoId = null) {
 async function calcularTotal() {
     const precioRaw = document.getElementById('precioInput').value;
     const cantidad = parseFloat(document.getElementById('cantidadInput').value) || 0;
+    const cantidadProducto = parseFloat(document.getElementById('productoCantidad').value) || 0;
 
     // Extraer solo el número del campo precio
     const precio = formatoNumero(precioRaw);
 
-    const total = precio * cantidad;
+    const total = (precio * cantidadProducto) * cantidad ;
 
     // Mostrar el total formateado en el campo
     document.getElementById('totalInput').value = formatoMoneda.format(total);
