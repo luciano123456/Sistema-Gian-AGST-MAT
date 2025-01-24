@@ -509,7 +509,6 @@ namespace SistemaGian.Application.Controllers
 
         }
 
-
         [HttpGet]
         public async Task<IActionResult> ListaUltimosPrecios(int idCliente, int idProveedor)
         {
@@ -541,9 +540,9 @@ namespace SistemaGian.Application.Controllers
                         Precios = grupo.Select(p => new
                         {
                             Id = p.Id,
-                            PrecioVenta = Math.Round(p.PVentaNuevo, 2) * cantidadFinal,
-                            PrecioCosto = Math.Round(p.PCostoNuevo, 2) * cantidadFinal
-                }).ToList()
+                            PrecioVenta = Math.Round(p.PVentaNuevo, 2),
+                            PrecioCosto = Math.Round(p.PCostoNuevo, 2)
+                        }).ToList()
                     };
 
                     productosDto.Add(productoDto);
@@ -557,6 +556,8 @@ namespace SistemaGian.Application.Controllers
                 return BadRequest($"Error al obtener los productos: {ex.Message}");
             }
         }
+
+
 
 
         [HttpGet]
@@ -573,6 +574,7 @@ namespace SistemaGian.Application.Controllers
                     {
                         IdProducto = g.Key,
                         Nombre = _Productoservice.ObtenerDatos(g.FirstOrDefault().IdProducto).Result.Descripcion, // Suponiendo que Nombre es un campo del producto
+                        ProductoCantidad = _Productoservice.ObtenerDatos(g.FirstOrDefault().IdProducto).Result.ProductoCantidad, // Suponiendo que Nombre es un campo del producto
                         Precios = g.Select(p => new
                         {
                             Id = p.Id,

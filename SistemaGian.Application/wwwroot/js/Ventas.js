@@ -349,7 +349,7 @@ function editarPedido(id) {
 function configurarOpcionesColumnas() {
     const grid = $('#grd_ventas').DataTable(); // Accede al objeto DataTable utilizando el id de la tabla
     const columnas = grid.settings().init().columns; // Obtiene la configuración de columnas
-    const container = $('.dropdown-menu'); // El contenedor del dropdown, cambia a .dropdown-menu
+    const container = $('#configColumnasMenu'); // El contenedor del dropdown específico para configurar columnas
 
     const storageKey = `Ventas_Columnas`; // Clave única para esta pantalla
 
@@ -394,7 +394,7 @@ function configurarOpcionesColumnas() {
 
 $(document).on('click', function (e) {
     // Verificar si el clic está fuera de cualquier dropdown
-    if (!$(e.target).closest('.acciones-menu').length) {
+    if (!$(e.target).closest('.acciones-menu, #navbarDropdown, .dropdown-menu').length) {
         $('.acciones-dropdown').hide(); // Cerrar todos los dropdowns
     }
 });

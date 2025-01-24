@@ -363,7 +363,7 @@ async function configurarDataTable(data) {
 function configurarOpcionesColumnas() {
     const grid = $('#grd_clientes').DataTable(); // Accede al objeto DataTable utilizando el id de la tabla
     const columnas = grid.settings().init().columns; // Obtiene la configuración de columnas
-    const container = $('.dropdown-menu'); // El contenedor del dropdown, cambia a .dropdown-menu
+    const container = $('#configColumnasMenu'); // El contenedor del dropdown específico para configurar columnas
 
     const storageKey = `Clientes_Columnas`; // Clave única para esta pantalla
 

@@ -1,65 +1,68 @@
 ﻿document.addEventListener("DOMContentLoaded", async function () {
-
     var userSession = JSON.parse(localStorage.getItem('userSession'));
 
-  
-
     // Configura el estado del switch
-
-
-
     if (userSession) {
-        // Si el usuario está en el localStorage, actualizar el texto del enlace
         var userFullName = userSession.Nombre + ' ' + userSession.Apellido;
-        $("#userName").html('<i class="fa fa-user"></i> ' + userFullName); // Cambiar el contenido del enlace
+        $("#userName").html('<i class="fa fa-user"></i> ' + userFullName);
 
         document.getElementById('modoVendedorSwitch').checked = userSession.ModoVendedor;
 
         if (userSession.ModoVendedor == 1) {
-            // Ocultar todas las opciones excepto "Nuevo Pedido"
+            // Ocultar todas las opciones excepto "Nuevo Pedido", "Pedidos", y "Ventas"
             document.querySelectorAll('.btnMenu').forEach(btn => {
-                if (!btn.textContent.includes('Nuevo Pedido') && !btn.textContent.includes('Pedidos') && !btn.textContent.includes('Ventas')) {
+                if (!btn.textContent.includes('Nuevo Pedido') &&
+                    !btn.textContent.includes('Pedidos') &&
+                    !btn.textContent.includes('Lista de Productos') &&
+                    !btn.textContent.includes('Ventas')) {
                     btn.closest('.col').style.display = 'none';
                 }
             });
         }
-
     }
-    // Busca todos los elementos con la clase "dropdown-toggle"
-    var dropdownToggleList = document.querySelectorAll('.dropdown-toggle');
 
-    // Itera sobre cada elemento y agrega un evento de clic
-    dropdownToggleList.forEach(function (dropdownToggle) {
-        dropdownToggle.addEventListener('click', function (event) {
-            event.preventDefault(); // Evita la acción predeterminada del enlace
+    // Manejo del menú desplegable del usuario
+    var userMenuToggle = document.getElementById('navbarDropdown');
+    var userMenu = document.getElementById('userMenu');
 
-            // Obtiene el menú desplegable correspondiente
-            var dropdownMenu = dropdownToggle.nextElementSibling;
+    userMenuToggle.addEventListener('click', function (event) {
+        event.preventDefault();
 
-            // Cambia el atributo "aria-expanded" para alternar la visibilidad del menú desplegable
-            var isExpanded = dropdownToggle.getAttribute('aria-expanded') === 'true';
-            dropdownToggle.setAttribute('aria-expanded', !isExpanded);
-            dropdownMenu.classList.toggle('show'); // Agrega o quita la clase "show" para mostrar u ocultar el menú desplegable
-        });
+        // Alterna el menú del usuario
+        var isExpanded = userMenuToggle.getAttribute('aria-expanded') === 'true';
+        userMenuToggle.setAttribute('aria-expanded', !isExpanded);
+        userMenu.classList.toggle('show');
     });
 
-    // Agrega un manejador de eventos de clic al documento para ocultar el menú desplegable cuando se hace clic en cualquier lugar que no sea el menú desplegable
+    // Cierra el menú del usuario si se hace clic fuera de él
     document.addEventListener('click', function (event) {
-        var isDropdownToggle = event.target.closest('.dropdown-toggle'); // Verifica si el elemento clicado es un elemento con la clase "dropdown-toggle"
-        var isDropdownMenu = event.target.closest('.dropdown-menu'); // Verifica si el elemento clicado es un menú desplegable
+        var isUserMenu = event.target.closest('#userMenu');
+        var isUserToggle = event.target.closest('#navbarDropdown');
 
-        // Si el elemento clicado no es un menú desplegable ni un elemento con la clase "dropdown-toggle", oculta todos los menús desplegables
+        if (!isUserMenu && !isUserToggle) {
+            userMenu.classList.remove('show');
+            userMenuToggle.setAttribute('aria-expanded', 'false');
+        }
+    });
+
+    // Cierra otros menús desplegables al interactuar fuera del navbar
+    document.addEventListener('click', function (event) {
+        var isDropdownToggle = event.target.closest('.dropdown-toggle');
+        var isDropdownMenu = event.target.closest('.dropdown-menu');
+
         if (!isDropdownToggle && !isDropdownMenu) {
-            var dropdownMenus = document.querySelectorAll('.dropdown-menu.show');
-            dropdownMenus.forEach(function (dropdownMenu) {
-                dropdownMenu.classList.remove('show');
-                var dropdownToggle = dropdownMenu.previousElementSibling;
-                dropdownToggle.setAttribute('aria-expanded', 'false');
+            document.querySelectorAll('.dropdown-menu.show').forEach(function (dropdownMenu) {
+                if (dropdownMenu !== userMenu) { // No cerrar el menú de usuario
+                    dropdownMenu.classList.remove('show');
+                    var dropdownToggle = dropdownMenu.previousElementSibling;
+                    if (dropdownToggle) {
+                        dropdownToggle.setAttribute('aria-expanded', 'false');
+                    }
+                }
             });
         }
     });
 });
-
 
 async function obtenerDataUser(id) {
 

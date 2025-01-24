@@ -3,6 +3,8 @@ var selectedProductos = [];
 let idProveedorFiltro = -1, idClienteFiltro = -1;
 let proveedorVisible = false;
 
+var userSession = JSON.parse(localStorage.getItem('userSession'));
+
 const columnConfig = [
     { index: 1, filterType: 'text' },
     { index: 3, filterType: 'select', fetchDataFunc: listaMarcasFilter }, // Columna con un filtro de selección (de provincias)
@@ -1031,7 +1033,11 @@ async function configurarDataTable(data) {
                 configurarOpcionesColumnas();
 
 
-
+                // Condicional para ocultar columnas si ModoVendedor == 1
+                if (userSession.ModoVendedor == 1) {
+                    gridProductos.column(6).visible(false); // Ocultar la columna Precio Costo
+                    gridProductos.column(10).visible(false); // Ocultar la columna TotalGanancia
+                }
 
                 // Redibujar la tabla después de aplicar filtros y cambios de visibilidad
                 api.columns().every(function () {
@@ -1209,7 +1215,7 @@ async function listaClientes() {
 function configurarOpcionesColumnas() {
     const grid = $('#grd_Productos').DataTable(); // Accede al objeto DataTable utilizando el id de la tabla
     const columnas = grid.settings().init().columns; // Obtiene la configuración de columnas
-    const container = $('.dropdown-menu'); // El contenedor del dropdown, cambia a .dropdown-menu
+    const container = $('#configColumnasMenu'); // El contenedor del dropdown específico para configurar columnas
 
     const storageKey = `Productos_Columnas`; // Clave única para esta pantalla
 
@@ -1218,7 +1224,7 @@ function configurarOpcionesColumnas() {
     container.empty(); // Limpia el contenedor
 
     columnas.forEach((col, index) => {
-        if (col.data && col.data !== "Id" && col.data !== "Proveedor") { // Solo agregar columnas que no sean "Id"
+        if (col.data && col.data !== "Id" && col.data !== "Proveedor" && (userSession.ModoVendedor == 1 && col.data != "PCosto" && col.data != "PorcGanancia" || userSession.ModoVendedor == 0))  { // Solo agregar columnas que no sean "Id"
             // Recupera el valor guardado en localStorage, si existe. Si no, inicializa en 'false' para no estar marcado.
             const isChecked = savedConfig && savedConfig[`col_${index}`] !== undefined ? savedConfig[`col_${index}`] : true;
 
