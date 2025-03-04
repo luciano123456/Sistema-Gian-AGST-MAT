@@ -1,4 +1,7 @@
 ﻿let gridProveedores;
+let isEditing = false;
+
+
 
 const columnConfig = [
     { index: 1, filterType: 'text' },
@@ -302,6 +305,124 @@ async function configurarDataTable(data) {
                     var url = 'https://www.google.com/maps?q=' + encodeURIComponent(locationText);
                     window.open(url, '_blank');
                 });
+
+                $('#grd_Proveedores tbody').on('dblclick', 'td', async function () {
+                    var cell = gridProveedores.cell(this);
+                    var originalData = cell.data();
+                    var colIndex = cell.index().column;
+                    var rowData = gridProveedores.row($(this).closest('tr')).data();
+
+                 
+                    if (isEditing == true) {
+                        return;
+                    } else {
+                        isEditing = true;
+                    }
+
+                    // Eliminar la clase 'blinking' si está presente
+                    if ($(this).hasClass('blinking')) {
+                        $(this).removeClass('blinking');
+                    }
+
+                    // Si ya hay un input o select, evitar duplicados
+                    if ($(this).find('input').length > 0 || $(this).find('select').length > 0) {
+                        return;
+                    }
+
+
+                    var valueToDisplay = originalData && originalData.trim() !== "" ? originalData.replace(/<[^>]+>/g, "") : originalData || "";
+
+                    var input = $('<input type="text" class="form-control" style="background-color: transparent; border: none; border-bottom: 2px solid green; color: green; text-align: center;" />')
+                        .val(valueToDisplay)
+                        .on('input', function () {
+                            var saveBtn = $(this).siblings('.fa-check'); // Botón de guardar
+
+                            if (colIndex === 0) { // Validar solo si es la columna 0
+                                if ($(this).val().trim() === "") {
+                                    $(this).css('border-bottom', '2px solid red'); // Borde rojo
+                                    saveBtn.css('opacity', '0.5'); // Desactivar botón de guardar visualmente
+                                    saveBtn.prop('disabled', true); // Desactivar funcionalidad del botón
+                                } else {
+                                    $(this).css('border-bottom', '2px solid green'); // Borde verde
+                                    saveBtn.css('opacity', '1'); // Habilitar botón de guardar visualmente
+                                    saveBtn.prop('disabled', false); // Habilitar funcionalidad del botón
+                                }
+                            }
+                        })
+                        .on('keydown', function (e) {
+                            if (e.key === 'Enter') {
+                                saveEdit(colIndex, gridProveedores.row($(this).closest('tr')).data(), input.val(), input.val(), $(this).closest('tr'));
+                            } else if (e.key === 'Escape') {
+                                cancelEdit();
+                            }
+                        });
+
+                    var saveButton = $('<i class="fa fa-check text-success"></i>').on('click', function () {
+                        if (!$(this).prop('disabled')) { // Solo guardar si el botón no está deshabilitado
+                            saveEdit(colIndex, gridProveedores.row($(this).closest('tr')).data(), input.val(), input.val(), $(this).closest('tr'));
+                        }
+                    });
+
+                    var cancelButton = $('<i class="fa fa-times text-danger"></i>').on('click', cancelEdit);
+
+                    // Reemplazar el contenido de la celda
+                    $(this).empty().append(input).append(saveButton).append(cancelButton);
+
+                    input.focus();
+
+
+                    // Función para guardar los cambios
+                    function saveEdit(colIndex, rowData, newText, newValue, trElement) {
+                        // Obtener el nodo de la celda desde el índice
+                        var celda = $(trElement).find('td').eq(colIndex); // Obtener la celda correspondiente dentro de la fila
+                        // Obtener el valor original de la celda
+                        var originalText = gridProveedores.cell(trElement, colIndex).data();
+
+                        if (colIndex === 3) {
+                            var tempDiv = document.createElement('div'); // Crear un div temporal
+                            tempDiv.innerHTML = originalText; // Establecer el HTML de la celda
+                            originalText = tempDiv.textContent.trim(); // Extraer solo el texto
+                            newText = newText.trim();
+                        }
+
+                        // Verificar si el texto realmente ha cambiado
+                        if (originalText === newText) {
+                            cancelEdit();
+                            return; // Si no ha cambiado, no hacer nada
+                        }
+
+                        // Actualizar el valor de la fila según la columna editada
+                       
+                            rowData[gridProveedores.column(colIndex).header().textContent] = newText; // Usamos el nombre de la columna para guardarlo
+                       
+                        // Actualizar la fila en la tabla con los nuevos datos
+                        gridProveedores.row(trElement).data(rowData).draw();
+
+                        // Aplicar el parpadeo solo si el texto cambió
+                        if (originalText !== newText) {
+                            celda.addClass('blinking'); // Aplicar la clase 'blinking' a la celda que fue editada
+                        }
+
+                        // Enviar los datos al servidor
+                        guardarCambiosFila(rowData);
+
+                        // Desactivar el modo de edición
+                        isEditing = false;
+
+                        // Eliminar la clase 'blinking' después de 3 segundos (para hacer el efecto de parpadeo)
+                        setTimeout(function () {
+                            celda.removeClass('blinking');
+                        }, 3000); // Duración de la animación de parpadeo (3 segundos)
+                    }
+
+
+                    // Función para cancelar la edición
+                    function cancelEdit() {
+                        // Restaurar el valor original
+                        gridProveedores.cell(cell.index()).data(originalData).draw();
+                        isEditing = false;
+                    }
+                });
             },
 });
     } else {
@@ -360,3 +481,22 @@ $(document).on('click', function (e) {
         $('.acciones-dropdown').hide(); // Cerrar todos los dropdowns
     }
 });
+
+async function guardarCambiosFila(rowData) {
+    try {
+        const response = await fetch('/Proveedores/Actualizar', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(rowData)
+        });
+
+        if (response.ok) {
+        } else {
+            errorModal('Ha ocurrido un error al guardar los datos...')
+        }
+    } catch (error) {
+        console.error('Error de red:', error);
+    }
+}
