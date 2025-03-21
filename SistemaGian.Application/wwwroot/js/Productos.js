@@ -118,10 +118,13 @@ function handleCheckboxClick() {
     }
 
 
+
     if (selectedProductos.length > 0 && idProveedorFiltro <= 0 && idClienteFiltro <= 0) {
         document.getElementById("btnAsignarProveedor").removeAttribute("hidden");
+        document.getElementById("btnDuplicar").removeAttribute("hidden");
     } else {
         document.getElementById("btnAsignarProveedor").setAttribute("hidden", "hidden");
+        document.getElementById("btnDuplicar").setAttribute("hidden", "hidden");
     }
 
     if (selectedProductos.length > 0 && idProveedorFiltro > 0 && idClienteFiltro <= 0) {
@@ -164,6 +167,7 @@ function desmarcarCheckboxes() {
 
     // Ocultar el botón
     document.getElementById("btnAsignarProveedor").removeAttribute("hidden");
+    document.getElementById("btnDuplicar").removeAttribute("hidden");
 }
 
 function sumarPorcentaje() {
@@ -266,6 +270,7 @@ async function aplicarFiltros() {
         idProveedorFiltro = idProveedor;
 
         document.getElementById("btnAsignarProveedor").setAttribute("hidden", "hidden");
+        document.getElementById("btnDuplicar").setAttribute("hidden", "hidden");
         document.getElementById("btnAsignarCliente").setAttribute("hidden", "hidden");
         document.getElementById("btnAumentarPrecios").setAttribute("hidden", "hidden");
         document.getElementById("btnBajarPrecios").setAttribute("hidden", "hidden");
@@ -312,6 +317,80 @@ async function aplicarFiltros() {
         errorModal(validacionFiltros)
     }
 }
+
+async function duplicarProducto(id) {
+    let resultado = window.confirm("¿Desea duplicar el Producto?");
+
+    if (resultado) {
+        try {
+            const response = await fetch(`Productos/DuplicarProducto?idProducto=${id}`, {
+                method: "POST"
+            });
+
+            if (!response.ok) {
+                throw new Error("Error al duplicar el Producto.");
+            }
+
+            const dataJson = await response.json();
+
+            if (dataJson) {
+                listaProductos();
+                exitoModal("Producto duplicado correctamente")
+            } else {
+                errorModal("Ha ocurrido un error al duplicar el producto");
+            }
+        } catch (error) {
+            errorModal("Ha ocurrido un error al duplicar el producto");
+        }
+    }
+}
+
+
+function duplicarProductos() {
+    const cantidad = selectedProductos.length;
+
+    if (cantidad === 0) {
+        errorModal("No hay productos seleccionados para duplicar.");
+        return;
+    }
+
+    const confirmacion = confirm(`¿Estás seguro de que deseas duplicar ${cantidad} producto(s)?`);
+
+    if (!confirmacion) return;
+
+    const nuevoModelo = {
+        productos: JSON.stringify(selectedProductos),
+    };
+
+    const url = "Productos/DuplicarProductos";
+    const method = "POST";
+
+    fetch(url, {
+        method: method,
+        headers: {
+            'Content-Type': 'application/json;charset=utf-8'
+        },
+        body: JSON.stringify(nuevoModelo)
+    })
+        .then(response => {
+            if (!response.ok) throw new Error(response.statusText);
+            return response.json();
+        })
+        .then(dataJson => {
+            if (dataJson) {
+                const mensaje = "Productos duplicados correctamente";
+                exitoModal(mensaje);
+                aplicarFiltros();
+            } else {
+                const mensaje = "Ha ocurrido un error al duplicar los productos";
+                errorModal(mensaje);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+}
+
 
 function asignarProveedor() {
 
@@ -719,6 +798,7 @@ async function listaProductos() {
     } else {
 
         document.getElementById("btnAsignarProveedor").setAttribute("hidden", "hidden");
+        document.getElementById("btnDuplicar").setAttribute("hidden", "hidden");
         document.getElementById("btnAsignarCliente").setAttribute("hidden", "hidden");
         document.getElementById("btnAumentarPrecios").setAttribute("hidden", "hidden");
         document.getElementById("btnBajarPrecios").setAttribute("hidden", "hidden");
@@ -934,12 +1014,16 @@ async function configurarDataTable(data) {
                         <i class='fa fa-ellipsis-v fa-lg text-white' aria-hidden='true'></i>
                     </button>
                     <div class="acciones-dropdown" style="display: none;">
+                      <button class='btn btn-sm btnDuplicar' type='button' onclick='duplicarProducto(${data})' title='Duplicar'>
+                            <i class='fa fa-copy fa-lg text-warning' aria-hidden='true'></i> Duplicar
+                        </button>
                         <button class='btn btn-sm btneditar' type='button' onclick='editarProducto(${data})' title='Editar'>
                             <i class='fa fa-pencil-square-o fa-lg text-success' aria-hidden='true'></i> Editar
                         </button>
                         <button class='btn btn-sm btneliminar' type='button' onclick='eliminarProducto(${data})' title='Eliminar'>
                             <i class='fa fa-trash-o fa-lg text-danger' aria-hidden='true'></i> Eliminar
                         </button>
+                       
                      
                     </div>
                     <span class="custom-checkbox" data-id='${data}'>
@@ -974,10 +1058,17 @@ async function configurarDataTable(data) {
                 'pageLength'
             ],
             orderCellsTop: true,
-            fixedHeader: true,
+            fixedHeader: false,
             columnDefs: [
                 { "render": function (data) { return formatNumber(data); }, "targets": [6, 7, 9] }
             ],
+            createdRow: function (row, data, dataIndex) {
+                if (data.Descripcion.toLowerCase().includes('copia')) {
+                    $(row).addClass('productocopia'); // Agrega la clase a toda la fila
+                }
+            },
+
+
             initComplete: async function () {
                 var api = this.api();
 

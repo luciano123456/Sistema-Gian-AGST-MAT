@@ -54,6 +54,39 @@ namespace SistemaGian.Application.Controllers
         }
 
         [HttpPost]
+        public async Task<IActionResult> DuplicarProductos([FromBody] VMDuplicarProductos modelo)
+        {
+            try
+            {
+                var result = await _Productoservice.DuplicarProductos(modelo.productos);
+
+                return Json(result);
+            }
+            catch (Exception ex)
+            {
+                return Json(null);
+            }
+
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DuplicarProducto(int idProducto)
+        {
+            try
+            {
+                var result = await _Productoservice.DuplicarProducto(idProducto);
+
+                return Json(result);
+            }
+            catch (Exception ex)
+            {
+                return Json(null);
+            }
+
+        }
+
+
+        [HttpPost]
         public async Task<IActionResult> AumentarPrecios([FromBody] VMAumentoProductos modelo)
         {
             try

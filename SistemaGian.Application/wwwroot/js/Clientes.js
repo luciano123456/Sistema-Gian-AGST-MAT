@@ -286,7 +286,7 @@ async function configurarDataTable(data) {
                 'pageLength'
             ],
             orderCellsTop: true,
-            fixedHeader: true,
+            fixedHeader: false,
 
             "columnDefs": [
                 {

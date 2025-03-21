@@ -6,7 +6,7 @@ namespace SistemaGian.BLL.Service
     {
         Task<bool> Eliminar(int id, int idProveedor);
         Task<bool> AsignarProveedor(string productos, int idProveedor);
-
+        
         Task<IQueryable<ProductosPreciosProveedor>> ListaProductosProveedor(int idProveedor);
         Task<bool> ActualizarProductoProveedor(Producto model, int idProveedor);
         Task<ProductosPreciosProveedor> ObtenerProductoProveedor(int idProducto, int idProveedor);

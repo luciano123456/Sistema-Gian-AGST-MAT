@@ -204,7 +204,7 @@ async function configurarDataTable(data) {
                 }
             ],
             orderCellsTop: true,
-            fixedHeader: true,
+            fixedHeader: false,
             initComplete: async function () {
 
                 // Ahora que gridHistorial está inicializado, configuramos las opciones de columnas
