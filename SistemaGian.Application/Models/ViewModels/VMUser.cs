@@ -13,6 +13,7 @@ namespace SistemaGian.Application.Models.ViewModels
         public string Apellido { get; set; } = null!;
 
         public string? Dni { get; set; }
+        public string? Correo { get; set; }
 
         public string? Telefono { get; set; }
 

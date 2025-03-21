@@ -22,6 +22,16 @@ namespace SistemaGian.BLL.Service
             return await _contactRepo.Eliminar(id);
         }
 
+        public async Task<bool> GuardarCodigo(string username, string codigo)
+        {
+            return await _contactRepo.GuardarCodigo(username, codigo);
+        }
+
+        public async Task<bool> NuevaContrasena(string username, string contrasena)
+        {
+            return await _contactRepo.NuevaContrasena(username, contrasena);
+        }
+
         public async Task<bool> Insertar(User model)
         {
             return await _contactRepo.Insertar(model);
@@ -32,6 +42,16 @@ namespace SistemaGian.BLL.Service
             return await _contactRepo.Obtener(id);
         }
 
+
+        public async Task<User> ObtenerPorUsuario(string usuario)
+        {
+            return await _contactRepo.ObtenerPorUsuario(usuario);
+        }
+
+        public async Task<string> ObtenerCodigo(string username)
+        {
+            return await _contactRepo.ObtenerCodigo(username);
+        }
 
         public async Task<IQueryable<User>> ObtenerTodos()
         {

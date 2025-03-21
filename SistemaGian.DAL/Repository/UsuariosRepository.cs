@@ -49,6 +49,28 @@ namespace SistemaGian.DAL.Repository
             }
         }
 
+        public async Task<bool> GuardarCodigo(string username, string codigo)
+        {
+            try
+            {
+                User model = _dbcontext.Usuarios.First(c => c.Usuario == username);
+
+                if (model != null)
+                {
+                    model.CodigoRecuperacion = codigo;
+                    await _dbcontext.SaveChangesAsync();
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            } catch(Exception ex)
+            {
+                return false;
+            }
+        }
+
         public async Task<bool> Insertar(User model)
         {
             try
@@ -56,6 +78,29 @@ namespace SistemaGian.DAL.Repository
                 _dbcontext.Usuarios.Add(model);
                 await _dbcontext.SaveChangesAsync();
                 return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+
+        public async Task<bool> NuevaContrasena(string username, string contrasena)
+        {
+            try
+            {
+                User model = _dbcontext.Usuarios.First(c => c.Usuario == username);
+
+                if (model != null)
+                {
+                    model.Contrasena = contrasena;
+                    await _dbcontext.SaveChangesAsync();
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
             }
             catch (Exception ex)
             {
@@ -75,6 +120,34 @@ namespace SistemaGian.DAL.Repository
                 return null;
             }
         }
+
+        public async Task<User> ObtenerPorUsuario(string usuario)
+        {
+            try
+            {
+                User model = await _dbcontext.Usuarios.FirstOrDefaultAsync(x => x.Usuario == usuario);
+                return model;
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+
+        public async Task<string> ObtenerCodigo(string username)
+        {
+            try
+            {
+                string model = _dbcontext.Usuarios.FirstAsync(x => x.Usuario == username).Result.CodigoRecuperacion;
+
+                return model;
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+
         public async Task<IQueryable<User>> ObtenerTodos()
         {
             try
