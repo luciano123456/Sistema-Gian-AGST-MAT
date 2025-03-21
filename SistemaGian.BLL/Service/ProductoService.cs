@@ -281,5 +281,19 @@ namespace SistemaGian.BLL.Service
 
             return prodPrecios;
         }
+
+        public async Task<bool> DuplicarProductos(string productos)
+        {
+            var duplicados = await _contactRepo.DuplicarProductos(productos);
+
+            return duplicados;
+        }
+
+        public async Task<bool> DuplicarProducto(int idProducto)
+        {
+            var duplicado = await _contactRepo.DuplicarProducto(idProducto);
+
+            return duplicado;
+        }
     }
 }

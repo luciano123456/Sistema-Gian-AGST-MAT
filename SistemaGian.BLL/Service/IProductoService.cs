@@ -17,5 +17,8 @@ namespace SistemaGian.BLL.Service
         Task<List<ProductosPreciosHistorial>> ObtenerUltimosPreciosProducto(int idProveedor, int idCliente, int idProducto);
         Task<bool> AumentarPrecios(string productos, int idCliente, int idProveedor, decimal porcentajeCosto, decimal porcentajeVenta);
         Task<bool> BajarPrecios(string productos, int idCliente, int idProveedor, decimal porcentajeCosto, decimal porcentajeVenta);
+        Task<bool> DuplicarProductos(string productos);
+        Task<bool> DuplicarProducto(int idProducto);
+
     }
 }

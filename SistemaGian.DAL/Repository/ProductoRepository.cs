@@ -124,11 +124,94 @@ namespace SistemaGian.DAL.Repository
                     model.PVenta = model.PVenta * (1 - porcentajeVenta / 100.0m);
                     model.PCosto = model.PCosto * (1 - porcentajeCosto / 100.0m);
                     model.PorcGanancia = ((model.PVenta - model.PCosto) / model.PCosto) * 100;
-                    
+
                     _dbcontext.Productos.Update(model);
                 }
                 await _dbcontext.SaveChangesAsync();
                 return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+
+        }
+
+        public async Task<bool> DuplicarProductos(string productos)
+        {
+            try
+            {
+                var lstProductos = JsonConvert.DeserializeObject<List<int>>(productos);
+
+                foreach (var prod in lstProductos)
+                {
+                    Producto model = await _dbcontext.Productos.FindAsync(prod);
+
+                    Producto nuevoProducto = new Producto
+                    {
+                        Descripcion = model.Descripcion + " - copia",
+                        IdCategoria = model.IdCategoria ?? 0,
+                        IdMarca = model.IdMarca ?? 0,
+                        IdMoneda = model.IdMoneda,
+                        IdProveedor = model.IdProveedor ?? 0,
+                        PCosto = model.PCosto,
+                        Image = model.Image,
+                        PVenta = model.PVenta,
+                        FechaActualizacion = DateTime.Now,
+                        ProductoCantidad = model.ProductoCantidad,
+                        PorcGanancia = model.PorcGanancia,
+                        IdUnidadDeMedida = model.IdUnidadDeMedida
+                    };
+
+
+                    _dbcontext.Productos.Add(nuevoProducto);
+                }
+                await _dbcontext.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+
+        }
+
+        public async Task<bool> DuplicarProducto(int idProducto)
+        {
+            try
+            {
+
+                Producto model = await _dbcontext.Productos.FindAsync(idProducto);
+
+                if (model != null)
+                {
+                    Producto nuevoProducto = new Producto
+                    {
+                        Descripcion = model.Descripcion + "- copia",
+                        IdCategoria = model.IdCategoria ?? 0,
+                        IdMarca = model.IdMarca ?? 0,
+                        IdMoneda = model.IdMoneda,
+                        IdProveedor = model.IdProveedor ?? 0,
+                        PCosto = model.PCosto,
+                        Image = model.Image,
+                        PVenta = model.PVenta,
+                        FechaActualizacion = DateTime.Now,
+                        ProductoCantidad = model.ProductoCantidad,
+                        PorcGanancia = model.PorcGanancia,
+                        IdUnidadDeMedida = model.IdUnidadDeMedida
+                    };
+                    _dbcontext.Productos.Add(nuevoProducto);
+                    _dbcontext.Productos.Add(nuevoProducto);
+
+                    await _dbcontext.SaveChangesAsync();
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+
+
             }
             catch (Exception ex)
             {

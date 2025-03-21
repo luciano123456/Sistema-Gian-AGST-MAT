@@ -37,3 +37,12 @@
     max-width: 500px !important;
     color: black !important;
 }
+
+/* Estilo para la fila con "copia" en la descripción */
+table.dataTable.display tbody tr.productocopia,
+table.dataTable.display tbody tr.productocopia td {
+    background-color: #ff8c13 !important; /* Naranja */
+    color: white !important;
+    font-weight: bold !important; /* Texto en negrita */
+}
+

@@ -16,5 +16,8 @@ namespace SistemaGian.DAL.Repository
         Task<IQueryable<ProductosUnidadesDeMedida>> ObtenerUnidadesDeMedida();
         Task<bool> AumentarPrecio(string productos, decimal porcentajeCosto, decimal porcentajeVenta);
         Task<bool> BajarPrecio(string productos, decimal porcentajeCosto, decimal porcentajeVenta);
+        Task<bool> DuplicarProductos(string productos);
+        Task<bool> DuplicarProducto(int idProducto);
+
     }
 }
