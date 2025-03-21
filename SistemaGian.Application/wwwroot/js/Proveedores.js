@@ -312,6 +312,8 @@ async function configurarDataTable(data) {
                     var colIndex = cell.index().column;
                     var rowData = gridProveedores.row($(this).closest('tr')).data();
 
+                    if (colIndex == 0) return;
+
                  
                     if (isEditing == true) {
                         return;

@@ -25,30 +25,58 @@ namespace SistemaGian.DAL.Repository
         }
         public async Task<bool> Actualizar(Producto model)
         {
-            _dbcontext.Productos.Update(model);
-            await _dbcontext.SaveChangesAsync();
-            return true;
+            try
+            {
+                _dbcontext.Productos.Update(model);
+                await _dbcontext.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
         }
 
         public async Task<bool> Eliminar(int id)
         {
-            Producto model = _dbcontext.Productos.First(c => c.Id == id);
-            _dbcontext.Productos.Remove(model);
-            await _dbcontext.SaveChangesAsync();
-            return true;
+            try
+            {
+                Producto model = _dbcontext.Productos.First(c => c.Id == id);
+                _dbcontext.Productos.Remove(model);
+                await _dbcontext.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
         }
 
         public async Task<bool> Insertar(Producto model)
         {
-            _dbcontext.Productos.Add(model);
-            await _dbcontext.SaveChangesAsync();
-            return true;
+            try
+            {
+                _dbcontext.Productos.Add(model);
+                await _dbcontext.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
         }
 
         public async Task<Producto> Obtener(int id)
         {
-            Producto model = await _dbcontext.Productos.FindAsync(id);
-            return model;
+            try
+            {
+                Producto model = await _dbcontext.Productos.FindAsync(id);
+                return model;
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
         }
 
         public async Task<IQueryable<Producto>> ObtenerTodos()

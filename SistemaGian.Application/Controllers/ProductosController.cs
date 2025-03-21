@@ -154,6 +154,7 @@ namespace SistemaGian.Application.Controllers
                 Categoria = c.IdCategoriaNavigation.Nombre, // Nombre de la Categoria
                 UnidadDeMedida = c.IdUnidadDeMedidaNavigation.Nombre, // Nombre de la Unidad de Medida
                 Moneda = c.IdMonedaNavigation.Nombre, // Nombre de la Moneda
+                IdMoneda  = c.IdMoneda,
                 PCosto = c.PCosto,
                 PVenta = c.PVenta,
                 PorcGanancia = c.PorcGanancia,
