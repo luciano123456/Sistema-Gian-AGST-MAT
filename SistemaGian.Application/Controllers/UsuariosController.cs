@@ -106,6 +106,7 @@ namespace SistemaGian.Application.Controllers
                 IdRol = model.IdRol,
                 IdEstado = model.IdEstado,
                 Contrasena = passwordHasher.HashPassword(null, model.Contrasena),
+                Correo = model.Correo,
                 ModoVendedor = 0
             };
 
@@ -144,6 +145,7 @@ namespace SistemaGian.Application.Controllers
             userbase.Telefono = model.Telefono;
             userbase.Direccion = model.Direccion;
             userbase.IdEstado = model.IdEstado > 0 ? model.IdEstado : userbase.IdEstado;
+            userbase.Correo = model.Correo;
             userbase.Contrasena = passnueva; // Asigna la nueva contraseña hasheada
 
             // Realiza la actualización en la base de datos
