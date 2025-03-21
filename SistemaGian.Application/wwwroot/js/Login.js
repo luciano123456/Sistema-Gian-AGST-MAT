@@ -104,6 +104,8 @@ $("#rememberMe").on("change", function () {
 
 // Abrir el modal cuando se hace clic en el enlace
 $("#recuperarContrasena").on("click", function () {
+    $("#errorMessageRecu").hide()
+    $("#diverrorMessageRecu").hide();
     $("#modalRecuperarContrasena").modal("show");
 });
 
@@ -135,8 +137,16 @@ $("#enviarCodigo").on("click", function () {
                     // Mostrar el paso 2 (validación del código)
                     $("#step1").hide();
                     $("#step2").show();
+                    $("#errorMessageRecu").hide()
+                    $("#diverrorMessageRecu").hide();
                 } else {
-                    alert("Hubo un error al enviar el código. Intenta nuevamente.");
+                    $("#errorMessageRecu").text(data.message).show(); // Establecer el mensaje
+                    $("#diverrorMessageRecu").show(); // Mostrar el div
+
+                    // Ocultar el div después de 3 segundos
+                    setTimeout(function () {
+                        $("#diverrorMessage").fadeOut();
+                    }, 3000); // 3000 milisegundos = 3 segundos
                 }
             })
             .catch(error => {
@@ -150,14 +160,16 @@ $("#enviarCodigo").on("click", function () {
 // Validar código ingresado
 $("#validarCodigo").on("click", function () {
     var codigo = $("#codigoRecuperar").val();
+    var username = $("#usernameRecuperar").val();
 
     // Validar que el campo no esté vacío
     if (codigo) {
         var data = {
+            Username: username,
             Codigo: codigo
         };
 
-        fetch("/validar-codigo", {
+        fetch(validarCodigoUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -168,10 +180,19 @@ $("#validarCodigo").on("click", function () {
             .then(data => {
                 if (data.success) {
                     // Mostrar el paso 3 (cambiar la contraseña)
+                    $("#errorMessageRecu").hide()
+                    $("#diverrorMessageRecu").hide();
                     $("#step2").hide();
                     $("#step3").show();
                 } else {
-                    alert("Código inválido. Intenta nuevamente.");
+                    $("#errorMessageRecu").text(data.message).show(); // Establecer el mensaje
+                    $("#diverrorMessageRecu").show(); // Mostrar el div
+
+                    // Ocultar el div después de 3 segundos
+                    setTimeout(function () {
+                        $("#diverrorMessage").fadeOut();
+                    }, 3000); // 3000 milisegundos = 3 segundos
+
                 }
             })
             .catch(error => {
@@ -184,15 +205,17 @@ $("#validarCodigo").on("click", function () {
 
 // Cambiar la contraseña
 $("#cambiarContrasena").on("click", function () {
+    var username = $("#usernameRecuperar").val();
     var nuevaContrasena = $("#nuevaContrasena").val();
 
     // Validar que el campo no esté vacío
     if (nuevaContrasena) {
         var data = {
-            NuevaContrasena: nuevaContrasena
+            Username: username,
+            Contrasena: nuevaContrasena
         };
 
-        fetch("/cambiar-contrasena", {
+        fetch(nuevaContrasenaUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -201,12 +224,19 @@ $("#cambiarContrasena").on("click", function () {
         })
             .then(response => response.json())
             .then(data => {
-                if (data.success) {
-                    alert("Contraseña cambiada con éxito.");
+                if (data) {
                     $("#modalRecuperarContrasena").modal("hide");
+                    exitoModal("Contraseña actualizada correctamente.")
                 } else {
-                    alert("Hubo un error al cambiar la contraseña.");
+                    $("#errorMessageRecu").text("Ha ocurrido un error al cambiar la contraseña").show(); // Establecer el mensaje
+                    $("#diverrorMessageRecu").show(); // Mostrar el div
                 }
+
+                // Ocultar el div después de 3 segundos
+                setTimeout(function () {
+                    $("#diverrorMessage").fadeOut();
+                }, 3000); // 3000 milisegundos = 3 segundos
+
             })
             .catch(error => {
                 console.error("Error: ", error);
@@ -217,3 +247,24 @@ $("#cambiarContrasena").on("click", function () {
 });
 
 
+
+function mostrarModalConContador(modal, texto, tiempo) {
+    $(`#${modal}Text`).text(texto);
+    $(`#${modal}`).modal('show');
+
+    setTimeout(function () {
+        $(`#${modal}`).modal('hide');
+    }, tiempo);
+}
+
+function exitoModal(texto) {
+    mostrarModalConContador('exitoModal', texto, 1000);
+}
+
+function errorModal(texto) {
+    mostrarModalConContador('ErrorModal', texto, 3000);
+}
+
+function advertenciaModal(texto) {
+    mostrarModalConContador('AdvertenciaModal', texto, 3000);
+}

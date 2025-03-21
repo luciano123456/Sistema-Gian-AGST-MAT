@@ -1,7 +1,7 @@
 ﻿using SistemaGian.DAL.DataContext;
 using SistemaGian.Models;
 
-namespace SistemaGian.Application.Models.ViewModels
+namespace SistemaGian.Application.Models.ViewModels.Login
 {
     public class VMRecuperarContrasena
     {

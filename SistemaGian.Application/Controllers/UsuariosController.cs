@@ -143,7 +143,7 @@ namespace SistemaGian.Application.Controllers
             userbase.Dni = model.Dni;
             userbase.Telefono = model.Telefono;
             userbase.Direccion = model.Direccion;
-            userbase.IdEstado = model.IdEstado;
+            userbase.IdEstado = model.IdEstado > 0 ? model.IdEstado : userbase.IdEstado;
             userbase.Contrasena = passnueva; // Asigna la nueva contraseña hasheada
 
             // Realiza la actualización en la base de datos

@@ -51,14 +51,21 @@ namespace SistemaGian.DAL.Repository
 
         public async Task<bool> GuardarCodigo(string username, string codigo)
         {
-            User model = await _dbcontext.Usuarios.FindAsync(username);
-
-            if(model != null)
+            try
             {
-                model.CodigoRecuperacion = codigo;
-                await _dbcontext.SaveChangesAsync();
-                return true;
-            } else
+                User model = _dbcontext.Usuarios.First(c => c.Usuario == username);
+
+                if (model != null)
+                {
+                    model.CodigoRecuperacion = codigo;
+                    await _dbcontext.SaveChangesAsync();
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            } catch(Exception ex)
             {
                 return false;
             }
@@ -78,11 +85,47 @@ namespace SistemaGian.DAL.Repository
             }
         }
 
+        public async Task<bool> NuevaContrasena(string username, string contrasena)
+        {
+            try
+            {
+                User model = _dbcontext.Usuarios.First(c => c.Usuario == username);
+
+                if (model != null)
+                {
+                    model.Contrasena = contrasena;
+                    await _dbcontext.SaveChangesAsync();
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+
         public async Task<User> Obtener(int id)
         {
             try
             {
                 User model = await _dbcontext.Usuarios.FindAsync(id);
+                return model;
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+
+        public async Task<User> ObtenerPorUsuario(string usuario)
+        {
+            try
+            {
+                User model = await _dbcontext.Usuarios.FirstOrDefaultAsync(x => x.Usuario == usuario);
                 return model;
             }
             catch (Exception ex)
