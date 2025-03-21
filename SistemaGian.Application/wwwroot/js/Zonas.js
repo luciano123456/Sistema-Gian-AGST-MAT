@@ -241,7 +241,7 @@ async function configurarDataTable(data) {
                 }
             ],
             orderCellsTop: true,
-            fixedHeader: true,
+            fixedHeader: false,
             initComplete: async function () {
 
                 // Ahora que gridZonas está inicializado, configuramos las opciones de columnas

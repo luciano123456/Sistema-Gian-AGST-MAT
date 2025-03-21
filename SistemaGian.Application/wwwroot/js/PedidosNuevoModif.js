@@ -404,7 +404,7 @@ async function cargarDataTableProductos(data) {
             }
         ],
         orderCellsTop: true,
-        fixedHeader: true,
+        fixedHeader: false,
 
         "columnDefs": [
             {
@@ -451,7 +451,7 @@ async function cargarDataTableZonas(data) {
 
         ],
         orderCellsTop: true,
-        fixedHeader: true,
+        fixedHeader: false,
 
         "columnDefs": [
             {
@@ -498,7 +498,7 @@ async function cargarDataTableChoferes(data) {
 
         ],
         orderCellsTop: true,
-        fixedHeader: true,
+        fixedHeader: false,
 
         initComplete: async function () {
             setTimeout(function () {
@@ -534,7 +534,7 @@ async function cargarDataTableClientes(data) {
 
         ],
         orderCellsTop: true,
-        fixedHeader: true,
+        fixedHeader: false,
 
         initComplete: async function () {
             setTimeout(function () {
@@ -571,7 +571,7 @@ async function cargarDataTableProveedores(data) {
 
         ],
         orderCellsTop: true,
-        fixedHeader: true,
+        fixedHeader: false,
 
         initComplete: async function () {
             setTimeout(function () {
@@ -1147,7 +1147,7 @@ async function cargarDataTablePagoaProveedores(data) {
                 }
             ],
             orderCellsTop: true,
-            fixedHeader: true,
+            fixedHeader: false,
 
             "columnDefs": [
                 {
@@ -1214,7 +1214,7 @@ async function cargarDataTablePagoaClientes(data) {
 
 
         orderCellsTop: true,
-        fixedHeader: true,
+        fixedHeader: false,
 
         "columnDefs": [
             {
