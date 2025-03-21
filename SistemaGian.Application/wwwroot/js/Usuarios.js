@@ -45,6 +45,7 @@ function guardarCambios() {
             "IdEstado": $("#Estados").val(),
             "Contrasena": idUsuario === "" ? $("#txtContrasena").val() : "",
             "ContrasenaNueva": $("#txtContrasenaNueva").val(),
+            "Correo": $("#txtCorreo").val(),
             "CambioAdmin": 1
         };
 
@@ -141,7 +142,7 @@ function nuevoUsuario() {
 
 }
 async function mostrarModal(modelo) {
-    const campos = ["Id", "Usuario", "Nombre", "Apellido", "Dni", "Telefono", "Direccion", "Contrasena", "ContrasenaNueva"];
+    const campos = ["Id", "Usuario", "Nombre", "Apellido", "Dni", "Telefono", "Direccion", "Contrasena", "ContrasenaNueva", "Correo"];
     campos.forEach(campo => {
         $(`#txt${campo}`).val(modelo[campo]);
     });

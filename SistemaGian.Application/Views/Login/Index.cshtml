@@ -14,7 +14,9 @@
     <link href="~/css/Login.css" rel="stylesheet" />
 </head>
 
+
 <body>
+
 
     <div class="login-container">
         <!-- Parte izquierda: Imagen con fondo azul oscuro -->
@@ -54,20 +56,84 @@
                     <i id="checkIcon" class="fa fa-check-circle" style="color: green; display: none;"></i>
                 </div>
 
+                <a id="recuperarContrasena" onclick="recuperarContrasena" class="form-label mt-5" style="cursor: pointer">¿Olvidaste tu contraseña?</a>
 
                 <!-- Mostrar error si existe -->
-                <div id="diverrorMessage" class="alert alert-danger" role="alert" style="display: none;">
+                <div id="diverrorMessage" class="alert alert-danger mt-2" role="alert" style="display: none;">
                     <a id="errorMessage"></a>
                 </div>
 
 
-                <button type="submit" class="btn btn-primary">Ingresar</button>
+                <button type="submit" class="btn btn-primary mt-2">Ingresar</button>
             </form>
         </div>
     </div>
 
+    <!-- Modal para recuperar contraseña -->
+<div class="modal fade" id="modalRecuperarContrasena" tabindex="-1" aria-labelledby="modalRecuperarContrasenaLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalRecuperarContrasenaLabel">Recuperar Contraseña</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+
+                    <!-- Mostrar error si existe -->
+                    <div id="diverrorMessageRecu" class="alert alert-danger" role="alert" style="display: none;">
+                        <a id="errorMessageRecu"></a>
+                    </div>
+
+        <!-- Formulario de recuperación -->
+        <div id="step1">
+          <div class="mb-3">
+            <label for="usernameRecuperar" class="form-label">Nombre de Usuario</label>
+            <input type="text" class="form-control" id="usernameRecuperar" required>
+          </div>
+          <div class="mb-3">
+            <label for="emailRecuperar" class="form-label">Correo Electrónico</label>
+            <input type="email" class="form-control" id="emailRecuperar" required>
+          </div>
+          <button type="button" class="btn btn-primary" id="enviarCodigo">Recuperar</button>
+        </div>
+
+
+        <!-- Paso 2: Ingresar código -->
+        <div id="step2" style="display:none;">
+          <div class="mb-3">
+            <label for="codigoRecuperar" class="form-label">Código de Recuperación</label>
+            <input type="text" class="form-control" id="codigoRecuperar" required>
+          </div>
+          <button type="button" class="btn btn-primary" id="validarCodigo">Validar Código</button>
+        </div>
+
+        <!-- Paso 3: Cambiar Contraseña -->
+        <div id="step3" style="display:none;">
+          <div class="mb-3">
+            <label for="nuevaContrasena" class="form-label">Nueva Contraseña</label>
+            <input type="password" class="form-control" id="nuevaContrasena" required>
+          </div>
+          <button type="button" class="btn btn-primary" id="cambiarContrasena">Cambiar Contraseña</button>
+        </div>
+      </div>
+
+
+    </div>
+
+  
+  </div>
+
+
+</div>
+
+    <partial name="~/Views/Utils/Modals.cshtml" />
+
     <script>
     var loginUrl = '@Url.Action("IniciarSesion", "Login")';
+
+    var recuperarContrasenaUrl = '@Url.Action("RecuperarContrasena", "Login")';
+    var validarCodigoUrl = '@Url.Action("ValidarCodigo", "Login")';
+    var nuevaContrasenaUrl = '@Url.Action("NuevaContrasena", "Login")';
 
 </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

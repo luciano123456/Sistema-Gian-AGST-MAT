@@ -6,6 +6,8 @@ using SistemaGian.Application.Models.ViewModels;
 using SistemaGian.BLL.Service;
 using SistemaGian.Models;
 using System.Diagnostics;
+using System.Net.Mail;
+using System.Net;
 
 namespace SistemaGian.Application.Controllers
 {
@@ -104,6 +106,7 @@ namespace SistemaGian.Application.Controllers
                 IdRol = model.IdRol,
                 IdEstado = model.IdEstado,
                 Contrasena = passwordHasher.HashPassword(null, model.Contrasena),
+                Correo = model.Correo,
                 ModoVendedor = 0
             };
 
@@ -141,7 +144,8 @@ namespace SistemaGian.Application.Controllers
             userbase.Dni = model.Dni;
             userbase.Telefono = model.Telefono;
             userbase.Direccion = model.Direccion;
-            userbase.IdEstado = model.IdEstado;
+            userbase.IdEstado = model.IdEstado > 0 ? model.IdEstado : userbase.IdEstado;
+            userbase.Correo = model.Correo;
             userbase.Contrasena = passnueva; // Asigna la nueva contraseña hasheada
 
             // Realiza la actualización en la base de datos
@@ -220,8 +224,9 @@ namespace SistemaGian.Application.Controllers
             }
         }
 
+        
 
-
+       
 
         public IActionResult Privacy()
         {
