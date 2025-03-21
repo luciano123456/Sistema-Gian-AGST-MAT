@@ -102,3 +102,118 @@ $("#rememberMe").on("change", function () {
     }
 });
 
+// Abrir el modal cuando se hace clic en el enlace
+$("#recuperarContrasena").on("click", function () {
+    $("#modalRecuperarContrasena").modal("show");
+});
+
+// Enviar código al correo
+$("#enviarCodigo").on("click", function () {
+    var username = $("#usernameRecuperar").val();
+    var email = $("#emailRecuperar").val();
+
+    // Validar que los campos no estén vacíos
+    if (username && email) {
+        var data = {
+            Username: username,
+            Email: email
+        };
+
+
+       
+
+        fetch(recuperarContrasenaUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Mostrar el paso 2 (validación del código)
+                    $("#step1").hide();
+                    $("#step2").show();
+                } else {
+                    alert("Hubo un error al enviar el código. Intenta nuevamente.");
+                }
+            })
+            .catch(error => {
+                console.error("Error: ", error);
+            });
+    } else {
+        alert("Por favor, ingresa un usuario y correo electrónico.");
+    }
+});
+
+// Validar código ingresado
+$("#validarCodigo").on("click", function () {
+    var codigo = $("#codigoRecuperar").val();
+
+    // Validar que el campo no esté vacío
+    if (codigo) {
+        var data = {
+            Codigo: codigo
+        };
+
+        fetch("/validar-codigo", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Mostrar el paso 3 (cambiar la contraseña)
+                    $("#step2").hide();
+                    $("#step3").show();
+                } else {
+                    alert("Código inválido. Intenta nuevamente.");
+                }
+            })
+            .catch(error => {
+                console.error("Error: ", error);
+            });
+    } else {
+        alert("Por favor, ingresa el código de recuperación.");
+    }
+});
+
+// Cambiar la contraseña
+$("#cambiarContrasena").on("click", function () {
+    var nuevaContrasena = $("#nuevaContrasena").val();
+
+    // Validar que el campo no esté vacío
+    if (nuevaContrasena) {
+        var data = {
+            NuevaContrasena: nuevaContrasena
+        };
+
+        fetch("/cambiar-contrasena", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert("Contraseña cambiada con éxito.");
+                    $("#modalRecuperarContrasena").modal("hide");
+                } else {
+                    alert("Hubo un error al cambiar la contraseña.");
+                }
+            })
+            .catch(error => {
+                console.error("Error: ", error);
+            });
+    } else {
+        alert("Por favor, ingresa la nueva contraseña.");
+    }
+});
+
+

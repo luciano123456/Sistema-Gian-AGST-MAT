@@ -49,6 +49,21 @@ namespace SistemaGian.DAL.Repository
             }
         }
 
+        public async Task<bool> GuardarCodigo(string username, string codigo)
+        {
+            User model = await _dbcontext.Usuarios.FindAsync(username);
+
+            if(model != null)
+            {
+                model.CodigoRecuperacion = codigo;
+                await _dbcontext.SaveChangesAsync();
+                return true;
+            } else
+            {
+                return false;
+            }
+        }
+
         public async Task<bool> Insertar(User model)
         {
             try
@@ -75,6 +90,21 @@ namespace SistemaGian.DAL.Repository
                 return null;
             }
         }
+
+        public async Task<string> ObtenerCodigo(string username)
+        {
+            try
+            {
+                string model = _dbcontext.Usuarios.FirstAsync(x => x.Usuario == username).Result.CodigoRecuperacion;
+
+                return model;
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+
         public async Task<IQueryable<User>> ObtenerTodos()
         {
             try

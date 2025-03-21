@@ -5,6 +5,8 @@ using SistemaGian.Application.Models.ViewModels;
 using SistemaGian.BLL.Service;
 using SistemaGian.Models;
 using System.Diagnostics;
+using System.Net.Mail;
+using System.Net;
 
 namespace SistemaGian.Application.Controllers
 {
@@ -12,10 +14,12 @@ namespace SistemaGian.Application.Controllers
     {
 
         private readonly ILoginService _loginService;
+        private readonly IUsuariosService _Usuarioservice;
 
-        public LoginController(ILoginService loginService)
+        public LoginController(ILoginService loginService, IUsuariosService usuarioService)
         {
             _loginService = loginService;
+            _Usuarioservice = usuarioService;
         }
 
         public async Task<IActionResult> Index()
@@ -88,6 +92,62 @@ namespace SistemaGian.Application.Controllers
             }
         }
 
+
+
+        [HttpPost]
+        public async Task<IActionResult> RecuperarContrasena([FromBody] VMRecuperarContrasena model)
+        {
+            try
+            {
+                // Verificar que el usuario y el correo sean válidos (puedes agregar validaciones adicionales)
+                if (string.IsNullOrEmpty(model.Username) || string.IsNullOrEmpty(model.Email))
+                {
+                    // Mensaje si faltan el usuario o el correo
+                    return new JsonResult(new { success = false, message = "Por favor, ingresa tanto el nombre de usuario como el correo electrónico." });
+                }
+
+                // Generar un código aleatorio de 6 dígitos
+                Random random = new Random();
+                string codigoRecuperacion = random.Next(100000, 999999).ToString();
+
+                var guardarCodigo = await _Usuarioservice.GuardarCodigo(model.Username, codigoRecuperacion);
+
+                // Enviar el código al correo electrónico
+                EnviarCorreo(model.Email, codigoRecuperacion);
+
+                // Respuesta exitosa, indicando que el código fue enviado
+                return new JsonResult(new { success = true, message = "Hemos enviado un código de recuperación a tu correo electrónico." });
+            }
+            catch (Exception ex)
+            {
+                // Respuesta en caso de error en el procesamiento
+                return new JsonResult(new { success = false, message = $"Hubo un error al procesar la solicitud. Detalles: {ex.Message}" });
+            }
+        }
+
+        private void EnviarCorreo(string email, string codigo)
+        {
+            // Configurar el cliente SMTP (asegúrate de tener los valores correctos de tu servidor de correo)
+            var smtpClient = new SmtpClient("smtp.tuservidor.com")
+            {
+                Port = 587,
+                Credentials = new NetworkCredential("luciano_5258@hotmail.com", "Luciano44053332"),
+                EnableSsl = true,
+            };
+
+            // Crear el mensaje de correo
+            var mailMessage = new MailMessage
+            {
+                From = new MailAddress("luciano_5258@hotmail.com"),
+                Subject = "Código de Recuperación de Contraseña",
+                Body = $"Tu código de recuperación es: {codigo}",
+                IsBodyHtml = true,
+            };
+            mailMessage.To.Add(email);
+
+            // Enviar el correo
+            smtpClient.Send(mailMessage);
+        }
 
 
 

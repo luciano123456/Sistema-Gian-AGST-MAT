@@ -6,6 +6,8 @@ using SistemaGian.Application.Models.ViewModels;
 using SistemaGian.BLL.Service;
 using SistemaGian.Models;
 using System.Diagnostics;
+using System.Net.Mail;
+using System.Net;
 
 namespace SistemaGian.Application.Controllers
 {
@@ -220,8 +222,9 @@ namespace SistemaGian.Application.Controllers
             }
         }
 
+        
 
-
+       
 
         public IActionResult Privacy()
         {

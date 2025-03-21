@@ -22,6 +22,8 @@ public partial class User
     public int IdRol { get; set; }
 
     public string Contrasena { get; set; } = null!;
+    public string Correo { get; set; }
+    public string CodigoRecuperacion { get; set; }
 
     public int IdEstado { get; set; }
     public int? ModoVendedor { get; set; } = 0;
