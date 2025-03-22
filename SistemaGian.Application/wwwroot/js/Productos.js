@@ -21,6 +21,9 @@ const columnConfig = [
     { index: 12, filterType: 'text' },
     { index: 13, filterType: 'text' },
     { index: 14, filterType: 'text' },
+    { index: 15, filterType: 'text' },
+    { index: 16, filterType: 'text' },
+    { index: 17, filterType: 'text' },
 ];
 
 const Modelo_base = {
@@ -1050,7 +1053,10 @@ async function configurarDataTable(data) {
                 { data: 'Total' },
 
                 { data: 'PorcGanancia' },
-                { data: 'IdMoneda' },
+                { data: 'IdMoneda', visible: false },
+                { data: 'IdMarca', visible: false },
+                { data: 'IdCategoria', visible: false },
+                { data: 'IdUnidadDeMedida', visible: false },
 
                
             ],
@@ -1139,6 +1145,22 @@ async function configurarDataTable(data) {
                     if (colIndex == 0) return;
 
 
+                    const idCliente = document.getElementById("clientesfiltro").value;
+                    const idProveedor = document.getElementById("Proveedoresfiltro").value;
+
+                    if (idCliente > 0 || idProveedor > 0) {
+                        if (colIndex != 6 && colIndex != 7 && colIndex != 8 && colIndex != 10) {
+                            return false;
+                        }
+                    } else {
+                        if (colIndex != 1 && colIndex != 3 && colIndex != 4 && colIndex != 5 && colIndex != 6 && colIndex != 7 && colIndex != 8 && colIndex != 10) {
+                            return false;
+                        }
+                    }
+
+                    
+
+
                     if (isEditing == true) {
                         return;
                     } else {
@@ -1150,20 +1172,73 @@ async function configurarDataTable(data) {
                         $(this).removeClass('blinking');
                     }
 
+
                     // Si ya hay un input o select, evitar duplicados
                     if ($(this).find('input').length > 0 || $(this).find('select').length > 0) {
                         return;
                     }
 
+                    // Si la columna es la de la provincia (por ejemplo, columna 3)
+                    if (colIndex === 3 || colIndex === 4 || colIndex === 5) {
+                        var select = $('<select class="form-control" style="background-color: transparent; border: none; border-bottom: 2px solid green; color: green; text-align: center;" />')
+                            .appendTo($(this).empty())
+                            .on('change', function () {
+                                // No hacer nada en el change, lo controlamos con el botón de aceptar
+                            });
 
-                    var valueToDisplay = originalData && originalData.trim() !== "" ? originalData.replace(/<[^>]+>/g, "") : originalData || "";
+                        // Estilo para las opciones del select
+                        select.find('option').css('color', 'white'); // Cambiar el color del texto de las opciones a blanco
+                        select.find('option').css('background-color', 'black'); // Cambiar el fondo de las opciones a negro
 
-                    var input = $('<input type="text" class="form-control" style="background-color: transparent; border: none; border-bottom: 2px solid green; color: green; text-align: center;" />')
-                        .val(valueToDisplay)
-                        .on('input', function () {
-                            var saveBtn = $(this).siblings('.fa-check'); // Botón de guardar
+                        // Obtener las provincias disponibles
 
-                            if (colIndex === 0) { // Validar solo si es la columna 0
+                        var result = null;
+
+
+                        if (colIndex == 3) {
+                            result = await listaMarcasFilter();
+                        } else if (colIndex == 4) {
+                            result = await listaCategoriasFilter();
+                        } else if (colIndex == 5) {
+                            result = await listaUnidadesDeMedidaFilter();
+                        }
+
+                        result.forEach(function (res) {
+                            select.append('<option value="' + res.Id + '">' + res.Nombre + '</option>');
+                        });
+
+                        if (colIndex == 3) {
+                            select.val(rowData.IdMarca);
+                        } else if (colIndex == 4) {
+                            select.val(rowData.IdCategoria);
+                        } else if (colIndex == 5) {
+                            select.val(rowData.IdUnidadDeMedida);
+                       
+                        }
+
+
+                        // Crear los botones de guardar y cancelar
+                        var saveButton = $('<i class="fa fa-check text-success"></i>').on('click', function () {
+                            var selectedValue = select.val();
+                            var selectedText = select.find('option:selected').text();
+                            saveEdit(colIndex, gridProductos.row($(this).closest('tr')).data(), selectedText, selectedValue, $(this).closest('tr'));
+                        });
+
+                        var cancelButton = $('<i class="fa fa-times text-danger"></i>').on('click', cancelEdit);
+
+                        // Agregar los botones de guardar y cancelar en la celda
+                        $(this).append(saveButton).append(cancelButton);
+
+                        // Enfocar el select
+                        select.focus();
+                    } else if (colIndex === 6 || colIndex == 7) {
+                        var valueToDisplay = originalData ? originalData.toString().replace(/[^\d.-]/g, '') : '';
+
+                        var input = $('<input type="text" class="form-control" style="background-color: transparent; border: none; border-bottom: 2px solid green; color: green; text-align: center;" />')
+                            .val(formatoMoneda.format(valueToDisplay))
+                            .on('input', function () {
+                                var saveBtn = $(this).siblings('.fa-check'); // Botón de guardar
+
                                 if ($(this).val().trim() === "") {
                                     $(this).css('border-bottom', '2px solid red'); // Borde rojo
                                     saveBtn.css('opacity', '0.5'); // Desactivar botón de guardar visualmente
@@ -1173,53 +1248,145 @@ async function configurarDataTable(data) {
                                     saveBtn.css('opacity', '1'); // Habilitar botón de guardar visualmente
                                     saveBtn.prop('disabled', false); // Habilitar funcionalidad del botón
                                 }
-                            }
+                            })
+                        input.on('blur', function () {
+                            // Solo limpiar el campo si no se ha presionado "Aceptar"
+                            var rawValue = $(this).val().replace(/[^0-9,-]/g, ''); // Limpiar caracteres no numéricos
+                            $(this).val(formatoMoneda.format(parseDecimal(rawValue))); // Mantener el valor limpio
                         })
-                        .on('keydown', function (e) {
-                            if (e.key === 'Enter') {
+                            .on('keydown', function (e) {
+                                if (e.key === 'Enter') {
+                                    saveEdit(colIndex, gridProductos.row($(this).closest('tr')).data(), input.val(), input.val(), $(this).closest('tr'));
+                                } else if (e.key === 'Escape') {
+                                    cancelEdit();
+                                }
+                            });
+
+                        var saveButton = $('<i class="fa fa-check text-success"></i>').on('click', function () {
+                            if (!$(this).prop('disabled')) { // Solo guardar si el botón no está deshabilitado
                                 saveEdit(colIndex, gridProductos.row($(this).closest('tr')).data(), input.val(), input.val(), $(this).closest('tr'));
-                            } else if (e.key === 'Escape') {
-                                cancelEdit();
                             }
                         });
 
-                    var saveButton = $('<i class="fa fa-check text-success"></i>').on('click', function () {
-                        if (!$(this).prop('disabled')) { // Solo guardar si el botón no está deshabilitado
-                            saveEdit(colIndex, gridProductos.row($(this).closest('tr')).data(), input.val(), input.val(), $(this).closest('tr'));
-                        }
-                    });
+                        var cancelButton = $('<i class="fa fa-times text-danger"></i>').on('click', cancelEdit);
 
-                    var cancelButton = $('<i class="fa fa-times text-danger"></i>').on('click', cancelEdit);
+                        // Reemplazar el contenido de la celda
+                        $(this).empty().append(input).append(saveButton).append(cancelButton);
 
-                    // Reemplazar el contenido de la celda
-                    $(this).empty().append(input).append(saveButton).append(cancelButton);
+                        input.focus();
+                    } else {
+                        var valueToDisplay = (originalData && originalData.toString().trim() !== "")
+                            ? originalData.toString().replace(/<[^>]+>/g, "")
+                            : originalData || "";
 
-                    input.focus();
+                        var input = $('<input type="text" class="form-control" style="background-color: transparent; border: none; border-bottom: 2px solid green; color: green; text-align: center;" />')
+                            .val(valueToDisplay)
+                            .on('input', function () {
+                                var saveBtn = $(this).siblings('.fa-check'); // Botón de guardar
+
+                                if (colIndex === 1 || colIndex === 8) { // Validar solo si es la columna 0
+                                    if ($(this).val().trim() === "") {
+                                        $(this).css('border-bottom', '2px solid red'); // Borde rojo
+                                        saveBtn.css('opacity', '0.5'); // Desactivar botón de guardar visualmente
+                                        saveBtn.prop('disabled', true); // Desactivar funcionalidad del botón
+                                    } else {
+                                        $(this).css('border-bottom', '2px solid green'); // Borde verde
+                                        saveBtn.css('opacity', '1'); // Habilitar botón de guardar visualmente
+                                        saveBtn.prop('disabled', false); // Habilitar funcionalidad del botón
+                                    }
+                                }
+                            })
+                            .on('keydown', function (e) {
+                                if (e.key === 'Enter') {
+                                    saveEdit(colIndex, gridProductos.row($(this).closest('tr')).data(), input.val(), input.val(), $(this).closest('tr'));
+                                } else if (e.key === 'Escape') {
+                                    cancelEdit();
+                                }
+                            });
+
+                        var saveButton = $('<i class="fa fa-check text-success"></i>').on('click', function () {
+                            if (!$(this).prop('disabled')) { // Solo guardar si el botón no está deshabilitado
+                                saveEdit(colIndex, gridProductos.row($(this).closest('tr')).data(), input.val(), input.val(), $(this).closest('tr'));
+                            }
+                        });
+
+                        var cancelButton = $('<i class="fa fa-times text-danger"></i>').on('click', cancelEdit);
+
+                        // Reemplazar el contenido de la celda
+                        $(this).empty().append(input).append(saveButton).append(cancelButton);
+
+                        input.focus();
+                    }
 
 
                     // Función para guardar los cambios
                     function saveEdit(colIndex, rowData, newText, newValue, trElement) {
-                        // Obtener el nodo de la celda desde el índice
-                        var celda = $(trElement).find('td').eq(colIndex); // Obtener la celda correspondiente dentro de la fila
+
+                        // Convertir el índice de columna (data index) al índice visible
+                        var visibleIndex = gridProductos.column(colIndex).index('visible');
+
+                        // Obtener la celda visible y aplicar la clase blinking
+                        var celda = $(trElement).find('td').eq(visibleIndex);
+
                         // Obtener el valor original de la celda
-                        var originalText = gridProductos.cell(trElement, colIndex).data();
-
-                        if (colIndex === 3) {
-                            var tempDiv = document.createElement('div'); // Crear un div temporal
-                            tempDiv.innerHTML = originalText; // Establecer el HTML de la celda
-                            originalText = tempDiv.textContent.trim(); // Extraer solo el texto
-                            newText = newText.trim();
-                        }
-
-                        // Verificar si el texto realmente ha cambiado
-                        if (originalText === newText) {
-                            cancelEdit();
-                            return; // Si no ha cambiado, no hacer nada
-                        }
+                        var originalText = gridProductos.cell(trElement, celda).data();
 
                         // Actualizar el valor de la fila según la columna editada
+                        if (colIndex === 3) {
+                            rowData.IdMarca = newValue;
+                            rowData.Marca = newText;
+                        } else if (colIndex === 4) {
+                            rowData.IdCategoria = newValue;
+                            rowData.Categoria = newText;
+                        } else if (colIndex === 5) {
+                            rowData.IdUnidadDeMedida = newValue;
+                            rowData.UnidadDeMedida = newText;
+                        } else if (colIndex === 8) {
+                            rowData.ProductoCantidad = newText;
+                            rowData.Total = rowData.PVenta * parseInt(newValue)
+                            var visibleIndex7 = gridProductos.column(9).index('visible');
+                            $(trElement).find('td').eq(visibleIndex7).addClass('blinking');
+                        } else if (colIndex === 6) { // PrecioCosto
+                            rowData.PCosto = parseFloat(convertirMonedaAFloat(newValue)); // Actualizar PrecioCosto
 
-                        rowData[gridProductos.column(colIndex).header().textContent] = newText; // Usamos el nombre de la columna para guardarlo
+                            var precioVentaCalculado = (parseFloat(rowData.PCosto) + (parseFloat(rowData.PCosto) * (rowData.PorcGanancia / 100)));
+                            precioVentaCalculado = parseFloat(precioVentaCalculado.toFixed(2));
+
+                            rowData.PVenta = precioVentaCalculado;
+
+                            // Actualizar el porcentaje de ganancia basado en el PrecioCosto
+                            rowData.PorcGanancia = parseFloat(((rowData.PVenta - rowData.PCosto) / rowData.PCosto) * 100).toFixed(2);
+
+                            // Obtener el índice visible para las columnas correspondientes
+                            var visibleIndex7 = gridProductos.column(6).index('visible');
+                            var visibleIndex9 = gridProductos.column(7).index('visible');
+
+                            // Aplicar el efecto de parpadeo a las celdas de PrecioCosto y PrecioVenta
+                            $(trElement).find('td').eq(visibleIndex7).addClass('blinking');
+                            $(trElement).find('td').eq(visibleIndex9).addClass('blinking');
+                        }  else if (colIndex === 7) { // PrecioVenta
+                            rowData.PVenta = parseFloat(convertirMonedaAFloat(newValue))
+                            rowData.PorcGanancia = parseFloat(((convertirMonedaAFloat(newValue) - rowData.PCosto) / rowData.PCosto) * 100).toFixed(2);
+
+                            // Obtener el índice visible para la columna 7 (PrecioCosto) o la correspondiente
+                            var visibleIndex8 = gridProductos.column(10).index('visible');
+                            $(trElement).find('td').eq(visibleIndex8).addClass('blinking');
+                        } else if (colIndex === 10) { // PorcentajeGanancia
+                            rowData.PorcGanancia = parseDecimal(newValue); // Actualizar PorcentajeGanancia
+
+                            // Calcular PrecioVenta basado en PrecioCosto y PorcentajeGanancia
+                            rowData.PVenta = rowData.PCosto + (rowData.PCosto * (rowData.PorcGanancia / 100));
+
+                            // Obtener el índice visible para las columnas correspondientes
+                            var visibleIndex8 = gridProductos.column(10).index('visible');
+                            var visibleIndex9 = gridProductos.column(7).index('visible');
+
+                            // Aplicar el efecto de parpadeo a las celdas de PorcentajeGanancia y PrecioVenta
+                            $(trElement).find('td').eq(visibleIndex8).addClass('blinking');
+                            $(trElement).find('td').eq(visibleIndex9).addClass('blinking');
+                        } else {
+                            rowData[gridProductos.column(colIndex).header().textContent] = newText; // Usamos el nombre de la columna para guardarlo
+                        }
 
                         // Actualizar la fila en la tabla con los nuevos datos
                         gridProductos.row(trElement).data(rowData).draw();
@@ -1232,13 +1399,14 @@ async function configurarDataTable(data) {
                         // Enviar los datos al servidor
                         guardarCambiosFila(rowData);
 
+
                         // Desactivar el modo de edición
                         isEditing = false;
 
                         // Eliminar la clase 'blinking' después de 3 segundos (para hacer el efecto de parpadeo)
                         setTimeout(function () {
-                            celda.removeClass('blinking');
-                        }, 3000); // Duración de la animación de parpadeo (3 segundos)
+                            $(trElement).find('td').removeClass('blinking');
+                        }, 3000);
                     }
 
 
@@ -1442,7 +1610,7 @@ function configurarOpcionesColumnas() {
     container.empty(); // Limpia el contenedor
 
     columnas.forEach((col, index) => {
-        if (col.data && col.data !== "Id" && col.data !== "Proveedor" && (userSession.ModoVendedor == 1 && col.data != "PCosto" && col.data != "PorcGanancia" || userSession.ModoVendedor == 0))  { // Solo agregar columnas que no sean "Id"
+        if (col.data && !col.data.includes("Id") && col.data !== "Proveedor" && (userSession.ModoVendedor == 1 && col.data != "PCosto" && col.data != "PorcGanancia" || userSession.ModoVendedor == 0))  { // Solo agregar columnas que no sean "Id"
             // Recupera el valor guardado en localStorage, si existe. Si no, inicializa en 'false' para no estar marcado.
             const isChecked = savedConfig && savedConfig[`col_${index}`] !== undefined ? savedConfig[`col_${index}`] : true;
 
@@ -1515,6 +1683,10 @@ $('#txtProductoCantidad').on('input blur', function () {
 
 async function guardarCambiosFila(rowData) {
     try {
+        const idCliente = document.getElementById("clientesfiltro").value;
+        const idProveedor = document.getElementById("Proveedoresfiltro").value;
+        rowData.IdProveedor = idProveedor;
+        rowData.IdCliente = idCliente;
         const response = await fetch('/Productos/Actualizar', {
             method: 'PUT',
             headers: {

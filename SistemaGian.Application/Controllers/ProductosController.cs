@@ -150,11 +150,14 @@ namespace SistemaGian.Application.Controllers
                 Id = c.Id,
                 FechaActualizacion = c.FechaActualizacion,
                 Descripcion = c.Descripcion,
-                Marca = c.IdMarcaNavigation.Nombre,       // Nombre de la Marca
-                Categoria = c.IdCategoriaNavigation.Nombre, // Nombre de la Categoria
-                UnidadDeMedida = c.IdUnidadDeMedidaNavigation.Nombre, // Nombre de la Unidad de Medida
-                Moneda = c.IdMonedaNavigation.Nombre, // Nombre de la Moneda
+                Marca = c.IdMarcaNavigation != null ? c.IdMarcaNavigation.Nombre : "",       // Nombre de la Marca
+                Categoria = c.IdCategoriaNavigation != null ? c.IdCategoriaNavigation.Nombre : "", // Nombre de la Categoria
+                UnidadDeMedida = c.IdUnidadDeMedidaNavigation != null ? c.IdUnidadDeMedidaNavigation.Nombre : "", // Nombre de la Unidad de Medida
+                Moneda = c.IdMonedaNavigation != null ? c.IdMonedaNavigation.Nombre : "", // Nombre de la Moneda
                 IdMoneda  = c.IdMoneda,
+                IdUnidadDeMedida  = c.IdUnidadDeMedida,
+                IdMarca  = c.IdMarca,
+                IdCategoria = c.IdCategoria,
                 PCosto = c.PCosto,
                 PVenta = c.PVenta,
                 PorcGanancia = c.PorcGanancia,
