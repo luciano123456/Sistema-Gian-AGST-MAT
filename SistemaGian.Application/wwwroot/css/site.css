@@ -514,3 +514,28 @@ div.dt-button-collection {
 .dataTables_wrapper .dataTable tbody tr td {
     border: none !important; /* Elimina bordes dentro de las celdas */
 }
+
+
+@keyframes blinkTextShadow {
+    0% {
+        box-shadow: inset 0 0 10px #d4edda;
+        color: white;
+        transform: scale(1);
+    }
+
+    50% {
+        box-shadow: inset 0 0 10px #28a745;
+        color: #28a745;
+        transform: scale(1.1);
+    }
+
+    100% {
+        box-shadow: inset 0 0 10px #d4edda;
+        color: white;
+        transform: scale(1);
+    }
+}
+
+.blinking {
+    animation: blinkTextShadow 3s ease-out; /* Duración de 3 segundos, se repite infinitamente */
+}
