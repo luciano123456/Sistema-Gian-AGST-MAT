@@ -9,6 +9,7 @@ const columnConfig = [
     { index: 4, filterType: 'select', fetchDataFunc: listaProvinciasFilter }, // Columna con un filtro de selección (de provincias)
     { index: 5, filterType: 'text' },
     { index: 6, filterType: 'text' },
+    { index: 7, filterType: 'text' },
 ];
 
 const Modelo_base = {
@@ -183,6 +184,43 @@ const editarCliente = id => {
             errorModal("Ha ocurrido un error.");
         });
 }
+
+
+const agregarSaldoModal = id => {
+    $("#txtIdClienteSaldo").val(id);
+    $("#txtSaldo").val("$ 0,00");
+    $("#modalSaldo").modal('show');
+}
+
+async function agregarSaldo() {
+    var idCliente = $("#txtIdClienteSaldo").val();
+    var saldo = parseFloat(convertirMonedaAFloat($("#txtSaldo").val()));
+
+    try {
+        const queryString = new URLSearchParams({
+            idCliente: idCliente,
+            Saldo: saldo
+        }).toString();
+
+        const response = await fetch(`/Clientes/SumarSaldo?${queryString}`, {
+            method: 'POST'
+        });
+
+        if (response.ok) {
+            listaClientes();
+            exitoModal("Saldo agregado correctamente");
+        } else {
+            errorModal('Ha ocurrido un error al guardar los datos...');
+        }
+
+        $("#modalSaldo").modal('hide');
+
+    } catch (error) {
+        console.error('Error de red:', error);
+    }
+}
+
+
 async function eliminarCliente(id) {
     let resultado = window.confirm("¿Desea eliminar el Cliente?");
 
@@ -232,9 +270,13 @@ async function configurarDataTable(data) {
                         <i class='fa fa-ellipsis-v fa-lg text-white' aria-hidden='true'></i>
                     </button>
                     <div class="acciones-dropdown" style="display: none;">
+                     <button class='btn btn-sm btneditar' type='button' onclick='agregarSaldoModal(${data})' title='Agregar Saldo'>
+                            <i class='fa fa-money fa-lg text-success' aria-hidden='true'></i> Agregar Saldo
+                        </button>
                         <button class='btn btn-sm btneditar' type='button' onclick='editarCliente(${data})' title='Editar'>
                             <i class='fa fa-pencil-square-o fa-lg text-success' aria-hidden='true'></i> Editar
                         </button>
+                       
                         <button class='btn btn-sm btneliminar' type='button' onclick='eliminarCliente(${data})' title='Eliminar'>
                             <i class='fa fa-trash-o fa-lg text-danger' aria-hidden='true'></i> Eliminar
                         </button>
@@ -255,6 +297,7 @@ async function configurarDataTable(data) {
                 { data: 'Provincia',width: "22%" },
                 { data: 'Localidad', width: "18%" },
                 { data: 'Dni', width: "14%" },
+                { data: 'SaldoAfavor'},
             ],
             dom: 'Bfrtip',
             buttons: [
@@ -292,7 +335,10 @@ async function configurarDataTable(data) {
             orderCellsTop: true,
             fixedHeader: false,
 
+
+          
             "columnDefs": [
+                { "render": function (data) { return formatNumber(data); }, "targets": [7] },
                 {
                     targets: 0, // Índice de la columna "Acciones"
                     width: '1%' // Ancho fijo de la columna
@@ -415,8 +461,53 @@ async function configurarDataTable(data) {
                         // Enfocar el select
                         select.focus();
 
-                    } else { // Para las demás columnas, como Dirección
-                        var valueToDisplay = originalData && originalData.trim() !== "" ? originalData.replace(/<[^>]+>/g, "") : originalData || "";
+                    } else if (colIndex === 7) {
+                        var valueToDisplay = originalData ? originalData.toString().replace(/[^\d.-]/g, '') : '';
+
+                        var input = $('<input type="text" class="form-control" style="background-color: transparent; border: none; border-bottom: 2px solid green; color: green; text-align: center;" />')
+                            .val(formatoMoneda.format(valueToDisplay))
+                            .on('input', function () {
+                                var saveBtn = $(this).siblings('.fa-check'); // Botón de guardar
+
+                                if ($(this).val().trim() === "") {
+                                    $(this).css('border-bottom', '2px solid red'); // Borde rojo
+                                    saveBtn.css('opacity', '0.5'); // Desactivar botón de guardar visualmente
+                                    saveBtn.prop('disabled', true); // Desactivar funcionalidad del botón
+                                } else {
+                                    $(this).css('border-bottom', '2px solid green'); // Borde verde
+                                    saveBtn.css('opacity', '1'); // Habilitar botón de guardar visualmente
+                                    saveBtn.prop('disabled', false); // Habilitar funcionalidad del botón
+                                }
+                            })
+                        input.on('blur', function () {
+                            // Solo limpiar el campo si no se ha presionado "Aceptar"
+                            var rawValue = $(this).val().replace(/[^0-9,-]/g, ''); // Limpiar caracteres no numéricos
+                            $(this).val(formatoMoneda.format(parseDecimal(rawValue))); // Mantener el valor limpio
+                        })
+                            .on('keydown', function (e) {
+                                if (e.key === 'Enter') {
+                                    saveEdit(colIndex, gridProductos.row($(this).closest('tr')).data(), input.val(), input.val(), $(this).closest('tr'));
+                                } else if (e.key === 'Escape') {
+                                    cancelEdit();
+                                }
+                            });
+
+                        var saveButton = $('<i class="fa fa-check text-success"></i>').on('click', function () {
+                            if (!$(this).prop('disabled')) { // Solo guardar si el botón no está deshabilitado
+                                saveEdit(colIndex, gridClientes.row($(this).closest('tr')).data(), input.val(), input.val(), $(this).closest('tr'));
+                            }
+                        });
+
+                        var cancelButton = $('<i class="fa fa-times text-danger"></i>').on('click', cancelEdit);
+
+                        // Reemplazar el contenido de la celda
+                        $(this).empty().append(input).append(saveButton).append(cancelButton);
+
+                        input.focus();
+                    } else {
+                        var valueToDisplay = (originalData && originalData.toString().trim() !== "")
+                            ? originalData.toString().replace(/<[^>]+>/g, "")
+                            : originalData || "";
 
                         var input = $('<input type="text" class="form-control" style="background-color: transparent; border: none; border-bottom: 2px solid green; color: green; text-align: center;" />')
                             .val(valueToDisplay)
@@ -477,14 +568,15 @@ async function configurarDataTable(data) {
                             return; // Si no ha cambiado, no hacer nada
                         }
 
-                        // Actualizar el valor de la fila según la columna editada
-                        if (colIndex === 3) { // Si es la columna de la dirección
+                        if (colIndex === 3) {
                             rowData.Direccion = newText;
-                        } else if (colIndex === 4) { // Si es la columna de la provincia
+                        } else if (colIndex === 4) {
                             rowData.IdProvincia = newValue;
                             rowData.Provincia = newText;
                         } else if (colIndex === 6) { // Si es la columna del DNI
                             rowData.Dni = newText;
+                        } else if (colIndex === 7) {
+                            rowData.SaldoAfavor = parseFloat(convertirMonedaAFloat(newText));
                         } else {
                             rowData[gridClientes.column(colIndex).header().textContent] = newText; // Usamos el nombre de la columna para guardarlo
                         }
@@ -595,3 +687,11 @@ async function guardarCambiosFila(rowData) {
         console.error('Error de red:', error);
     }
 }
+
+
+document.getElementById('txtSaldo').addEventListener('blur', function () {
+    // Formatear el número al finalizar la edición
+    this.value = formatMoneda(convertirMonedaAFloat(this.value));
+
+});
+

@@ -54,8 +54,8 @@ namespace SistemaGian.Application.Controllers
                 Provincia = c.IdProvinciaNavigation.Nombre,
                 Localidad = c.Localidad,
                 Dni = c.Dni,
-                Saldo = c.Saldo,
-                SaldoAfavor = c.SaldoAfavor
+                Saldo = c.Saldo ?? 0,
+                SaldoAfavor = c.SaldoAfavor ?? 0
             }).ToList();
 
             return Ok(lista);
@@ -78,20 +78,39 @@ namespace SistemaGian.Application.Controllers
         }
 
 
+
+        [HttpPost]
+        public async Task<IActionResult> SumarSaldo(int idCliente, decimal Saldo)
+        {
+
+            bool respuesta = await _clienteService.SumarSaldo(idCliente, Saldo);
+
+            return Ok(new { valor = respuesta });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> RestarSaldo(int idCliente, decimal Saldo)
+        {
+
+            bool respuesta = await _clienteService.RestarSaldo(idCliente, Saldo);
+
+            return Ok(new { valor = respuesta });
+        }
+
         [HttpPost]
         public async Task<IActionResult> Insertar([FromBody] VMCliente model)
         {
             var cliente = new Cliente
             {
                 Id = model.Id,
-                Saldo = model.Saldo,
-                SaldoAfavor = model.SaldoAfavor,
+                Saldo = model.Saldo ?? 0,
+                SaldoAfavor = model.SaldoAfavor ?? 0,
                 Nombre = model.Nombre,
                 Telefono = model.Telefono,
                 Localidad = model.Localidad,
                 IdProvincia = model.IdProvincia,
                 Direccion = model.Direccion,
-                Dni = model.Dni
+                Dni = model.Dni,
             };
 
             bool respuesta = await _clienteService.Insertar(cliente);
@@ -102,21 +121,31 @@ namespace SistemaGian.Application.Controllers
         [HttpPut]
         public async Task<IActionResult> Actualizar([FromBody] VMCliente model)
         {
-            var cliente = new Cliente
+            var cliente = await _clienteService.Obtener(model.Id); // Obtener cliente existente
+
+            if (cliente == null)
             {
-                Id = model.Id,
-                Nombre = model.Nombre,
-                Telefono = model.Telefono,
-                Localidad = model.Localidad,
-                IdProvincia = model.IdProvincia,
-                Direccion = model.Direccion,
-                Dni = model.Dni
-            };
+                return NotFound(new { mensaje = "Cliente no encontrado" });
+            }
+
+            // Actualizar solo los campos proporcionados en el modelo
+            cliente.Nombre = model.Nombre;
+            cliente.Telefono = model.Telefono;
+            cliente.Localidad = model.Localidad;
+            cliente.IdProvincia = model.IdProvincia;
+            cliente.Direccion = model.Direccion;
+            cliente.Dni = model.Dni;
+
+            if (model.SaldoAfavor.HasValue) // Solo actualizar SaldoAfavor si tiene un valor
+            {
+                cliente.SaldoAfavor = model.SaldoAfavor.Value;
+            }
 
             bool respuesta = await _clienteService.Actualizar(cliente);
 
             return Ok(new { valor = respuesta });
         }
+
 
         [HttpDelete]
         public async Task<IActionResult> Eliminar(int id)

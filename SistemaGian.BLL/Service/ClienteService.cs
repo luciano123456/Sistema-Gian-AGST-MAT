@@ -6,9 +6,9 @@ namespace SistemaGian.BLL.Service
     public class ClienteService : IClienteService
     {
 
-        private readonly IGenericRepository<Cliente> _contactRepo;
+        private readonly IClienteRepository<Cliente> _contactRepo;
 
-        public ClienteService(IGenericRepository<Cliente> contactRepo)
+        public ClienteService(IClienteRepository<Cliente> contactRepo)
         {
             _contactRepo = contactRepo;
         }
@@ -38,7 +38,14 @@ namespace SistemaGian.BLL.Service
             return await _contactRepo.ObtenerTodos();
         }
 
+        public async Task<bool> RestarSaldo(int idCliente, decimal Saldo)
+        {
+            return await _contactRepo.RestarSaldo(idCliente, Saldo);
+        }
 
-
+        public async Task<bool> SumarSaldo(int idCliente, decimal Saldo)
+        {
+            return await _contactRepo.SumarSaldo(idCliente, Saldo);
+        }
     }
 }

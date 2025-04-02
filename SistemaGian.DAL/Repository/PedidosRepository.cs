@@ -59,150 +59,290 @@ namespace SistemaGian.DAL.Repository
             }
         }
 
+        public async Task<bool> Actualizar(Pedido pedido, List<PagosPedidosCliente> pagosCliente, List<PagosPedidosProveedor> pagosProveedores, List<PedidosProducto> productos)
+        {
+            // Inicia la transacción
+            using (var transaction = await _dbcontext.Database.BeginTransactionAsync())
+            {
+                try
+                {
+
+                    // Insertar pagos de clientes
+                    bool pagosClienteResult = await InsertarPagosCliente(pagosCliente).ConfigureAwait(false);
+                    if (!pagosClienteResult)
+                    {
+                        await transaction.RollbackAsync();
+                        return false; // Si hubo un error en los pagos de clientes, rollback y retorno falso
+                    }
+
+                    // Insertar pagos de proveedores
+                    bool pagosProveedorResult = await InsertarPagosProveedor(pagosProveedores).ConfigureAwait(false);
+                    if (!pagosProveedorResult)
+                    {
+                        await transaction.RollbackAsync();
+                        return false; // Si hubo un error en los pagos de proveedores, rollback y retorno falso
+                    }
+
+                    // Insertar productos
+                    bool productosResult = await InsertarProductos(productos).ConfigureAwait(false);
+                    if (!productosResult)
+                    {
+                        await transaction.RollbackAsync();
+                        return false; // Si hubo un error en los productos, rollback y retorno falso
+                    }
+
+                    // Si todo fue exitoso, confirmar la transacción
+                    await transaction.CommitAsync();
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    // Si ocurre cualquier error, hacer rollback de la transacción
+                    await transaction.RollbackAsync();
+                    Console.WriteLine(ex); // Opcional: loguear el error
+                    return false;
+                }
+            }
+        }
+
+        public async Task<bool> Insertar(Pedido pedido, List<PagosPedidosCliente> pagosCliente, List<PagosPedidosProveedor> pagosProveedores, List<PedidosProducto> productos)
+        {
+            // Inicia la transacción
+            using (var transaction = await _dbcontext.Database.BeginTransactionAsync())
+            {
+                try
+                {
+                    // Insertar el nuevo pedido y obtener el Id
+                    bool pedidoResult = await NuevoPedido(pedido).ConfigureAwait(false);
+                    if (!pedidoResult)
+                    {
+                        await transaction.RollbackAsync();
+                        return false; // Si hubo un error en la inserción del pedido, rollback y retorno falso
+                    }
+
+                    // Obtener el Id del pedido recién insertado
+                    int idPedido = pedido.Id;
+
+                    // Asociar el Id del pedido a los pagos de clientes
+                    foreach (var pagoCliente in pagosCliente)
+                    {
+                        pagoCliente.IdPedido = idPedido;
+                    }
+
+                    // Insertar pagos de clientes
+                    bool pagosClienteResult = await InsertarPagosCliente(pagosCliente).ConfigureAwait(false);
+                    if (!pagosClienteResult)
+                    {
+                        await transaction.RollbackAsync();
+                        return false; // Si hubo un error en los pagos de clientes, rollback y retorno falso
+                    }
+
+                    // Asociar el Id del pedido a los pagos de proveedores
+                    foreach (var pagoProveedor in pagosProveedores)
+                    {
+                        pagoProveedor.IdPedido = idPedido;
+                    }
+
+                    // Insertar pagos de proveedores
+                    bool pagosProveedorResult = await InsertarPagosProveedor(pagosProveedores).ConfigureAwait(false);
+                    if (!pagosProveedorResult)
+                    {
+                        await transaction.RollbackAsync();
+                        return false; // Si hubo un error en los pagos de proveedores, rollback y retorno falso
+                    }
+
+                    // Asociar el Id del pedido a los productos
+                    foreach (var producto in productos)
+                    {
+                        producto.IdPedido = idPedido;
+                    }
+
+                    // Insertar productos
+                    bool productosResult = await InsertarProductos(productos).ConfigureAwait(false);
+                    if (!productosResult)
+                    {
+                        await transaction.RollbackAsync();
+                        return false; // Si hubo un error en los productos, rollback y retorno falso
+                    }
+
+                    // Si todo fue exitoso, confirmar la transacción
+                    await transaction.CommitAsync();
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    // Si ocurre cualquier error, hacer rollback de la transacción
+                    await transaction.RollbackAsync();
+                    Console.WriteLine(ex); // Opcional: loguear el error
+                    return false;
+                }
+            }
+        }
 
         public async Task<bool> InsertarPagosCliente(List<PagosPedidosCliente> pagos)
         {
             try
             {
+                var idPedidos = pagos.Select(p => p.IdPedido).Distinct().ToList();
 
-                foreach (PagosPedidosCliente p in pagos)
+                foreach (var idPedido in idPedidos)
                 {
-                    // Verificar si el pago ya existe, por ejemplo, por IdPedido y Id
-                    var pagoExistente = await _dbcontext.PagosPedidosClientes
-                                                          .FirstOrDefaultAsync(x => x.IdPedido == p.IdPedido && x.Id == p.Id);
+                    var pagosExistentes = await _dbcontext.PagosPedidosClientes
+                                                          .Where(x => x.IdPedido == idPedido)
+                                                          .ToListAsync();
 
-                    if (pagoExistente != null)
+                    // Eliminar los pagos que no están en la lista
+                    var pagosAEliminar = pagosExistentes
+                                         .Where(pe => !pagos.Any(p => p.IdPedido == pe.IdPedido && p.Id == pe.Id))
+                                         .ToList();
+
+                    _dbcontext.PagosPedidosClientes.RemoveRange(pagosAEliminar);
+
+                    // Insertar los pagos nuevos o actualizar los existentes
+                    foreach (PagosPedidosCliente p in pagos)
                     {
-                        // Si el pago existe, actualizamos sus propiedades
-                        pagoExistente.Fecha = p.Fecha;
-                        pagoExistente.Cotizacion = p.Cotizacion;
-                        pagoExistente.Total = p.Total;
-                        pagoExistente.TotalArs = p.TotalArs;
-                        pagoExistente.Observacion = p.Observacion;
+                        var pagoExistente = pagosExistentes
+                                            .FirstOrDefault(x => x.IdPedido == p.IdPedido && x.Id == p.Id);
+
+                        if (pagoExistente != null)
+                        {
+                            pagoExistente.Fecha = p.Fecha;
+                            pagoExistente.Cotizacion = p.Cotizacion;
+                            pagoExistente.Total = p.Total;
+                            pagoExistente.TotalArs = p.TotalArs;
+                            pagoExistente.Observacion = p.Observacion;
+                        }
+                        else
+                        {
+                            _dbcontext.PagosPedidosClientes.Add(p);
+                        }
                     }
-                    else
-                    {
-                        // Si el pago no existe, lo agregamos a la base de datos
-                        _dbcontext.PagosPedidosClientes.Add(p);
-                    }
-                }
-
-                // Eliminar los pagos que no estén en el modelo para el mismo IdPedido, pero excluir los nuevos pagos (Id == 0)
-                var pedidoIdsModelo = pagos.Select(p => p.IdPedido).Distinct().ToList();  // Obtener todos los IdPedido únicos en el modelo
-
-                var pagosAEliminar = await _dbcontext.PagosPedidosClientes
-                                                      .Where(x => pedidoIdsModelo.Contains(x.IdPedido)
-                                                              && !pagos.Select(p => p.Id).Contains(x.Id) // Usar Contains en lugar de Any
-                                                              && x.Id != 0) // Excluir pagos nuevos con Id == 0
-                                                      .ToListAsync();
-
-                foreach (var pago in pagosAEliminar)
-                {
-                    _dbcontext.PagosPedidosClientes.Remove(pago);
                 }
 
                 await _dbcontext.SaveChangesAsync();
                 return true;
-
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                Console.WriteLine(ex); // Opcional: loguear el error
                 return false;
             }
         }
 
-        public async Task<bool> InsertarProductos(List<PedidosProducto> productos)
-        {
-            foreach (PedidosProducto p in productos)
-            {
-                // Verificar si el producto ya existe, por ejemplo, por IdProducto y IdPedido
-                var productoExistente = await _dbcontext.PedidosProductos
-                                                         .FirstOrDefaultAsync(x => x.IdPedido == p.IdPedido && x.Id == p.Id);
-
-                if (productoExistente != null)
-                {
-                    // Si el producto existe, actualizamos sus propiedades
-                    productoExistente.PrecioCosto = p.PrecioCosto;
-                    productoExistente.PrecioVenta = p.PrecioVenta;
-                    productoExistente.Cantidad = p.Cantidad;
-                }
-                else
-                {
-                    // Si el producto no existe, lo agregamos a la base de datos
-                    _dbcontext.PedidosProductos.Add(p);
-                }
-            }
-
-
-            var productosIdsModelo = productos.Select(p => p.IdPedido).Distinct().ToList();  // Obtener todos los IdPedido únicos en el modelo
-            var productosAEliminar = await _dbcontext.PedidosProductos
-                                                      .Where(x => productosIdsModelo.Contains(x.IdPedido)
-                                                              && !productos.Select(p => p.Id).Contains(x.Id) // Usar Contains en lugar de Any
-                                                              && x.Id != 0) // Excluir pagos nuevos con Id == 0
-                                                      .ToListAsync();
-
-
-            foreach (var producto in productosAEliminar)
-            {
-                _dbcontext.PedidosProductos.Remove(producto);
-            }
-
-            await _dbcontext.SaveChangesAsync();
-            return true;
-        }
 
         public async Task<bool> InsertarPagosProveedor(List<PagosPedidosProveedor> pagos)
         {
-            foreach (PagosPedidosProveedor p in pagos)
+            try
             {
-                // Verificar si el pago ya existe, por ejemplo, por IdPedido y Id
-                var pagoExistente = await _dbcontext.PagosPedidosProveedores
-                                                      .FirstOrDefaultAsync(x => x.IdPedido == p.IdPedido && x.Id == p.Id);
+                var idPedidos = pagos.Select(p => p.IdPedido).Distinct().ToList();
 
-                if (pagoExistente != null)
+                foreach (var idPedido in idPedidos)
                 {
-                    // Si el pago existe, actualizamos sus propiedades
-                    pagoExistente.Fecha = p.Fecha;
-                    pagoExistente.Cotizacion = p.Cotizacion;
-                    pagoExistente.Total = p.Total;
-                    pagoExistente.TotalArs = p.TotalArs;
-                    pagoExistente.Observacion = p.Observacion;
+                    var pagosExistentes = await _dbcontext.PagosPedidosProveedores
+                                                          .Where(x => x.IdPedido == idPedido)
+                                                          .ToListAsync();
+
+                    // Eliminar los pagos que no están en la lista
+                    var pagosAEliminar = pagosExistentes
+                                         .Where(pe => !pagos.Any(p => p.IdPedido == pe.IdPedido && p.Id == pe.Id))
+                                         .ToList();
+
+                    _dbcontext.PagosPedidosProveedores.RemoveRange(pagosAEliminar);
+
+                    // Insertar los pagos nuevos o actualizar los existentes
+                    foreach (PagosPedidosProveedor p in pagos)
+                    {
+                        var pagoExistente = pagosExistentes
+                                            .FirstOrDefault(x => x.IdPedido == p.IdPedido && x.Id == p.Id);
+
+                        if (pagoExistente != null)
+                        {
+                            pagoExistente.Fecha = p.Fecha;
+                            pagoExistente.Cotizacion = p.Cotizacion;
+                            pagoExistente.Total = p.Total;
+                            pagoExistente.TotalArs = p.TotalArs;
+                            pagoExistente.Observacion = p.Observacion;
+                        }
+                        else
+                        {
+                            _dbcontext.PagosPedidosProveedores.Add(p);
+                        }
+                    }
                 }
-                else
-                {
-                    // Si el pago no existe, lo agregamos a la base de datos
-                    _dbcontext.PagosPedidosProveedores.Add(p);
-                }
+
+                await _dbcontext.SaveChangesAsync();
+                return true;
             }
-
-
-
-            var pedidoIdsModelo = pagos.Select(p => p.IdPedido).Distinct().ToList();  // Obtener todos los IdPedido únicos en el modelo
-            // Eliminar los pagos que no estén en el modelo
-            var pagosIdsModelo = pagos.Select(p => p.Id).ToList();
-            var pagosAEliminar = await _dbcontext.PagosPedidosProveedores
-                                                  .Where(x => pedidoIdsModelo.Contains(x.IdPedido)
-                                                          && !pagos.Select(p => p.Id).Contains(x.Id) // Usar Contains en lugar de Any
-                                                          && x.Id != 0) // Excluir pagos nuevos con Id == 0
-                                                  .ToListAsync();
-
-
-            foreach (var pago in pagosAEliminar)
+            catch (Exception ex)
             {
-                _dbcontext.PagosPedidosProveedores.Remove(pago);
+                Console.WriteLine(ex); // Opcional: loguear el error
+                return false;
             }
+        }
 
-            await _dbcontext.SaveChangesAsync();
-            return true;
+
+        public async Task<bool> InsertarProductos(List<PedidosProducto> productos)
+        {
+            try
+            {
+                var idPedidos = productos.Select(p => p.IdPedido).Distinct().ToList();
+
+                foreach (var idPedido in idPedidos)
+                {
+                    var productosExistentes = await _dbcontext.PedidosProductos
+                                                              .Where(x => x.IdPedido == idPedido)
+                                                              .ToListAsync();
+
+                    // Eliminar los productos que no están en la lista
+                    var productosAEliminar = productosExistentes
+                                             .Where(pe => !productos.Any(p => p.IdPedido == pe.IdPedido && p.IdProducto == pe.IdProducto))
+                                             .ToList();
+
+                    _dbcontext.PedidosProductos.RemoveRange(productosAEliminar);
+
+                    // Insertar los productos nuevos o actualizar los existentes
+                    foreach (PedidosProducto p in productos)
+                    {
+                        var productoExistente = productosExistentes
+                                                .FirstOrDefault(x => x.IdPedido == p.IdPedido && x.IdProducto == p.IdProducto);
+
+                        if (productoExistente != null)
+                        {
+                            productoExistente.PrecioCosto = p.PrecioCosto;
+                            productoExistente.PrecioVenta = p.PrecioVenta;
+                            productoExistente.Cantidad = p.Cantidad;
+                            productoExistente.ProductoCantidad = p.ProductoCantidad;
+                        }
+                        else
+                        {
+                            _dbcontext.PedidosProductos.Add(p);
+                        }
+                    }
+                }
+
+                await _dbcontext.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex); // Opcional: loguear el error
+                return false;
+            }
         }
 
 
         public async Task<bool> NuevoPedido(Pedido model)
         {
-            _dbcontext.Pedidos.Add(model);
-            await _dbcontext.SaveChangesAsync();
-            return true;
+            try
+            {
+                _dbcontext.Pedidos.Add(model);
+                await _dbcontext.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
         }
 
 
@@ -293,7 +433,8 @@ namespace SistemaGian.DAL.Repository
                     .Where(c => c.IdPedido == idPedido).ToList();
                 return productos;
 
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 Console.WriteLine(ex);
                 return null;

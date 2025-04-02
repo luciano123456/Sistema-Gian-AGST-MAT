@@ -33,6 +33,7 @@ namespace SistemaGian.Application.Models.ViewModels
 
         public decimal? TotalGanancia { get; set; }
         public decimal? PorcGanancia { get; set; }
+        public decimal? SaldoUsado { get; set; }
 
 
         public string? Estado { get; set; }

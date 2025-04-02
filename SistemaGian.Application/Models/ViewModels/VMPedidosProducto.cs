@@ -14,6 +14,7 @@ public partial class VMPedidosProducto
     public decimal? PrecioVenta { get; set; }
     public decimal? PrecioCosto { get; set; }
     public decimal? Total { get; set; }
+    public decimal? ProductoCantidad { get; set; }
     public string Nombre { get; set; }
 
     public int? Cantidad { get; set; }

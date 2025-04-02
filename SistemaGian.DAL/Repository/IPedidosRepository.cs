@@ -16,6 +16,8 @@ namespace SistemaGian.DAL.Repository
         Task<PagosPedidosCliente> ObtenerPagoCliente(int idpago);
         Task<bool> NuevoPedido(Pedido model);
         Task<bool> Actualizar(Pedido model);
+        Task<bool> Insertar(Pedido pedido, List<PagosPedidosCliente> pagosCliente, List<PagosPedidosProveedor> pagosProveedores, List<PedidosProducto> productos);
+        Task<bool> Actualizar(Pedido pedido, List<PagosPedidosCliente> pagosCliente, List<PagosPedidosProveedor> pagosProveedores, List<PedidosProducto> productos);
         Task<bool> InsertarPagosCliente(List<PagosPedidosCliente> pagos);
         Task<bool> InsertarPagosProveedor(List<PagosPedidosProveedor> pagos);
         Task<bool> InsertarProductos(List<PedidosProducto> productos);

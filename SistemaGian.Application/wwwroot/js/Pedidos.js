@@ -90,7 +90,7 @@ async function eliminarPedido(id) {
 
     if (resultado) {
         try {
-            const response = await fetch("Pedidos/Eliminar?id=" + id, {
+            const response = await fetch("/Pedidos/Eliminar?id=" + id, {
                 method: "DELETE"
             });
 
