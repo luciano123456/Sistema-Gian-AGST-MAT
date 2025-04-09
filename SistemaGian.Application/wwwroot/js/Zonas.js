@@ -1,5 +1,7 @@
 ﻿let gridZonas;
 const precioInput = document.getElementById('txtPrecio');
+var selectedZonas = [];
+let isEditing = false;
 
 
 const columnConfig = [
@@ -17,20 +19,37 @@ const Modelo_base = {
 
 $(document).ready(() => {
 
-    listaZonas();
+    listaZonas(-1);
+    listaClientesFiltro();
 
     $('#txtNombre').on('input', function () {
         validarCampos()
     });
+
+    $("#Clientes").select2({
+        dropdownParent: $("#modalClientes"),
+        width: "100%",
+        placeholder: "Selecciona una opción",
+        allowClear: false
+    });
+
+
+
 })
 
 function guardarCambios() {
     if (validarCampos()) {
         const idZona = $("#txtId").val();
+        const idCliente = $("#clientesfiltro").val();
+        const zona = $("#txtNombre").val();
+        const cliente = $("#clientesfiltro option:selected").text();
+
+
         const nuevoModelo = {
             "Id": idZona !== "" ? idZona : 0,
-            "Nombre": $("#txtNombre").val(),
+            "Nombre": zona,
             "Precio": formatoNumero($("#txtPrecio").val()),
+            "IdCliente": idCliente,
         };
 
         const url = idZona === "" ? "Zonas/Insertar" : "Zonas/Actualizar";
@@ -48,10 +67,20 @@ function guardarCambios() {
                 return response.json();
             })
             .then(dataJson => {
-                const mensaje = idZona === "" ? "Zona registrada correctamente" : "Zona modificada correctamente";
+                let mensaje = "";
+
+                if (idZona === "") {
+                    mensaje = "Zona registrada correctamente."
+                } else {
+                    mensaje = idCliente > 0 ? ` ${zona} del cliente ${cliente} modificada correctamente` : "Zona modificada correctamente."
+                };
+
+                /*const mensaje = idZona === "" ? "Zona registrada correctamente" : "Zona modificada correctamente";*/
+
+
                 $('#modalEdicion').modal('hide');
                 exitoModal(mensaje);
-                listaZonas();
+                listaZonas($("#clientesfiltro").val());
             })
             .catch(error => {
                 console.error('Error:', error);
@@ -79,6 +108,8 @@ function nuevaZona() {
     document.getElementById(`txtPrecio`).value = "$0.00";
 }
 async function mostrarModal(modelo) {
+    let idCliente = $("#clientesfiltro").val();
+
     const campos = ["Id", "Nombre", "Precio"];
     campos.forEach(campo => {
         if (campo == "Precio") {
@@ -87,6 +118,12 @@ async function mostrarModal(modelo) {
             $(`#txt${campo}`).val(modelo[campo]);
         }
     });
+
+    if (idCliente > 0) {
+        $("#txtNombre").attr("disabled", true);
+    } else {
+        $("#txtNombre").attr("disabled", false);
+    }
 
 
     $('#modalEdicion').modal('show');
@@ -103,16 +140,22 @@ function limpiarModal() {
 
     $("#lblNombre, #txtNombre").css("color", "").css("border-color", "");
 }
-async function listaZonas() {
-    const url = `/Zonas/Lista`;
+
+async function listaZonas(idCliente) {
+    document.getElementById("btnAsignarCliente").setAttribute("hidden", "hidden");
+
+    selectedZonas = [];
+
+    const url = `/Zonas/Lista?IdCliente=${idCliente}`;
     const response = await fetch(url);
     const data = await response.json();
     await configurarDataTable(data);
-
 }
 
 const editarZona = id => {
-    fetch("Zonas/EditarInfo?id=" + id)
+    let idCliente = $("#clientesfiltro").val();
+
+    fetch(`Zonas/EditarInfo?id=${id}&idCliente=${idCliente}`)
         .then(response => {
             if (!response.ok) throw new Error("Ha ocurrido un error.");
             return response.json();
@@ -171,6 +214,9 @@ async function configurarDataTable(data) {
                     title: '',
                     width: "1%", // Ancho fijo para la columna
                     render: function (data) {
+                        const isChecked = false;
+
+                        const checkboxClass = isChecked ? 'fa-check-square-o' : 'fa-square-o';
                         return `
                 <div class="acciones-menu" data-id="${data}">
                     <button class='btn btn-sm btnacciones' type='button' onclick='toggleAcciones(${data})' title='Acciones'>
@@ -184,7 +230,12 @@ async function configurarDataTable(data) {
                             <i class='fa fa-trash-o fa-lg text-danger' aria-hidden='true'></i> Eliminar
                         </button>
                     </div>
-                </div>`;
+                    <span class="custom-checkbox" data-id='${data}'>
+                                    <i class="fa ${checkboxClass} checkbox"></i>
+                                </span>
+                </div>
+                `
+                            ;
                     },
                     orderable: false,
                     searchable: false,
@@ -232,7 +283,7 @@ async function configurarDataTable(data) {
                 'pageLength'
             ],
             "columnDefs": [
-               
+
                 {
                     "render": function (data, type, row) {
                         return formatNumber(data); // Formatear número en la columna
@@ -282,14 +333,200 @@ async function configurarDataTable(data) {
                     }
                 });
 
+                $('#grd_Zonas').on('draw.dt', function () {
+                    $(document).off('click', '.custom-checkbox'); // Desvincular el evento anterior
+                    $(document).on('click', '.custom-checkbox', handleCheckboxClick); // Asignar el evento correctamente
+                });
+
+                $(document).on('click', '.custom-checkbox', function (event) {
+                    handleCheckboxClick(event);
+                });
+
+
                 var firstColIdx = 0;  // Índice de la primera columna
                 $('.filters th').eq(firstColIdx).html(''); // Limpiar la primera columna
+
+
 
                 setTimeout(function () {
                     gridZonas.columns.adjust();
                 }, 10);
 
                 configurarOpcionesColumnas();
+
+                $('#grd_Zonas tbody').on('dblclick', 'td', async function () {
+                    var cell = gridZonas.cell(this);
+                    var originalData = cell.data();
+                    var colIndex = cell.index().column;
+                    var rowData = gridZonas.row($(this).closest('tr')).data();
+
+                    // Verificar si la columna es la de usuario 
+                    if (colIndex === 0) {
+                        return; // No permitir editar en la columna de usuario
+                    }
+
+                    var idCliente = document.getElementById("clientesfiltro").value;
+                    if (colIndex === 1 && idCliente > 0) {
+                        return;
+                    }
+
+
+                    if (isEditing == true) {
+                        return;
+                    } else {
+                        isEditing = true;
+                    }
+
+                    // Eliminar la clase 'blinking' si está presente
+                    if ($(this).hasClass('blinking')) {
+                        $(this).removeClass('blinking');
+                    }
+
+                    // Si ya hay un input o select, evitar duplicados
+                    if ($(this).find('input').length > 0 || $(this).find('select').length > 0) {
+                        return;
+                    }
+
+                    if (colIndex === 2) {
+                        var valueToDisplay = originalData ? originalData.toString().replace(/[^\d.-]/g, '') : '';
+
+                        var input = $('<input type="text" class="form-control" style="background-color: transparent; border: none; border-bottom: 2px solid green; color: green; text-align: center;" />')
+                            .val(formatoMoneda.format(valueToDisplay))
+                            .on('input', function () {
+                                var saveBtn = $(this).siblings('.fa-check'); // Botón de guardar
+
+                                if ($(this).val().trim() === "") {
+                                    $(this).css('border-bottom', '2px solid red'); // Borde rojo
+                                    saveBtn.css('opacity', '0.5'); // Desactivar botón de guardar visualmente
+                                    saveBtn.prop('disabled', true); // Desactivar funcionalidad del botón
+                                } else {
+                                    $(this).css('border-bottom', '2px solid green'); // Borde verde
+                                    saveBtn.css('opacity', '1'); // Habilitar botón de guardar visualmente
+                                    saveBtn.prop('disabled', false); // Habilitar funcionalidad del botón
+                                }
+                            })
+                        input.on('blur', function () {
+                            // Solo limpiar el campo si no se ha presionado "Aceptar"
+                            var rawValue = $(this).val().replace(/[^0-9,-]/g, ''); // Limpiar caracteres no numéricos
+                            $(this).val(formatoMoneda.format(parseDecimal(rawValue))); // Mantener el valor limpio
+                        })
+                            .on('keydown', function (e) {
+                                if (e.key === 'Enter') {
+                                    saveEdit(colIndex, gridZonas.row($(this).closest('tr')).data(), input.val(), input.val(), $(this).closest('tr'));
+                                } else if (e.key === 'Escape') {
+                                    cancelEdit();
+                                }
+                            });
+
+                        var saveButton = $('<i class="fa fa-check text-success"></i>').on('click', function () {
+                            if (!$(this).prop('disabled')) { // Solo guardar si el botón no está deshabilitado
+                                saveEdit(colIndex, gridZonas.row($(this).closest('tr')).data(), input.val(), input.val(), $(this).closest('tr'));
+                            }
+                        });
+
+                        var cancelButton = $('<i class="fa fa-times text-danger"></i>').on('click', cancelEdit);
+
+                        // Reemplazar el contenido de la celda
+                        $(this).empty().append(input).append(saveButton).append(cancelButton);
+
+                        input.focus();
+                    } else { // Para las demás columnas
+                        var valueToDisplay = originalData && originalData.trim() !== "" ? originalData.replace(/<[^>]+>/g, "") : originalData || "";
+
+                        var input = $('<input type="text" class="form-control" style="background-color: transparent; border: none; border-bottom: 2px solid green; color: green; text-align: center;" />')
+                            .val(valueToDisplay)
+                            .on('input', function () {
+                                var saveBtn = $(this).siblings('.fa-check'); // Botón de guardar
+
+                                if (colIndex === 0) { // Validar solo si es la columna 0
+                                    if ($(this).val().trim() === "") {
+                                        $(this).css('border-bottom', '2px solid red'); // Borde rojo
+                                        saveBtn.css('opacity', '0.5'); // Desactivar botón de guardar visualmente
+                                        saveBtn.prop('disabled', true); // Desactivar funcionalidad del botón
+                                    } else {
+                                        $(this).css('border-bottom', '2px solid green'); // Borde verde
+                                        saveBtn.css('opacity', '1'); // Habilitar botón de guardar visualmente
+                                        saveBtn.prop('disabled', false); // Habilitar funcionalidad del botón
+                                    }
+                                }
+                            })
+                            .on('keydown', function (e) {
+                                if (e.key === 'Enter') {
+                                    saveEdit(colIndex, gridZonas.row($(this).closest('tr')).data(), input.val(), input.val(), $(this).closest('tr'));
+                                } else if (e.key === 'Escape') {
+                                    cancelEdit();
+                                }
+                            });
+
+                        var saveButton = $('<i class="fa fa-check text-success"></i>').on('click', function () {
+                            if (!$(this).prop('disabled')) { // Solo guardar si el botón no está deshabilitado
+                                saveEdit(colIndex, gridZonas.row($(this).closest('tr')).data(), input.val(), input.val(), $(this).closest('tr'));
+                            }
+                        });
+
+                        var cancelButton = $('<i class="fa fa-times text-danger"></i>').on('click', cancelEdit);
+
+                        // Reemplazar el contenido de la celda
+                        $(this).empty().append(input).append(saveButton).append(cancelButton);
+
+                        input.focus();
+                    }
+
+                    // Función para guardar los cambios
+                    async function saveEdit(colIndex, rowData, newText, newValue, trElement) {
+                        // Obtener el nodo de la celda desde el índice
+                        var celda = $(trElement).find('td').eq(colIndex); // Obtener la celda correspondiente dentro de la fila
+                        // Obtener el valor original de la celda
+                        var originalText = gridZonas.cell(trElement, colIndex).data();
+
+                        // Verificar si el texto realmente ha cambiado
+                        if (originalText === newText) {
+                            cancelEdit();
+                            return; // Si no ha cambiado, no hacer nada
+                        }
+
+
+                        if (colIndex === 2) { // Precio
+                            rowData.Precio = parseFloat(convertirMonedaAFloat(newValue)); // Actualizar PrecioCosto
+                        } else {
+                            rowData[gridZonas.column(colIndex).header().textContent] = newText; // Usamos el nombre de la columna para guardarlo
+                        }
+
+
+
+
+
+                        // Enviar los datos al servidor
+                        var resp = await guardarCambiosFila(rowData);
+
+                        if (resp) {
+                            // Aplicar el parpadeo solo si el texto cambió
+                            if (originalText !== newText) {
+                                // Actualizar la fila en la tabla con los nuevos datos
+                                gridZonas.row(trElement).data(rowData).draw();
+                                celda.addClass('blinking'); // Aplicar la clase 'blinking' a la celda que fue editada
+                            }
+                        } else {
+                            cancelEdit();
+                        }
+
+                        // Desactivar el modo de edición
+                        isEditing = false;
+
+                        // Eliminar la clase 'blinking' después de 3 segundos (para hacer el efecto de parpadeo)
+                        setTimeout(function () {
+                            celda.removeClass('blinking');
+                        }, 3000); // Duración de la animación de parpadeo (3 segundos)
+                    }
+
+
+                    // Función para cancelar la edición
+                    function cancelEdit() {
+                        // Restaurar el valor original
+                        gridZonas.cell(cell.index()).data(originalData).draw();
+                        isEditing = false;
+                    }
+                });
 
                 // Agregar eventos al marcador
                 $('body').on('mouseenter', '#grd_Zonas .fa-map-marker', function () {
@@ -369,3 +606,188 @@ $(document).on('click', function (e) {
         $('.acciones-dropdown').hide(); // Cerrar todos los dropdowns
     }
 });
+
+async function listaClientesFiltro() {
+    const url = `/Clientes/Lista`;
+    const response = await fetch(url);
+    const data = await response.json();
+
+    $('#clientesfiltro option').remove();
+
+    selectClientes = document.getElementById("clientesfiltro");
+
+    option = document.createElement("option");
+    option.value = -1;
+    option.text = "-";
+    selectClientes.appendChild(option);
+
+    for (i = 0; i < data.length; i++) {
+        option = document.createElement("option");
+        option.value = data[i].Id;
+        option.text = data[i].Nombre;
+        selectClientes.appendChild(option);
+
+    }
+}
+
+
+async function aplicarFiltros() {
+    const idCliente = document.getElementById("clientesfiltro").value;
+
+    listaZonas(idCliente);
+}
+
+// Manejar el click en el checkbox
+function handleCheckboxClick(event) {
+    // Encontrar el contenedor más cercano .custom-checkbox
+    var checkbox = $(event.target).closest('.custom-checkbox');
+
+    // Obtener el ID del checkbox
+    var ventaId = checkbox.data('id');
+
+    // Verificar si ventaId es undefined
+    if (ventaId === undefined) {
+        console.error("No se encontró el atributo data-id.");
+        return;
+    }
+
+    var icon = checkbox.find('.fa'); // Obtener el icono dentro del checkbox
+
+    // Alternar la clase "checked" para el icono
+    icon.toggleClass('checked');
+
+    // Si el checkbox está marcado
+    if (icon.hasClass('checked')) {
+        icon.removeClass('fa-square-o');
+        icon.addClass('fa-check-square');
+        selectedZonas.push(ventaId);
+    } else { // Si no está marcado
+        icon.removeClass('fa-check-square');
+        icon.addClass('fa-square-o');
+        var indexToRemove = selectedZonas.indexOf(ventaId);
+        if (indexToRemove !== -1) {
+            selectedZonas.splice(indexToRemove, 1);
+        }
+    }
+
+    // Mostrar u ocultar el botón dependiendo de la selección
+    if (selectedZonas.length > 0) {
+        document.getElementById("btnAsignarCliente").removeAttribute("hidden");
+    } else {
+        document.getElementById("btnAsignarCliente").setAttribute("hidden", "hidden");
+    }
+
+    console.log(selectedZonas);
+}
+function desmarcarCheckboxes() {
+    // Obtener todos los elementos con la clase 'custom-checkbox' dentro de la tabla
+    var checkboxes = gridZonas.cells('.custom-checkbox').nodes(); // Utiliza 'cells' para obtener las celdas en lugar de 'column'
+
+    // Iterar sobre cada checkbox y desmarcarlo
+    for (var i = 0; i < checkboxes.length; i++) {
+        var icon = $(checkboxes[i]).find('.fa');
+
+        // Desmarcar el checkbox
+        icon.removeClass('fa-check-square');
+        icon.addClass('fa-square-o');
+
+        // Asegurarse de que la clase 'checked' esté eliminada
+        icon.removeClass('checked');
+    }
+
+    // Limpiar el array de IDs seleccionados
+    selectedZonas = [];
+
+    // Ocultar el botón
+    document.getElementById("btnAsignarCliente").removeAttribute("hidden");
+}
+
+
+function abrirmodalClientes() {
+    listaClientes();
+    $("#modalClientes").modal("show");
+}
+
+async function listaClientes() {
+    const url = `/Clientes/Lista`;
+    const response = await fetch(url);
+    const data = await response.json();
+
+    $('#Clientes option').remove();
+
+    select = document.getElementById("Clientes");
+
+    for (i = 0; i < data.length; i++) {
+        option = document.createElement("option");
+        option.value = data[i].Id;
+        option.text = data[i].Nombre;
+        select.appendChild(option);
+
+    }
+}
+
+
+function asignarCliente() {
+
+    const nuevoModelo = {
+        zonas: JSON.stringify(selectedZonas),
+        idCliente: document.getElementById("Clientes").value
+
+    };
+
+    const url = "Zonas/InsertarZonaCliente";
+    const method = "POST";
+
+    fetch(url, {
+        method: method,
+        headers: {
+            'Content-Type': 'application/json;charset=utf-8'
+        },
+        body: JSON.stringify(nuevoModelo)
+    })
+        .then(response => {
+            if (!response.ok) throw new Error(response.statusText);
+            return response.json();
+        })
+        .then(dataJson => {
+            if (dataJson != null) {
+                const mensaje = "Cliente asignado correctamente";
+                exitoModal(mensaje);
+            } else {
+                const mensaje = "Ha ocurrido un error al asignar el proveedor";
+                errorModal(mensaje);
+            }
+            $("#modalClientes").modal("hide");
+
+            //desmarcarCheckboxes();
+            //listaProductos();
+
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+}
+
+
+async function guardarCambiosFila(rowData) {
+    try {
+        rowData.IdCliente = document.getElementById("clientesfiltro").value;  // Puedes modificar este valor según necesites.
+
+
+        const response = await fetch('/Zonas/Actualizar', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(rowData)
+        });
+
+        if (response.ok) {
+            return true;
+        } else {
+            errorModal('Ha ocurrido un error al guardar los datos...')
+        }
+    } catch (error) {
+        console.error('Error de red:', error);
+    }
+}
