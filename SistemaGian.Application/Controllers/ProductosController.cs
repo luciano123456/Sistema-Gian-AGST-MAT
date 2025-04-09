@@ -163,7 +163,8 @@ namespace SistemaGian.Application.Controllers
                 PorcGanancia = c.PorcGanancia,
                 ProductoCantidad = c.ProductoCantidad,
                 Total = c.PVenta * (int)c.ProductoCantidad,
-                Image = c.Image
+                Image = c.Image,
+                Activo = (int)c.Activo
                 
             }).ToList();
 
@@ -192,7 +193,8 @@ namespace SistemaGian.Application.Controllers
                     PorcGanancia = c.PorcGanancia,
                     ProductoCantidad = c.ProductoCantidad,
                     Total = c.PVenta * (int)c.ProductoCantidad,
-                    Image = c.Image
+                    Image = c.Image,
+                    Activo = c.Activo
 
                 }).ToList();
 
@@ -205,15 +207,32 @@ namespace SistemaGian.Application.Controllers
         }
 
 
-     
 
 
 
 
 
 
+        [HttpPost]
+        public async Task<IActionResult> EditarActivo([FromBody] VMEstadoProductos model)
+        {
+            try
+            {
 
+                var result = await _Productoservice.EditarActivo(model.Id, (int)model.activo);
 
+                if (result)
+                    return Json(new { Status = true });
+
+                else
+                    return Json(new { Status = false });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { Status = false });
+            }
+
+        }
 
 
 
@@ -233,7 +252,8 @@ namespace SistemaGian.Application.Controllers
                 PVenta = model.PVenta,
                 PorcGanancia = model.PorcGanancia,
                 ProductoCantidad = model.ProductoCantidad != null ? model.ProductoCantidad : 1,
-                Image = model.Image
+                Image = model.Image,
+                Activo = 1
             };
 
             bool respuesta = await _Productoservice.Insertar(Producto);
@@ -325,7 +345,8 @@ namespace SistemaGian.Application.Controllers
                 PVenta = model.PVenta,
                 PorcGanancia = model.PorcGanancia,
                 ProductoCantidad = model.ProductoCantidad != null ? model.ProductoCantidad : 1,
-                Image = model.Image
+                Image = model.Image,
+                Activo = model.Activo
             };
 
 

@@ -295,5 +295,11 @@ namespace SistemaGian.BLL.Service
 
             return duplicado;
         }
+
+        public async Task<bool> EditarActivo(int id, int activo)
+        {
+            var resp = await _contactRepo.EditarActivo(id, activo);
+            return resp;
+        }
     }
 }

@@ -137,7 +137,7 @@ namespace SistemaGian.DAL.Repository
                 var productos = await _dbcontext.Productos
            .Include(p => p.ProductosPreciosHistorial)
            .Include(p => p.ProductosPreciosProveedor) // Incluye la relación con ProductosPreciosProveedores
-           .Where(p => p.ProductosPreciosHistorial.Any(ppp => (ppp.IdProveedor == idProveedor && ppp.IdCliente == idCliente) || (ppp.IdProveedor == idProveedor && ppp.IdCliente == null))) // Filtra por proveedor específico
+           .Where(p => p.ProductosPreciosHistorial.Any(ppp => (ppp.IdProveedor == idProveedor && ppp.IdCliente == idCliente) || (ppp.IdProveedor == idProveedor && ppp.IdCliente == null)) && p.Activo == 1) // Filtra por proveedor específico
            .ToListAsync();
 
                 var resultados = new List<ProductosPreciosHistorial>();
