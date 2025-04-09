@@ -11,6 +11,7 @@ namespace SistemaGian.DAL.Repository
     public interface IProductoRepository: IGenericRepository<Producto>
     {
         Task<IQueryable<ProductosMarca>> ObtenerMarcas();
+        Task<bool> EditarActivo(int id, int activo);
         Task<Producto> ObtenerDatos(int idProducto);
         Task<IQueryable<ProductosCategoria>> ObtenerCategorias();
         Task<IQueryable<ProductosUnidadesDeMedida>> ObtenerUnidadesDeMedida();

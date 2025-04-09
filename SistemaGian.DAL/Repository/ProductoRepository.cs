@@ -253,5 +253,27 @@ namespace SistemaGian.DAL.Repository
             Producto model = await _dbcontext.Productos.FindAsync(idProducto);
             return model;
         }
+
+        public async Task<bool> EditarActivo(int id, int activo)
+        {
+            Producto model = await _dbcontext.Productos.FindAsync(id);
+            try
+            {
+                if (model != null)
+                {
+                    model.Activo = activo;
+                    await _dbcontext.SaveChangesAsync();
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
     }
 }
