@@ -21,5 +21,7 @@ public partial class PagosPedidosCliente
 
     public string? Observacion { get; set; }
 
+    public decimal? SaldoUsado { get; set; }
+
     public virtual Pedido? IdPedidoNavigation { get; set; }
 }

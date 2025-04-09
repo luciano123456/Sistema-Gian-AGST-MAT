@@ -13,6 +13,7 @@ public partial class PedidosProducto
 
     public decimal? PrecioVenta { get; set; }
     public decimal? PrecioCosto { get; set; }
+    public decimal? ProductoCantidad { get; set; }
 
     public int? Cantidad { get; set; }
 

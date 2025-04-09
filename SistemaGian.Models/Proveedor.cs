@@ -19,7 +19,7 @@ public partial class Proveedor
 
     public virtual ICollection<ProductosPreciosCliente> ProductosPreciosClientes { get; set; } = new List<ProductosPreciosCliente>();
 
-    public virtual ICollection<ProductosPreciosHistorial> ProductosPreciosHistorials { get; set; } = new List<ProductosPreciosHistorial>();
+    public virtual ICollection<ProductosPreciosHistorial> ProductosPreciosHistorial { get; set; } = new List<ProductosPreciosHistorial>();
 
     public virtual ICollection<ProductosPreciosProveedor> ProductosPreciosProveedores { get; set; } = new List<ProductosPreciosProveedor>();
 }
