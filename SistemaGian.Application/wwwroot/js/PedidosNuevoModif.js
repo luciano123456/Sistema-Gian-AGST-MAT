@@ -270,7 +270,7 @@ async function abrirChofer() {
 
 async function abrirZona() {
 
-    let idCliente = parseInt($("#idCliente").val()); // El segundo parámetro asegura que estamos usando base 10
+    let idCliente = parseInt($("#idCliente").val());
 
     // Comprobar si idCliente es NaN o vacío
     if (isNaN(idCliente) || idCliente === "") {
