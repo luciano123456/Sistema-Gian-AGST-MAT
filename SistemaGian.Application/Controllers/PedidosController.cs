@@ -319,7 +319,8 @@ namespace SistemaGian.Application.Controllers
                             Cotizacion = pagoCliente.Cotizacion,
                             Total = pagoCliente.Total,
                             TotalArs = pagoCliente.TotalArs,
-                            Observacion = pagoCliente.Observacion
+                            Observacion = pagoCliente.Observacion,
+                            SaldoUsado = pagoCliente.SaldoUsado
                         };
                         pagosCliente.Add(nuevoPagoCliente);
                     }
@@ -495,7 +496,8 @@ namespace SistemaGian.Application.Controllers
                         Observacion = p.Observacion,
                         Total = p.Total,
                         TotalArs = p.TotalArs,
-                        Moneda = monedaNombre
+                        Moneda = monedaNombre,
+                        SaldoUsado = p.SaldoUsado
                     });
                 }
 

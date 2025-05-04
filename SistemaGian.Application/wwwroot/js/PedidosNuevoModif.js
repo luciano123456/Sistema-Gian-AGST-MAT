@@ -2,6 +2,8 @@
 let saldoClienteFavor = 0;
 let saldoClienteFavorInicial = 0;
 
+let saldoUsadoInicial = 0;
+
 let editandopagoCliente = false;  // Indica si estamos en modo edición
 let pagoClienteIdEdicion = null;  // Almacena el ID del pago que estamos editando
 let precioSeleccionado; // Variable para guardar el precio seleccionado
@@ -101,6 +103,24 @@ async function insertarDatosPedido(datosPedido) {
     document.getElementById("btnNuevoModificar").textContent = "Guardar";
 
     await calcularDatosPedido();
+
+    if (datosPedido.SaldoAfavor > 0) {
+        $('#lblSaldoCliente')
+            .removeAttr("hidden")
+            .html(`El cliente tiene un saldo a favor de <span style="color: yellow; font-weight: bold;">${formatNumber(data.SaldoAfavor)}</span> pesos`)
+            .css({
+                "font-weight": "bold",
+                "color": "white"
+            });
+
+    } else {
+        $('#lblSaldoCliente')
+            .attr("hidden", "hidden")
+            .html(``);
+
+    }
+
+    saldoUsadoInicial = await calcularSaldoUsado();
 }
 async function abrirProveedor() {
     const proveedores = await obtenerProveedores();
@@ -208,7 +228,7 @@ function configurarEventosTablaClientes() {
         }
     });
 
- 
+
 
     // Selección de fila en la tabla
     $('#tablaClientes tbody').on('click', 'tr', function () {
@@ -348,8 +368,8 @@ function cargarDatosCliente(data) {
             .css({
                 "font-weight": "bold",
                 "color": "white"
-            });  
-          
+            });
+
     } else {
         $('#lblSaldoCliente')
             .attr("hidden", "hidden")
@@ -716,7 +736,7 @@ async function anadirProducto() {
             console.log("Diferencia:", diferencia);
 
             precioInput.val(formatoMoneda.format(precioVenta));
-            
+
 
             // Calcular el total
             await calcularTotal();
@@ -787,13 +807,13 @@ async function calcularSaldoUsado() {
 
     let saldoUsado = 0;
 
-        // Si estamos editando, solo actualizamos la fila correspondiente
-        grdPagosaClientes.rows().every(function () {
-            const data = this.data();
-            if (data.SaldoUsado > 0) {
-                saldoUsado += data.SaldoUsado;
-            }
-        });
+    // Si estamos editando, solo actualizamos la fila correspondiente
+    grdPagosaClientes.rows().every(function () {
+        const data = this.data();
+        if (data.SaldoUsado > 0) {
+            saldoUsado += data.SaldoUsado;
+        }
+    });
 
     return saldoUsado;
 }
@@ -1021,7 +1041,7 @@ async function abrirModalProducto(isEdit = false, productoId = null) {
             return data.IdProducto == productoId;
         }).data();
 
-       
+
 
         if (productoData) {
             // Obtener los productos con los últimos precios
@@ -1136,7 +1156,7 @@ async function calcularTotal() {
     // Extraer solo el número del campo precio
     const precio = parseFloat(convertirMonedaAFloat((precioRaw)));
 
-    const total = (precio * cantidadProducto) * cantidad ;
+    const total = (precio * cantidadProducto) * cantidad;
 
     // Mostrar el total formateado en el campo
     document.getElementById('totalInput').value = formatoMoneda.format(total);
@@ -1688,7 +1708,8 @@ async function guardarCambios() {
                     "Cotizacion": parseFloat(pago.Cotizacion),
                     "Total": parseFloat(pago.Total),
                     "TotalArs": parseFloat(pago.TotalArs),
-                    "Observacion": pago.Observacion // Ajusta si es necesario
+                    "Observacion": pago.Observacion, // Ajusta si es necesario
+                    "SaldoUsado": parseFloat(pago.SaldoUsado)
                 };
                 pagos.push(pagoJson);
             });
@@ -1741,7 +1762,6 @@ async function guardarCambios() {
             "PorcGanancia": parseFloat($("#porcGanancia").val()),
             "Estado": $("#estado").val(),
             "Observacion": $("#observacion").val(),
-            "SaldoUsado": saldoUsado,
             "PagosPedidosClientes": pagosClientes,
             "PagosPedidosProveedores": pagosaProveedores,
             "PedidosProductos": productos
@@ -1795,7 +1815,7 @@ function isValidPedido() {
 
     if (cantidadFilas <= 0) {
         if (IdPedido == "") {
-            errorModal('No puedes crear un pedido sin productos.') 
+            errorModal('No puedes crear un pedido sin productos.')
         } else {
             errorModal('No puedes modificar un pedido sin productos.')
         }

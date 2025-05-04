@@ -191,29 +191,53 @@ namespace SistemaGian.DAL.Repository
                                                           .Where(x => x.IdPedido == idPedido)
                                                           .ToListAsync();
 
+                    var pedido = await _dbcontext.Pedidos
+                                                 .AsNoTracking()
+                                                 .FirstOrDefaultAsync(p => p.Id == idPedido);
+
+                    if (pedido == null) continue;
+
+                    var cliente = await _dbcontext.Clientes
+                                                  .FirstOrDefaultAsync(c => c.Id == pedido.IdCliente);
+
+                    if (cliente == null) continue;
+
                     // Eliminar los pagos que no están en la lista
                     var pagosAEliminar = pagosExistentes
-                                         .Where(pe => !pagos.Any(p => p.IdPedido == pe.IdPedido && p.Id == pe.Id))
-                                         .ToList();
+                        .Where(pe => !pagos.Any(p => p.IdPedido == pe.IdPedido && p.Id == pe.Id))
+                        .ToList();
+
+                    foreach (var pe in pagosAEliminar)
+                    {
+                        cliente.SaldoAfavor += pe.SaldoUsado; // Devolver saldo usado del pago eliminado
+                    }
 
                     _dbcontext.PagosPedidosClientes.RemoveRange(pagosAEliminar);
 
                     // Insertar los pagos nuevos o actualizar los existentes
-                    foreach (PagosPedidosCliente p in pagos)
+                    foreach (PagosPedidosCliente p in pagos.Where(p => p.IdPedido == idPedido))
                     {
                         var pagoExistente = pagosExistentes
-                                            .FirstOrDefault(x => x.IdPedido == p.IdPedido && x.Id == p.Id);
+                            .FirstOrDefault(x => x.IdPedido == p.IdPedido && x.Id == p.Id);
 
                         if (pagoExistente != null)
                         {
+                            // Calcular diferencia de SaldoUsado
+                            decimal diferencia = p.SaldoUsado - pagoExistente.SaldoUsado;
+                            cliente.SaldoAfavor -= diferencia;
+
+                            // Actualizar datos
                             pagoExistente.Fecha = p.Fecha;
                             pagoExistente.Cotizacion = p.Cotizacion;
                             pagoExistente.Total = p.Total;
                             pagoExistente.TotalArs = p.TotalArs;
                             pagoExistente.Observacion = p.Observacion;
+                            pagoExistente.SaldoUsado = p.SaldoUsado;
                         }
                         else
                         {
+                            // Nuevo pago: restar SaldoUsado al cliente
+                            cliente.SaldoAfavor -= p.SaldoUsado;
                             _dbcontext.PagosPedidosClientes.Add(p);
                         }
                     }
@@ -224,10 +248,11 @@ namespace SistemaGian.DAL.Repository
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex); // Opcional: loguear el error
+                Console.WriteLine(ex);
                 return false;
             }
         }
+
 
 
         public async Task<bool> InsertarPagosProveedor(List<PagosPedidosProveedor> pagos)
@@ -348,15 +373,47 @@ namespace SistemaGian.DAL.Repository
 
         public async Task<bool> ActualizarPagosCliente(List<PagosPedidosCliente> pagos)
         {
-            foreach (PagosPedidosCliente p in pagos)
+            try
             {
-                _dbcontext.PagosPedidosClientes.Update(p);
+                foreach (PagosPedidosCliente p in pagos)
+                {
+                    var pagoOriginal = await _dbcontext.PagosPedidosClientes
+                        .AsNoTracking()
+                        .FirstOrDefaultAsync(x => x.Id == p.Id && x.IdPedido == p.IdPedido);
+
+                    if (pagoOriginal != null)
+                    {
+                        decimal diferencia = p.SaldoUsado - pagoOriginal.SaldoUsado;
+
+                        var pedido = await _dbcontext.Pedidos
+                            .AsNoTracking()
+                            .FirstOrDefaultAsync(x => x.Id == p.IdPedido);
+
+                        if (pedido != null)
+                        {
+                            var cliente = await _dbcontext.Clientes.FirstOrDefaultAsync(c => c.Id == pedido.IdCliente);
+                            if (cliente != null)
+                            {
+                                cliente.SaldoAfavor -= diferencia;
+                            }
+                        }
+
+                        _dbcontext.PagosPedidosClientes.Update(p);
+                    }
+                }
+
+                await _dbcontext.SaveChangesAsync();
+                return true;
             }
-
-            await _dbcontext.SaveChangesAsync();
-            return true;
-
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                return false;
+            }
         }
+
+
+
 
         public async Task<bool> ActualizarProductos(List<PedidosProducto> productos)
         {
