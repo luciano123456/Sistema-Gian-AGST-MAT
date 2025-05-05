@@ -20,6 +20,7 @@ public partial class VMPagosPedidosCliente
     public decimal Total { get; set; }
 
     public decimal TotalArs { get; set; }
+    public decimal SaldoUsado { get; set; }
 
     public string? Observacion { get; set; }
 

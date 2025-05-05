@@ -18,10 +18,10 @@ public partial class PagosPedidosCliente
     public decimal Total { get; set; }
 
     public decimal TotalArs { get; set; }
+    public decimal SaldoUsado { get; set; }
 
     public string? Observacion { get; set; }
 
-    public decimal? SaldoUsado { get; set; }
 
     public virtual Pedido? IdPedidoNavigation { get; set; }
 }

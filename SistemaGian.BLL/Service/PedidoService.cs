@@ -30,19 +30,14 @@ namespace SistemaGian.BLL.Service
             return await _contactRepo.Eliminar(idPedido);
         }
 
-        public async Task<bool> InsertarPagosCliente(List<PagosPedidosCliente> pagos)
+        public async Task<bool> Insertar(Pedido pedido, List<PagosPedidosCliente> pagosCliente, List<PagosPedidosProveedor> pagosProveedores, List<PedidosProducto> productos)
         {
-            return await _contactRepo.InsertarPagosCliente(pagos);
+            return await _contactRepo.Insertar(pedido, pagosCliente, pagosProveedores, productos);
         }
 
-        public async Task<bool> InsertarProductos(List<PedidosProducto> productos)
+        public async Task<bool> Actualizar(Pedido pedido, List<PagosPedidosCliente> pagosCliente, List<PagosPedidosProveedor> pagosProveedores, List<PedidosProducto> productos)
         {
-            return await _contactRepo.InsertarProductos(productos);
-        }
-
-        public async Task<bool> InsertarPagosProveedor(List<PagosPedidosProveedor> pagos)
-        {
-            return await _contactRepo.InsertarPagosProveedor(pagos);
+            return await _contactRepo.Actualizar(pedido, pagosCliente, pagosProveedores, productos);
         }
 
         public async Task<bool> NuevoPedido(Pedido model)
@@ -65,11 +60,7 @@ namespace SistemaGian.BLL.Service
             return await _contactRepo.ActualizarPagosProveedor(pagos);
         }
 
-        public async Task<bool> Actualizar(Pedido model)
-        {
-            return await _contactRepo.Actualizar(model);
-        }
-
+     
         public async Task<PagosPedidosProveedor> ObtenerPagoaProveedor(int idpago)
         {
            return await _contactRepo.ObtenerPagoaProveedor(idpago);

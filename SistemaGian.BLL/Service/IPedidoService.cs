@@ -12,10 +12,8 @@ namespace SistemaGian.BLL.Service
         Task<PagosPedidosProveedor> ObtenerPagoaProveedor(int idpago);
         Task<PagosPedidosCliente> ObtenerPagoCliente(int idpago);
         Task<bool> NuevoPedido(Pedido model);
-        Task<bool> Actualizar(Pedido model);
-        Task<bool> InsertarPagosCliente(List<PagosPedidosCliente> pagos);
-        Task<bool> InsertarPagosProveedor(List<PagosPedidosProveedor> pagos);
-        Task<bool> InsertarProductos(List<PedidosProducto> productos);
+        Task<bool> Insertar(Pedido pedido, List<PagosPedidosCliente> pagosCliente, List<PagosPedidosProveedor> pagosProveedores, List<PedidosProducto> productos);
+        Task<bool> Actualizar(Pedido pedido, List<PagosPedidosCliente> pagosCliente, List<PagosPedidosProveedor> pagosProveedores, List<PedidosProducto> productos);
         Task<bool> ActualizarPagosCliente(List<PagosPedidosCliente> pagos);
         Task<bool> ActualizarPagosProveedor(List<PagosPedidosProveedor> pagos);
         Task<bool> ActualizarProductos(List<PedidosProducto> productos);

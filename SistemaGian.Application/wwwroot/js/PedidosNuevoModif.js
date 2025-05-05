@@ -1,4 +1,8 @@
 ﻿let grdProveedores, grdClientes, grdChoferes, grdZonas, grdPagosaClientes, grdPagosaProveedores, grdProductos;
+let saldoClienteFavor = 0;
+let saldoClienteFavorInicial = 0;
+
+let saldoUsadoInicial = 0;
 
 let editandopagoCliente = false;  // Indica si estamos en modo edición
 let pagoClienteIdEdicion = null;  // Almacena el ID del pago que estamos editando
@@ -8,6 +12,8 @@ const cotizacionPagoClienteInput = document.getElementById('cotizacionPagoClient
 const cantidadPagoProveedorInput = document.getElementById('cantidadPagoProveedor');
 const cotizacionPagoProveedorInput = document.getElementById('cotizacionPagoProveedor');
 const costoFleteInput = document.getElementById('costoFlete');
+const checkSaldoFavor = document.getElementById('usarSaldoFavor');
+
 const IdPedido = document.getElementById('IdPedido').value;
 let productos = [];
 
@@ -97,6 +103,27 @@ async function insertarDatosPedido(datosPedido) {
     document.getElementById("btnNuevoModificar").textContent = "Guardar";
 
     await calcularDatosPedido();
+
+    saldoClienteFavor = datosPedido.SaldoAFavor;
+    saldoClienteFavorInicial = datosPedido.SaldoAFavor;
+
+    if (datosPedido.SaldoAFavor > 0) {
+        $('#lblSaldoCliente')
+            .removeAttr("hidden")
+            .html(`El cliente tiene un saldo a favor de <span style="color: yellow; font-weight: bold;">${formatNumber(datosPedido.SaldoAFavor)}</span> pesos`)
+            .css({
+                "font-weight": "bold",
+                "color": "white"
+            });
+
+    } else {
+        $('#lblSaldoCliente')
+            .attr("hidden", "hidden")
+            .html(``);
+
+    }
+
+    saldoUsadoInicial = await calcularSaldoUsado();
 }
 async function abrirProveedor() {
     const proveedores = await obtenerProveedores();
@@ -204,7 +231,7 @@ function configurarEventosTablaClientes() {
         }
     });
 
- 
+
 
     // Selección de fila en la tabla
     $('#tablaClientes tbody').on('click', 'tr', function () {
@@ -342,6 +369,29 @@ function cargarDatosCliente(data) {
     $('#dniCliente').val(data.Dni);
     $('#direccionCliente').val(data.Direccion);
     $('#telefonoCliente').val(data.Telefono);
+
+    saldoClienteFavor = data.SaldoAfavor;
+    saldoClienteFavorInicial = data.SaldoAfavor;
+
+    if (data.SaldoAfavor > 0) {
+        $('#lblSaldoCliente')
+            .removeAttr("hidden")
+            .html(`El cliente tiene un saldo a favor de <span style="color: yellow; font-weight: bold;">${formatNumber(data.SaldoAfavor)}</span> pesos`)
+            .css({
+                "font-weight": "bold",
+                "color": "white"
+            });
+
+    } else {
+        $('#lblSaldoCliente')
+            .attr("hidden", "hidden")
+            .html(``);
+
+    }
+
+
+
+
     // Limpiar solo los registros de la grilla de productos
     var table = $('#grd_Productos').DataTable();
     table.clear().draw();
@@ -698,7 +748,7 @@ async function anadirProducto() {
             console.log("Diferencia:", diferencia);
 
             precioInput.val(formatoMoneda.format(precioVenta));
-            
+
 
             // Calcular el total
             await calcularTotal();
@@ -763,6 +813,21 @@ function actualizarPrecioSeleccionado(selectElement, idProducto) {
 function seleccionarProducto(idProducto) {
     // Lógica para seleccionar el producto
     console.log(`Producto seleccionado: ${idProducto}, Precio: ${precioSeleccionado.precio}`);
+}
+
+async function calcularSaldoUsado() {
+
+    let saldoUsado = 0;
+
+    // Si estamos editando, solo actualizamos la fila correspondiente
+    grdPagosaClientes.rows().every(function () {
+        const data = this.data();
+        if (data.SaldoUsado > 0) {
+            saldoUsado += data.SaldoUsado;
+        }
+    });
+
+    return saldoUsado;
 }
 
 async function guardarProducto() {
@@ -932,7 +997,9 @@ function eliminarProducto(id) {
 
     calcularDatosPedido();
 }
-function editarProducto(id) {
+async function editarProducto(id) {
+
+
     // Buscar el producto en el DataTable por su ID
     let productoData = null;
     grdProductos.rows().every(function () {
@@ -942,10 +1009,12 @@ function editarProducto(id) {
         }
     });
 
+
     if (productoData) {
         // Cargar los datos del producto en el modal
         document.getElementById('productoSelect').value = productoData.Id;
         document.getElementById('precioInput').value = productoData.Precio;
+
 
         // Configurar el modal para edición
         $('#productosModal').data('edit-id', id);
@@ -984,7 +1053,7 @@ async function abrirModalProducto(isEdit = false, productoId = null) {
             return data.IdProducto == productoId;
         }).data();
 
-       
+
 
         if (productoData) {
             // Obtener los productos con los últimos precios
@@ -1097,9 +1166,9 @@ async function calcularTotal() {
     const cantidadProducto = parseFloat(document.getElementById('productoCantidad').value) || 0;
 
     // Extraer solo el número del campo precio
-    const precio = formatoNumero(precioRaw);
+    const precio = parseFloat(convertirMonedaAFloat((precioRaw)));
 
-    const total = (precio * cantidadProducto) * cantidad ;
+    const total = (precio * cantidadProducto) * cantidad;
 
     // Mostrar el total formateado en el campo
     document.getElementById('totalInput').value = formatoMoneda.format(total);
@@ -1217,6 +1286,7 @@ async function cargarDataTablePagoaClientes(data) {
                 orderable: false,
                 searchable: false,
                 width: "10%"
+
             }
         ],
 
@@ -1283,6 +1353,27 @@ async function editarPago(tipo, id) {
         document.getElementById(`cantidadPago${tipo}`).value = parseFloat(row.Total);
         document.getElementById(`observacionPago${tipo}`).value = row.Observacion;
 
+        let checkSaldoFavor = document.getElementById("usarSaldoFavor");
+
+        if (tipo == "Cliente") {
+            if (row.SaldoUsado > 0) {
+                $("#divSaldoFavor").removeAttr("hidden");
+                checkSaldoFavor.checked = true;
+            } else {
+                $("#divSaldoFavor").attr("hidden", "hidden");
+                checkSaldoFavor.checked = false;
+            }
+        }
+
+        let saldoUsado = await calcularSaldoUsado();
+        let saldoFavor = saldoClienteFavorInicial - saldoUsado;
+
+        if (row.SaldoUsado == 0 && saldoFavor > 0 && tipo == "Cliente") {
+            $("#divSaldoFavor").removeAttr("hidden");
+            checkSaldoFavor.checked = false;
+        }
+
+
         const cotizacionInput = document.getElementById(`cotizacionPago${tipo}`);
         const monedasSelect = document.getElementById(`MonedasPago${tipo}`);
 
@@ -1321,42 +1412,45 @@ async function editarPago(tipo, id) {
 }
 function eliminarPago(tipo, id) {
     // Eliminar el pago con el ID correspondiente
-
     let grid = null;
 
-    if (tipo == 'Cliente') {
+    // Determinar qué grid usar
+    if (tipo === 'Cliente') {
         grid = $('#grd_pagosClientes').DataTable();
-    } else if (tipo == 'Proveedor') {
+    } else if (tipo === 'Proveedor') {
         grid = $('#grd_pagosaProveedores').DataTable();
     }
 
     const idPedido = $("#IdPedido").val();
 
+    // Verificar si el ID contiene "pago_", y tratarlo correctamente
+    let idNumerico = id;
+    if (String(id).includes("pago_")) {
+        grid.rows().data().toArray().forEach(function (row, index) {
+            if (row.Id === id) {
+                grid.row(index).remove().draw();
+            }
+        });
+    } else {
+        idNumerico = parseInt(id);
+        grid.rows().data().toArray().forEach(function (row, index) {
+            if (row.Id === idNumerico) {
+                grid.row(index).remove().draw();
+            }
+        });
+    }
 
-
-    grid.rows().data().toArray().forEach(function (row, index) {
-
-        if (!String(id).includes("pago_")) {
-            id = parseInt(id);
-        } else {
-            id = grid.rows().data().toArray().find(x => x.Id === id).Id;
-        }
-
-        if (row.Id === id) {
-            grid.row(index).remove().draw();
-        }
-
-        calcularTotalPago(tipo);
-    });
-
+    // Llamar a las funciones para recalcular totales
+    calcularTotalPago(tipo);
     calcularDatosPedido();
 }
+
 function guardarPago(tipo) {
     const modal = $(`#pagos${tipo}Modal`);
     const monedaSelect = document.getElementById(`MonedasPago${tipo}`);
-    const cotizacion = formatoNumero(document.getElementById(`cotizacionPago${tipo}`).value);
+    const cotizacion = parseFloat(convertirMonedaAFloat((document.getElementById(`cotizacionPago${tipo}`).value)));
     const cantidadInput = parseFloat(document.getElementById(`cantidadPago${tipo}`).value) || 1; // Obtener cantidad, por defecto 1 si no es válida
-    const total = parseFloat(document.getElementById(`totalARSPago${tipo}`).value) || 1; // Obtener cantidad, por defecto 1 si no es válida
+    const total = parseFloat(convertirMonedaAFloat((document.getElementById(`totalARSPago${tipo}`).value))) || 1; // Obtener cantidad, por defecto 1 si no es válida
     const observacion = document.getElementById(`observacionPago${tipo}`).value; // Obtener cantidad, por defecto 1 si no es válida
     const fechapago = document.getElementById(`fechapago${tipo}`).value; // Obtener cantidad, por defecto 1 si no es válida
     const pagoId = `pago_${Date.now()}`; // Identificador basado en el timestamp
@@ -1371,6 +1465,12 @@ function guardarPago(tipo) {
         grid = $('#grd_pagosaProveedores').DataTable();
     }
 
+    var checkSaldoFavor = $("#usarSaldoFavor").prop('checked');
+
+    if (checkSaldoFavor) {
+        saldoUsado = cantidadInput;
+    }
+
     if (isEditing) {
         grid.rows().every(function () {
             const data = this.data();
@@ -1381,7 +1481,8 @@ function guardarPago(tipo) {
                     data.Cotizacion = cotizacion,
                     data.Total = cantidadInput, // Usar la cantidad proporcionada
                     data.TotalArs = cotizacion * cantidadInput, // Recalcular el total con formato de moneda
-                    data.Observacion = observacion
+                    data.Observacion = observacion,
+                    data.SaldoUsado = tipo == 'Cliente' && checkSaldoFavor ? cantidadInput : 0
                 this.data(data).draw();
             }
         });
@@ -1395,7 +1496,8 @@ function guardarPago(tipo) {
             Cotizacion: cotizacion,
             Total: cantidadInput, // Usar la cantidad proporcionada
             TotalArs: cotizacion * cantidadInput, // Recalcular el total con formato de moneda
-            Observacion: observacion
+            Observacion: observacion,
+            SaldoUsado: tipo == 'Cliente' && checkSaldoFavor ? cantidadInput : 0
         }).draw();
     }
 
@@ -1420,7 +1522,7 @@ async function calcularTotalPago(tipo) {
     grid.rows().every(function () {
         const data = this.data();
         // Parsear el valor de TotalArs eliminando cualquier formato de moneda
-        totalSum += formatoNumero(data.TotalArs);
+        totalSum += data.TotalArs;
     });
 
     // Asignar el total calculado al input correspondiente
@@ -1445,6 +1547,21 @@ async function anadirPago(tipo) {
         const observaciones = document.getElementById(`observacionPago${tipo}`);
 
         document.getElementById(`fechapago${tipo}`).value = moment().format('YYYY-MM-DD');
+
+        saldoUsado = await calcularSaldoUsado();
+
+        let checkSaldoFavor = document.getElementById("usarSaldoFavor");
+        checkSaldoFavor.checked = false;
+
+        let saldoTotal = saldoClienteFavorInicial - saldoUsado;
+
+        if (tipo == "Cliente") {
+            if (saldoTotal > 0) {
+                $("#divSaldoFavor").removeAttr("hidden");
+            } else {
+                $("#divSaldoFavor").attr("hidden", "hidden");
+            }
+        }
 
         monedasSelect.innerHTML = ''; // Limpiar opciones existentes
         observaciones.value = "";
@@ -1492,7 +1609,7 @@ async function calcularTotalCotizacionPago(tipo) {
     const totalPago = document.getElementById(`totalARSPago${tipo}`);
     const cotizacionPago = document.getElementById(`cotizacionPago${tipo}`).value;
     const cantidad = parseFloat(document.getElementById(`cantidadPago${tipo}`).value) || 0;
-    const total = formatoNumero(cotizacionPago) * cantidad;
+    const total = parseFloat(convertirMonedaAFloat((cotizacionPago))) * cantidad;
     totalPago.value = formatoMoneda.format(total);
 }
 
@@ -1585,7 +1702,7 @@ document.getElementById("estado").addEventListener("change", function () {
 });
 
 
-function guardarCambios() {
+async function guardarCambios() {
     const idPedido = $("#IdPedido").val();
 
     if (isValidPedido()) {
@@ -1603,7 +1720,8 @@ function guardarCambios() {
                     "Cotizacion": parseFloat(pago.Cotizacion),
                     "Total": parseFloat(pago.Total),
                     "TotalArs": parseFloat(pago.TotalArs),
-                    "Observacion": pago.Observacion // Ajusta si es necesario
+                    "Observacion": pago.Observacion, // Ajusta si es necesario
+                    "SaldoUsado": parseFloat(pago.SaldoUsado)
                 };
                 pagos.push(pagoJson);
             });
@@ -1620,6 +1738,7 @@ function guardarCambios() {
                     "Nombre": producto.Nombre,
                     "PrecioCosto": parseFloat(producto.PrecioCosto),
                     "PrecioVenta": parseFloat(producto.PrecioVenta),
+                    "ProductoCantidad": parseFloat(producto.ProductoCantidad),
                     "Cantidad": parseInt(producto.Cantidad),
 
                 };
@@ -1627,6 +1746,9 @@ function guardarCambios() {
             });
             return productos;
         }
+
+        const saldoUsado = await calcularSaldoUsado();
+
 
         // Obtener los pagos de clientes y proveedores usando la función reutilizable
         const pagosClientes = obtenerPagos(grdPagosaClientes);
@@ -1705,7 +1827,7 @@ function isValidPedido() {
 
     if (cantidadFilas <= 0) {
         if (IdPedido == "") {
-            errorModal('No puedes crear un pedido sin productos.') 
+            errorModal('No puedes crear un pedido sin productos.')
         } else {
             errorModal('No puedes modificar un pedido sin productos.')
         }
@@ -1720,3 +1842,26 @@ function isValidPedido() {
 
     return true;
 }
+
+
+checkSaldoFavor.addEventListener("change", function () {
+    const cantidadPagoCliente = document.getElementById("cantidadPagoCliente");
+    const restanteCliente = parseFloat(convertirMonedaAFloat(document.getElementById("restanteCliente").value));
+    const totalArs = parseFloat(convertirMonedaAFloat(document.getElementById("totalARSPagoCliente").value));
+
+    if (checkSaldoFavor.checked) {
+        cantidadPagoCliente.setAttribute("disabled", "disabled");
+
+        if (saldoClienteFavor > restanteCliente) {
+            cantidadPagoCliente.value = restanteCliente;
+        } else {
+            cantidadPagoCliente.value = saldoClienteFavor;
+        }
+
+    } else {
+        cantidadPagoCliente.removeAttribute("disabled");
+        cantidadPagoCliente.value = 1;
+    }
+
+    totalArs.value = formatNumber(parseFloat(cantidadPagoCliente.value))
+});

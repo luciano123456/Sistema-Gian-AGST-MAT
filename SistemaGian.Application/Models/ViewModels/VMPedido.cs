@@ -28,11 +28,13 @@ namespace SistemaGian.Application.Models.ViewModels
         public decimal? RestanteCliente { get; set; }
 
         public decimal? TotalProveedor { get; set; }
+        public decimal? SaldoAFavor { get; set; }
 
         public decimal? RestanteProveedor { get; set; }
 
         public decimal? TotalGanancia { get; set; }
         public decimal? PorcGanancia { get; set; }
+        public decimal? SaldoUsado { get; set; }
 
 
         public string? Estado { get; set; }

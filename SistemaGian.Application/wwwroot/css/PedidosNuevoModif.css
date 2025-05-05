@@ -65,3 +65,18 @@
 select option:disabled {
     color: red; /* Cambiar el color de la letra a rojo */
 }
+
+#usarSaldoFavor:checked {
+    background-color: #28a745; /* Verde */
+    border-color: #28a745;
+}
+
+    #usarSaldoFavor:checked + .form-check-label {
+        color: #28a745; /* Verde para el texto */
+    }
+
+.bgSaldoFavor {
+    background-color: rgba(128, 128, 128, 0.3); /* Gris con transparencia */
+    border: 1px solid rgba(128, 128, 128, 0.5); /* Borde gris */
+   
+}

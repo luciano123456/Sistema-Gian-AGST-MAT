@@ -11,7 +11,7 @@ using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace SistemaGian.DAL.Repository
 {
-    public class ClienteRepository : IGenericRepository<Cliente>
+    public class ClienteRepository : IClienteRepository<Cliente>
     {
 
         private readonly SistemaGianContext _dbcontext;
@@ -58,8 +58,32 @@ namespace SistemaGian.DAL.Repository
             return await Task.FromResult(query);
         }
 
+        public async Task<bool> RestarSaldo(int idCliente, decimal Saldo)
+        {
+            Cliente model = await _dbcontext.Clientes.FindAsync(idCliente);
 
+            if(model != null)
+            {
+                model.SaldoAfavor = (model.SaldoAfavor ?? 0) - Saldo; // Si es null, lo convierte en 0 antes de sumar
+                await _dbcontext.SaveChangesAsync();
+                return true;
+            }
 
+            return false;
+        }
 
+        public async Task<bool> SumarSaldo(int idCliente, decimal Saldo)
+        {
+            Cliente model = await _dbcontext.Clientes.FindAsync(idCliente);
+
+            if (model != null)
+            {
+                model.SaldoAfavor = (model.SaldoAfavor ?? 0) + Saldo; // Si es null, lo convierte en 0 antes de sumar
+                await _dbcontext.SaveChangesAsync();
+                return true;
+            }
+
+            return false;
+        }
     }
 }

@@ -14,11 +14,10 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
-// Configurar la conexión a la base de datos
 builder.Services.AddDbContext<SistemaGianContext>(options =>
-{
-    options.UseSqlServer(builder.Configuration.GetConnectionString("cadenaSQL"));
-});
+    options.UseSqlServer(builder.Configuration.GetConnectionString("SistemaDB")));
+
+
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
@@ -31,7 +30,7 @@ builder.Services.AddControllers()
 builder.Services.AddRazorPages().AddRazorRuntimeCompilation();
 
 // Registrar repositorios y servicios
-builder.Services.AddScoped<IGenericRepository<Cliente>, ClienteRepository>();
+builder.Services.AddScoped<IClienteRepository<Cliente>, ClienteRepository>();
 builder.Services.AddScoped<IClienteService, ClienteService>();
 builder.Services.AddScoped<IProvinciaRepository<Provincia>, ProvinciaRepository>();
 builder.Services.AddScoped<IProvinciaService, ProvinciaService>();

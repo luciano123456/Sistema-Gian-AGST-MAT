@@ -21,8 +21,9 @@ namespace SistemaGian.Application.Controllers
         private readonly IChoferService _choferService;
         private readonly IMonedaService _monedaService;
         private readonly IProductosPrecioProveedorService _productosPrecioProveedorService;
+        private readonly IClienteService _clienteService;
 
-        public PedidosController(IPedidoService pedidoservice, IProductoService Productoservice, IZonasService zonaService, IMonedaService monedaService, IChoferService choferService, IProductosPrecioProveedorService productosPrecioProveedorService)
+        public PedidosController(IPedidoService pedidoservice, IProductoService Productoservice, IZonasService zonaService, IMonedaService monedaService, IChoferService choferService, IProductosPrecioProveedorService productosPrecioProveedorService, IClienteService clienteService)
         {
             _pedidoservice = pedidoservice;
             _Productoservice = Productoservice;
@@ -30,6 +31,7 @@ namespace SistemaGian.Application.Controllers
             _monedaService = monedaService;
             _choferService = choferService;
             _productosPrecioProveedorService = productosPrecioProveedorService;
+            _clienteService = clienteService;
         }
 
         public async Task<IActionResult> Index()
@@ -80,7 +82,9 @@ namespace SistemaGian.Application.Controllers
                         PorcGanancia = pedido.PorcGanancia,
                         Estado = pedido.Estado,
                         Observacion = pedido.Observacion,
+                        SaldoAFavor = pedido.IdClienteNavigation.SaldoAfavor,
                         Zona = pedido.IdZona.HasValue && pedido.IdZona.Value > 0 ? (await _zonaService.Obtener(pedido.IdZona.Value, -1)).Nombre : "",
+
                     };
 
                     // Pasar los datos a la vista mediante ViewBag o ViewModel
@@ -194,8 +198,6 @@ namespace SistemaGian.Application.Controllers
                 pedido.Observacion = model.Observacion;
             }
 
-            bool respuesta = await _pedidoservice.Actualizar(pedido);
-
             List<PagosPedidosCliente> pagosCliente = new List<PagosPedidosCliente>();
             List<PagosPedidosProveedor> pagosProveedor = new List<PagosPedidosProveedor>();
             List<PedidosProducto> pedidosProducto = new List<PedidosProducto>();
@@ -214,7 +216,8 @@ namespace SistemaGian.Application.Controllers
                         Cotizacion = pagoCliente.Cotizacion,
                         Total = pagoCliente.Total,
                         TotalArs = pagoCliente.TotalArs,
-                        Observacion = pagoCliente.Observacion
+                        Observacion = pagoCliente.Observacion,
+                        SaldoUsado = pagoCliente.SaldoUsado
                     };
                     pagosCliente.Add(nuevoPagoCliente);
                 }
@@ -252,18 +255,17 @@ namespace SistemaGian.Application.Controllers
                         IdProducto = producto.IdProducto,
                         PrecioCosto = producto.PrecioCosto,
                         PrecioVenta = producto.PrecioVenta,
+                        ProductoCantidad = producto.ProductoCantidad,
                         Cantidad = producto.Cantidad,
                     };
                     pedidosProducto.Add(nuevoProducto);
                 }
             }
 
-            bool resppagoscliente = await _pedidoservice.InsertarPagosCliente(pagosCliente);
-            bool resppagosproveedor = await _pedidoservice.InsertarPagosProveedor(pagosProveedor);
-            bool respproductos = await _pedidoservice.InsertarProductos(pedidosProducto);
+            var respuesta = await _pedidoservice.Actualizar(pedido, pagosCliente, pagosProveedor, pedidosProducto);
 
 
-            return Ok(new { valor = respuesta && resppagoscliente && resppagosproveedor && respproductos });
+            return Ok(new { valor = respuesta});
         }
 
 
@@ -292,74 +294,85 @@ namespace SistemaGian.Application.Controllers
                 Observacion = model.Observacion
             };
 
-
-            bool respuesta = await _pedidoservice.NuevoPedido(pedido);
+            bool respSaldo = true;
 
             List<PagosPedidosCliente> pagosCliente = new List<PagosPedidosCliente>();
             List<PagosPedidosProveedor> pagosProveedor = new List<PagosPedidosProveedor>();
             List<PedidosProducto> pedidosProducto = new List<PedidosProducto>();
 
-            // Agregar los pagos de clientes
-            if (model.PagosPedidosClientes != null && model.PagosPedidosClientes.Any())
+
+            if(model.SaldoUsado > 0)
             {
-                foreach (var pagoCliente in model.PagosPedidosClientes)
-                {
-                    var nuevoPagoCliente = new PagosPedidosCliente
-                    {
-                        IdPedido = pedido.Id,
-                        Fecha = pagoCliente.Fecha,
-                        IdMoneda = pagoCliente.IdMoneda,
-                        Cotizacion = pagoCliente.Cotizacion,
-                        Total = pagoCliente.Total,
-                        TotalArs = pagoCliente.TotalArs,
-                        Observacion = pagoCliente.Observacion
-                    };
-                    pagosCliente.Add(nuevoPagoCliente);
-                }
+                respSaldo = await _clienteService.RestarSaldo((int)model.IdCliente, (decimal)model.SaldoUsado);
             }
 
-            // Agregar los pagos de proveedores
-            if (model.PagosPedidosProveedores != null && model.PagosPedidosProveedores.Any())
+
+            if (respSaldo)
             {
-                foreach (var pagoProveedor in model.PagosPedidosProveedores)
+                // Agregar los pagos de clientes
+                if (model.PagosPedidosClientes != null && model.PagosPedidosClientes.Any())
                 {
-                    var nuevoPagoProveedor = new PagosPedidosProveedor
+                    foreach (var pagoCliente in model.PagosPedidosClientes)
                     {
-                        IdPedido = pedido.Id,
-                        Fecha = pagoProveedor.Fecha,
-                        IdMoneda = pagoProveedor.IdMoneda,
-                        Cotizacion = pagoProveedor.Cotizacion,
-                        Total = pagoProveedor.Total,
-                        TotalArs = pagoProveedor.TotalArs,
-                        Observacion = pagoProveedor.Observacion
-                    };
-                    pagosProveedor.Add(nuevoPagoProveedor);
+                        var nuevoPagoCliente = new PagosPedidosCliente
+                        {
+                            IdPedido = pedido.Id,
+                            Fecha = pagoCliente.Fecha,
+                            IdMoneda = pagoCliente.IdMoneda,
+                            Cotizacion = pagoCliente.Cotizacion,
+                            Total = pagoCliente.Total,
+                            TotalArs = pagoCliente.TotalArs,
+                            Observacion = pagoCliente.Observacion,
+                            SaldoUsado = pagoCliente.SaldoUsado
+                        };
+                        pagosCliente.Add(nuevoPagoCliente);
+                    }
                 }
+
+                // Agregar los pagos de proveedores
+                if (model.PagosPedidosProveedores != null && model.PagosPedidosProveedores.Any())
+                {
+                    foreach (var pagoProveedor in model.PagosPedidosProveedores)
+                    {
+                        var nuevoPagoProveedor = new PagosPedidosProveedor
+                        {
+                            IdPedido = pedido.Id,
+                            Fecha = pagoProveedor.Fecha,
+                            IdMoneda = pagoProveedor.IdMoneda,
+                            Cotizacion = pagoProveedor.Cotizacion,
+                            Total = pagoProveedor.Total,
+                            TotalArs = pagoProveedor.TotalArs,
+                            Observacion = pagoProveedor.Observacion
+                        };
+                        pagosProveedor.Add(nuevoPagoProveedor);
+                    }
+                }
+
+                // Agregar los pagos de clientes
+                if (model.PedidosProductos != null && model.PedidosProductos.Any())
+                {
+                    foreach (var producto in model.PedidosProductos)
+                    {
+                        var nuevoProducto = new PedidosProducto
+                        {
+                            IdPedido = pedido.Id,
+                            IdProducto = producto.IdProducto,
+                            PrecioCosto = producto.PrecioCosto,
+                            PrecioVenta = producto.PrecioVenta,
+                            ProductoCantidad = producto.ProductoCantidad,
+                            Cantidad = producto.Cantidad,
+                        };
+                        pedidosProducto.Add(nuevoProducto);
+                    }
+                }
+
+               
             }
 
-            // Agregar los pagos de clientes
-            if (model.PedidosProductos != null && model.PedidosProductos.Any())
-            {
-                foreach (var producto in model.PedidosProductos)
-                {
-                    var nuevoProducto = new PedidosProducto
-                    {
-                        IdPedido = pedido.Id,
-                        IdProducto = producto.IdProducto,
-                        PrecioCosto = producto.PrecioCosto,
-                        PrecioVenta = producto.PrecioVenta,
-                        Cantidad = producto.Cantidad,
-                    };
-                    pedidosProducto.Add(nuevoProducto);
-                }
-            }
+            bool respuesta = await _pedidoservice.Insertar(pedido, pagosCliente, pagosProveedor, pedidosProducto);
 
-            bool resppagoscliente = await _pedidoservice.InsertarPagosCliente(pagosCliente);
-            bool resppagosproveedor = await _pedidoservice.InsertarPagosProveedor(pagosProveedor);
-            bool respproductos = await _pedidoservice.InsertarProductos(pedidosProducto);
+            return Ok(new { valor = respuesta });
 
-
-            return Ok(new { valor = respuesta && resppagoscliente && resppagosproveedor && respproductos });
         }
 
         [HttpDelete]
@@ -430,6 +443,7 @@ namespace SistemaGian.Application.Controllers
                     Observacion = pedido.Observacion,
                     Zona = pedido.IdZona.HasValue && pedido.IdZona.Value > 0 ? (await _zonaService.Obtener(pedido.IdZona.Value, -1)).Nombre : "",
                     Chofer = pedido.IdChofer.HasValue && pedido.IdChofer.Value > 0 ? (await _choferService.Obtener(pedido.IdChofer.Value)).Nombre : "",
+                    SaldoAFavor = pedido.IdClienteNavigation.SaldoAfavor
                 };
 
                 var pagosaProveedores = await _pedidoservice.ObtenerPagosaProveedores(idPedido);
@@ -444,6 +458,7 @@ namespace SistemaGian.Application.Controllers
                     Cantidad = p.Cantidad,
                     PrecioCosto = p.PrecioCosto,
                     PrecioVenta = p.PrecioVenta,
+                    ProductoCantidad = p.ProductoCantidad,
                     Nombre = p.IdProductoNavigation.Descripcion,
                     Total = p.PrecioVenta * p.Cantidad,
                 }).ToList();
@@ -485,7 +500,8 @@ namespace SistemaGian.Application.Controllers
                         Observacion = p.Observacion,
                         Total = p.Total,
                         TotalArs = p.TotalArs,
-                        Moneda = monedaNombre
+                        Moneda = monedaNombre,
+                        SaldoUsado = p.SaldoUsado
                     });
                 }
 
