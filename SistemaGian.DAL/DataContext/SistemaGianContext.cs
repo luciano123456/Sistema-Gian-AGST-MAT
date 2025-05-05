@@ -1,12 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using SistemaGian.Models;
 
 namespace SistemaGian.DAL.DataContext;
 
 public partial class SistemaGianContext : DbContext
 {
+
+    private readonly IConfiguration _configuration;
+
     public SistemaGianContext()
     {
     }
@@ -56,10 +60,16 @@ public partial class SistemaGianContext : DbContext
 
     public virtual DbSet<Zona> Zonas { get; set; }
 
+    public virtual DbSet<ZonasCliente> ZonasClientes { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
-    => optionsBuilder.UseSqlServer("Server=200.73.140.119; Database=Sistema_Gian; User Id=PcJuan; Password=juan; Encrypt=False");
-    //=> optionsBuilder.UseSqlServer("Server=DESKTOP-3MT5F5F; Database=Sistema_Gian; Integrated Security=true; Trusted_Connection=True; Encrypt=False");
+    {
+        if (!optionsBuilder.IsConfigured)
+        {
+            var connectionString = _configuration.GetConnectionString("SistemaDB");
+            optionsBuilder.UseSqlServer(connectionString);
+        }
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -127,6 +137,7 @@ public partial class SistemaGianContext : DbContext
             entity.Property(e => e.Observacion)
                 .HasMaxLength(500)
                 .IsUnicode(false);
+            entity.Property(e => e.SaldoUsado).HasColumnType("decimal(20, 2)");
             entity.Property(e => e.Total).HasColumnType("decimal(20, 2)");
             entity.Property(e => e.TotalArs)
                 .HasColumnType("decimal(20, 2)")
@@ -134,6 +145,7 @@ public partial class SistemaGianContext : DbContext
 
             entity.HasOne(d => d.IdPedidoNavigation).WithMany(p => p.PagosPedidosClientes)
                 .HasForeignKey(d => d.IdPedido)
+                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("FK_PagosPedidosClientes_Pedidos");
         });
 
@@ -151,6 +163,7 @@ public partial class SistemaGianContext : DbContext
 
             entity.HasOne(d => d.IdPedidoNavigation).WithMany(p => p.PagosPedidosProveedores)
                 .HasForeignKey(d => d.IdPedido)
+                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("FK_PagosPedidosProveedores_Pedidos");
         });
 
@@ -168,13 +181,12 @@ public partial class SistemaGianContext : DbContext
             entity.Property(e => e.Observacion)
                 .HasMaxLength(500)
                 .IsUnicode(false);
+            entity.Property(e => e.PorcGanancia).HasColumnType("decimal(20, 2)");
             entity.Property(e => e.RestanteCliente).HasColumnType("decimal(20, 2)");
             entity.Property(e => e.RestanteProveedor).HasColumnType("decimal(20, 2)");
             entity.Property(e => e.TotalCliente).HasColumnType("decimal(20, 2)");
-            entity.Property(e => e.TotalProveedor).HasColumnType("decimal(20, 2)");
-
             entity.Property(e => e.TotalGanancia).HasColumnType("decimal(20, 2)");
-            entity.Property(e => e.PorcGanancia).HasColumnType("decimal(20, 2)");
+            entity.Property(e => e.TotalProveedor).HasColumnType("decimal(20, 2)");
 
             entity.HasOne(d => d.IdClienteNavigation).WithMany(p => p.Pedidos)
                 .HasForeignKey(d => d.IdCliente)
@@ -193,6 +205,7 @@ public partial class SistemaGianContext : DbContext
 
             entity.HasOne(d => d.IdPedidoNavigation).WithMany(p => p.PedidosProductos)
                 .HasForeignKey(d => d.IdPedido)
+                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("FK_PedidosProductos_PedidosProductos");
 
             entity.HasOne(d => d.IdProductoNavigation).WithMany(p => p.PedidosProductos)
@@ -218,7 +231,6 @@ public partial class SistemaGianContext : DbContext
             entity.Property(e => e.PorcGanancia)
                 .HasColumnType("decimal(20, 2)")
                 .HasColumnName("Porc_Ganancia");
-            entity.Property(e => e.ProductoCantidad).HasColumnType("int");
 
             entity.HasOne(d => d.IdCategoriaNavigation).WithMany(p => p.Productos)
                 .HasForeignKey(d => d.IdCategoria)
@@ -304,7 +316,7 @@ public partial class SistemaGianContext : DbContext
                 .HasColumnType("decimal(20, 2)")
                 .HasColumnName("Porc_Ganancia_Anterior");
 
-            entity.HasOne(d => d.IdClienteNavigation).WithMany(p => p.ProductosPreciosHistorials)
+            entity.HasOne(d => d.IdClienteNavigation).WithMany(p => p.ProductosPreciosHistorial)
                 .HasForeignKey(d => d.IdCliente)
                 .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("FK_ProductosPreciosHistorial_Clientes");
@@ -313,7 +325,7 @@ public partial class SistemaGianContext : DbContext
                 .HasForeignKey(d => d.IdProducto)
                 .HasConstraintName("FK_ProductosPreciosHistorial_Productos");
 
-            entity.HasOne(d => d.IdProveedorNavigation).WithMany(p => p.ProductosPreciosHistorials)
+            entity.HasOne(d => d.IdProveedorNavigation).WithMany(p => p.ProductosPreciosHistorial)
                 .HasForeignKey(d => d.IdProveedor)
                 .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("FK_ProductosPreciosHistorial_Proveedores");
@@ -335,7 +347,6 @@ public partial class SistemaGianContext : DbContext
             entity.Property(e => e.PorcGanancia)
                 .HasColumnType("decimal(20, 2)")
                 .HasColumnName("Porc_Ganancia");
-            entity.Property(e => e.ProductoCantidad).HasColumnType("int");
 
             entity.HasOne(d => d.IdProductoNavigation).WithMany(p => p.ProductosPreciosProveedor)
                 .HasForeignKey(d => d.IdProducto)
@@ -388,8 +399,14 @@ public partial class SistemaGianContext : DbContext
             entity.Property(e => e.Apellido)
                 .HasMaxLength(100)
                 .IsUnicode(false);
+            entity.Property(e => e.CodigoRecuperacion)
+                .HasMaxLength(250)
+                .IsUnicode(false);
             entity.Property(e => e.Contrasena)
                 .HasMaxLength(255)
+                .IsUnicode(false);
+            entity.Property(e => e.Correo)
+                .HasMaxLength(250)
                 .IsUnicode(false);
             entity.Property(e => e.Direccion)
                 .HasMaxLength(20)
@@ -424,6 +441,21 @@ public partial class SistemaGianContext : DbContext
                 .HasMaxLength(250)
                 .IsUnicode(false);
             entity.Property(e => e.Precio).HasColumnType("decimal(20, 2)");
+        });
+
+        modelBuilder.Entity<ZonasCliente>(entity =>
+        {
+            entity.Property(e => e.Precio).HasColumnType("decimal(20, 2)");
+
+            entity.HasOne(d => d.IdClienteNavigation).WithMany(p => p.ZonasClientes)
+                .HasForeignKey(d => d.IdCliente)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_ZonasClientes_Clientes");
+
+            entity.HasOne(d => d.IdZonaNavigation).WithMany(p => p.ZonasClientes)
+                .HasForeignKey(d => d.IdZona)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_ZonasClientes_Zonas");
         });
 
         OnModelCreatingPartial(modelBuilder);

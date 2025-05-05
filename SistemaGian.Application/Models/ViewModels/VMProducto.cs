@@ -34,6 +34,7 @@ namespace SistemaGian.Application.Models.ViewModels
 
         public int IdCliente { get; set; }
         public int IdProveedor { get; set; }
+        public int Activo { get; set; }
 
         public virtual ProductosCategoria? IdCategoriaNavigation { get; set; }
 

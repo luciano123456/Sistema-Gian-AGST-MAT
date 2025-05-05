@@ -36,15 +36,15 @@ namespace SistemaGian.Application.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Lista()
+        public async Task<IActionResult> Lista(int IdCliente)
         {
-            var Zonas = await _ZonasService.ObtenerTodos();
+            var Zonas = await _ZonasService.ObtenerPorCliente(IdCliente);
 
             var lista = Zonas.Select(c => new VMZonas
             {
                 Id = c.Id,
                 Nombre = c.Nombre,
-                Precio = c.Precio,
+                Precio = (decimal)c.Precio,
             }).ToList();
 
             return Ok(lista);
@@ -54,11 +54,13 @@ namespace SistemaGian.Application.Controllers
         [HttpPost]
         public async Task<IActionResult> Insertar([FromBody] VMZonas model)
         {
+
+
             var Zona = new Zona
             {
                 Id = model.Id,
                 Nombre = model.Nombre,
-                Precio = model.Precio
+                Precio = model.Precio,
             };
 
             bool respuesta = await _ZonasService.Insertar(Zona);
@@ -66,52 +68,85 @@ namespace SistemaGian.Application.Controllers
             return Ok(new { valor = respuesta });
         }
 
-        [HttpPut]
-        public async Task<IActionResult> Actualizar([FromBody] VMZonas model)
+        [HttpPost]
+        public async Task<IActionResult> InsertarZonaCliente([FromBody] VMZonaAsignarCliente model)
         {
-            var Zona = new Zona
-            {
-                Id = model.Id,
-                Nombre = model.Nombre,
-                Precio = model.Precio
-            };
-
-            bool respuesta = await _ZonasService.Actualizar(Zona);
+            bool respuesta = await _ZonasService.InsertarZonaCliente(model.zonas, model.idCliente);
 
             return Ok(new { valor = respuesta });
+
         }
-
-        [HttpDelete]
-        public async Task<IActionResult> Eliminar(int id)
+        [HttpPut]
+        public async Task<bool> Actualizar([FromBody] VMZonas model)
         {
-            bool respuesta = await _ZonasService.Eliminar(id);
+            bool respuesta = false;
 
-            return StatusCode(StatusCodes.Status200OK, new { valor = respuesta });
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> EditarInfo(int id)
-        {
-             var Zona = await _ZonasService.Obtener(id);
-
-            if (Zona != null)
+            try
             {
-                return StatusCode(StatusCodes.Status200OK, Zona);
-            }
-            else
+
+                if (model != null)
+                {
+                    if (model.IdCliente > 0)
+                    {
+                        var Zona = new ZonasCliente
+                        {
+                            IdZona = model.Id,
+                            IdCliente = model.IdCliente,
+                            Precio = model.Precio
+                        };
+                        respuesta = await _ZonasService.ActualizarZonaCliente(Zona);
+                    }
+                    else
+                    {
+                        var Zona = new Zona
+                        {
+                            Id = model.Id,
+                            Nombre = model.Nombre,
+                            Precio = model.Precio,
+                        };
+                        respuesta = await _ZonasService.Actualizar(Zona);
+                    }
+                }
+    
+        } catch(Exception ex)
             {
-                return StatusCode(StatusCodes.Status404NotFound);
+                return false;
             }
-        }
-        public IActionResult Privacy()
-        {
-            return View();
+
+            return respuesta;
         }
 
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error()
-        {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
-        }
+[HttpDelete]
+public async Task<IActionResult> Eliminar(int id)
+{
+    bool respuesta = await _ZonasService.Eliminar(id);
+
+    return StatusCode(StatusCodes.Status200OK, new { valor = respuesta });
+}
+
+[HttpGet]
+public async Task<IActionResult> EditarInfo(int id, int idCliente)
+{
+    var Zona = await _ZonasService.Obtener(id, idCliente);
+
+    if (Zona != null)
+    {
+        return StatusCode(StatusCodes.Status200OK, Zona);
+    }
+    else
+    {
+        return StatusCode(StatusCodes.Status404NotFound);
+    }
+}
+public IActionResult Privacy()
+{
+    return View();
+}
+
+[ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+public IActionResult Error()
+{
+    return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+}
     }
 }

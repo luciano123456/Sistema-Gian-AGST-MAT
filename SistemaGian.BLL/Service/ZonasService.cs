@@ -17,6 +17,11 @@ namespace SistemaGian.BLL.Service
             return await _contactRepo.Actualizar(model);
         }
 
+        public async Task<bool> ActualizarZonaCliente(ZonasCliente model)
+        {
+            return await _contactRepo.ActualizarZonaCliente(model);
+        }
+
         public async Task<bool> Eliminar(int id)
         {
             return await _contactRepo.Eliminar(id);
@@ -27,9 +32,9 @@ namespace SistemaGian.BLL.Service
             return await _contactRepo.Insertar(model);
         }
 
-        public async Task<Zona> Obtener(int id)
+        public async Task<Zona> Obtener(int id, int idCliente)
         {
-            return await _contactRepo.Obtener(id);
+            return await _contactRepo.Obtener(id, idCliente);
         }
 
 
@@ -38,7 +43,14 @@ namespace SistemaGian.BLL.Service
             return await _contactRepo.ObtenerTodos();
         }
 
+        public async Task<IQueryable<Zona>> ObtenerPorCliente(int IdCliente)
+        {
+            return await _contactRepo.ObtenerPorCliente(IdCliente);
+        }
 
-
+        public async Task<bool> InsertarZonaCliente(string zonas, int idCliente)
+        {
+            return await _contactRepo.InsertarZonaCliente(zonas, idCliente);
+        }
     }
 }

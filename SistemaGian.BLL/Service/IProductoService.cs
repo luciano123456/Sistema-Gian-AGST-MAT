@@ -7,6 +7,7 @@ namespace SistemaGian.BLL.Service
     public interface IProductoService 
     {
         Task<bool> Insertar(Producto model);
+        Task<bool> EditarActivo(int id, int activo);
         Task<bool> Actualizar(Producto model);
         Task<bool> Eliminar(int id);
         Task<Producto> Obtener(int id, int idCliente, int idProveedor);

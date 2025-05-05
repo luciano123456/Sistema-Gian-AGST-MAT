@@ -171,8 +171,8 @@ async function abrirProveedor() {
 
 }
 
-async function obtenerZonas() {
-    const response = await fetch('/Zonas/Lista');
+async function obtenerZonas(idCliente) {
+    const response = await fetch(`/Zonas/Lista?idCliente=${idCliente}`);
     const data = await response.json();
     return data;
 }
@@ -296,7 +296,16 @@ async function abrirChofer() {
 }
 
 async function abrirZona() {
-    const zonas = await obtenerZonas();
+
+    let idCliente = parseInt($("#idCliente").val());
+
+    // Comprobar si idCliente es NaN o vacío
+    if (isNaN(idCliente) || idCliente === "") {
+        errorModal("Primero debes elegir un cliente");
+        return;
+    }
+
+    const zonas = await obtenerZonas(idCliente);
     await cargarDataTableZonas(zonas);
 
     // Configura eventos de selección

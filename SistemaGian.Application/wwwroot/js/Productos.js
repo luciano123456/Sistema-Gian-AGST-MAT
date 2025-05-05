@@ -291,7 +291,7 @@ async function aplicarFiltros() {
             await actualizarVisibilidadProveedor(true);
             gridProductos.column(2).visible(true);
             gridProductos.column(0).visible(false);
-            
+
         } else {
             gridProductos.column(2).visible(false);
             gridProductos.column(0).visible(true);
@@ -428,8 +428,8 @@ function asignarProveedor() {
                 const mensaje = "Ha ocurrido un error al asignar el proveedor";
                 errorModal(mensaje);
             }
-                $("#modalProveedores").modal("hide");
-          
+            $("#modalProveedores").modal("hide");
+
             //desmarcarCheckboxes();
             //listaProductos();
 
@@ -1009,10 +1009,18 @@ async function configurarDataTable(data) {
                     data: "Id",
                     title: '',
                     width: "1%", // Ancho fijo para la columna
-                    render: function (data) {
+                    render: function (data, type, full) {
                         const isChecked = false;
-
+                        var activo = full.Activo === 1;
+                        var color = activo ? "success" : "danger";
+                        var titulo = activo ? "Desactivar" : "Activar";
+                        var estadoInverso = full.Activo ? 0 : 1;
                         const checkboxClass = isChecked ? 'fa-check-square-o' : 'fa-square-o';
+                        const botonApagado = (idClienteFiltro <= 0 && idProveedorFiltro <= 0) ?
+                            `<button class='btn btn-sm btnacciones' type='button' onclick='cambiarEstadoProducto(${data},${estadoInverso})' title='${titulo}'>
+         <i class='fa fa-power-off fa-lg text-${color}' aria-hidden='true'></i>
+     </button>` : '';
+
                         return `
                             
                 <div class="acciones-menu" data-id="${data}">
@@ -1029,12 +1037,13 @@ async function configurarDataTable(data) {
                         <button class='btn btn-sm btneliminar' type='button' onclick='eliminarProducto(${data})' title='Eliminar'>
                             <i class='fa fa-trash-o fa-lg text-danger' aria-hidden='true'></i> Eliminar
                         </button>
-                       
                      
                     </div>
                     <span class="custom-checkbox" data-id='${data}'>
                                     <i class="fa ${checkboxClass} checkbox"></i>
                                 </span>
+                                ${botonApagado}
+                                 
                 </div>`;
                     },
                     orderable: false,
@@ -1045,7 +1054,7 @@ async function configurarDataTable(data) {
                 { data: 'Marca' },
                 { data: 'Categoria' },
                 { data: 'UnidadDeMedida' },
-                
+
                 //{ data: 'Moneda' },
                 { data: 'PCosto' },
                 { data: 'PVenta' },
@@ -1058,12 +1067,12 @@ async function configurarDataTable(data) {
                 { data: 'IdCategoria', visible: false },
                 { data: 'IdUnidadDeMedida', visible: false },
 
-               
+
             ],
             dom: 'Bfrtip',
             buttons: [
-                { extend: 'excelHtml5', text: 'Exportar Excel', filename: 'Reporte Productos', exportOptions: { columns: [ 1, 2, 3, 4, 5, 6, 7,8] }, className: 'btn-exportar-excel' },
-                { extend: 'pdfHtml5', text: 'Exportar PDF', filename: 'Reporte Productos', exportOptions: { columns: [ 1, 2, 3, 4, 5, 6, 7, 8] }, className: 'btn-exportar-pdf' },
+                { extend: 'excelHtml5', text: 'Exportar Excel', filename: 'Reporte Productos', exportOptions: { columns: [1, 2, 3, 4, 5, 6, 7, 8] }, className: 'btn-exportar-excel' },
+                { extend: 'pdfHtml5', text: 'Exportar PDF', filename: 'Reporte Productos', exportOptions: { columns: [1, 2, 3, 4, 5, 6, 7, 8] }, className: 'btn-exportar-pdf' },
                 { extend: 'print', text: 'Imprimir', exportOptions: { columns: [1, 2, 3, 4, 5, 6, 7, 8] }, className: 'btn-exportar-print' },
                 'pageLength'
             ],
@@ -1158,7 +1167,7 @@ async function configurarDataTable(data) {
                         }
                     }
 
-                    
+
 
 
                     if (isEditing == true) {
@@ -1213,7 +1222,7 @@ async function configurarDataTable(data) {
                             select.val(rowData.IdCategoria);
                         } else if (colIndex == 5) {
                             select.val(rowData.IdUnidadDeMedida);
-                       
+
                         }
 
 
@@ -1364,7 +1373,7 @@ async function configurarDataTable(data) {
                             // Aplicar el efecto de parpadeo a las celdas de PrecioCosto y PrecioVenta
                             $(trElement).find('td').eq(visibleIndex7).addClass('blinking');
                             $(trElement).find('td').eq(visibleIndex9).addClass('blinking');
-                        }  else if (colIndex === 7) { // PrecioVenta
+                        } else if (colIndex === 7) { // PrecioVenta
                             rowData.PVenta = parseFloat(convertirMonedaAFloat(newValue))
                             rowData.PorcGanancia = parseFloat(((convertirMonedaAFloat(newValue) - rowData.PCosto) / rowData.PCosto) * 100).toFixed(2);
 
@@ -1610,7 +1619,7 @@ function configurarOpcionesColumnas() {
     container.empty(); // Limpia el contenedor
 
     columnas.forEach((col, index) => {
-        if (col.data && !col.data.includes("Id") && col.data !== "Proveedor" && (userSession.ModoVendedor == 1 && col.data != "PCosto" && col.data != "PorcGanancia" || userSession.ModoVendedor == 0))  { // Solo agregar columnas que no sean "Id"
+        if (col.data && !col.data.includes("Id") && col.data !== "Proveedor" && (userSession.ModoVendedor == 1 && col.data != "PCosto" && col.data != "PorcGanancia" || userSession.ModoVendedor == 0)) { // Solo agregar columnas que no sean "Id"
             // Recupera el valor guardado en localStorage, si existe. Si no, inicializa en 'false' para no estar marcado.
             const isChecked = savedConfig && savedConfig[`col_${index}`] !== undefined ? savedConfig[`col_${index}`] : true;
 
@@ -1657,7 +1666,7 @@ $('#UnidadesDeMedidas').on('change', function () {
 function actualizarProductoCantidad() {
     const selectedText = $('#UnidadesDeMedidas option:selected').text(); // Obtiene el texto seleccionado
     const idCliente = parseInt(document.getElementById("clientesfiltro").value);
-    
+
     if (selectedText === 'Pallet') {
         // Muestra el label y el input
         document.getElementById('txtProductoCantidad').removeAttribute('hidden');
@@ -1701,5 +1710,40 @@ async function guardarCambiosFila(rowData) {
         }
     } catch (error) {
         console.error('Error de red:', error);
+    }
+}
+
+const cambiarEstadoProducto = async (id, estado) => {
+    try {
+        const value = {
+            Id: id,
+            activo: estado
+        };
+
+        const url = "/Productos/EditarActivo";
+        const method = "POST";
+
+        fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json;charset=utf-8'
+            },
+            body: JSON.stringify(value) // Aquí ya no es necesario envolverlo en JSON.stringify nuevamente
+        })
+            .then(response => {
+                if (!response.ok) throw new Error(response.statusText);
+                return response.json();
+            })
+            .then(dataJson => {
+                const mensaje = "Cambio de estado correctamente";
+                exitoModal(mensaje);
+                listaProductos();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    } catch (error) {
+        $('.datos-error').text('Ha ocurrido un error.')
+        $('.datos-error').removeClass('d-none')
     }
 }
