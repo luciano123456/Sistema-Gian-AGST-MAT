@@ -14,11 +14,10 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
-// Configurar la conexión a la base de datos
 builder.Services.AddDbContext<SistemaGianContext>(options =>
-{
-    options.UseSqlServer(builder.Configuration.GetConnectionString("cadenaSQL"));
-});
+    options.UseSqlServer(builder.Configuration.GetConnectionString("SistemaDB")));
+
+
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>

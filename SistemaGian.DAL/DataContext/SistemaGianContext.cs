@@ -11,13 +11,19 @@ public partial class SistemaGianContext : DbContext
 
     private readonly IConfiguration _configuration;
 
-    public SistemaGianContext()
-    {
-    }
 
     public SistemaGianContext(DbContextOptions<SistemaGianContext> options)
         : base(options)
     {
+    }
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        if (!optionsBuilder.IsConfigured)
+        {
+            var connectionString = _configuration.GetConnectionString("SistemaDB");
+            optionsBuilder.UseSqlServer(connectionString);
+        }
     }
 
     public virtual DbSet<Chofer> Choferes { get; set; }
@@ -61,15 +67,6 @@ public partial class SistemaGianContext : DbContext
     public virtual DbSet<Zona> Zonas { get; set; }
 
     public virtual DbSet<ZonasCliente> ZonasClientes { get; set; }
-
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
-        if (!optionsBuilder.IsConfigured)
-        {
-            var connectionString = _configuration.GetConnectionString("SistemaDB");
-            optionsBuilder.UseSqlServer(connectionString);
-        }
-    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
