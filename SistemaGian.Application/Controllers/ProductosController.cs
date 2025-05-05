@@ -164,8 +164,9 @@ namespace SistemaGian.Application.Controllers
                 ProductoCantidad = c.ProductoCantidad,
                 Total = c.PVenta * (int)c.ProductoCantidad,
                 Image = c.Image,
-                Activo = (int)c.Activo
-                
+                Activo = (int)c.Activo != null ? (int)c.Activo : 1
+
+
             }).ToList();
 
             return Ok(lista);
