@@ -82,9 +82,7 @@ namespace SistemaGian.Application.Controllers
                         PorcGanancia = pedido.PorcGanancia,
                         Estado = pedido.Estado,
                         Observacion = pedido.Observacion,
-                        Zona = pedido.IdZona.HasValue && pedido.IdZona.Value > 0 ? (await _zonaService.Obtener(pedido.IdZona.Value)).Nombre : "",
-                        SaldoAFavor = pedido.IdClienteNavigation.SaldoAfavor
-                        Zona = pedido.IdZona.HasValue && pedido.IdZona.Value > 0 ? (await _zonaService.Obtener(pedido.IdZona.Value, -1)).Nombre : "",
+                        SaldoAFavor = pedido.IdClienteNavigation.SaldoAfavor,
                     };
 
                     // Pasar los datos a la vista mediante ViewBag o ViewModel
@@ -441,7 +439,6 @@ namespace SistemaGian.Application.Controllers
                     TelefonoProveedor = pedido.IdProveedorNavigation?.Telefono,
                     DireccionProveedor = pedido.IdProveedorNavigation?.Ubicacion,
                     Observacion = pedido.Observacion,
-                    Zona = pedido.IdZona.HasValue && pedido.IdZona.Value > 0 ? (await _zonaService.Obtener(pedido.IdZona.Value, -1)).Nombre : "",
                     Chofer = pedido.IdChofer.HasValue && pedido.IdChofer.Value > 0 ? (await _choferService.Obtener(pedido.IdChofer.Value)).Nombre : "",
                     SaldoAFavor = pedido.IdClienteNavigation.SaldoAfavor
                 };
