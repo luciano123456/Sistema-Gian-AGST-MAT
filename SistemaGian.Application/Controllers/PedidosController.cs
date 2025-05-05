@@ -83,6 +83,7 @@ namespace SistemaGian.Application.Controllers
                         Estado = pedido.Estado,
                         Observacion = pedido.Observacion,
                         Zona = pedido.IdZona.HasValue && pedido.IdZona.Value > 0 ? (await _zonaService.Obtener(pedido.IdZona.Value)).Nombre : "",
+                        SaldoAFavor = pedido.IdClienteNavigation.SaldoAfavor
                     };
 
                     // Pasar los datos a la vista mediante ViewBag o ViewModel
@@ -214,7 +215,8 @@ namespace SistemaGian.Application.Controllers
                         Cotizacion = pagoCliente.Cotizacion,
                         Total = pagoCliente.Total,
                         TotalArs = pagoCliente.TotalArs,
-                        Observacion = pagoCliente.Observacion
+                        Observacion = pagoCliente.Observacion,
+                        SaldoUsado = pagoCliente.SaldoUsado
                     };
                     pagosCliente.Add(nuevoPagoCliente);
                 }
@@ -440,6 +442,7 @@ namespace SistemaGian.Application.Controllers
                     Observacion = pedido.Observacion,
                     Zona = pedido.IdZona.HasValue && pedido.IdZona.Value > 0 ? (await _zonaService.Obtener(pedido.IdZona.Value)).Nombre : "",
                     Chofer = pedido.IdChofer.HasValue && pedido.IdChofer.Value > 0 ? (await _choferService.Obtener(pedido.IdChofer.Value)).Nombre : "",
+                    SaldoAFavor = pedido.IdClienteNavigation.SaldoAfavor
                 };
 
                 var pagosaProveedores = await _pedidoservice.ObtenerPagosaProveedores(idPedido);

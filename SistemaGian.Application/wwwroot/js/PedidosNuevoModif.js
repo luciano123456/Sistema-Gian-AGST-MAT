@@ -104,10 +104,13 @@ async function insertarDatosPedido(datosPedido) {
 
     await calcularDatosPedido();
 
-    if (datosPedido.SaldoAfavor > 0) {
+    saldoClienteFavor = datosPedido.SaldoAFavor;
+    saldoClienteFavorInicial = datosPedido.SaldoAFavor;
+
+    if (datosPedido.SaldoAFavor > 0) {
         $('#lblSaldoCliente')
             .removeAttr("hidden")
-            .html(`El cliente tiene un saldo a favor de <span style="color: yellow; font-weight: bold;">${formatNumber(data.SaldoAfavor)}</span> pesos`)
+            .html(`El cliente tiene un saldo a favor de <span style="color: yellow; font-weight: bold;">${formatNumber(datosPedido.SaldoAFavor)}</span> pesos`)
             .css({
                 "font-weight": "bold",
                 "color": "white"
