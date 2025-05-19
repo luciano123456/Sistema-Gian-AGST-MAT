@@ -90,7 +90,7 @@ namespace SistemaGian.DAL.Repository
             {
                 // Actualizar el historial existente
                 resultHistorial.PVentaAnterior = resultHistorial.PVentaNuevo;
-                resultHistorial.PVentaNuevo = model.PCosto * (1 + model.PorcGanancia / 100.0m);
+                resultHistorial.PVentaNuevo = model.PVenta;
                 resultHistorial.PCostoAnterior = resultHistorial.PCostoNuevo;
                 resultHistorial.PCostoNuevo = model.PCosto;
                 resultHistorial.PorcGananciaAnterior = resultHistorial.PorGananciaNuevo;
@@ -252,7 +252,7 @@ namespace SistemaGian.DAL.Repository
 
         private decimal ModificarValor(decimal valor, decimal porcentaje, bool esAumento)
         {
-            return esAumento ? valor * (1 + porcentaje / 100.0m) : valor * (1 - porcentaje / 100.0m);
+            return esAumento ? valor * (1 + porcentaje / 100.0m) : valor * (1 - porcentaje / 100);
         }
 
 

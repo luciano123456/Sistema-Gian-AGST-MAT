@@ -558,7 +558,7 @@ function asignarCliente() {
 
 function guardarCambios() {
     if (validarCampos()) {
-        sumarPorcentaje(); //Por si las dudas
+        calcularTotal();
         let productoCantidad = $("#txtProductoCantidad").val();
         const idProducto = $("#txtId").val();
         const nuevoModelo = {
@@ -575,6 +575,7 @@ function guardarCambios() {
             "PorcGanancia": parseDecimal($("#txtPorcentajeGanancia").val()),
             "ProductoCantidad": (isNaN(productoCantidad) || productoCantidad === null || productoCantidad.trim() === "") ? 1 : parseFloat(productoCantidad),
             "Image": null,
+            "Activo": idProducto !== "" ? $("#txtActivo").val() : 1,
         };
 
         const url = idProducto === "" ? "Productos/Insertar" : "Productos/Actualizar";
@@ -704,6 +705,8 @@ function nuevoProducto() {
     document.getElementById("txtPrecioVenta").classList.remove("txtEdicion");
     document.getElementById('txtTotal').setAttribute('hidden', 'hidden');
     document.getElementById('lblTotal').setAttribute('hidden', 'hidden');
+    document.getElementById('txtProductoCantidad').setAttribute('hidden', 'hidden');
+    document.getElementById('lblProductoCantidad').setAttribute('hidden', 'hidden');
     $('#modalEdicion').modal('show');
     $("#btnGuardar").text("Registrar");
     $("#modalEdicionLabel").text("Nuevo Producto");
@@ -745,7 +748,7 @@ async function mostrarModal(modelo) {
         document.getElementById("txtPrecioVenta").classList.remove("txtEdicion");
 
     }
-    const campos = ["Id", "Descripcion", "PrecioCosto", "PrecioVenta", "PorcentajeGanancia"];
+    const campos = ["Id", "Descripcion", "PrecioCosto", "PrecioVenta", "PorcentajeGanancia", "Activo"];
     campos.forEach(campo => {
         $(`#txt${campo}`).val(modelo[campo]);
     });
@@ -1003,6 +1006,9 @@ async function configurarDataTable(data) {
             },
             scrollX: "100px",
             scrollCollapse: true,
+            pageLength: 100, // 👈 agregá esto
+            colReorder: true, // 👈 Habilita mover columnas
+            stateSave: true,  // 👈 Guarda el estado
             columns: [
 
                 {
@@ -1022,29 +1028,21 @@ async function configurarDataTable(data) {
      </button>` : '';
 
                         return `
-                            
-                <div class="acciones-menu" data-id="${data}">
-                    <button class='btn btn-sm btnacciones' type='button' onclick='toggleAcciones(${data})' title='Acciones'>
-                        <i class='fa fa-ellipsis-v fa-lg text-white' aria-hidden='true'></i>
-                    </button>
-                    <div class="acciones-dropdown" style="display: none;">
-                      <button class='btn btn-sm btnDuplicar' type='button' onclick='duplicarProducto(${data})' title='Duplicar'>
-                            <i class='fa fa-copy fa-lg text-warning' aria-hidden='true'></i> Duplicar
-                        </button>
-                        <button class='btn btn-sm btneditar' type='button' onclick='editarProducto(${data})' title='Editar'>
-                            <i class='fa fa-pencil-square-o fa-lg text-success' aria-hidden='true'></i> Editar
-                        </button>
-                        <button class='btn btn-sm btneliminar' type='button' onclick='eliminarProducto(${data})' title='Eliminar'>
-                            <i class='fa fa-trash-o fa-lg text-danger' aria-hidden='true'></i> Eliminar
-                        </button>
-                     
-                    </div>
-                    <span class="custom-checkbox" data-id='${data}'>
-                                    <i class="fa ${checkboxClass} checkbox"></i>
-                                </span>
-                                ${botonApagado}
-                                 
-                </div>`;
+    <div class="acciones-menu" data-id="${data}">
+        <button class='btn btn-sm btnacciones' type='button' onclick='toggleAcciones(${data})' title='Acciones'>
+            <i class='fa fa-ellipsis-v fa-lg text-white'></i>
+        </button>
+        <div class="acciones-dropdown" style="display: none;">
+            ...
+        </div>
+        <span class="custom-checkbox" data-id='${data}'>
+            <i class="fa ${checkboxClass} checkbox"></i>
+        </span>
+        ${botonApagado}
+       <i class="fa fa-hand-rock-o draggable-icon" title="Mover fila" onclick="activarDrag(this)"></i>
+    </div>
+`;
+
                     },
                     orderable: false,
                     searchable: false,
@@ -1071,13 +1069,48 @@ async function configurarDataTable(data) {
             ],
             dom: 'Bfrtip',
             buttons: [
-                { extend: 'excelHtml5', text: 'Exportar Excel', filename: 'Reporte Productos', exportOptions: { columns: [1, 2, 3, 4, 5, 6, 7, 8] }, className: 'btn-exportar-excel' },
-                { extend: 'pdfHtml5', text: 'Exportar PDF', filename: 'Reporte Productos', exportOptions: { columns: [1, 2, 3, 4, 5, 6, 7, 8] }, className: 'btn-exportar-pdf' },
-                { extend: 'print', text: 'Imprimir', exportOptions: { columns: [1, 2, 3, 4, 5, 6, 7, 8] }, className: 'btn-exportar-print' },
+                {
+                    extend: 'excelHtml5',
+                    text: 'Exportar Excel',
+                    filename: 'Reporte Productos',
+                    exportOptions: {
+                        columns: function (idx, data, node) {
+                            const columnasPermitidas = [1, 2, 3, 4, 5, 6, 7, 8];
+                            const colVisible = $(node).is(':visible');
+                            return columnasPermitidas.includes(idx) && colVisible;
+                        }
+                    },
+                    className: 'btn-exportar-excel'
+                },
+                {
+                    extend: 'pdfHtml5',
+                    text: 'Exportar PDF',
+                    filename: 'Reporte Productos',
+                    exportOptions: {
+                        columns: function (idx, data, node) {
+                            const columnasPermitidas = [1, 2, 3, 4, 5, 6, 7, 8];
+                            const colVisible = $(node).is(':visible');
+                            return columnasPermitidas.includes(idx) && colVisible;
+                        }
+                    },
+                    className: 'btn-exportar-pdf'
+                },
+                {
+                    extend: 'print',
+                    text: 'Imprimir',
+                    exportOptions: {
+                        columns: function (idx, data, node) {
+                            const columnasPermitidas = [1, 2, 3, 4, 5, 6, 7, 8];
+                            const colVisible = $(node).is(':visible');
+                            return columnasPermitidas.includes(idx) && colVisible;
+                        }
+                    },
+                    className: 'btn-exportar-print'
+                },
                 'pageLength'
             ],
             orderCellsTop: true,
-            fixedHeader: false,
+            fixedHeader: true,
             columnDefs: [
                 { "render": function (data) { return formatNumber(data); }, "targets": [6, 7, 9] }
             ],
@@ -1458,6 +1491,20 @@ async function configurarDataTable(data) {
     }
 }
 
+$('#grd_Productos').on('row-reorder', function (e, diff, edit) {
+    let ordenNuevo = [];
+    for (let i = 0; i < diff.length; i++) {
+        ordenNuevo.push({
+            id: gridProductos.row(diff[i].node).data().Id,
+            nuevaPosicion: diff[i].newData
+        });
+    }
+
+    console.log("Nuevas posiciones:", ordenNuevo);
+    // Enviá a tu controlador si necesitás persistirlo
+});
+
+
 // Actualizar la visibilidad de la columna 'Proveedor'
 async function actualizarVisibilidadProveedor(visible) {
     var column = gridProductos.column(2); // Asumimos que la columna 'Proveedor' es la tercera columna (índice 2)
@@ -1683,6 +1730,8 @@ function actualizarProductoCantidad() {
         // Oculta el label y el input
         document.getElementById('txtTotal').setAttribute('hidden', 'hidden');
         document.getElementById('lblTotal').setAttribute('hidden', 'hidden');
+        document.getElementById('txtProductoCantidad').setAttribute('hidden', 'hidden');
+        document.getElementById('lblProductoCantidad').setAttribute('hidden', 'hidden');
     }
 }
 
@@ -1746,4 +1795,107 @@ const cambiarEstadoProducto = async (id, estado) => {
         $('.datos-error').text('Ha ocurrido un error.')
         $('.datos-error').removeClass('d-none')
     }
+}
+
+
+$('#selectAllCheckbox').on('change', function () {
+    const checked = $(this).is(':checked');
+
+    // Limpiar selección actual
+    selectedProductos = [];
+
+    $('.custom-checkbox').each(function () {
+        const icon = $(this).find('.fa');
+        const id = $(this).data('id');
+
+        if (checked) {
+            if (!icon.hasClass('checked')) {
+                icon.addClass('checked fa-check-square').removeClass('fa-square-o');
+            }
+            if (!selectedProductos.includes(id)) {
+                selectedProductos.push(id);
+            }
+        } else {
+            icon.removeClass('checked fa-check-square').addClass('fa-square-o');
+        }
+    });
+
+    actualizarBotonesAccion();
+});
+
+
+function actualizarBotonesAccion() {
+    if (selectedProductos.length > 0 && idProveedorFiltro <= 0 && idClienteFiltro <= 0) {
+        document.getElementById("btnAsignarProveedor").removeAttribute("hidden");
+        document.getElementById("btnDuplicar").removeAttribute("hidden");
+    } else {
+        document.getElementById("btnAsignarProveedor").setAttribute("hidden", "hidden");
+        document.getElementById("btnDuplicar").setAttribute("hidden", "hidden");
+    }
+
+    if (selectedProductos.length > 0 && idProveedorFiltro > 0 && idClienteFiltro <= 0) {
+        document.getElementById("btnAsignarCliente").removeAttribute("hidden");
+    } else {
+        document.getElementById("btnAsignarCliente").setAttribute("hidden", "hidden");
+    }
+
+    if (selectedProductos.length > 0) {
+        document.getElementById("btnAumentarPrecios").removeAttribute("hidden");
+        document.getElementById("btnBajarPrecios").removeAttribute("hidden");
+    } else {
+        document.getElementById("btnAumentarPrecios").setAttribute("hidden", "hidden");
+        document.getElementById("btnBajarPrecios").setAttribute("hidden", "hidden");
+    }
+}
+
+function activarDrag(iconElement) {
+    const fila = iconElement.closest('tr');
+    const tabla = document.getElementById('grd_Productos');
+
+    // Remover clases anteriores
+    Array.from(tabla.querySelectorAll('tr')).forEach(row => row.classList.remove('draggable-row'));
+
+    // Marcar esta fila como seleccionada para mover
+    fila.classList.add('draggable-row');
+
+    // Hacer que solo esta fila sea draggable
+    fila.setAttribute('draggable', true);
+
+    // Agregar eventos para arrastrar
+    fila.ondragstart = (e) => {
+        e.dataTransfer.setData('text/plain', fila.rowIndex);
+        fila.style.opacity = '0.5';
+    };
+
+    fila.ondragend = (e) => {
+        fila.style.opacity = '';
+    };
+
+    const tbody = tabla.querySelector('tbody');
+
+    tbody.ondragover = (e) => {
+        e.preventDefault();
+        const afterElement = getDragAfterElement(tbody, e.clientY);
+        const draggingRow = tabla.querySelector('.draggable-row');
+        if (afterElement == null) {
+            tbody.appendChild(draggingRow);
+        } else {
+            tbody.insertBefore(draggingRow, afterElement);
+        }
+    };
+}
+
+// Función auxiliar para calcular dónde insertar
+function getDragAfterElement(container, y) {
+    const rows = [...container.querySelectorAll('tr:not(.draggable-row)')];
+
+    return rows.reduce((closest, child) => {
+        const box = child.getBoundingClientRect();
+        const offset = y - box.top - box.height / 2;
+        if (offset < 0 && offset > closest.offset) {
+            return { offset: offset, element: child };
+        } else {
+            return closest;
+        }
+    }, { offset: Number.NEGATIVE_INFINITY }).element;
 }

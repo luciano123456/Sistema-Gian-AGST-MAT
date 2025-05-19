@@ -16,7 +16,7 @@
     <link href="~/css/site.css" rel="stylesheet" />
     <link href="~/css/home.css" rel="stylesheet" />
 
-    
+
 
 </head>
 <body>
@@ -33,85 +33,15 @@
         </div>
 
 
-       
-        <div class="row" >
-         
+
+        <div class="row">
+
             <!-- Columna del menú -->
             <div class="col-lg-12">
-                <div class="card" >
+                <div class="card">
                     <div class="card-body">
                         <div class="row row-cols-md-1 row-cols-lg-6 g-4">
-                          
 
-                            <div class="col">
-                                <div class="d-flex flex-column align-items-center">
-                                    <img src="~/Imagenes/Menu Principal/Productos.png" class="img-fluid max-img-size" alt="Nuevo Producto" title="Nuevo Producto">
-                                    <button type="button" class="btn mt-2 btnMenu" onclick="nuevoProducto()">Nuevo Producto</button>
-                                </div>
-                            </div>
-                            <div class="col">
-                                <div class="d-flex flex-column align-items-center">
-                                    <img src="~/Imagenes/Menu Principal/Lista Productos.png" class="img-fluid max-img-size" alt="Lista de Productos" title="Lista de Productos">
-                                    <button type="button" class="btn mt-2 btnMenu" onclick="window.location.href='@Url.Action("Index", "Productos")'">Lista de Productos</button>
-
-                                </div>
-                            </div>
-                            <div class="col">
-                                <div class="d-flex flex-column align-items-center">
-                                    <img src="~/Imagenes/Menu Principal/Nuevo Cliente.png" class="img-fluid max-img-size" alt="Nuevo Cliente" title="Nuevo Cliente">
-                                    <button type="button" class="btn mt-2 btnMenu" onclick="nuevoCliente()">Nuevo Cliente</button>
-                                </div>
-                            </div>
-                            <div class="col">
-                                <div class="d-flex flex-column align-items-center">
-                                    <img src="~/Imagenes/Menu Principal/Clientes.png" class="img-fluid max-img-size" alt="Lista de Clientes" title="Lista de Clientes">
-                                    <button type="button" class="btn mt-2 btnMenu" onclick="window.location.href='@Url.Action("Index", "Clientes")'">Lista de Clientes</button>
-                                </div>
-                            </div>
-                            <div class="col">
-                                <div class="d-flex flex-column align-items-center">
-                                    <img src="~/Imagenes/Menu Principal/Proveedor.png" class="img-fluid max-img-size" alt="Nuevo Proveedor" title="Nuevo Proveedor">
-                                    <button type="button" class="btn mt-2 btnMenu " onclick="nuevoProveedor()">Nuevo Proveedor</button>
-                                </div>
-                            </div>
-                            <div class="col">
-                                <div class="d-flex flex-column align-items-center">
-                                    <img src="~/Imagenes/Menu Principal/Lista Proveedores.png" class="img-fluid max-img-size" alt="Lista de Proveedores" title="Lista de Proveedores">
-                                    <button type="button" class="btn mt-2 btnMenu" onclick="window.location.href='@Url.Action("Index", "Proveedores")'">Lista de Proveedores</button>
-                                </div>
-                            </div>
-                            <div class="col">
-                                <div class="d-flex flex-column align-items-center">
-                                    <img src="~/Imagenes/Menu Principal/Chofer.png" class="img-fluid max-img-size" alt="Nuevo Chofer" title="Nuevo Chofer">
-                                    <button type="button" class="btn mt-2 btnMenu" onclick="nuevoChofer()">Nuevo Chofer</button>
-                                </div>
-                            </div>
-                            <div class="col">
-                                <div class="d-flex flex-column align-items-center">
-                                    <img src="~/Imagenes/Menu Principal/Choferes.png" class="img-fluid max-img-size" alt="Lista de Choferes" title="Lista de Choferes">
-                                    <button type="button" class="btn mt-2 btnMenu" onclick="window.location.href='@Url.Action("Index", "Choferes")'">Lista de Choferes</button>
-                                </div>
-                            </div>
-
-                            <div class="col">
-                                <div class="d-flex flex-column align-items-center">
-                                    <img src="~/Imagenes/Menu Principal/Nueva Zona.png" class="img-fluid max-img-size" alt="Nueva Zona" title="Nueva Zona">
-                                    <button type="button" class="btn mt-2 btnMenu" onclick="nuevaZona()">Nueva Zona</button>
-                                </div>
-                            </div>
-                            <div class="col">
-                                <div class="d-flex flex-column align-items-center">
-                                    <img src="~/Imagenes/Menu Principal/Zonas.png" class="img-fluid max-img-size" alt="Lista de Zonas" title="Lista de Zonas">
-                                    <button type="button" class="btn mt-2 btnMenu" onclick="window.location.href='@Url.Action("Index", "Zonas")'">Lista de Zonas</button>
-                                </div>
-                            </div>
-
-                            <div class="col">
-                                <div class="d-flex flex-column align-items-center">
-                                    <img src="~/Imagenes/Menu Principal/Ventas.png" class="img-fluid max-img-size" alt="Ventas" title="Ventas">
-                                    <button type="button" class="btn mt-2 btnMenu" onclick="window.location.href='@Url.Action("Index", "Ventas")'">Ventas</button>
-                                </div>
-                            </div>
                             <div class="col">
                                 <div class="d-flex flex-column align-items-center">
                                     <img src="~/Imagenes/Menu Principal/Nuevo Pedido.png" class="img-fluid max-img-size" alt="Nuevo Pedido" title="Nuevo Pedido">
@@ -126,6 +56,66 @@
                             </div>
                             <div class="col">
                                 <div class="d-flex flex-column align-items-center">
+                                    <img src="~/Imagenes/Menu Principal/Ventas.png" class="img-fluid max-img-size" alt="Ventas" title="Ventas">
+                                    <button type="button" class="btn mt-2 btnMenu" onclick="window.location.href='@Url.Action("Index", "Ventas")'">Ventas</button>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="d-flex flex-column align-items-center">
+                                    <img src="~/Imagenes/Menu Principal/Lista Productos.png" class="img-fluid max-img-size" alt="Lista de Productos" title="Lista de Productos">
+                                    <button type="button" class="btn mt-2 btnMenu" onclick="window.location.href='@Url.Action("Index", "Productos")'">Lista de Productos</button>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="d-flex flex-column align-items-center">
+                                    <img src="~/Imagenes/Menu Principal/Clientes.png" class="img-fluid max-img-size" alt="Lista de Clientes" title="Lista de Clientes">
+                                    <button type="button" class="btn mt-2 btnMenu" onclick="window.location.href='@Url.Action("Index", "Clientes")'">Lista de Clientes</button>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="d-flex flex-column align-items-center">
+                                    <img src="~/Imagenes/Menu Principal/Lista Proveedores.png" class="img-fluid max-img-size" alt="Lista de Proveedores" title="Lista de Proveedores">
+                                    <button type="button" class="btn mt-2 btnMenu" onclick="window.location.href='@Url.Action("Index", "Proveedores")'">Lista de Proveedores</button>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="d-flex flex-column align-items-center">
+                                    <img src="~/Imagenes/Menu Principal/Choferes.png" class="img-fluid max-img-size" alt="Lista de Choferes" title="Lista de Choferes">
+                                    <button type="button" class="btn mt-2 btnMenu" onclick="window.location.href='@Url.Action("Index", "Choferes")'">Lista de Choferes</button>
+                                </div>
+                            </div>
+
+
+
+                            <div class="col">
+                                <div class="d-flex flex-column align-items-center">
+                                    <img src="~/Imagenes/Menu Principal/Productos.png" class="img-fluid max-img-size" alt="Nuevo Producto" title="Nuevo Producto">
+                                    <button type="button" class="btn mt-2 btnMenu" onclick="nuevoProducto()">Nuevo Producto</button>
+                                </div>
+                            </div>
+
+                            <div class="col">
+                                <div class="d-flex flex-column align-items-center">
+                                    <img src="~/Imagenes/Menu Principal/Nuevo Cliente.png" class="img-fluid max-img-size" alt="Nuevo Cliente" title="Nuevo Cliente">
+                                    <button type="button" class="btn mt-2 btnMenu" onclick="nuevoCliente()">Nuevo Cliente</button>
+                                </div>
+                            </div>
+
+                            <div class="col">
+                                <div class="d-flex flex-column align-items-center">
+                                    <img src="~/Imagenes/Menu Principal/Proveedor.png" class="img-fluid max-img-size" alt="Nuevo Proveedor" title="Nuevo Proveedor">
+                                    <button type="button" class="btn mt-2 btnMenu " onclick="nuevoProveedor()">Nuevo Proveedor</button>
+                                </div>
+                            </div>
+
+                            <div class="col">
+                                <div class="d-flex flex-column align-items-center">
+                                    <img src="~/Imagenes/Menu Principal/Chofer.png" class="img-fluid max-img-size" alt="Nuevo Chofer" title="Nuevo Chofer">
+                                    <button type="button" class="btn mt-2 btnMenu" onclick="nuevoChofer()">Nuevo Chofer</button>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="d-flex flex-column align-items-center">
                                     <img src="~/Imagenes/Menu Principal/historialPrecios.png" class="img-fluid max-img-size" alt="Historial de Precios" title="Historial de Precios">
                                     <button type="button" class="btn mt-2 btnMenu" onclick="window.location.href='@Url.Action("Index", "HistorialPrecios")'">Historial de Precios</button>
                                 </div>
@@ -136,13 +126,19 @@
                                     <button type="button" class="btn mt-2 btnMenu" onclick="window.location.href='@Url.Action("Index", "Monedas")'">Monedas</button>
                                 </div>
                             </div>
-
                             <div class="col">
                                 <div class="d-flex flex-column align-items-center">
-                                    <img src="~/Imagenes/Menu Principal/Nuevo Usuario.png" class="img-fluid max-img-size" alt="Nuevo Usuario" title="Nuevo Usuario">
-                                    <button type="button" class="btn mt-2 btnMenu" onclick="nuevoUsuario()">Nuevo Usuario</button>
+                                    <img src="~/Imagenes/Menu Principal/Zonas.png" class="img-fluid max-img-size" alt="Lista de Zonas" title="Lista de Zonas">
+                                    <button type="button" class="btn mt-2 btnMenu" onclick="window.location.href='@Url.Action("Index", "Zonas")'">Lista de Zonas</button>
                                 </div>
                             </div>
+                            <div class="col">
+                                <div class="d-flex flex-column align-items-center">
+                                    <img src="~/Imagenes/Menu Principal/Nueva Zona.png" class="img-fluid max-img-size" alt="Nueva Zona" title="Nueva Zona">
+                                    <button type="button" class="btn mt-2 btnMenu" onclick="nuevaZona()">Nueva Zona</button>
+                                </div>
+                            </div>
+
                             <div class="col">
                                 <div class="d-flex flex-column align-items-center">
                                     <img src="~/Imagenes/Menu Principal/Usuarios.png" class="img-fluid max-img-size" alt="Lista de Usuarios" title="Lista de Usuarios">
@@ -152,11 +148,17 @@
 
                             <div class="col">
                                 <div class="d-flex flex-column align-items-center">
+                                    <img src="~/Imagenes/Menu Principal/Nuevo Usuario.png" class="img-fluid max-img-size" alt="Nuevo Usuario" title="Nuevo Usuario">
+                                    <button type="button" class="btn mt-2 btnMenu" onclick="nuevoUsuario()">Nuevo Usuario</button>
+                                </div>
+                            </div>
+
+                            <div class="col">
+                                <div class="d-flex flex-column align-items-center">
                                     <img src="~/Imagenes/Menu Principal/Configuraciones.png" class="img-fluid max-img-size" alt="Configuraciones" title="Configuraciones">
                                     <button type="button" class="btn mt-2 btnMenu" onclick="abrirConfiguraciones()">Configuraciones</button>
                                 </div>
                             </div>
-                           
                             <div class="col">
                                 <div class="d-flex flex-column align-items-center">
                                     <img src="~/Imagenes/Menu Principal/Analisis.png" class="img-fluid max-img-size" alt="Analisis de Datos" title="Analisis de Datos">
@@ -499,7 +501,7 @@
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <div class="modal-body">
+                <  <div class="modal-body">
                     <form>
                         <div class="row">
                             <div class="col-md-6">
@@ -508,7 +510,7 @@
                                     <input type="text" class="input-nuevomodif" id="txtId" readonly>
                                 </div>
                                 <div class="form-group">
-                                    <label id="lblDescripcionProducto" for="txtDescripcionProducto" class="lblNombreInput">Descripcion (*)</label>
+                                    <label id="lblDescripcion" for="txtDescripcionProducto" class="lblNombreInput">Descripcion (*)</label>
                                     <input type="text" class="input-nuevomodif" id="txtDescripcionProducto" required>
                                 </div>
                                 <div class="form-group">
@@ -524,39 +526,45 @@
                                     </select>
                                 </div>
                                 <div class="form-group">
-                                    <label for="txtUnidadDeMedidaProducto" class="lblNombreInput">Unidad de Medida (*)</label>
+                                    <label for="UnidadesDeMedidasProducto" class="lblNombreInput">Unidad de Medida (*)</label>
                                     <select id="UnidadesDeMedidasProducto" name="select" class="input-nuevomodif select-modal-personalizado mt-2">
                                         <option value="" selected>Unidad de Medida</option>
                                     </select>
                                 </div>
-
                                 <div class="form-group">
-                                    <label for="txtMonedaProducto" class="lblNombreInput">Moneda (*)</label>
-                                    <select id="MonedasProducto" name="select" class="input-nuevomodif select-modal-personalizado mt-2">
-                                        <option value="" selected>Categoria</option>
-                                    </select>
+                                    <label id="lblProductoCantidad" for="txtProductoCantidad" class="lblNombreInput" hidden>Cantidad</label>
+                                    <input type="number" class="input-nuevomodif" id="txtProductoCantidad" hidden required>
                                 </div>
-                                <div class="form-group">
-                                    <label id="lblPrecioCostoProducto" for="txtPrecioCostoProducto" class="lblNombreInput">Precio Costo (*)</label>
-                                    <input type="number" class="input-nuevomodif" id="txtPrecioCostoProducto" required step="0.01">
-                                </div>
-
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label id="lblPorcentajeGananciaProducto" for="txtPorcentajeGananciaProducto" class="lblNombreInput">Porc. Ganancia (*)</label>
+                                    <label for="txtMoneda" class="lblNombreInput">Moneda (*)</label>
+                                    <select id="MonedasProducto" name="select" class="input-nuevomodif select-modal-personalizado mt-2">
+                                        <option value="" selected>Moneda</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label id="lblPrecioCostoProducto" for="txtPrecioCosto" class="lblNombreInput">Precio Costo U. (*)</label>
+                                    <input type="number" class="input-nuevomodif" id="txtPrecioCostoProducto" required step="0.01">
+                                </div>
+                                <div class="form-group">
+                                    <label id="lblPorcentajeGananciaProducto" for="txtPorcentajeGanancia" class="lblNombreInput">Porc. Ganancia (*)</label>
                                     <input type="number" class="input-nuevomodif" id="txtPorcentajeGananciaProducto" required step="0.01">
                                 </div>
                                 <div class="form-group">
-                                    <label id="lblPrecioVentaProducto" for="txtPrecioVentaProducto" class="lblNombreInput">Precio Venta</label>
+                                    <label id="lblPrecioVentaProducto" for="txtPrecioVenta" class="lblNombreInput">Precio Venta U.</label>
                                     <input type="number" class="input-nuevomodif" id="txtPrecioVentaProducto" step="0.01">
                                 </div>
-                                <div class="form-group divImagen">
-                                    <label for="txtImagenProducto" class="lblNombreInput">Imagen</label>
-                                    <img id="imgProducto" class="mb-3" style="width: 150px; height: 80px;" src="" />
-                                    <p id="imgProd" class="" hidden></p>
+                                <div class="form-group">
+                                    <label id="lblTotalProducto" for="txtTotal" class="lblNombreInput">Total</label>
+                                    <input type="number" class="input-nuevomodif" id="txtTotalProducto" step="0.01" value="0" readonly hidden>
                                 </div>
-                                <input id="Imagen" class="input-imagen" type="file" placeholder="Imagen" name="adjunto" accept=".pdf,.jpg,.png" />
+                                @*  <div class="form-group divImagen">
+                                <label for="txtImagen" class="lblNombreInput">Imagen</label>
+                                <img id="imgProducto" class="mb-3" style="width: 150px; height: 80px;" src="" />
+                                <p id="imgProd" class="" hidden></p>
+                            </div>
+                            <input id="Imagen" class="input-imagen" type="file" placeholder="Imagen" name="adjunto" accept=".pdf,.jpg,.png" /> *@
                             </div>
                         </div>
                     </form>
@@ -575,7 +583,7 @@
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/home.js"></script>
+    <script src="~/js/home.js?v=1.1"></script>
     <script src="~/js/site.js"></script>
 
 </body>

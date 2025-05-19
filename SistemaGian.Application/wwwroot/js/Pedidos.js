@@ -176,7 +176,10 @@ async function configurarDataTable(data) {
                     filename: 'Reporte Pedidos',
                     title: '',
                     exportOptions: {
-                        columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+                        columns: function (idx, data, node) {
+                            const columnasPermitidas = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+                            return columnasPermitidas.includes(idx) && $(node).is(':visible');
+                        }
                     },
                     className: 'btn-exportar-excel',
                 },
@@ -186,7 +189,10 @@ async function configurarDataTable(data) {
                     filename: 'Reporte pedidos',
                     title: '',
                     exportOptions: {
-                        columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+                        columns: function (idx, data, node) {
+                            const columnasPermitidas = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+                            return columnasPermitidas.includes(idx) && $(node).is(':visible');
+                        }
                     },
                     className: 'btn-exportar-pdf',
                 },
@@ -195,14 +201,17 @@ async function configurarDataTable(data) {
                     text: 'Imprimir',
                     title: '',
                     exportOptions: {
-                        columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+                        columns: function (idx, data, node) {
+                            const columnasPermitidas = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+                            return columnasPermitidas.includes(idx) && $(node).is(':visible');
+                        }
                     },
                     className: 'btn-exportar-print'
                 },
                 'pageLength'
             ],
             orderCellsTop: true,
-            fixedHeader: false,
+            fixedHeader: true,
 
             "columnDefs": [
                 {
@@ -232,6 +241,8 @@ async function configurarDataTable(data) {
 
             initComplete: async function () {
                 var api = this.api();
+
+                actualizarSumaDeudas(gridpedidos);
 
                 // Iterar sobre las columnas y aplicar la configuración de filtros
                 columnConfig.forEach(async (config) => {
@@ -303,6 +314,7 @@ async function configurarDataTable(data) {
         });
     } else {
         gridpedidos.clear().rows.add(data).draw();
+        actualizarSumaDeudas(gridpedidos);
     }
 }
 
@@ -414,3 +426,22 @@ $(document).on('click', function (e) {
         $('.acciones-dropdown').hide(); // Cerrar todos los dropdowns
     }
 });
+
+function actualizarSumaDeudas(table) {
+    let totalCliente = 0;
+    let totalProveedor = 0;
+
+    table.rows({ search: 'applied' }).every(function () {
+        const data = this.data();
+
+        // Usar índices: columna 5 (Restante Cliente), columna 6 (Restante Proveedor)
+        const deudaCliente = parseFloat((data.RestanteCliente || "0").toString().replace(/[\$.]/g, '').replace(',', '.')) || 0;
+        const deudaProveedor = parseFloat((data.RestanteProveedor || "0").toString().replace(/[\$.]/g, '').replace(',', '.')) || 0;
+
+        totalCliente += deudaCliente;
+        totalProveedor += deudaProveedor;
+    });
+
+    document.getElementById('sumaCliente').innerText = totalCliente.toLocaleString('es-AR', { style: 'currency', currency: 'ARS' });
+    document.getElementById('sumaProveedor').innerText = totalProveedor.toLocaleString('es-AR', { style: 'currency', currency: 'ARS' });
+}

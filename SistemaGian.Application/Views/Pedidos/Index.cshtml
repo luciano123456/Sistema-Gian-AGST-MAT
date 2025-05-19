@@ -62,7 +62,10 @@
                 <div class="card" style="width: 88%; position: absolute; left: 7vw; border: none;">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <span>Pedidos</span>
-
+                        <div id="sumaTotales" class="ms-4 d-flex align-items-center gap-3">
+                            <div>Deuda cliente: <strong id="sumaCliente">$0,00</strong></div>
+                            <div>Deuda a proveedor: <strong id="sumaProveedor">$0,00</strong></div>
+                        </div>
                         <div class="dropdown">
                             <button class="btn btn-secondary dropdown-toggle d-flex align-items-center" type="button" id="dropdownColumnas" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="fa fa-cog me-2"></i> Config. Columnas
@@ -135,6 +138,6 @@
 
 
     <script src="~/js/utils/moment.js"></script>
-    <script src="~/js/pedidos.js"></script>
+        <script src="~/js/pedidos.js?v=1.1"></script>
 
 }

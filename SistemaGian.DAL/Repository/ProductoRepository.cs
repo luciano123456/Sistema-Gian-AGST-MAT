@@ -125,8 +125,8 @@ namespace SistemaGian.DAL.Repository
                 foreach (var prod in lstProductos)
                 {
                     Producto model = await _dbcontext.Productos.FindAsync(prod);
-                    model.PVenta = model.PVenta * (1 + porcentajeVenta / 100.0m);
-                    model.PCosto = model.PCosto * (1 + porcentajeCosto / 100.0m);
+                    model.PVenta = model.PVenta * (1 + porcentajeVenta / 100);
+                    model.PCosto = model.PCosto * (1 + porcentajeCosto / 100);
                     model.PorcGanancia = ((model.PVenta - model.PCosto) / model.PCosto) * 100;
                     _dbcontext.Productos.Update(model);
                 }
@@ -149,8 +149,8 @@ namespace SistemaGian.DAL.Repository
                 foreach (var prod in lstProductos)
                 {
                     Producto model = await _dbcontext.Productos.FindAsync(prod);
-                    model.PVenta = model.PVenta * (1 - porcentajeVenta / 100.0m);
-                    model.PCosto = model.PCosto * (1 - porcentajeCosto / 100.0m);
+                    model.PVenta = model.PVenta * (1 - porcentajeVenta / 100);
+                    model.PCosto = model.PCosto * (1 - porcentajeCosto / 100);
                     model.PorcGanancia = ((model.PVenta - model.PCosto) / model.PCosto) * 100;
 
                     _dbcontext.Productos.Update(model);

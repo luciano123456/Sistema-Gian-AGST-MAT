@@ -17,6 +17,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link href="~/css/productos.css" rel="stylesheet" />
 
+    <!-- CSS para ColReorder -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/colreorder/1.6.2/css/colReorder.dataTables.min.css">
+
+
 }
 
 
@@ -58,14 +62,19 @@
                             <i class="fa fa-cog me-2"></i> Config. Columnas
                         </button>
                         <ul class="dropdown-menu" aria-labelledby="dropdownColumnas" id="configColumnasMenu">
-                           
                         </ul>
                     </div>
                 </div>
 
+
                 <div class="card-body">
+                    <th class="text-center">
+                        <p>Seleccionar Todos <input type="checkbox" id="selectAllCheckbox"></p>
+                    </th>
                     <table class="display nowrap" id="grd_Productos" style="width:100%">
+
                         <thead>
+
                             <tr>
                                 @* <th>Imagen</th> *@
                                 <th></th>
@@ -219,6 +228,7 @@
                             <div class="form-group" hidden>
                                 <label for="txtIdProducto" class="lblNombreInput">ID</label>
                                 <input type="text" class="input-nuevomodif" id="txtId" readonly>
+                                <input type="text" class="input-nuevomodif" id="txtActivo" readonly>
                             </div>
                             <div class="form-group">
                                 <label id="lblDescripcion" for="txtDescripcion" class="lblNombreInput">Descripcion (*)</label>
@@ -315,6 +325,11 @@
     <script src="https://cdn.datatables.net/fixedheader/3.2.2/js/dataTables.fixedHeader.min.js"></script>
 
 
-    <script src="~/js/Productos.js"></script>
+    <!-- JS para ColReorder -->
+    <script src="https://cdn.datatables.net/colreorder/1.6.2/js/dataTables.colReorder.min.js"></script>
+
+
+
+    <script src="~/js/Productos.js?v=1.0"></script>
    
 }

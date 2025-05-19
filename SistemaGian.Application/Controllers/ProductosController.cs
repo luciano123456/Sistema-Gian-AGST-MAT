@@ -270,6 +270,8 @@ namespace SistemaGian.Application.Controllers
 
             var respuesta = false;
 
+
+
             var Producto = new Producto
             {
                 Id = model.Id,
@@ -283,7 +285,8 @@ namespace SistemaGian.Application.Controllers
                 PVenta = model.PVenta,
                 PorcGanancia = model.PorcGanancia,
                 ProductoCantidad = model.ProductoCantidad,
-                Image = model.Image
+                Image = model.Image,
+                Activo = model.Activo
             };
 
 

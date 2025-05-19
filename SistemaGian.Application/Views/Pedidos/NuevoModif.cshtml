@@ -10,13 +10,14 @@
 
     <link href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css" rel="stylesheet" />
 
-    @*ESTILOS DE BOTONES*@
+@*ESTILOS DE BOTONES*@
     <link href="https://cdn.datatables.net/buttons/2.2.2/css/buttons.dataTables.min.css" rel="stylesheet" />
 
-    @*filter columns*@
+@*filter columns*@
     <link href="https://cdn.datatables.net/fixedheader/3.2.2/css/fixedHeader.dataTables.min.css" rel="stylesheet" />
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
 }
 
 <div class="titulopedidoclass">
@@ -56,9 +57,12 @@
                     <h3 class="card-title">Datos del Cliente</h3>
                     <input type="text" class="input-nuevo" id="idCliente" name="idCliente" hidden>
                     <div class="form-container">
+
                         <div class="form-group">
-                            <label for="nombreCliente">Nombre</label>
-                            <input type="text" class="input-nuevo" id="nombreCliente" name="nombreCliente">
+                            <label class="nombreCliente">Cliente</label>
+                            <select id="Clientes" name="select" class="input-nuevomodif select-modal-personalizado mt-3">
+                                <option value="" selected>Seleccione Cliente</option>
+                            </select>
                         </div>
                         <div class="form-group">
                             <label for="dniCliente">DNI</label>
@@ -74,11 +78,7 @@
                         </div>
                     </div>
                     <span id="lblSaldoCliente" hidden></span>
-                    <div class="text-end mt-3">
-                        <button type="button" id="btnSeleccionarCliente" class="btn btn-success" data-toggle="modal" data-target="#clienteModal" onclick="abrirCliente()">
-                            <i class="fa fa-search"></i> Seleccionar Cliente
-                        </button>
-                    </div>
+                   
                 </div>
             </div>
         </div>
@@ -88,10 +88,15 @@
                     <h3 class="card-title">Datos del Proveedor</h3>
                     <input type="text" class="input-nuevo" id="idProveedor" name="idProveedor" hidden>
                     <div class="form-container">
-                        <div class="form-group">
-                            <label for="nombreProveedor">Nombre</label>
-                            <input type="text" class="input-nuevo" id="nombreProveedor" name="nombreProveedor" readonly>
+
+                           <div class="form-group">
+                            <label class="nombreProveedor">Nombre</label>
+                            <select id="Proveedores" name="select" class="input-nuevomodif select-modal-personalizado mt-3">
+                                <option value="" selected>Seleccione Proveedor</option>
+                            </select>
                         </div>
+
+                       
                         <div class="form-group">
                             <label for="dniCliente">Apodo</label>
                             <input type="text" class="input-nuevo" id="apodoProveedor" name="apodoProveedor" readonly>
@@ -104,11 +109,6 @@
                             <label for="direccion">Telefono</label>
                             <input type="text" class="input-nuevo" id="telefonoProveedor" name="telefonoProveedor" readonly>
                         </div>
-                    </div>
-                    <div class="text-end mt-3">
-                        <button type="button" id="btnSeleccionarProveedor" class="btn btn-success" data-toggle="modal" data-target="#proveedorModal" onclick="abrirProveedor()">
-                            <i class="fa fa-search"></i> Seleccionar Proveedor
-                        </button>
                     </div>
                 </div>
             </div>
@@ -606,7 +606,7 @@
         </div>
 
 
- <partial name="~/Views/Utils/Modals.cshtml" />
+        <partial name="~/Views/Utils/Modals.cshtml" />
 
 
 
@@ -616,6 +616,9 @@
 
                             @section Scripts {
 
+
+            <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/js/select2.min.js"></script>
+
             <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
 
                                 @*SCRIPTS DE BOTONES*@
@@ -623,7 +626,7 @@
 
 
             <script src="~/js/utils/moment.js"></script>
-            <script src="~/js/pedidosnuevomodif.js">
+            <script src="~/js/pedidosnuevomodif.js?v=1.0">
 
                 <script src="~/js/site.js"></script>
 
@@ -631,4 +634,4 @@
                 var pedidoData = @Html.Raw(Json.Serialize(ViewBag.Data ?? new { }));
             </script>
 
-                            }
+        }

@@ -159,7 +159,10 @@ async function configurarDataTable(data) {
                     filename: 'Reporte Historial',
                     title: '',
                     exportOptions: {
-                        columns: [0, 1, 2]
+                        columns: function (idx, data, node) {
+                            const columnasPermitidas = [0, 1, 2,3];
+                            return columnasPermitidas.includes(idx) && $(node).is(':visible');
+                        }
                     },
                     className: 'btn-exportar-excel',
                 },
@@ -169,7 +172,10 @@ async function configurarDataTable(data) {
                     filename: 'Reporte Historial',
                     title: '',
                     exportOptions: {
-                        columns: [0, 1, 2, 3]
+                        columns: function (idx, data, node) {
+                            const columnasPermitidas = [0, 1, 2, 3];
+                            return columnasPermitidas.includes(idx) && $(node).is(':visible');
+                        }
                     },
                     className: 'btn-exportar-pdf',
                 },
@@ -178,7 +184,10 @@ async function configurarDataTable(data) {
                     text: 'Imprimir',
                     title: '',
                     exportOptions: {
-                        columns: [0, 1, 2, 3]
+                        columns: function (idx, data, node) {
+                            const columnasPermitidas = [0, 1, 2, 3];
+                            return columnasPermitidas.includes(idx) && $(node).is(':visible');
+                        }
                     },
                     className: 'btn-exportar-print'
                 },
@@ -204,7 +213,7 @@ async function configurarDataTable(data) {
                 }
             ],
             orderCellsTop: true,
-            fixedHeader: false,
+            fixedHeader: true,
             initComplete: async function () {
 
                 // Ahora que gridHistorial está inicializado, configuramos las opciones de columnas
@@ -360,7 +369,7 @@ function configurarOpcionesColumnas() {
             // Asegúrate de que la columna esté visible si el valor es 'true'
             grid.column(index).visible(isChecked);
 
-            const columnName = col.data
+            const columnName = col.title
 
             // Ahora agregamos el checkbox, asegurándonos de que se marque solo si 'isChecked' es 'true'
             container.append(`

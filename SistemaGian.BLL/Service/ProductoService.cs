@@ -125,6 +125,7 @@ namespace SistemaGian.BLL.Service
 
         public async Task<IQueryable<Producto>> ListaProductosFiltro(int idCliente, int idProveedor, string productoFiltro)
         {
+            try { 
             // Obtén todos los productos
             var productos = await _contactRepo.ObtenerTodos();
 
@@ -142,7 +143,7 @@ namespace SistemaGian.BLL.Service
             }
             else if (idProveedor > 0 && idCliente <= 0)
             {
-                var preciosProveedor = await _proveedorRepo.ObtenerProductosProveedor(idProveedor);
+                var preciosProveedor = (await _proveedorRepo.ObtenerProductosProveedor(idProveedor)).ToList();
                 preciosProveedorDict = preciosProveedor.ToDictionary(p => p.IdProducto);
             }
             else if (idCliente > 0 && idProveedor > 0)
@@ -220,6 +221,10 @@ namespace SistemaGian.BLL.Service
             }
 
             return listaFiltrada.AsQueryable();
+            } catch (Exception ex)
+            {
+                return null;
+            }
         }
 
 
