@@ -9,6 +9,7 @@ var userSession = JSON.parse(localStorage.getItem('userSession'));
 
 const columnConfig = [
     { index: 1, filterType: 'text' },
+    { index: 2, filterType: 'select', fetchDataFunc: listaProveedoresFilter }, // Columna con un filtro de selección (de provincias)
     { index: 3, filterType: 'select', fetchDataFunc: listaMarcasFilter }, // Columna con un filtro de selección (de provincias)
     { index: 4, filterType: 'select', fetchDataFunc: listaCategoriasFilter }, // Columna con un filtro de selección (de provincias)
     { index: 5, filterType: 'select', fetchDataFunc: listaUnidadesDeMedidaFilter }, // Columna con un filtro de selección (de provincias)
@@ -287,6 +288,7 @@ async function aplicarFiltros() {
             document.getElementById("btnNuevo").removeAttribute("hidden");
         }
 
+
         if (producto != "") {
             await actualizarVisibilidadProveedor(true);
             gridProductos.column(2).visible(true);
@@ -298,6 +300,8 @@ async function aplicarFiltros() {
             await actualizarVisibilidadProveedor(false);
         }
 
+
+     
 
         selectedProductos = [];
 
@@ -997,6 +1001,8 @@ async function eliminarProducto(id) {
 async function configurarDataTable(data) {
     if (!gridProductos) {
         $('#grd_Productos thead tr').clone(true).addClass('filters').appendTo('#grd_Productos thead');
+
+
         gridProductos = $('#grd_Productos').DataTable({
             data: data,
             language: {
@@ -1008,7 +1014,7 @@ async function configurarDataTable(data) {
             scrollCollapse: true,
             pageLength: 100, // 👈 agregá esto
             colReorder: true, // 👈 Habilita mover columnas
-            stateSave: true,  // 👈 Guarda el estado
+            stateSave: false,  // 👈 Guarda el estado
             columns: [
 
                 {
@@ -1028,18 +1034,28 @@ async function configurarDataTable(data) {
      </button>` : '';
 
                         return `
-    <div class="acciones-menu" data-id="${data}">
-        <button class='btn btn-sm btnacciones' type='button' onclick='toggleAcciones(${data})' title='Acciones'>
-            <i class='fa fa-ellipsis-v fa-lg text-white'></i>
-        </button>
-        <div class="acciones-dropdown" style="display: none;">
-            ...
-        </div>
-        <span class="custom-checkbox" data-id='${data}'>
-            <i class="fa ${checkboxClass} checkbox"></i>
-        </span>
-        ${botonApagado}
-       <i class="fa fa-hand-rock-o draggable-icon" title="Mover fila" onclick="activarDrag(this)"></i>
+     <div class="acciones-menu" data-id="${data}">
+                    <button class='btn btn-sm btnacciones' type='button' onclick='toggleAcciones(${data})' title='Acciones'>
+                        <i class='fa fa-ellipsis-v fa-lg text-white' aria-hidden='true'></i>
+                    </button>
+                    <div class="acciones-dropdown" style="display: none;">
+                      <button class='btn btn-sm btnDuplicar' type='button' onclick='duplicarProducto(${data})' title='Duplicar'>
+                            <i class='fa fa-copy fa-lg text-warning' aria-hidden='true'></i> Duplicar
+                        </button>
+                        <button class='btn btn-sm btneditar' type='button' onclick='editarProducto(${data})' title='Editar'>
+                            <i class='fa fa-pencil-square-o fa-lg text-success' aria-hidden='true'></i> Editar
+                        </button>
+                        <button class='btn btn-sm btneliminar' type='button' onclick='eliminarProducto(${data})' title='Eliminar'>
+                            <i class='fa fa-trash-o fa-lg text-danger' aria-hidden='true'></i> Eliminar
+                        </button>
+                     
+                    </div>
+                    <span class="custom-checkbox" data-id='${data}'>
+                                    <i class="fa ${checkboxClass} checkbox"></i>
+                                </span>
+                                ${botonApagado}
+       <i class="fa fa-hand-rock-o draggable-icon" title="Mover fila"></i>
+
     </div>
 `;
 
@@ -1048,7 +1064,9 @@ async function configurarDataTable(data) {
                     searchable: false,
                 },
                 { data: 'Descripcion' },
-                { data: 'Proveedor' },
+                { data: 'Proveedor', visible: false },
+
+
                 { data: 'Marca' },
                 { data: 'Categoria' },
                 { data: 'UnidadDeMedida' },
@@ -1115,33 +1133,49 @@ async function configurarDataTable(data) {
                 { "render": function (data) { return formatNumber(data); }, "targets": [6, 7, 9] }
             ],
             createdRow: function (row, data, dataIndex) {
+                $(row).attr('data-id', data.Id);
+
                 if (data.Descripcion.toLowerCase().includes('copia')) {
-                    $(row).addClass('productocopia'); // Agrega la clase a toda la fila
+                    $(row).addClass('productocopia');
                 }
             },
 
 
-            initComplete: async function () {
-                var api = this.api();
 
-                // Iterar sobre las columnas y aplicar la configuración de filtros
+
+            initComplete: async function () {
+                const api = this.api();
+                const columnConfig = generarColumnConfig();
+                console.log("columnConfig:", columnConfig); // 👈 DEBUG
+
                 columnConfig.forEach(async (config) => {
-                    var cell = $('.filters th').eq(config.index);
+                    const cell = $('.filters th').eq(config.index);
+                    if (!cell.length) return;
+
+                    if (gridProductos.column(config.index).visible() === false) {
+                        cell.empty().hide(); // 👈 Esconder también la celda si no está visible
+                        return; // ⚠️ Saltar generación de filtro
+                    }
+
+                    cell.empty().show(); // Asegurarse que sí está visible
 
                     if (config.filterType === 'select') {
-                        var select = $('<select id="filter' + config.index + '"><option value="">Seleccionar</option></select>')
-                            .appendTo(cell.empty())
-                            .on('change', async function () {
-                                var val = $(this).val();
-                                var selectedText = $(this).find('option:selected').text(); // Obtener el texto del nombre visible
-                                await api.column(config.index).search(val ? '^' + selectedText + '$' : '', true, false).draw(); // Buscar el texto del nombre
+                        const select = $('<select><option value="">Seleccionar</option></select>')
+                            .appendTo(cell)
+                            .on('change', function () {
+                                const val = $(this).val();
+                                api.column(config.index)
+                                    .search(val ? '^' + val + '$' : '', true, false)
+                                    .draw();
                             });
 
-                        var data = await config.fetchDataFunc(); // Llamada a la función para obtener los datos
-                        data.forEach(function (item) {
-                            select.append('<option value="' + item.Id + '">' + item.Nombre + '</option>')
+                        const data = await config.fetchDataFunc();
+                        data.forEach(item => {
+                            select.append(`<option value="${item.Nombre}">${item.Nombre}</option>`);
                         });
 
+                        
+                    
                     } else if (config.filterType === 'text') {
                         var input = $('<input type="text" placeholder="Buscar..." />')
                             .appendTo(cell.empty())
@@ -1172,10 +1206,11 @@ async function configurarDataTable(data) {
 
                 $('.filters th').eq(0).html('');
 
-                // Establecer la visibilidad de la columna 'Proveedor' (por defecto oculta)
-                actualizarVisibilidadProveedor(false); // Establecer la visibilidad por defecto
+               
 
                 configurarOpcionesColumnas();
+
+                await actualizarVisibilidadProveedor(false);
 
 
                 $('#grd_Productos tbody').on('dblclick', 'td', async function () {
@@ -1504,39 +1539,37 @@ $('#grd_Productos').on('row-reorder', function (e, diff, edit) {
     // Enviá a tu controlador si necesitás persistirlo
 });
 
-
-// Actualizar la visibilidad de la columna 'Proveedor'
 async function actualizarVisibilidadProveedor(visible) {
-    var column = gridProductos.column(2); // Asumimos que la columna 'Proveedor' es la tercera columna (índice 2)
+    const columnIndex = 2; // Índice de columna Proveedor
+    const column = gridProductos.column(columnIndex);
+
     column.visible(visible);
+    $('.filters th').eq(columnIndex).toggle(visible);
 
-    // Si la columna es visible, configurar su filtro select
     if (visible) {
-        var cell = $('.filters th').eq(2);
-        var select = $('<select id="filter2"><option value="">Seleccionar</option></select>')
-            .appendTo(cell.empty())
+        // ⚠️ Regenerar el filtro solo si está visible
+        const cell = $('.filters th').eq(columnIndex);
+        cell.empty();
+
+        const select = $('<select><option value="">Seleccionar</option></select>')
+            .appendTo(cell)
             .on('change', function () {
-
-                var val = $(this).val();
-                var selectedText = $(this).find('option:selected').text(); // Obtener el texto del nombre visible
-                //await api.column(config.index).search(val ? '^' + selectedText + '$' : '', true, false).draw(); // Buscar el texto del nombre
-
-                gridProductos.column(2).search(val ? '^' + selectedText + '$' : '', true, false).draw();
+                const val = $(this).val();
+                gridProductos.column(columnIndex)
+                    .search(val ? '^' + val + '$' : '', true, false)
+                    .draw();
             });
 
-        try {
-            var data = await listaProveedoresFilter(); // Obtener datos de proveedores
-            data.forEach(function (item) {
-                select.append('<option value="' + item.Nombre + '">' + item.Nombre + '</option>');
-            });
-        } catch (error) {
-            console.error("Error al obtener datos de proveedores:", error);
-        }
+        const data = await listaProveedoresFilter();
+        data.forEach(item => {
+            select.append(`<option value="${item.Nombre}">${item.Nombre}</option>`);
+        });
     }
 
-    // Redibujar la tabla después de cambiar la visibilidad
-    gridProductos.draw();
+    // 👇 Esto evita el desajuste visual
+    gridProductos.columns.adjust().draw();
 }
+
 
 async function listaProveedoresFilter() {
     const url = `/Proveedores/Lista`;
@@ -1654,42 +1687,80 @@ async function listaClientes() {
 }
 
 
-function configurarOpcionesColumnas() {
-    const grid = $('#grd_Productos').DataTable(); // Accede al objeto DataTable utilizando el id de la tabla
-    const columnas = grid.settings().init().columns; // Obtiene la configuración de columnas
-    const container = $('#configColumnasMenu'); // El contenedor del dropdown específico para configurar columnas
+function generarColumnConfig() {
+    const config = [];
 
-    const storageKey = `Productos_Columnas`; // Clave única para esta pantalla
+    const columnasVisibles = gridProductos?.columns().visible().toArray();
 
-    const savedConfig = JSON.parse(localStorage.getItem(storageKey)) || {}; // Recupera configuración guardada o inicializa vacía
+    // Empezá a recorrer por índice real y visible
+    columnasVisibles.forEach((esVisible, realIndex) => {
+        if (!esVisible) return;
 
-    container.empty(); // Limpia el contenedor
+        const colName = gridProductos.column(realIndex).dataSrc();
 
-    columnas.forEach((col, index) => {
-        if (col.data && !col.data.includes("Id") && col.data !== "Proveedor" && (userSession.ModoVendedor == 1 && col.data != "PCosto" && col.data != "PorcGanancia" || userSession.ModoVendedor == 0)) { // Solo agregar columnas que no sean "Id"
-            // Recupera el valor guardado en localStorage, si existe. Si no, inicializa en 'false' para no estar marcado.
-            const isChecked = savedConfig && savedConfig[`col_${index}`] !== undefined ? savedConfig[`col_${index}`] : true;
+        if (colName === "Descripcion") {
+            config.push({ index: realIndex, filterType: 'text' });
+        }
 
-            // Asegúrate de que la columna esté visible si el valor es 'true'
-            grid.column(index).visible(isChecked);
+        if (colName === "Proveedor" ) {
+            config.push({ index: realIndex, filterType: 'select', fetchDataFunc: listaProveedoresFilter });
+        }
 
-            const columnName = col.data
+        if (colName === "Marca") {
+            config.push({ index: realIndex, filterType: 'select', fetchDataFunc: listaMarcasFilter });
+        }
 
-            // Ahora agregamos el checkbox, asegurándonos de que se marque solo si 'isChecked' es 'true'
-            container.append(`
-                <li>
-                    <label class="dropdown-item">
-                        <input type="checkbox" class="toggle-column" data-column="${index}" ${isChecked ? 'checked' : ''}>
-                        ${columnName}
-                    </label>
-                </li>
-            `);
+        if (colName === "Categoria") {
+            config.push({ index: realIndex, filterType: 'select', fetchDataFunc: listaCategoriasFilter });
+        }
+
+        if (colName === "UnidadDeMedida") {
+            config.push({ index: realIndex, filterType: 'select', fetchDataFunc: listaUnidadesDeMedidaFilter });
+        }
+
+        if (["PCosto", "PVenta", "ProductoCantidad", "Total", "PorcGanancia"].includes(colName)) {
+            config.push({ index: realIndex, filterType: 'text' });
         }
     });
 
-    // Asocia el evento para ocultar/mostrar columnas
+    return config;
+}
+
+
+function configurarOpcionesColumnas() {
+    const grid = $('#grd_Productos').DataTable();
+    const columnas = grid.settings().init().columns;
+    const container = $('#configColumnasMenu');
+    const storageKey = `Productos_Columnas`;
+
+    const savedConfig = JSON.parse(localStorage.getItem(storageKey)) || {};
+    container.empty();
+
+    columnas.forEach((col, index) => {
+        if (!col.data) return;
+
+        // Filtrar columnas no configurables
+        if (col.data.includes("Id")) return;
+
+        // Si el usuario es vendedor, ocultar opciones para PrecioCosto y PorcGanancia
+        if (userSession.ModoVendedor == 1 && (col.data === "PCosto" || col.data === "PorcGanancia")) return;
+
+        const isChecked = savedConfig[`col_${index}`] !== undefined ? savedConfig[`col_${index}`] : true;
+
+        grid.column(index).visible(isChecked);
+
+        container.append(`
+            <li>
+                <label class="dropdown-item">
+                    <input type="checkbox" class="toggle-column" data-column="${index}" ${isChecked ? 'checked' : ''}>
+                    ${col.data}
+                </label>
+            </li>
+        `);
+    });
+
     $('.toggle-column').on('change', function () {
-        const columnIdx = parseInt($(this).data('column'), 20);
+        const columnIdx = parseInt($(this).data('column'), 10);
         const isChecked = $(this).is(':checked');
         savedConfig[`col_${columnIdx}`] = isChecked;
         localStorage.setItem(storageKey, JSON.stringify(savedConfig));
@@ -1848,6 +1919,11 @@ function actualizarBotonesAccion() {
     }
 }
 
+$(document).on('mousedown', '.draggable-icon', function (e) {
+    activarDrag(this);
+});
+
+
 function activarDrag(iconElement) {
     const fila = iconElement.closest('tr');
     const tabla = document.getElementById('grd_Productos');
@@ -1882,7 +1958,48 @@ function activarDrag(iconElement) {
         } else {
             tbody.insertBefore(draggingRow, afterElement);
         }
+
+
     };
+
+    tbody.ondrop = (e) => {
+        e.preventDefault();
+        const draggingRow = tabla.querySelector('.draggable-row');
+        const afterElement = getDragAfterElement(tbody, e.clientY);
+
+        if (afterElement == null) {
+            tbody.appendChild(draggingRow);
+        } else {
+            tbody.insertBefore(draggingRow, afterElement);
+        }
+
+        // 🎆 Mostrar explosión
+        mostrarExplosion(e.clientX, e.clientY);
+
+
+        // Obtener índice de la fila dentro del tbody
+        const filaIndex = [...tbody.rows].indexOf(draggingRow);
+
+        // Aplicar efecto solo a columnas desde la tercera
+        draggingRow.querySelectorAll('td').forEach((td, index) => {
+            if (index >= 1) {
+                td.classList.add('fila-resaltada');
+            }
+        });
+
+        setTimeout(() => {
+            draggingRow.querySelectorAll('td').forEach((td, index) => {
+                if (index >= 1) {
+                    td.classList.remove('fila-resaltada');
+                }
+            });
+        }, 1000);
+
+         guardarNuevoOrdenProductos(); // ← tu lógica de guardar si querés activarla
+    };
+
+
+
 }
 
 // Función auxiliar para calcular dónde insertar
@@ -1898,4 +2015,80 @@ function getDragAfterElement(container, y) {
             return closest;
         }
     }, { offset: Number.NEGATIVE_INFINITY }).element;
+}
+
+
+function mostrarExplosion(x, y) {
+    const explosion = document.createElement('div');
+    explosion.classList.add('explosion');
+    explosion.style.left = `${x - 20}px`;
+    explosion.style.top = `${y - 20}px`;
+    document.body.appendChild(explosion);
+
+    setTimeout(() => {
+        explosion.remove();
+    }, 500);
+}
+
+
+
+
+let scrollInterval;
+const scrollSpeed = 20;
+
+$(document).on('dragover', '#grd_Productos_wrapper .dataTables_scrollBody', function (e) {
+    const scrollContainer = this;
+    const bounds = scrollContainer.getBoundingClientRect();
+    const offsetY = e.clientY - bounds.top;
+
+    clearInterval(scrollInterval);
+
+    if (offsetY < 50) {
+        scrollInterval = setInterval(() => {
+            scrollContainer.scrollTop -= scrollSpeed;
+        }, 50);
+    } else if (offsetY > bounds.height - 50) {
+        scrollInterval = setInterval(() => {
+            scrollContainer.scrollTop += scrollSpeed;
+        }, 50);
+    }
+});
+
+$(document).on('dragleave drop', '#grd_Productos_wrapper .dataTables_scrollBody', function () {
+    clearInterval(scrollInterval);
+});
+
+
+function guardarNuevoOrdenProductos() {
+    const filas = document.querySelectorAll('#grd_Productos tbody tr');
+    const nuevosOrdenes = [];
+
+    filas.forEach((fila, index) => {
+        const id = parseInt(fila.getAttribute('data-id'));
+        nuevosOrdenes.push({ Id: id, Orden: index + 1 });
+    });
+
+    const idProveedor = document.getElementById("Proveedoresfiltro").value;
+    const idCliente = document.getElementById("clientesfiltro").value;
+
+    fetch('/Productos/GuardarOrdenMasivo', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'idProveedor': idProveedor,
+            'idCliente': idCliente
+        },
+        body: JSON.stringify(nuevosOrdenes)
+    })
+        .then(response => {
+            if (!response.ok) throw new Error('Error al guardar el orden');
+            return response.json();
+        })
+        .then(data => {
+            console.log('Orden actualizado');
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            errorModal('Error al guardar el orden');
+        });
 }

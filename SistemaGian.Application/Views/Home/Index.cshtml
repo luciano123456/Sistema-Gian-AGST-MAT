@@ -3,6 +3,14 @@
     Layout = null;
 }
 
+@using Microsoft.Extensions.Configuration
+
+@inject IConfiguration Configuration
+
+@{
+    var ambienteTest = Configuration.GetValue<int>("AmbienteTest");
+}
+
 
 <!DOCTYPE html>
 <html lang="es">
@@ -19,11 +27,12 @@
 
 
 </head>
-<body>
+<body class="@(ambienteTest == 1 ? "fondo-test" : "")">
+
 
     <partial name="~/Views/Shared/Partials/NavbarLogin.cshtml" />
 
-    <div class="container-fluid">
+    <div class="container-fluid>
 
         <div class="row mt-5">
             <!-- Columna del logo -->

@@ -1,4 +1,12 @@
-﻿@{
+﻿@using Microsoft.Extensions.Configuration
+
+@inject IConfiguration Configuration
+
+@{
+    var ambienteTest = Configuration.GetValue<int>("AmbienteTest");
+}
+
+@{
     ViewBag.Title = "Nuevo Pedido";
 }
 

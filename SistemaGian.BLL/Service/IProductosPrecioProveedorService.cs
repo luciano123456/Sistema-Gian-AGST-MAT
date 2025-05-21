@@ -10,6 +10,7 @@ namespace SistemaGian.BLL.Service
         Task<IQueryable<ProductosPreciosProveedor>> ListaProductosProveedor(int idProveedor);
         Task<bool> ActualizarProductoProveedor(Producto model, int idProveedor);
         Task<ProductosPreciosProveedor> ObtenerProductoProveedor(int idProducto, int idProveedor);
+        Task<bool> GuardarOrden(int idProducto, int idProveedor, int Orden);
 
   
     }

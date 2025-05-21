@@ -3,6 +3,14 @@
     Layout = null;
 }
 
+@using Microsoft.Extensions.Configuration
+
+@inject IConfiguration Configuration
+
+@{
+    var ambienteTest = Configuration.GetValue<int>("AmbienteTest");
+}
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -15,10 +23,10 @@
 </head>
 
 
-<body>
+<body class="@(ambienteTest == 1 ? "fondo-test" : "")">
 
 
-    <div class="login-container">
+    <div class="login-container" >
         <!-- Parte izquierda: Imagen con fondo azul oscuro -->
         <div class="left-side">
             <img src="~/Imagenes/Logo.png" alt="Logo" class="logo">

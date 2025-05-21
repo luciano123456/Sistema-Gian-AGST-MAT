@@ -105,5 +105,10 @@ namespace SistemaGian.BLL.Service
         {
             return await _productospreciorepo.ObtenerProductosProveedor(idProveedor);
         }
+
+        public async Task<bool> GuardarOrden(int idProducto, int idProveedor, int Orden)
+        {
+            return await _productospreciorepo.GuardarOrden(idProducto, idProveedor, Orden);
+        }
     }
 }

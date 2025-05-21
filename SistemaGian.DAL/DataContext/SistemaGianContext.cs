@@ -8,10 +8,6 @@ namespace SistemaGian.DAL.DataContext;
 
 public partial class SistemaGianContext : DbContext
 {
-
-    private readonly IConfiguration _configuration;
-
-
     public SistemaGianContext()
     {
     }
@@ -21,6 +17,8 @@ public partial class SistemaGianContext : DbContext
     {
     }
 
+    private readonly IConfiguration _configuration;
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         if (!optionsBuilder.IsConfigured)
@@ -29,7 +27,6 @@ public partial class SistemaGianContext : DbContext
             optionsBuilder.UseSqlServer(connectionString);
         }
     }
-
 
     public virtual DbSet<Chofer> Choferes { get; set; }
 
@@ -73,6 +70,7 @@ public partial class SistemaGianContext : DbContext
 
     public virtual DbSet<ZonasCliente> ZonasClientes { get; set; }
 
+   
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

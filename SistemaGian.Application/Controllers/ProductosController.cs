@@ -85,6 +85,75 @@ namespace SistemaGian.Application.Controllers
 
         }
 
+        [HttpPost]
+        public async Task<IActionResult> GuardarOrden([FromBody] VMOrdenProducto model)
+        {
+            try
+            {
+                // Obtener filtros desde query o header si los estás usando
+                var idProveedor = Convert.ToInt32(HttpContext.Request.Headers["idProveedor"]);
+                var idCliente = Convert.ToInt32(HttpContext.Request.Headers["idCliente"]);
+
+                bool result;
+
+                if (idProveedor > 0 && idCliente > 0)
+                {
+                    // Guardar en la tabla cliente-proveedor
+                    result = await _productoPrecioClienteService.GuardarOrden(model.Id, idCliente, idProveedor, model.Orden);
+                }
+                else if (idProveedor > 0)
+                {
+                    // Guardar en la tabla proveedor
+                    result = await _productoprecioProveedorService.GuardarOrden(model.Id, idProveedor, model.Orden);
+                }
+                else
+                {
+                    // Guardar en la tabla base
+                    result = await _Productoservice.GuardarOrden(model.Id, model.Orden);
+                }
+
+                return Json(result);
+            }
+            catch (Exception ex)
+            {
+                return Json(false);
+            }
+        }
+
+
+        [HttpPost]
+        public async Task<IActionResult> GuardarOrdenMasivo([FromBody] List<VMOrdenProducto> productos)
+        {
+            try
+            {
+                var idProveedor = Convert.ToInt32(HttpContext.Request.Headers["idProveedor"]);
+                var idCliente = Convert.ToInt32(HttpContext.Request.Headers["idCliente"]);
+
+                foreach (var p in productos)
+                {
+                    if (idProveedor > 0 && idCliente > 0)
+                    {
+                        await _productoPrecioClienteService.GuardarOrden(p.Id, idCliente, idProveedor, p.Orden);
+                    }
+                    else if (idProveedor > 0)
+                    {
+                        await _productoprecioProveedorService.GuardarOrden(p.Id, idProveedor, p.Orden);
+                    }
+                    else
+                    {
+                        await _Productoservice.GuardarOrden(p.Id, p.Orden);
+                    }
+                }
+
+                return Ok(true);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest("Error al guardar el orden");
+            }
+        }
+
+
 
         [HttpPost]
         public async Task<IActionResult> AumentarPrecios([FromBody] VMAumentoProductos modelo)
@@ -143,20 +212,20 @@ namespace SistemaGian.Application.Controllers
         [HttpGet]
         public async Task<IActionResult> Lista()
         {
-            var Productos = await _Productoservice.ObtenerTodos();
+            var productos = await _Productoservice.ObtenerTodos();
 
-            var lista = Productos.Select(c => new VMProducto
+            var baseList = productos.Select(c => new VMProducto
             {
                 Id = c.Id,
                 FechaActualizacion = c.FechaActualizacion,
                 Descripcion = c.Descripcion,
-                Marca = c.IdMarcaNavigation != null ? c.IdMarcaNavigation.Nombre : "",       // Nombre de la Marca
-                Categoria = c.IdCategoriaNavigation != null ? c.IdCategoriaNavigation.Nombre : "", // Nombre de la Categoria
-                UnidadDeMedida = c.IdUnidadDeMedidaNavigation != null ? c.IdUnidadDeMedidaNavigation.Nombre : "", // Nombre de la Unidad de Medida
-                Moneda = c.IdMonedaNavigation != null ? c.IdMonedaNavigation.Nombre : "", // Nombre de la Moneda
-                IdMoneda  = c.IdMoneda,
-                IdUnidadDeMedida  = c.IdUnidadDeMedida,
-                IdMarca  = c.IdMarca,
+                Marca = c.IdMarcaNavigation != null ? c.IdMarcaNavigation.Nombre : "",
+                Categoria = c.IdCategoriaNavigation != null ? c.IdCategoriaNavigation.Nombre : "",
+                UnidadDeMedida = c.IdUnidadDeMedidaNavigation != null ? c.IdUnidadDeMedidaNavigation.Nombre : "",
+                Moneda = c.IdMonedaNavigation != null ? c.IdMonedaNavigation.Nombre : "",
+                IdMoneda = c.IdMoneda,
+                IdUnidadDeMedida = c.IdUnidadDeMedida,
+                IdMarca = c.IdMarca,
                 IdCategoria = c.IdCategoria,
                 PCosto = c.PCosto,
                 PVenta = c.PVenta,
@@ -164,22 +233,47 @@ namespace SistemaGian.Application.Controllers
                 ProductoCantidad = c.ProductoCantidad,
                 Total = c.PVenta * (int)c.ProductoCantidad,
                 Image = c.Image,
-                Activo = (int)c.Activo != null ? (int)c.Activo : 1
-
-
+                Activo = (int)c.Activo != null ? (int)c.Activo : 1,
+                Orden = c.Orden != null ? c.Orden : 0
             }).ToList();
 
-            return Ok(lista);
+            var conOrden = baseList.Where(p => p.Orden > 0).OrderBy(p => p.Orden).ToList();
+            var sinOrden = baseList.Where(p => p.Orden <= 0).ToList();
+
+            var resultado = new List<VMProducto>();
+
+            int maxOrden = (int)(conOrden.Any() ? conOrden.Max(p => p.Orden) : 0);
+            int maxIndex = Math.Max(baseList.Count, maxOrden);
+
+            for (int i = 1; i <= maxIndex; i++)
+            {
+                var prod = conOrden.FirstOrDefault(p => p.Orden == i);
+                if (prod != null)
+                {
+                    resultado.Add(prod);
+                }
+                else if (sinOrden.Any())
+                {
+                    resultado.Add(sinOrden[0]);
+                    sinOrden.RemoveAt(0);
+                }
+            }
+
+            resultado.AddRange(sinOrden);
+
+            return Ok(resultado);
         }
+
+
 
         [HttpGet]
         public async Task<IActionResult> ListaProductosFiltro(int idCliente, int idProveedor, string producto)
         {
             try
             {
-                var Productos = await _Productoservice.ListaProductosFiltro(idCliente, idProveedor, producto);
+                var productos = await _Productoservice.ListaProductosFiltro(idCliente, idProveedor, producto);
 
-                var lista = Productos.Select(c => new VMProducto
+                var baseList = productos.Select(c => new VMProducto
                 {
                     Id = c.Id,
                     FechaActualizacion = c.FechaActualizacion,
@@ -189,23 +283,54 @@ namespace SistemaGian.Application.Controllers
                     UnidadDeMedida = c.IdUnidadDeMedidaNavigation != null ? c.IdUnidadDeMedidaNavigation.Nombre : string.Empty,
                     Moneda = c.IdMonedaNavigation != null ? c.IdMonedaNavigation.Nombre : string.Empty,
                     Proveedor = c.IdProveedor > 0 ? _proveedorService.Obtener((int)c.IdProveedor).Result.Nombre : null,
+                    IdMoneda = c.IdMoneda,
+                    IdUnidadDeMedida = c.IdUnidadDeMedida,
+                    IdMarca = c.IdMarca,
+                    IdCategoria = c.IdCategoria,
                     PCosto = c.PCosto,
                     PVenta = c.PVenta,
                     PorcGanancia = c.PorcGanancia,
                     ProductoCantidad = c.ProductoCantidad,
                     Total = c.PVenta * (int)c.ProductoCantidad,
                     Image = c.Image,
-                    Activo = c.Activo
-
+                    Activo = c.Activo,
+                    Orden = c.Orden ?? 0 // 👈 Asegurate que c.Orden venga correctamente desde el servicio
                 }).ToList();
 
-                return Ok(lista);
+                // Separar productos con y sin orden
+                var conOrden = baseList.Where(p => p.Orden > 0).OrderBy(p => p.Orden).ToList();
+                var sinOrden = baseList.Where(p => p.Orden <= 0).ToList();
+
+                var resultado = new List<VMProducto>();
+
+                int maxOrden = (int)((conOrden.Count > 0) ? conOrden.Max(p => p.Orden) : 0);
+                int maxIndex = Math.Max(baseList.Count, maxOrden);
+
+                for (int i = 1; i <= maxIndex; i++)
+                {
+                    var prod = conOrden.FirstOrDefault(p => p.Orden == i);
+                    if (prod != null)
+                    {
+                        resultado.Add(prod);
+                    }
+                    else if (sinOrden.Any())
+                    {
+                        resultado.Add(sinOrden[0]);
+                        sinOrden.RemoveAt(0);
+                    }
+                }
+
+                // Agregar los que aún no se insertaron
+                resultado.AddRange(sinOrden);
+
+                return Ok(resultado);
             }
             catch (Exception ex)
             {
                 return BadRequest($"Error al obtener los productos: {ex.Message}");
             }
         }
+
 
 
 

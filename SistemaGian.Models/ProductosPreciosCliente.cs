@@ -21,6 +21,8 @@ public partial class ProductosPreciosCliente
 
     public decimal PorcGanancia { get; set; }
 
+    public int? Orden { get; set; }
+
     public virtual Cliente IdClienteNavigation { get; set; } = null!;
 
     public virtual Producto IdProductoNavigation { get; set; } = null!;

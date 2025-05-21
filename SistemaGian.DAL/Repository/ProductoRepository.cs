@@ -254,6 +254,17 @@ namespace SistemaGian.DAL.Repository
             return model;
         }
 
+        public async Task<bool> GuardarOrden(int idProducto, int nuevoOrden)
+        {
+            var producto = await _dbcontext.Productos.FindAsync(idProducto);
+            if (producto == null) return false;
+
+            producto.Orden = nuevoOrden;
+            await _dbcontext.SaveChangesAsync();
+            return true;
+        }
+
+
         public async Task<bool> EditarActivo(int id, int activo)
         {
             Producto model = await _dbcontext.Productos.FindAsync(id);

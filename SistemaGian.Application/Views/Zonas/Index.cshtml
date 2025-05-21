@@ -1,4 +1,13 @@
-﻿@{
+﻿@using Microsoft.Extensions.Configuration
+
+@inject IConfiguration Configuration
+
+@{
+    var ambienteTest = Configuration.GetValue<int>("AmbienteTest");
+}
+
+
+@{
     ViewData["Title"] = "Home Page";
 }
 
