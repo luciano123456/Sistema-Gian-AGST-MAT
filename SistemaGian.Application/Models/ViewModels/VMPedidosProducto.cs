@@ -17,7 +17,7 @@ public partial class VMPedidosProducto
     public decimal? ProductoCantidad { get; set; }
     public string Nombre { get; set; }
 
-    public int? Cantidad { get; set; }
+    public decimal? Cantidad { get; set; }
 
     public virtual Pedido? IdPedidoNavigation { get; set; }
 

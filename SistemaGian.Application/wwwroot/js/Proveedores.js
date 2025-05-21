@@ -221,7 +221,10 @@ async function configurarDataTable(data) {
                     filename: 'Reporte Proveedores',
                     title: '',
                     exportOptions: {
-                        columns:  [1, 2, 3, 4]
+                        columns: function (idx, data, node) {
+                            const columnasPermitidas = [1, 2, 3, 4];
+                            return columnasPermitidas.includes(idx) && $(node).is(':visible');
+                        }
                     },
                     className: 'btn-exportar-excel',
                 },
@@ -231,7 +234,10 @@ async function configurarDataTable(data) {
                     filename: 'Reporte Proveedores',
                     title: '',
                     exportOptions: {
-                        columns: [1, 2, 3, 4]
+                        columns: function (idx, data, node) {
+                            const columnasPermitidas = [1, 2, 3, 4];
+                            return columnasPermitidas.includes(idx) && $(node).is(':visible');
+                        }
                     },
                     className: 'btn-exportar-pdf',
                 },
@@ -240,14 +246,17 @@ async function configurarDataTable(data) {
                     text: 'Imprimir',
                     title: '',
                     exportOptions: {
-                        columns: [1, 2, 3, 4]
+                        columns: function (idx, data, node) {
+                            const columnasPermitidas = [1, 2, 3, 4];
+                            return columnasPermitidas.includes(idx) && $(node).is(':visible');
+                        }
                     },
                     className: 'btn-exportar-print'
                 },
                 'pageLength'
             ],
             orderCellsTop: true,
-            fixedHeader: false,
+            fixedHeader: true,
 
             initComplete: async function () {
                 var api = this.api();

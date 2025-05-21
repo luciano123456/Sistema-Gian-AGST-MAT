@@ -125,8 +125,8 @@ namespace SistemaGian.DAL.Repository
                 foreach (var prod in lstProductos)
                 {
                     Producto model = await _dbcontext.Productos.FindAsync(prod);
-                    model.PVenta = model.PVenta * (1 + porcentajeVenta / 100.0m);
-                    model.PCosto = model.PCosto * (1 + porcentajeCosto / 100.0m);
+                    model.PVenta = model.PVenta * (1 + porcentajeVenta / 100);
+                    model.PCosto = model.PCosto * (1 + porcentajeCosto / 100);
                     model.PorcGanancia = ((model.PVenta - model.PCosto) / model.PCosto) * 100;
                     _dbcontext.Productos.Update(model);
                 }
@@ -149,8 +149,8 @@ namespace SistemaGian.DAL.Repository
                 foreach (var prod in lstProductos)
                 {
                     Producto model = await _dbcontext.Productos.FindAsync(prod);
-                    model.PVenta = model.PVenta * (1 - porcentajeVenta / 100.0m);
-                    model.PCosto = model.PCosto * (1 - porcentajeCosto / 100.0m);
+                    model.PVenta = model.PVenta * (1 - porcentajeVenta / 100);
+                    model.PCosto = model.PCosto * (1 - porcentajeCosto / 100);
                     model.PorcGanancia = ((model.PVenta - model.PCosto) / model.PCosto) * 100;
 
                     _dbcontext.Productos.Update(model);
@@ -253,6 +253,17 @@ namespace SistemaGian.DAL.Repository
             Producto model = await _dbcontext.Productos.FindAsync(idProducto);
             return model;
         }
+
+        public async Task<bool> GuardarOrden(int idProducto, int nuevoOrden)
+        {
+            var producto = await _dbcontext.Productos.FindAsync(idProducto);
+            if (producto == null) return false;
+
+            producto.Orden = nuevoOrden;
+            await _dbcontext.SaveChangesAsync();
+            return true;
+        }
+
 
         public async Task<bool> EditarActivo(int id, int activo)
         {

@@ -20,6 +20,7 @@ namespace SistemaGian.BLL.Service
         Task<bool> BajarPrecios(string productos, int idCliente, int idProveedor, decimal porcentajeCosto, decimal porcentajeVenta);
         Task<bool> DuplicarProductos(string productos);
         Task<bool> DuplicarProducto(int idProducto);
+        Task<bool> GuardarOrden(int idProducto, int nuevoOrden);
 
     }
 }

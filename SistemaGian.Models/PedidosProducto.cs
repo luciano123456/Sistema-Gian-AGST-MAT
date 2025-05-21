@@ -15,7 +15,7 @@ public partial class PedidosProducto
     public decimal? PrecioCosto { get; set; }
     public decimal? ProductoCantidad { get; set; }
 
-    public int? Cantidad { get; set; }
+    public decimal? Cantidad { get; set; }
 
     public virtual Pedido? IdPedidoNavigation { get; set; }
 

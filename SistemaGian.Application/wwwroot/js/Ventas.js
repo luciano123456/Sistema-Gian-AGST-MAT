@@ -24,7 +24,7 @@ $(document).ready(() => {
     const hoy = moment();
 
     // Obtener la fecha de 4 días atrás
-    const fechaDesde = moment().add(-4, 'days').format('YYYY-MM-DD');
+    const fechaDesde = moment().add(-15, 'days').format('YYYY-MM-DD');
 
     // Establecer las fechas en los campos correspondientes
     document.getElementById("txtFechaDesde").value = fechaDesde; // Fecha 4 días atrás
@@ -65,7 +65,24 @@ async function listapedidos(fechaDesde, fechaHasta, idProveedor, idCliente) {
     }
 }
 
+function actualizarSumaDeudas(table) {
+    let totalCliente = 0;
+    let totalProveedor = 0;
 
+    table.rows({ search: 'applied' }).every(function () {
+        const data = this.data();
+
+        // Usar índices: columna 5 (Restante Cliente), columna 6 (Restante Proveedor)
+        const deudaCliente = parseFloat((data.RestanteCliente || "0").toString().replace(/[\$.]/g, '').replace(',', '.')) || 0;
+        const deudaProveedor = parseFloat((data.RestanteProveedor || "0").toString().replace(/[\$.]/g, '').replace(',', '.')) || 0;
+
+        totalCliente += deudaCliente;
+        totalProveedor += deudaProveedor;
+    });
+
+    document.getElementById('sumaCliente').innerText = totalCliente.toLocaleString('es-AR', { style: 'currency', currency: 'ARS' });
+    document.getElementById('sumaProveedor').innerText = totalProveedor.toLocaleString('es-AR', { style: 'currency', currency: 'ARS' });
+}
 
 async function eliminarPedido(id) {
     let resultado = window.confirm("¿Desea eliminar el Pedido?");
@@ -155,10 +172,13 @@ async function configurarDataTable(data) {
                 {
                     extend: 'excelHtml5',
                     text: 'Exportar Excel',
-                    filename: 'Reporte Ventas',
+                    filename: 'Reporte Pedidos',
                     title: '',
                     exportOptions: {
-                        columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+                        columns: function (idx, data, node) {
+                            const columnasPermitidas = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+                            return columnasPermitidas.includes(idx) && $(node).is(':visible');
+                        }
                     },
                     className: 'btn-exportar-excel',
                 },
@@ -168,7 +188,10 @@ async function configurarDataTable(data) {
                     filename: 'Reporte pedidos',
                     title: '',
                     exportOptions: {
-                        columns: [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+                        columns: function (idx, data, node) {
+                            const columnasPermitidas = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+                            return columnasPermitidas.includes(idx) && $(node).is(':visible');
+                        }
                     },
                     className: 'btn-exportar-pdf',
                 },
@@ -177,14 +200,17 @@ async function configurarDataTable(data) {
                     text: 'Imprimir',
                     title: '',
                     exportOptions: {
-                        columns: [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+                        columns: function (idx, data, node) {
+                            const columnasPermitidas = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+                            return columnasPermitidas.includes(idx) && $(node).is(':visible');
+                        }
                     },
                     className: 'btn-exportar-print'
                 },
                 'pageLength'
             ],
             orderCellsTop: true,
-            fixedHeader: false,
+            fixedHeader: true,
 
             "columnDefs": [
                 {
@@ -219,6 +245,8 @@ async function configurarDataTable(data) {
             initComplete: async function () {
                 var api = this.api();
 
+                actualizarSumaDeudas(gridventas);
+
                 // Iterar sobre las columnas y aplicar la configuración de filtros
                 columnConfig.forEach(async (config) => {
                     var cell = $('.filters th').eq(config.index);
@@ -246,6 +274,10 @@ async function configurarDataTable(data) {
 
                 // Condicional para ocultar columnas si ModoVendedor == 1
                 if (userSession.ModoVendedor == 1) {
+                    gridventas.column(1).visible(false); // Ocultar la columna PorcGanancia
+                    gridventas.column(4).visible(false); // Ocultar la columna PorcGanancia
+                    gridventas.column(7).visible(false); // Ocultar la columna PorcGanancia
+                    gridventas.column(8).visible(false); // Ocultar la columna PorcGanancia
                     gridventas.column(9).visible(false); // Ocultar la columna PorcGanancia
                     gridventas.column(10).visible(false); // Ocultar la columna TotalGanancia
                 }
@@ -265,6 +297,7 @@ async function configurarDataTable(data) {
                     editarPedido(id); // Llamar a la función de editar
                 });
 
+             
                 let filaSeleccionada = null; // Variable para almacenar la fila seleccionada
                 $('#grd_ventas tbody').on('click', 'tr', function () {
                     // Remover la clase de la fila anteriormente seleccionada
@@ -286,10 +319,12 @@ async function configurarDataTable(data) {
 
 
 
+
             },
         });
     } else {
         gridventas.clear().rows.add(data).draw();
+        actualizarSumaDeudas(gridventas);
     }
 }
 
@@ -358,7 +393,7 @@ function configurarOpcionesColumnas() {
     container.empty(); // Limpia el contenedor
 
     columnas.forEach((col, index) => {
-        if (col.data && col.data !== "Id" && (userSession.ModoVendedor == 1 && col.data != "PorcGanancia" && col.data != "TotalGanancia" || userSession.ModoVendedor == 0)) { // Solo agregar columnas que no sean "Id"
+        if (col.data && col.data !== "Id" && (userSession.ModoVendedor == 1 && col.data != "PorcGanancia" && col.data != "TotalGanancia" && col.data != "TotalProveedor" && col.data != "RestanteProveedor" && col.data != "Fecha" && col.data != "Proveedor"  || userSession.ModoVendedor == 0)) { // Solo agregar columnas que no sean "Id"
         // Recupera el valor guardado en localStorage, si existe. Si no, inicializa en 'false' para no estar marcado.
             // Recupera el valor guardado en localStorage, si existe. Si no, inicializa en 'false' para no estar marcado.
             const isChecked = savedConfig && savedConfig[`col_${index}`] !== undefined ? savedConfig[`col_${index}`] : true;

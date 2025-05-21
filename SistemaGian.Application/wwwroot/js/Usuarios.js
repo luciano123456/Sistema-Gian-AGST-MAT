@@ -310,7 +310,7 @@ async function configurarDataTable(data) {
                 'pageLength'
             ],
             orderCellsTop: true,
-            fixedHeader: false,
+            fixedHeader: true,
 
             initComplete: async function () {
                 var api = this.api();

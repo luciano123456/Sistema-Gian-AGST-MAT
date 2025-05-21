@@ -82,8 +82,10 @@ namespace SistemaGian.BLL.Service
             if (idProveedor > 0 && idCliente <= 0)
             {
                 ProductoPrecioProveedor = await _proveedorRepo.ObtenerProductoProveedor(idProveedor, id);
-            } else if(idProveedor > 0 && idCliente > 0){
-                ProductoPrecioCliente = await _clienteRepo.ObtenerProductoCliente(idCliente,idProveedor, id);
+            }
+            else if (idProveedor > 0 && idCliente > 0)
+            {
+                ProductoPrecioCliente = await _clienteRepo.ObtenerProductoCliente(idCliente, idProveedor, id);
                 ProductoPrecioProveedorDos = await _proveedorRepo.ObtenerProductoProveedor(idProveedor, id);
             }
 
@@ -125,101 +127,111 @@ namespace SistemaGian.BLL.Service
 
         public async Task<IQueryable<Producto>> ListaProductosFiltro(int idCliente, int idProveedor, string productoFiltro)
         {
-            // Obtén todos los productos
-            var productos = await _contactRepo.ObtenerTodos();
-
-            // Diccionarios para almacenar precios por proveedor y cliente
-            Dictionary<int, ProductosPreciosProveedor> preciosProveedorDict = new Dictionary<int, ProductosPreciosProveedor>();
-            Dictionary<int, ProductosPreciosCliente> preciosClienteDict = new Dictionary<int, ProductosPreciosCliente>();
-
-            // Lista para almacenar Proveedores y precios específicos del producto
-            List<ProductosPreciosProveedor> ProveedoresPrecios = new List<ProductosPreciosProveedor>();
-
-            // Obtener precios según las condiciones
-            if (!string.IsNullOrEmpty(productoFiltro))
+            try
             {
-                ProveedoresPrecios = await _proveedorRepo.ObtenerProveedoresProducto(productoFiltro);
-            }
-            else if (idProveedor > 0 && idCliente <= 0)
-            {
-                var preciosProveedor = await _proveedorRepo.ObtenerProductosProveedor(idProveedor);
-                preciosProveedorDict = preciosProveedor.ToDictionary(p => p.IdProducto);
-            }
-            else if (idCliente > 0 && idProveedor > 0)
-            {
-                var preciosCliente = await _clienteRepo.ObtenerProductosCliente(idCliente, idProveedor);
-                preciosClienteDict = preciosCliente.ToDictionary(p => p.IdProducto);
-            }
+                // Obtén todos los productos
+                var productos = await _contactRepo.ObtenerTodos();
 
-            // Lista para almacenar los productos filtrados
-            List<Producto> listaFiltrada = new List<Producto>();
+                // Diccionarios para almacenar precios por proveedor y cliente
+                Dictionary<int, ProductosPreciosProveedor> preciosProveedorDict = new Dictionary<int, ProductosPreciosProveedor>();
+                Dictionary<int, ProductosPreciosCliente> preciosClienteDict = new Dictionary<int, ProductosPreciosCliente>();
 
-            // Crear productos basados en Proveedores y precios
-            if (!string.IsNullOrEmpty(productoFiltro))
-            {
-                foreach (var proveedorPrecio in ProveedoresPrecios)
+                // Lista para almacenar Proveedores y precios específicos del producto
+                List<ProductosPreciosProveedor> ProveedoresPrecios = new List<ProductosPreciosProveedor>();
+
+                // Obtener precios según las condiciones
+                if (!string.IsNullOrEmpty(productoFiltro))
                 {
-                    // Obtener el producto correspondiente
-                    var prod = productos.FirstOrDefault(p => p.Id == proveedorPrecio.IdProducto);
+                    ProveedoresPrecios = await _proveedorRepo.ObtenerProveedoresProducto(productoFiltro);
+                }
+                else if (idProveedor > 0 && idCliente <= 0)
+                {
+                    var preciosProveedor = (await _proveedorRepo.ObtenerProductosProveedor(idProveedor)).ToList();
+                    preciosProveedorDict = preciosProveedor.ToDictionary(p => p.IdProducto);
+                }
+                else if (idCliente > 0 && idProveedor > 0)
+                {
+                    var preciosCliente = await _clienteRepo.ObtenerProductosCliente(idCliente, idProveedor);
+                    preciosClienteDict = preciosCliente.ToDictionary(p => p.IdProducto);
+                }
 
-                    if (prod != null)
+                // Lista para almacenar los productos filtrados
+                List<Producto> listaFiltrada = new List<Producto>();
+
+                // Crear productos basados en Proveedores y precios
+                if (!string.IsNullOrEmpty(productoFiltro))
+                {
+                    foreach (var proveedorPrecio in ProveedoresPrecios)
                     {
-                        // Crear una copia del producto con el precio actualizado
-                        var productoNuevo = new Producto
+                        // Obtener el producto correspondiente
+                        var prod = productos.FirstOrDefault(p => p.Id == proveedorPrecio.IdProducto);
+
+                        if (prod != null)
                         {
-                            Id = prod.Id,
-                            Descripcion = prod.Descripcion,
-                            FechaActualizacion = prod.FechaActualizacion,
-                            IdMarca = prod.IdMarca,
-                            IdCategoria = prod.IdCategoria,
-                            IdUnidadDeMedida = prod.IdUnidadDeMedida,
-                            IdMoneda = prod.IdMoneda,
-                            PCosto = proveedorPrecio.PCosto,
-                            PVenta = proveedorPrecio.PVenta,
-                            PorcGanancia = proveedorPrecio.PorcGanancia,
-                            IdProveedor = proveedorPrecio.IdProveedor,
-                            IdMarcaNavigation = prod.IdMarcaNavigation,
-                            IdCategoriaNavigation = prod.IdCategoriaNavigation,
-                            IdUnidadDeMedidaNavigation = prod.IdUnidadDeMedidaNavigation,
-                            IdMonedaNavigation = prod.IdMonedaNavigation,
-                            Image = prod.Image,
-                            ProductoCantidad = prod.ProductoCantidad
-                        };
+                            // Crear una copia del producto con el precio actualizado
+                            var productoNuevo = new Producto
+                            {
+                                Id = prod.Id,
+                                Descripcion = prod.Descripcion,
+                                FechaActualizacion = prod.FechaActualizacion,
+                                IdMarca = prod.IdMarca,
+                                IdCategoria = prod.IdCategoria,
+                                IdUnidadDeMedida = prod.IdUnidadDeMedida,
+                                IdMoneda = prod.IdMoneda,
+                                PCosto = proveedorPrecio.PCosto,
+                                PVenta = proveedorPrecio.PVenta,
+                                PorcGanancia = proveedorPrecio.PorcGanancia,
+                                IdProveedor = proveedorPrecio.IdProveedor,
+                                IdMarcaNavigation = prod.IdMarcaNavigation,
+                                IdCategoriaNavigation = prod.IdCategoriaNavigation,
+                                IdUnidadDeMedidaNavigation = prod.IdUnidadDeMedidaNavigation,
+                                IdMonedaNavigation = prod.IdMonedaNavigation,
+                                Image = prod.Image,
+                                ProductoCantidad = prod.ProductoCantidad,
+                                Orden = proveedorPrecio.Orden
+                            };
 
-                        listaFiltrada.Add(productoNuevo);
+                            listaFiltrada.Add(productoNuevo);
+                        }
                     }
                 }
-            }
-            else
-            {
-                listaFiltrada = productos.Where(c => idProveedor == -1 ||
-                                                     preciosProveedorDict.ContainsKey(c.Id) ||
-                                                     preciosClienteDict.ContainsKey(c.Id)).ToList();
-
-                // Actualiza la información de costos y precios en la lista filtrada
-                foreach (var producto in listaFiltrada)
+                else
                 {
-                    if (preciosProveedorDict.TryGetValue(producto.Id, out var precioProveedor))
-                    {
-                        producto.PCosto = precioProveedor.PCosto;
-                        producto.PVenta = precioProveedor.PVenta;
-                        producto.PorcGanancia = precioProveedor.PorcGanancia;
-                        producto.ProductoCantidad = precioProveedor.ProductoCantidad;
-                    }
-                    else if (preciosClienteDict.TryGetValue(producto.Id, out var precioCliente))
-                    {
-                        producto.PCosto = precioCliente.PCosto;
-                        producto.PVenta = precioCliente.PVenta;
-                        producto.PorcGanancia = precioCliente.PorcGanancia;
-                        var productoProveedor = await _proveedorRepo.ObtenerProductoProveedor(idProveedor, producto.Id);
+                    listaFiltrada = productos.Where(c => idProveedor == -1 ||
+                                                         preciosProveedorDict.ContainsKey(c.Id) ||
+                                                         preciosClienteDict.ContainsKey(c.Id)).ToList();
 
-                        // Verificando si ProductoCantidad tiene valor
-                        producto.ProductoCantidad = productoProveedor.ProductoCantidad ?? 0;
+                    // Actualiza la información de costos y precios en la lista filtrada
+                    foreach (var producto in listaFiltrada)
+                    {
+                        if (preciosProveedorDict.TryGetValue(producto.Id, out var precioProveedor))
+                        {
+                            producto.PCosto = precioProveedor.PCosto;
+                            producto.PVenta = precioProveedor.PVenta;
+                            producto.PorcGanancia = precioProveedor.PorcGanancia;
+                            producto.ProductoCantidad = precioProveedor.ProductoCantidad;
+                            producto.Orden = precioProveedor.Orden;
+                        }
+                        else if (preciosClienteDict.TryGetValue(producto.Id, out var precioCliente))
+                        {
+                            producto.PCosto = precioCliente.PCosto;
+                            producto.PVenta = precioCliente.PVenta;
+                            producto.PorcGanancia = precioCliente.PorcGanancia;
+                            var productoProveedor = await _proveedorRepo.ObtenerProductoProveedor(idProveedor, producto.Id);
+
+                            // Verificando si ProductoCantidad tiene valor
+                            producto.ProductoCantidad = productoProveedor.ProductoCantidad ?? 0;
+                            producto.Orden = precioCliente.Orden;
+                        }
                     }
                 }
-            }
 
-            return listaFiltrada.AsQueryable();
+                return listaFiltrada.AsQueryable();
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
         }
 
 
@@ -228,7 +240,7 @@ namespace SistemaGian.BLL.Service
         {
             bool resp;
 
-            
+
 
             if (idProveedor > 0 && idCliente <= 0)
             {
@@ -292,6 +304,13 @@ namespace SistemaGian.BLL.Service
         public async Task<bool> DuplicarProducto(int idProducto)
         {
             var duplicado = await _contactRepo.DuplicarProducto(idProducto);
+
+            return duplicado;
+        }
+
+        public async Task<bool> GuardarOrden(int idProducto, int nuevoOrden)
+        {
+            var duplicado = await _contactRepo.GuardarOrden(idProducto, nuevoOrden);
 
             return duplicado;
         }

@@ -30,6 +30,8 @@ public partial class Producto
     public int? IdProveedor { get; set; }
     public int? ProductoCantidad { get; set; }
 
+    public int? Orden { get; set; }
+
     public int Activo { get; set; }
 
     public virtual ProductosCategoria? IdCategoriaNavigation { get; set; }

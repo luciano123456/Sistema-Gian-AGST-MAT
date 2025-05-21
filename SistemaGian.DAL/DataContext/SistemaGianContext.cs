@@ -8,14 +8,16 @@ namespace SistemaGian.DAL.DataContext;
 
 public partial class SistemaGianContext : DbContext
 {
-
-    private readonly IConfiguration _configuration;
-
+    public SistemaGianContext()
+    {
+    }
 
     public SistemaGianContext(DbContextOptions<SistemaGianContext> options)
         : base(options)
     {
     }
+
+    private readonly IConfiguration _configuration;
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -67,6 +69,8 @@ public partial class SistemaGianContext : DbContext
     public virtual DbSet<Zona> Zonas { get; set; }
 
     public virtual DbSet<ZonasCliente> ZonasClientes { get; set; }
+
+   
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -196,6 +200,7 @@ public partial class SistemaGianContext : DbContext
 
         modelBuilder.Entity<PedidosProducto>(entity =>
         {
+            entity.Property(e => e.Cantidad).HasColumnType("decimal(20, 2)");
             entity.Property(e => e.PrecioCosto).HasColumnType("decimal(20, 2)");
             entity.Property(e => e.PrecioVenta).HasColumnType("decimal(20, 2)");
             entity.Property(e => e.ProductoCantidad).HasColumnType("decimal(20, 2)");

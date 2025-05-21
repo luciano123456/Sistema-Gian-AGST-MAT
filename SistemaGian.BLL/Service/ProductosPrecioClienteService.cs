@@ -45,6 +45,7 @@ namespace SistemaGian.BLL.Service
                     PorcGanancia = prod.PorcGanancia,
                     PCosto = prod.PCosto,
                     PVenta = prod.PVenta,
+                    Orden = prod.Orden
                 };
 
                 productosList.Add(productoPrecio);
@@ -94,6 +95,11 @@ namespace SistemaGian.BLL.Service
         public async Task<IQueryable<ProductosPreciosCliente>> ListaProductosCliente(int idCliente, int idProveedor)
         {
             return await _productospreciorepo.ObtenerProductosCliente(idCliente, idProveedor);
+        }
+
+        public async Task<bool> GuardarOrden(int idProducto, int idCliente, int idProveedor, int Orden)
+        {
+            return await _productospreciorepo.GuardarOrden(idProducto, idCliente, idProveedor, Orden);
         }
     }
 }

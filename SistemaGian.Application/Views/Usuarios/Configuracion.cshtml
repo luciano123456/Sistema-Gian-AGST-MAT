@@ -1,4 +1,12 @@
-﻿@model SistemaGian.Models.User
+﻿@using Microsoft.Extensions.Configuration
+
+@inject IConfiguration Configuration
+
+@{
+    var ambienteTest = Configuration.GetValue<int>("AmbienteTest");
+}
+
+@model SistemaGian.Models.User
 @{
     ViewData["Title"] = "Configuración";
 }

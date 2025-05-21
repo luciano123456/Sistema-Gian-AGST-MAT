@@ -109,16 +109,21 @@ namespace SistemaGian.DAL.Repository
         {
             try
             {
-                Models.ProductosPreciosProveedor model = _dbcontext.ProductosPreciosProveedores
-                    .FirstOrDefault(c => c.IdProducto == id && c.IdProveedor == idProveedor);
+                var model = await _dbcontext.ProductosPreciosProveedores
+                    .FirstOrDefaultAsync(c => c.IdProducto == id && c.IdProveedor == idProveedor);
 
                 if (model == null)
-                {
-                    // No se encontró el registro
                     return false;
-                }
 
+                // Eliminar historial relacionado
+                var historialRelacionado = _dbcontext.ProductosPreciosHistorial
+                    .Where(h => h.IdProducto == id && h.IdProveedor == idProveedor);
+
+                _dbcontext.ProductosPreciosHistorial.RemoveRange(historialRelacionado);
+
+                // Eliminar el precio proveedor
                 _dbcontext.ProductosPreciosProveedores.Remove(model);
+
                 await _dbcontext.SaveChangesAsync();
                 return true;
             }
@@ -128,6 +133,7 @@ namespace SistemaGian.DAL.Repository
                 return false;
             }
         }
+
 
 
         public async Task<ProductosPreciosProveedor> ObtenerProductoProveedor(int idproveedor, int idproducto)
@@ -269,10 +275,19 @@ namespace SistemaGian.DAL.Repository
 
         private decimal ModificarValor(decimal valor, decimal porcentaje, bool esAumento)
         {
-            return esAumento ? valor * (1 + porcentaje / 100.0m) : valor * (1 - porcentaje / 100.0m);
+            return esAumento ? valor * (1 + porcentaje / 100.0m) : valor * (1 - porcentaje / 100);
         }
 
+        public async Task<bool> GuardarOrden(int idProducto, int idProveedor, int Orden)
+        {
+            var producto = await _dbcontext.ProductosPreciosProveedores
+                .Where(x => x.IdProducto == idProducto && x.IdProveedor == idProveedor)
+                .OrderByDescending(x => x.FechaActualizacion) // Asegúrate de que 'FechaActualizacion' es el nombre correcto de la columna de fecha
+                .FirstOrDefaultAsync();
 
-
+            producto.Orden = Orden;
+            await _dbcontext.SaveChangesAsync();
+            return true;
+        }
     }
 }

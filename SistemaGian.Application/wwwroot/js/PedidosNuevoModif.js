@@ -18,6 +18,8 @@ const IdPedido = document.getElementById('IdPedido').value;
 let productos = [];
 
 $(document).ready(async function () {
+    listaClientes();
+    listaProveedores();
 
     if (pedidoData && pedidoData.Id > 0) {
         await cargarDatosPedido()
@@ -28,6 +30,8 @@ $(document).ready(async function () {
         await cargarDataTableProductos(null);
         await cargarDataTablePagoaProveedores(null);
         await cargarDataTablePagoaClientes(null);
+
+        
 
         document.getElementById(`fechaPedido`).value = moment().format('YYYY-MM-DD');
         document.getElementById(`fechaEntrega`).value = moment().add(3, 'days').format('YYYY-MM-DD');
@@ -47,8 +51,73 @@ $(document).ready(async function () {
         } else if (selectedValue === "Entregado") {
             selectElement.style.setProperty('color', 'white', 'important');
         }
+
     }
+
+
+    $("#Clientes, #Proveedores").select2({
+        width: "100%",
+        placeholder: "Selecciona una opción",
+        allowClear: false
+    });
 });
+
+
+async function listaProveedores() {
+    const url = `/Proveedores/Lista`;
+    const response = await fetch(url);
+    const data = await response.json();
+
+    $('#Proveedores option').remove();
+
+    selectProveedores = document.getElementById("Proveedores");
+
+    option = document.createElement("option");
+    option.value = -1;
+    option.text = "Seleccionar";
+    option.disabled = true;
+    selectProveedores.appendChild(option);
+
+    for (i = 0; i < data.length; i++) {
+        option = document.createElement("option");
+        option.value = data[i].Id;
+        option.text = data[i].Nombre;
+        selectProveedores.appendChild(option);
+
+    }
+
+
+    selectProveedores.selectedIndex = -1;
+}
+
+
+async function listaClientes() {
+    const url = `/Clientes/Lista`;
+    const response = await fetch(url);
+    const data = await response.json();
+
+    $('#Clientes option').remove();
+
+    selectClientes = document.getElementById("Clientes");
+
+    option = document.createElement("option");
+    option.value = -1;
+    option.text = "Seleccionar";
+    option.disabled = true;
+    selectClientes.appendChild(option);
+
+    for (i = 0; i < data.length; i++) {
+        option = document.createElement("option");
+        option.value = data[i].Id;
+        option.text = data[i].Nombre;
+        selectClientes.appendChild(option);
+
+    }
+
+
+    selectClientes.selectedIndex = -1;
+}
+
 
 async function cargarDatosPedido() {
     if (pedidoData && pedidoData.Id > 0) {
@@ -68,14 +137,15 @@ async function insertarDatosPedido(datosPedido) {
 
     //Cargamos Datos del Cliente
     document.getElementById("idCliente").value = datosPedido.IdCliente;
-    document.getElementById("nombreCliente").value = datosPedido.Cliente;
+    document.getElementById("Clientes").value = datosPedido.IdCliente;
     document.getElementById("direccionCliente").value = datosPedido.DireccionCliente;
     document.getElementById("telefonoCliente").value = datosPedido.TelefonoCliente;
     document.getElementById("dniCliente").value = datosPedido.DniCliente;
 
     //Cargamos Datos del Proveedor
     document.getElementById("idProveedor").value = datosPedido.IdProveedor;
-    document.getElementById("nombreProveedor").value = datosPedido.Proveedor;
+    //document.getElementById("nombreProveedor").value = datosPedido.Proveedor;
+    document.getElementById("Proveedores").value = datosPedido.IdProveedor;
     document.getElementById("apodoProveedor").value = datosPedido.ApodoProveedor;
     document.getElementById("telefonoProveedor").value = datosPedido.TelefonoProveedor;
     document.getElementById("direccionProveedor").value = datosPedido.DireccionProveedor;
@@ -186,6 +256,12 @@ async function obtenerChoferes() {
 
 async function obtenerClientes() {
     const response = await fetch('/Clientes/Lista');
+    const data = await response.json();
+    return data;
+}
+
+async function obtenerProveedores() {
+    const response = await fetch('/Proveedores/Lista');
     const data = await response.json();
     return data;
 }
@@ -355,7 +431,7 @@ async function obtenerProveedores() {
 }
 function cargarDatosProveedor(data) {
     $('#idProveedor').val(data.Id);
-    $('#nombreProveedor').val(data.Nombre);
+    /*$('#nombreProveedor').val(data.Nombre);*/
     $('#apodoProveedor').val(data.Apodo);
     $('#direccionProveedor').val(data.Ubicacion);
     $('#telefonoProveedor').val(data.Telefono);
@@ -365,7 +441,7 @@ function cargarDatosProveedor(data) {
 }
 function cargarDatosCliente(data) {
     $('#idCliente').val(data.Id);
-    $('#nombreCliente').val(data.Nombre);
+   
     $('#dniCliente').val(data.Dni);
     $('#direccionCliente').val(data.Direccion);
     $('#telefonoCliente').val(data.Telefono);
@@ -431,6 +507,21 @@ async function ObtenerDatosPedido(id) {
     const data = await response.json();
     return data;
 }
+
+async function ObtenerDatosCliente(id) {
+    const url = `/Clientes/EditarInfo?id=${id}`;
+    const response = await fetch(url);
+    const data = await response.json();
+    return data;
+}
+
+async function ObtenerDatosProveedor(id) {
+    const url = `/Proveedores/EditarInfo?id=${id}`;
+    const response = await fetch(url);
+    const data = await response.json();
+    return data;
+}
+
 async function cargarDataTableProductos(data) {
     grdProductos = $('#grd_Productos').DataTable({
         data: data != null ? data.$values : data,
@@ -463,7 +554,7 @@ async function cargarDataTableProductos(data) {
             }
         ],
         orderCellsTop: true,
-        fixedHeader: false,
+        fixedHeader: true,
 
         "columnDefs": [
             {
@@ -510,7 +601,7 @@ async function cargarDataTableZonas(data) {
 
         ],
         orderCellsTop: true,
-        fixedHeader: false,
+        fixedHeader: true,
 
         "columnDefs": [
             {
@@ -557,7 +648,7 @@ async function cargarDataTableChoferes(data) {
 
         ],
         orderCellsTop: true,
-        fixedHeader: false,
+        fixedHeader: true,
 
         initComplete: async function () {
             setTimeout(function () {
@@ -593,7 +684,7 @@ async function cargarDataTableClientes(data) {
 
         ],
         orderCellsTop: true,
-        fixedHeader: false,
+        fixedHeader: true,
 
         initComplete: async function () {
             setTimeout(function () {
@@ -630,7 +721,7 @@ async function cargarDataTableProveedores(data) {
 
         ],
         orderCellsTop: true,
-        fixedHeader: false,
+        fixedHeader: true,
 
         initComplete: async function () {
             setTimeout(function () {
@@ -835,7 +926,7 @@ async function guardarProducto() {
     const productoSelect = document.getElementById('productoSelect');
     const precioManual = parseFloat(convertirMonedaAFloat(document.getElementById('precioInput').value));
     const totalInput = parseFloat(convertirMonedaAFloat(document.getElementById('totalInput').value));
-    const cantidadInput = parseInt(document.getElementById('cantidadInput').value) || 1; // Obtener cantidad, por defecto 1 si no es válida
+    const cantidadInput = parseFloat(document.getElementById('cantidadInput').value) || 1; // Obtener cantidad, por defecto 1 si no es válida
     const productoId = productoSelect.value;
     const productoNombre = productoSelect.options[productoSelect.selectedIndex]?.text || '';
     const primerOptionValue = precioSelect.options[0].value;
@@ -1023,7 +1114,7 @@ async function editarProducto(id) {
 }
 function actualizarCantidad(rowIndex) {
     const rowData = grdProductos.row(rowIndex).data();
-    const cantidad = parseInt($(`.cantidad:eq(${rowIndex})`).val());
+    const cantidad = parseFloat($(`.cantidad:eq(${rowIndex})`).val());
     rowData.Cantidad = cantidad;
     rowData.Total = rowData.Precio * cantidad;
     grdProductos.row(rowIndex).data(rowData).draw();
@@ -1225,7 +1316,7 @@ async function cargarDataTablePagoaProveedores(data) {
                 }
             ],
             orderCellsTop: true,
-            fixedHeader: false,
+            fixedHeader: true,
 
             "columnDefs": [
                 {
@@ -1293,7 +1384,7 @@ async function cargarDataTablePagoaClientes(data) {
 
 
         orderCellsTop: true,
-        fixedHeader: false,
+        fixedHeader: true,
 
         "columnDefs": [
             {
@@ -1739,7 +1830,7 @@ async function guardarCambios() {
                     "PrecioCosto": parseFloat(producto.PrecioCosto),
                     "PrecioVenta": parseFloat(producto.PrecioVenta),
                     "ProductoCantidad": parseFloat(producto.ProductoCantidad),
-                    "Cantidad": parseInt(producto.Cantidad),
+                    "Cantidad": parseFloat(producto.Cantidad),
 
                 };
                 productos.push(productoJson);
@@ -1759,11 +1850,11 @@ async function guardarCambios() {
         const nuevoModelo = {
             "Id": idPedido !== "" ? parseInt(idPedido) : 0,
             "Fecha": moment($("#fechaPedido").val(), 'YYYY-MM-DD').format('YYYY-MM-DD'),
-            "IdCliente": parseInt($("#idCliente").val()),
+            "IdCliente": parseInt($("#Clientes").val()),
             "FechaEntrega": moment($("#fechaEntrega").val(), 'YYYY-MM-DD').format('YYYY-MM-DD'),
             "NroRemito": $("#nroRemito").val(),
             "CostoFlete": parseFloat(convertirMonedaAFloat($("#costoFlete").val())),
-            "IdProveedor": parseInt($("#idProveedor").val()),
+            "IdProveedor": parseInt($("#Proveedores").val()),
             "IdZona": parseInt($("#idZona").val()),
             "IdChofer": parseInt($("#idChofer").val()),
             "TotalCliente": parseFloat(convertirMonedaAFloat($("#totalPagoCliente").val())),
@@ -1864,4 +1955,20 @@ checkSaldoFavor.addEventListener("change", function () {
     }
 
     totalArs.value = formatNumber(parseFloat(cantidadPagoCliente.value))
+});
+
+
+$('#Clientes').on('change', async function () {
+    let idCliente = this.value;
+    dataCliente = await ObtenerDatosCliente(idCliente);
+
+    cargarDatosCliente(dataCliente);
+});
+
+
+$('#Proveedores').on('change', async function () {
+    let idProveedor = this.value;
+    data = await ObtenerDatosProveedor(idProveedor);
+
+    cargarDatosProveedor(data);
 });

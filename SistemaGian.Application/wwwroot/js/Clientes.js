@@ -333,7 +333,7 @@ async function configurarDataTable(data) {
                 'pageLength'
             ],
             orderCellsTop: true,
-            fixedHeader: false,
+            fixedHeader: true,
 
 
           

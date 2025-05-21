@@ -22,6 +22,7 @@ namespace SistemaGian.Application.Models.ViewModels
         public decimal? Total { get; set; }
 
         public int? IdCategoria { get; set; }
+        public int? Orden { get; set; }
 
         public int? IdUnidadDeMedida { get; set; }
         public int IdMoneda { get; set; }

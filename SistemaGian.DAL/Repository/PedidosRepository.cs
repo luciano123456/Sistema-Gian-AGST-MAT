@@ -68,7 +68,7 @@ namespace SistemaGian.DAL.Repository
                 {
 
                     // Insertar pagos de clientes
-                    bool pagosClienteResult = await InsertarPagosCliente(pagosCliente).ConfigureAwait(false);
+                    bool pagosClienteResult = await InsertarPagosCliente(pedido.Id, pagosCliente).ConfigureAwait(false);
                     if (!pagosClienteResult)
                     {
                         await transaction.RollbackAsync();
@@ -76,7 +76,7 @@ namespace SistemaGian.DAL.Repository
                     }
 
                     // Insertar pagos de proveedores
-                    bool pagosProveedorResult = await InsertarPagosProveedor(pagosProveedores).ConfigureAwait(false);
+                    bool pagosProveedorResult = await InsertarPagosProveedor(pedido.Id,pagosProveedores).ConfigureAwait(false);
                     if (!pagosProveedorResult)
                     {
                         await transaction.RollbackAsync();
@@ -130,7 +130,7 @@ namespace SistemaGian.DAL.Repository
                     }
 
                     // Insertar pagos de clientes
-                    bool pagosClienteResult = await InsertarPagosCliente(pagosCliente).ConfigureAwait(false);
+                    bool pagosClienteResult = await InsertarPagosCliente(pedido.Id, pagosCliente).ConfigureAwait(false);
                     if (!pagosClienteResult)
                     {
                         await transaction.RollbackAsync();
@@ -144,7 +144,7 @@ namespace SistemaGian.DAL.Repository
                     }
 
                     // Insertar pagos de proveedores
-                    bool pagosProveedorResult = await InsertarPagosProveedor(pagosProveedores).ConfigureAwait(false);
+                    bool pagosProveedorResult = await InsertarPagosProveedor(pedido.Id, pagosProveedores).ConfigureAwait(false);
                     if (!pagosProveedorResult)
                     {
                         await transaction.RollbackAsync();
@@ -179,67 +179,69 @@ namespace SistemaGian.DAL.Repository
             }
         }
 
-        public async Task<bool> InsertarPagosCliente(List<PagosPedidosCliente> pagos)
+        public async Task<bool> InsertarPagosCliente(int idPedido, List<PagosPedidosCliente> pagos)
         {
             try
             {
-                var idPedidos = pagos.Select(p => p.IdPedido).Distinct().ToList();
+                var pedido = await _dbcontext.Pedidos
+                                             .AsNoTracking()
+                                             .FirstOrDefaultAsync(p => p.Id == idPedido);
 
-                foreach (var idPedido in idPedidos)
+                if (pedido == null)
+                    return false;
+
+                var cliente = await _dbcontext.Clientes
+                                              .FirstOrDefaultAsync(c => c.Id == pedido.IdCliente);
+
+                if (cliente == null)
+                    return false;
+
+                var pagosExistentes = await _dbcontext.PagosPedidosClientes
+                                                      .Where(x => x.IdPedido == idPedido)
+                                                      .ToListAsync();
+
+                // ✅ Si no hay pagos nuevos, eliminar todos los existentes
+                if (pagos.Count == 0)
                 {
-                    var pagosExistentes = await _dbcontext.PagosPedidosClientes
-                                                          .Where(x => x.IdPedido == idPedido)
-                                                          .ToListAsync();
+                    foreach (var pago in pagosExistentes)
+                        cliente.SaldoAfavor += pago.SaldoUsado;
 
-                    var pedido = await _dbcontext.Pedidos
-                                                 .AsNoTracking()
-                                                 .FirstOrDefaultAsync(p => p.Id == idPedido);
+                    _dbcontext.PagosPedidosClientes.RemoveRange(pagosExistentes);
 
-                    if (pedido == null) continue;
+                    await _dbcontext.SaveChangesAsync();
+                    return true;
+                }
 
-                    var cliente = await _dbcontext.Clientes
-                                                  .FirstOrDefaultAsync(c => c.Id == pedido.IdCliente);
+                // ✅ Si hay pagos nuevos, actualizar lo necesario
+                var pagosAEliminar = pagosExistentes
+                    .Where(pe => !pagos.Any(p => p.Id == pe.Id))
+                    .ToList();
 
-                    if (cliente == null) continue;
+                foreach (var pe in pagosAEliminar)
+                    cliente.SaldoAfavor += pe.SaldoUsado;
 
-                    // Eliminar los pagos que no están en la lista
-                    var pagosAEliminar = pagosExistentes
-                        .Where(pe => !pagos.Any(p => p.IdPedido == pe.IdPedido && p.Id == pe.Id))
-                        .ToList();
+                _dbcontext.PagosPedidosClientes.RemoveRange(pagosAEliminar);
 
-                    foreach (var pe in pagosAEliminar)
+                foreach (PagosPedidosCliente p in pagos)
+                {
+                    var pagoExistente = pagosExistentes.FirstOrDefault(x => x.Id == p.Id);
+
+                    if (pagoExistente != null)
                     {
-                        cliente.SaldoAfavor += pe.SaldoUsado; // Devolver saldo usado del pago eliminado
+                        decimal diferencia = p.SaldoUsado - pagoExistente.SaldoUsado;
+                        cliente.SaldoAfavor -= diferencia;
+
+                        pagoExistente.Fecha = p.Fecha;
+                        pagoExistente.Cotizacion = p.Cotizacion;
+                        pagoExistente.Total = p.Total;
+                        pagoExistente.TotalArs = p.TotalArs;
+                        pagoExistente.Observacion = p.Observacion;
+                        pagoExistente.SaldoUsado = p.SaldoUsado;
                     }
-
-                    _dbcontext.PagosPedidosClientes.RemoveRange(pagosAEliminar);
-
-                    // Insertar los pagos nuevos o actualizar los existentes
-                    foreach (PagosPedidosCliente p in pagos.Where(p => p.IdPedido == idPedido))
+                    else
                     {
-                        var pagoExistente = pagosExistentes
-                            .FirstOrDefault(x => x.IdPedido == p.IdPedido && x.Id == p.Id);
-
-                        if (pagoExistente != null)
-                        {
-                            // Calcular diferencia de SaldoUsado
-                            decimal diferencia = p.SaldoUsado - pagoExistente.SaldoUsado;
-                            cliente.SaldoAfavor -= diferencia;
-
-                            // Actualizar datos
-                            pagoExistente.Fecha = p.Fecha;
-                            pagoExistente.Cotizacion = p.Cotizacion;
-                            pagoExistente.Total = p.Total;
-                            pagoExistente.TotalArs = p.TotalArs;
-                            pagoExistente.Observacion = p.Observacion;
-                            pagoExistente.SaldoUsado = p.SaldoUsado;
-                        }
-                        else
-                        {
-                            // Nuevo pago: restar SaldoUsado al cliente
-                            cliente.SaldoAfavor -= p.SaldoUsado;
-                            _dbcontext.PagosPedidosClientes.Add(p);
-                        }
+                        cliente.SaldoAfavor -= p.SaldoUsado;
+                        _dbcontext.PagosPedidosClientes.Add(p);
                     }
                 }
 
@@ -255,43 +257,47 @@ namespace SistemaGian.DAL.Repository
 
 
 
-        public async Task<bool> InsertarPagosProveedor(List<PagosPedidosProveedor> pagos)
+
+        public async Task<bool> InsertarPagosProveedor(int idPedido, List<PagosPedidosProveedor> pagos)
         {
             try
             {
-                var idPedidos = pagos.Select(p => p.IdPedido).Distinct().ToList();
+                var pagosExistentes = await _dbcontext.PagosPedidosProveedores
+                                                      .Where(x => x.IdPedido == idPedido)
+                                                      .ToListAsync();
 
-                foreach (var idPedido in idPedidos)
+                // ✅ Si no hay pagos nuevos, eliminar todos los existentes
+                if (pagos.Count == 0)
                 {
-                    var pagosExistentes = await _dbcontext.PagosPedidosProveedores
-                                                          .Where(x => x.IdPedido == idPedido)
-                                                          .ToListAsync();
+                    _dbcontext.PagosPedidosProveedores.RemoveRange(pagosExistentes);
 
-                    // Eliminar los pagos que no están en la lista
-                    var pagosAEliminar = pagosExistentes
-                                         .Where(pe => !pagos.Any(p => p.IdPedido == pe.IdPedido && p.Id == pe.Id))
-                                         .ToList();
+                    await _dbcontext.SaveChangesAsync();
+                    return true;
+                }
 
-                    _dbcontext.PagosPedidosProveedores.RemoveRange(pagosAEliminar);
+                // ✅ Si hay pagos nuevos, actualizar lo necesario
+                var pagosAEliminar = pagosExistentes
+                                     .Where(pe => !pagos.Any(p => p.Id == pe.Id))
+                                     .ToList();
 
-                    // Insertar los pagos nuevos o actualizar los existentes
-                    foreach (PagosPedidosProveedor p in pagos)
+                _dbcontext.PagosPedidosProveedores.RemoveRange(pagosAEliminar);
+
+                foreach (PagosPedidosProveedor p in pagos)
+                {
+                    var pagoExistente = pagosExistentes
+                                        .FirstOrDefault(x => x.Id == p.Id);
+
+                    if (pagoExistente != null)
                     {
-                        var pagoExistente = pagosExistentes
-                                            .FirstOrDefault(x => x.IdPedido == p.IdPedido && x.Id == p.Id);
-
-                        if (pagoExistente != null)
-                        {
-                            pagoExistente.Fecha = p.Fecha;
-                            pagoExistente.Cotizacion = p.Cotizacion;
-                            pagoExistente.Total = p.Total;
-                            pagoExistente.TotalArs = p.TotalArs;
-                            pagoExistente.Observacion = p.Observacion;
-                        }
-                        else
-                        {
-                            _dbcontext.PagosPedidosProveedores.Add(p);
-                        }
+                        pagoExistente.Fecha = p.Fecha;
+                        pagoExistente.Cotizacion = p.Cotizacion;
+                        pagoExistente.Total = p.Total;
+                        pagoExistente.TotalArs = p.TotalArs;
+                        pagoExistente.Observacion = p.Observacion;
+                    }
+                    else
+                    {
+                        _dbcontext.PagosPedidosProveedores.Add(p);
                     }
                 }
 
@@ -300,10 +306,11 @@ namespace SistemaGian.DAL.Repository
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex); // Opcional: loguear el error
+                Console.WriteLine(ex);
                 return false;
             }
         }
+
 
 
         public async Task<bool> InsertarProductos(List<PedidosProducto> productos)
