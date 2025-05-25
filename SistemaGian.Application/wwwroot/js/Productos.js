@@ -40,10 +40,15 @@ $(document).ready(() => {
 
 
     listaProductos();
+    listaProductosFiltro();
     listaProveedoresFiltro();
     listaClientesFiltro();
 
 
+    $("#Proveedoresfiltro, #clientesfiltro, #Productosfiltro").select2({
+        placeholder: "Selecciona una opción",
+        allowClear: false
+    });
 
     $('#txtDescripcion, #txtPorcentajeGanancia').on('input', function () {
         validarCampos()
@@ -84,7 +89,7 @@ $(document).ready(() => {
         calcularTotal()
     });
 
-    $('#Proveedoresfiltro, #clientesfiltro').on('change', function () {
+    $('#Proveedoresfiltro, #clientesfiltro, #Productosfiltro').on('change', function () {
         validarProductosFiltro()
     });
 
@@ -96,10 +101,10 @@ function validarProductosFiltro() {
     const idProveedor = document.getElementById("Proveedoresfiltro").value;
 
     if (idCliente == -1 && idProveedor == -1) {
-        document.getElementById("txtProductoFiltro").removeAttribute("readonly");
+        $('#Productosfiltro').prop('disabled', false)
     } else {
-        document.getElementById("txtProductoFiltro").setAttribute("readonly", true);
-        document.getElementById("txtProductoFiltro").value = "";
+        $('#Productosfiltro').prop('disabled', true)
+        $('#Productosfiltro').val("-1").trigger('change.select2'); // Setea a -1
     }
 }
 
@@ -220,6 +225,31 @@ function calcularPorcentaje() {
     }
 }
 
+
+async function listaProductosFiltro() {
+    const url = `/Productos/Lista`;
+    const response = await fetch(url);
+    const data = await response.json();
+
+    $('#Productosfiltro option').remove();
+
+    selectProveedores = document.getElementById("Productosfiltro");
+
+    option = document.createElement("option");
+    option.value = -1;
+    option.text = "-";
+    selectProveedores.appendChild(option);
+
+    for (i = 0; i < data.length; i++) {
+        option = document.createElement("option");
+        option.value = data[i].Id;
+        option.text = data[i].Descripcion;
+        selectProveedores.appendChild(option);
+
+    }
+}
+
+
 async function listaProveedoresFiltro() {
     const url = `/Proveedores/Lista`;
     const response = await fetch(url);
@@ -271,7 +301,7 @@ async function aplicarFiltros() {
     if (!validacionFiltros) {
         const idCliente = document.getElementById("clientesfiltro").value;
         const idProveedor = document.getElementById("Proveedoresfiltro").value;
-        const producto = document.getElementById("txtProductoFiltro").value;
+        const producto = document.getElementById("Productosfiltro").value;
 
         idClienteFiltro = idCliente;
         idProveedorFiltro = idProveedor;
@@ -289,7 +319,7 @@ async function aplicarFiltros() {
         }
 
 
-        if (producto != "") {
+        if (producto > 0) {
             await actualizarVisibilidadProveedor(true);
             gridProductos.column(2).visible(true);
             gridProductos.column(0).visible(false);

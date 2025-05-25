@@ -148,22 +148,15 @@ namespace SistemaGian.DAL.Repository
             return prod;
         }
 
-        public async Task<List<ProductosPreciosProveedor>> ObtenerProveedoresProducto(string producto)
+        public async Task<List<ProductosPreciosProveedor>> ObtenerProveedoresProducto(int producto)
         {
-            // Primero, busca todos los productos que contengan la palabra especificada
-            var productosIds = await _dbcontext.Productos
-                .Where(p => p.Descripcion.Contains(producto))
-                .Select(p => p.Id)
-                .ToListAsync();
-
-            // Luego, busca todos los registros en ProductosPreciosProveedor que coincidan con los productos encontrados
-            var ProveedoresProductos = await _dbcontext.ProductosPreciosProveedores
-                .Where(ppp => productosIds.Contains(ppp.IdProducto))
+            var proveedoresProductos = await _dbcontext.ProductosPreciosProveedores
+                .Where(ppp => ppp.IdProducto == producto)
                 .Include(ppp => ppp.IdProductoNavigation)
                 .Include(ppp => ppp.IdProveedorNavigation)
                 .ToListAsync();
 
-            return ProveedoresProductos;
+            return proveedoresProductos;
         }
 
 

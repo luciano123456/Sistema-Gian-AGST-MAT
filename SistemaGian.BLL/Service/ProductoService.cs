@@ -125,7 +125,7 @@ namespace SistemaGian.BLL.Service
         }
 
 
-        public async Task<IQueryable<Producto>> ListaProductosFiltro(int idCliente, int idProveedor, string productoFiltro)
+        public async Task<IQueryable<Producto>> ListaProductosFiltro(int idCliente, int idProveedor, int productoFiltro)
         {
             try
             {
@@ -140,7 +140,7 @@ namespace SistemaGian.BLL.Service
                 List<ProductosPreciosProveedor> ProveedoresPrecios = new List<ProductosPreciosProveedor>();
 
                 // Obtener precios según las condiciones
-                if (!string.IsNullOrEmpty(productoFiltro))
+                if (productoFiltro > 0)
                 {
                     ProveedoresPrecios = await _proveedorRepo.ObtenerProveedoresProducto(productoFiltro);
                 }
@@ -159,7 +159,7 @@ namespace SistemaGian.BLL.Service
                 List<Producto> listaFiltrada = new List<Producto>();
 
                 // Crear productos basados en Proveedores y precios
-                if (!string.IsNullOrEmpty(productoFiltro))
+                if (productoFiltro > 0)
                 {
                     foreach (var proveedorPrecio in ProveedoresPrecios)
                     {

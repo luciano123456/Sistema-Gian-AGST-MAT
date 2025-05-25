@@ -267,7 +267,7 @@ namespace SistemaGian.Application.Controllers
 
 
         [HttpGet]
-        public async Task<IActionResult> ListaProductosFiltro(int idCliente, int idProveedor, string producto)
+        public async Task<IActionResult> ListaProductosFiltro(int idCliente, int idProveedor, int producto)
         {
             try
             {
@@ -297,13 +297,18 @@ namespace SistemaGian.Application.Controllers
                     Orden = c.Orden ?? 0 // 👈 Asegurate que c.Orden venga correctamente desde el servicio
                 }).ToList();
 
-                // Separar productos con y sin orden
+                // ✅ Si se está filtrando por un producto específico, no ordenar
+                if (producto > 0)
+                {
+                    return Ok(baseList);
+                }
+
+                // Caso general: ordenar por Orden
                 var conOrden = baseList.Where(p => p.Orden > 0).OrderBy(p => p.Orden).ToList();
                 var sinOrden = baseList.Where(p => p.Orden <= 0).ToList();
 
                 var resultado = new List<VMProducto>();
-
-                int maxOrden = (int)((conOrden.Count > 0) ? conOrden.Max(p => p.Orden) : 0);
+                int maxOrden = (int)(conOrden.Any() ? conOrden.Max(p => p.Orden) : 0);
                 int maxIndex = Math.Max(baseList.Count, maxOrden);
 
                 for (int i = 1; i <= maxIndex; i++)
@@ -320,7 +325,6 @@ namespace SistemaGian.Application.Controllers
                     }
                 }
 
-                // Agregar los que aún no se insertaron
                 resultado.AddRange(sinOrden);
 
                 return Ok(resultado);
@@ -330,6 +334,7 @@ namespace SistemaGian.Application.Controllers
                 return BadRequest($"Error al obtener los productos: {ex.Message}");
             }
         }
+
 
 
 

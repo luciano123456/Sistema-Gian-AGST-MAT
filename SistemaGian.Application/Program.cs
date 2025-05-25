@@ -97,12 +97,17 @@ var app = builder.Build();
 // Middleware para habilitar el buffering y registrar el cuerpo de la solicitud
 app.Use(async (context, next) =>
 {
-    context.Request.EnableBuffering();
-    var body = await new StreamReader(context.Request.Body).ReadToEndAsync();
-    Console.WriteLine(body); // Imprime el contenido del cuerpo en la consola
-    context.Request.Body.Position = 0; // Resetea el stream para que otros puedan leerlo
+    if (!context.Request.Path.StartsWithSegments("/.well-known"))
+    {
+        context.Request.EnableBuffering();
+        var body = await new StreamReader(context.Request.Body).ReadToEndAsync();
+        Console.WriteLine(body);
+        context.Request.Body.Position = 0;
+    }
+
     await next.Invoke();
 });
+
 
 // Configurar el pipeline de middleware
 if (!app.Environment.IsDevelopment())
