@@ -28,6 +28,8 @@
     <!-- CSS para ColReorder -->
     <link rel="stylesheet" href="https://cdn.datatables.net/colreorder/1.6.2/css/colReorder.dataTables.min.css">
 
+            <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
+
 
 }
 
@@ -46,8 +48,13 @@
             <option value="" selected>Cliente</option>
         </select>
 
-            <label for="txtNombreFiltro" class="lblfiltro">Producto</label>
-            <input type="text" class="input-nuevo" id="txtProductoFiltro">
+        <label class="lblfiltro">Producto</label>
+        <select id="Productosfiltro" name="select" class="input-nuevo">
+            <option value="" selected>Producto</option>
+        </select>
+
+       @*      <label for="txtNombreFiltro" class="lblfiltro">Producto</label>
+            <input type="text" class="input-nuevo" id="txtProductoFiltro"> *@
 
         <div class="vw-75 d-flex float-lg-end mt-2">
             <a class="btn btn-success" id="aplicarFiltros" onclick="aplicarFiltros()">Aplicar</a>
@@ -337,7 +344,8 @@
     <script src="https://cdn.datatables.net/colreorder/1.6.2/js/dataTables.colReorder.min.js"></script>
 
 
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/js/select2.min.js"></script>
 
-    <script src="~/js/Productos.js?v=1.3"></script>
+    <script src="~/js/Productos.js?v=1.4"></script>
    
 }

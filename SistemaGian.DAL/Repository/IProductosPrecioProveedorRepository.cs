@@ -14,7 +14,7 @@ namespace SistemaGian.DAL.Repository
         Task<bool> Actualizar(ProductosPreciosProveedor producto);
         Task<ProductosPreciosProveedor> ObtenerProductoProveedor(int idProveedor, int idProducto);
         Task<IQueryable<ProductosPreciosProveedor>> ObtenerProductosProveedor(int idProveedor);
-        Task<List<ProductosPreciosProveedor>> ObtenerProveedoresProducto(string producto);
+        Task<List<ProductosPreciosProveedor>> ObtenerProveedoresProducto(int producto);
 
 
         Task<bool> AumentarPrecio(string productos, int idProveedor, decimal porcentajeCosto, decimal porcentajeVenta);
