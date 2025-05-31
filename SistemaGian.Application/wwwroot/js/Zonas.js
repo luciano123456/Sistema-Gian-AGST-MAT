@@ -174,9 +174,11 @@ const editarZona = id => {
 async function eliminarZona(id) {
     let resultado = window.confirm("¿Desea eliminar la Zona?");
 
+    var idCliente = document.getElementById("clientesfiltro").value;
+
     if (resultado) {
-        try {
-            const response = await fetch("Zonas/Eliminar?id=" + id, {
+        try { 
+            const response = await fetch(`Zonas/Eliminar?id=${id}&idCliente=${idCliente}`, {
                 method: "DELETE"
             });
 
@@ -187,7 +189,7 @@ async function eliminarZona(id) {
             const dataJson = await response.json();
 
             if (dataJson.valor) {
-                listaZonas();
+                aplicarFiltros();
                 exitoModal("Zona eliminada correctamente")
             }
         } catch (error) {

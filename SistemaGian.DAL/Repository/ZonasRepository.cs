@@ -30,10 +30,20 @@ namespace SistemaGian.DAL.Repository
             return true;
         }
 
-        public async Task<bool> Eliminar(int id)
+        public async Task<bool> Eliminar(int id, int idCliente)
         {
-            Zona model = _dbcontext.Zonas.First(c => c.Id == id);
-            _dbcontext.Zonas.Remove(model);
+
+            if (idCliente > 0)
+            {
+                ZonasCliente zona = _dbcontext.ZonasClientes.First(c => c.IdZona == id && c.IdCliente == idCliente);
+                _dbcontext.ZonasClientes.Remove(zona);
+            } else
+            {
+                Zona model = _dbcontext.Zonas.First(c => c.Id == id);
+                _dbcontext.Zonas.Remove(model);
+                
+            }
+
             await _dbcontext.SaveChangesAsync();
             return true;
         }

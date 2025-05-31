@@ -117,9 +117,9 @@ namespace SistemaGian.Application.Controllers
         }
 
 [HttpDelete]
-public async Task<IActionResult> Eliminar(int id)
+public async Task<IActionResult> Eliminar(int id, int idCliente)
 {
-    bool respuesta = await _ZonasService.Eliminar(id);
+    bool respuesta = await _ZonasService.Eliminar(id, idCliente);
 
     return StatusCode(StatusCodes.Status200OK, new { valor = respuesta });
 }
