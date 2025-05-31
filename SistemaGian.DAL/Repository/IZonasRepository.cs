@@ -10,7 +10,7 @@ namespace SistemaGian.DAL.Repository
 {
     public interface IZonasRepository<TEntityModel> where TEntityModel : class
     {
-        Task<bool> Eliminar(int id);
+        Task<bool> Eliminar(int id, int idCliente);
         Task<bool> Actualizar(Zona model);
         Task<bool> Insertar(Zona model);
         Task<Zona> Obtener(int id, int idCliente);

@@ -22,9 +22,9 @@ namespace SistemaGian.BLL.Service
             return await _contactRepo.ActualizarZonaCliente(model);
         }
 
-        public async Task<bool> Eliminar(int id)
+        public async Task<bool> Eliminar(int id, int idCliente)
         {
-            return await _contactRepo.Eliminar(id);
+            return await _contactRepo.Eliminar(id, idCliente);
         }
 
         public async Task<bool> Insertar(Zona model)

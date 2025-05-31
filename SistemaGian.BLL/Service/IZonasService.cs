@@ -4,7 +4,7 @@ namespace SistemaGian.BLL.Service
 {
     public interface IZonasService
     {
-        Task<bool> Eliminar(int id);
+        Task<bool> Eliminar(int id, int idCliente);
         Task<bool> Actualizar(Zona model);
         Task<bool> ActualizarZonaCliente(ZonasCliente model);
         Task<bool> Insertar(Zona model);
