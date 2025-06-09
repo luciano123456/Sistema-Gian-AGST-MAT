@@ -225,201 +225,215 @@
         </div>
     </div>
 
-    <!-- Modal Configuraciones -->
     <div class="modal fade" id="ModalEdicionConfiguraciones" tabindex="-1" role="dialog" aria-labelledby="ModalEdicionConfiguracionesLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
+        <div class="modal-dialog modal-dialog-centered modal-edicion" role="document">
             <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="ModalEdicionConfiguracionesLabel">Configuraciones</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                <div class="modal-header colorEncabezado">
+                    <h5 class="modal-title fw-bold" id="ModalEdicionConfiguracionesLabel">Configuraciones</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
-                <div class="modal-body">
-                    <form>
-                        <button type="button" class="btnConfiguraciones" onclick="abrirConfiguracion('Categoria', 'Categorias')">
-                            <img src="/Imagenes/Categorias.png" alt="Icono Categorias" class="imgConfiguraciones">
-                            <span>Categorias</span>
-                        </button>
-                        <button type="button" class="btnConfiguraciones mt-2" onclick="abrirConfiguracion('Marca', 'Marcas')">
-                            <img src="/Imagenes/Marcas.png" alt="Icono Marcas" class="imgConfiguraciones">
-                            <span>Marcas</span>
-                        </button>
-                        <button type="button" class="btnConfiguraciones mt-2" onclick="abrirConfiguracion('Unidad de Medida', 'UnidadesDeMedidas')">
-                            <img src="/Imagenes/unidadmedida.png" alt="Icono Unidades de Medidas" class="imgConfiguraciones">
-                            <span>Unidades de medidas</span>
-                        </button>
-                        <button type="button" class="btnConfiguraciones mt-2" onclick="abrirConfiguracion('Rol', 'Roles')">
-                            <img src="/Imagenes/Roles.png" alt="Icono Roles" class="imgConfiguraciones">
-                            <span>Roles</span>
-                        </button>
-                        @* <button type="button" class="btnConfiguraciones mt-2" onclick="abrirConfiguracion('Estados de Usuarios', 'EstadosUsuarios')">
-                            <img src="/Imagenes/Roles.png" alt="Icono Roles" class="imgConfiguraciones">
-                            <span>Estados de Usuarios</span>
-                        </button> *@
 
-                    </form>
+                <div class="modal-body px-4">
+                    <div class="row gy-3">
+
+                        <div class="col-12 d-flex align-items-center btnConfiguraciones" onclick="abrirConfiguracion('Categoria', 'Categorias')">
+                            <img src="/Imagenes/Categorias.png" alt="Icono Categorías" class="imgConfiguraciones me-2">
+                            <span>Categorías</span>
+                        </div>
+
+                        <div class="col-12 d-flex align-items-center btnConfiguraciones" onclick="abrirConfiguracion('Marca', 'Marcas')">
+                            <img src="/Imagenes/Marcas.png" alt="Icono Marcas" class="imgConfiguraciones me-2">
+                            <span>Marcas</span>
+                        </div>
+
+                        <div class="col-12 d-flex align-items-center btnConfiguraciones" onclick="abrirConfiguracion('Unidad de Medida', 'UnidadesDeMedidas')">
+                            <img src="/Imagenes/unidadmedida.png" alt="Icono Unidades de Medida" class="imgConfiguraciones me-2">
+                            <span>Unidades de Medida</span>
+                        </div>
+
+                        <div class="col-12 d-flex align-items-center btnConfiguraciones" onclick="abrirConfiguracion('Rol', 'Roles')">
+                            <img src="/Imagenes/Roles.png" alt="Icono Roles" class="imgConfiguraciones me-2">
+                            <span>Roles</span>
+                        </div>
+
+                    </div>
                 </div>
+
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-secondary btnaccion" data-bs-dismiss="modal">Cerrar</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Modal Clientes -->
+
+
     <div class="modal fade" id="ModalEdicionCliente" tabindex="-1" role="dialog" aria-labelledby="ModalEdicionClienteLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
+        <div class="modal-dialog modal-dialog-centered modal-edicion" role="document">
             <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="ModalEdicionClienteLabel">Editar Cliente</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+
+                <div class="modal-header colorEncabezado">
+                    <h5 class="modal-title fw-bold" id="ModalEdicionClienteLabel">Editar Cliente</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
+
                 <div class="modal-body">
-                    <form>
-                        <div class="form-group" hidden>
-                            <label for="txtIdCliente" class="lblNombreInput">ID</label>
-                            <input type="text" class="input-nuevomodif" id="txtIdCliente" readonly>
+                    <form id="formEditarCliente" class="row g-3">
+                        <input type="text" id="txtIdCliente" hidden readonly>
+
+                        <div class="col-md-6">
+                            <label for="txtNombreCliente" class="form-label">Nombre (*)</label>
+                            <input type="text" class="form-control" id="txtNombreCliente" required>
                         </div>
-                        <div class="form-group">
-                            <label id="lblNombre" for="txtNombre" class="lblNombreInput">Nombre (*)</label>
-                            <input type="text" class="input-nuevomodif" id="txtNombreCliente" required>
+
+                        <div class="col-md-6">
+                            <label for="txtTelefonoCliente" class="form-label">Teléfono</label>
+                            <input type="text" class="form-control" id="txtTelefonoCliente">
                         </div>
-                        <div class="form-group">
-                            <label for="txtTelefono" class="lblNombreInput">Teléfono</label>
-                            <input type="text" class="input-nuevomodif" id="txtTelefonoCliente">
+
+                        <div class="col-md-6">
+                            <label for="txtDireccionCliente" class="form-label">Dirección</label>
+                            <input type="text" class="form-control" id="txtDireccionCliente">
                         </div>
-                        <div class="form-group">
-                            <label for="txtDireccion" class="lblNombreInput">Dirección</label>
-                            <input type="text" class="input-nuevomodif" id="txtDireccionCliente">
-                        </div>
-                        <div class="form-group">
-                            <label for="txtProvincia" class="lblNombreInput">Provincia</label>
-                            <select id="ProvinciasClientes" name="select" class="input-nuevomodif select-modal-personalizado mt-2">
+
+                        <div class="col-md-6">
+                            <label for="ProvinciasClientes" class="form-label">Provincia</label>
+                            <select id="ProvinciasClientes" name="select" class="form-control">
                                 <option value="" selected>Provincias</option>
                             </select>
                         </div>
 
-                        <div class="form-group mt-4">
-                            <label for="txtLocalidad" class="lblNombreInput">Localidad</label>
-                            <input type="text" class="input-nuevomodif" id="txtLocalidadCliente">
+                        <div class="col-md-6">
+                            <label for="txtLocalidadCliente" class="form-label">Localidad</label>
+                            <input type="text" class="form-control" id="txtLocalidadCliente">
                         </div>
-                        <div class="form-group">
-                            <label for="txtDNI" class="lblNombreInput">DNI</label>
-                            <input type="text" class="input-nuevomodif" id="txtDNICliente">
+
+                        <div class="col-md-6">
+                            <label for="txtDNICliente" class="form-label">DNI</label>
+                            <input type="text" class="form-control" id="txtDNICliente">
                         </div>
                     </form>
                 </div>
+
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                    <button type="button" id="btnGuardar" class="btn btn-primary" onclick="registrarCliente()">Registrar</button>
+                    <button type="button" id="btnGuardarCliente" class="btn btn-primary" onclick="guardarCambios()">Registrar</button>
                 </div>
+
             </div>
         </div>
     </div>
 
-    <!-- Modal Usuarios -->
+
+
     <div class="modal fade" id="ModalEdicionUsuario" tabindex="-1" role="dialog" aria-labelledby="ModalEdicionUsuarioLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
+        <div class="modal-dialog modal-dialog-centered modal-edicion" role="document">
             <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="ModalEdicionUsuarioLabel">Editar Usuario</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                <div class="modal-header colorEncabezado">
+                    <h5 class="modal-title fw-bold" id="ModalEdicionUsuarioLabel">Editar Usuario</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
+
                 <div class="modal-body">
-                    <form>
-                        <div class="form-group" hidden>
-                            <label for="txtIdUsuario" class="lblNombreInput">ID</label>
-                            <input type="text" class="input-nuevomodif" id="txtId" readonly>
+                    <form id="formEditarUsuario" class="row g-3">
+                        <input type="text" id="txtIdUsuario" hidden readonly>
+
+                        <div class="col-md-4">
+                            <label for="txtUserUsuario" class="form-label">Usuario (*)</label>
+                            <input type="text" class="form-control" id="txtUserUsuario" required>
                         </div>
-                        <div class="form-group">
-                            <label id="lblUserUsuario" for="txtUserUsuario" class="lblNombreInput">Usuario (*)</label>
-                            <input type="text" class="input-nuevomodif" id="txtUserUsuario" required>
+
+                        <div class="col-md-4">
+                            <label for="txtNombreUsuario" class="form-label">Nombre (*)</label>
+                            <input type="text" class="form-control" id="txtNombreUsuario" required>
                         </div>
-                        <div class="form-group">
-                            <label id="lblNombreUsuario" for="txtNombreUsuario" class="lblNombreInput">Nombre (*)</label>
-                            <input type="text" class="input-nuevomodif" id="txtNombreUsuario" required>
+
+                        <div class="col-md-4">
+                            <label for="txtApellidoUsuario" class="form-label">Apellido (*)</label>
+                            <input type="text" class="form-control" id="txtApellidoUsuario" required>
                         </div>
-                        <div class="form-group">
-                            <label id="lblApellidoUsuario" for="txtApellido" Usuario class="lblNombreInput">Apellido (*)</label>
-                            <input type="text" class="input-nuevomodif" id="txtApellidoUsuario" required>
+
+                        <div class="col-md-4">
+                            <label for="txtDniUsuario" class="form-label">DNI</label>
+                            <input type="text" class="form-control" id="txtDniUsuario">
                         </div>
-                        <div class="form-group">
-                            <label id="lblNombreUsuario" for="txtDniUsuario" class="lblNombreInput">Dni</label>
-                            <input type="text" class="input-nuevomodif" id="txtDniUsuario">
+
+                        <div class="col-md-4">
+                            <label for="txtTelefonoUsuario" class="form-label">Teléfono</label>
+                            <input type="text" class="form-control" id="txtTelefonoUsuario">
                         </div>
-                        <div class="form-group">
-                            <label for="txtTelefonoUsuario" class="lblNombreInput">Teléfono</label>
-                            <input type="text" class="input-nuevomodif" id="txtTelefonoUsuario">
+
+                        <div class="col-md-4">
+                            <label for="txtDireccionUsuario" class="form-label">Dirección</label>
+                            <input type="text" class="form-control" id="txtDireccionUsuario">
                         </div>
-                        <div class="form-group">
-                            <label for="txtDireccionUsuario" class="lblNombreInput">Dirección</label>
-                            <input type="text" class="input-nuevomodif" id="txtDireccionUsuario">
-                        </div>
-                        <div class="form-group">
-                            <label for="txtRolUsuario" class="lblNombreInput">Rol</label>
-                            <select id="RolesUsuario" name="select" class="input-nuevomodif select-modal-personalizado mt-2">
+
+                        <div class="col-md-4">
+                            <label for="RolesUsuario" class="form-label">Rol</label>
+                            <select id="RolesUsuario" class="form-control">
                                 <option value="" selected>Rol</option>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label for="txtEstadoUsuario" class="lblNombreInput">Estado</label>
-                            <select id="EstadosUsuario" name="select" class="input-nuevomodif select-modal-personalizado mt-2">
+
+                        <div class="col-md-4">
+                            <label for="EstadosUsuario" class="form-label">Estado</label>
+                            <select id="EstadosUsuario" class="form-control">
                                 <option value="" selected>Estado</option>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label for="txtContrasenaUsuario" class="lblNombreInput" id="lblContrasenaUsuario">Contrasena</label>
-                            <input type="password" class="input-nuevomodif" id="txtContrasenaUsuario">
+
+                        <div class="col-md-4">
+                            <label for="txtContrasenaUsuario" class="form-label">Contraseña</label>
+                            <input type="password" class="form-control" id="txtContrasenaUsuario">
                         </div>
+
+                       
                     </form>
                 </div>
+
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                    <button type="button" id="btnGuardar" class="btn btn-primary" onclick="registrarUsuario()">Registrar</button>
+                    <button type="button" id="btnGuardarUsuario" class="btn btn-primary" onclick="registrarUsuario()">Registrar</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Modal Proveedores-->
+
     <div class="modal fade" id="ModalEdicionProveedor" tabindex="-1" role="dialog" aria-labelledby="ModalEdicionProveedorLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
+        <div class="modal-dialog modal-dialog-centered modal-edicion" role="document">
             <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="ModalEdicionProveedorLabel">Editar proveedor</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                <div class="modal-header colorEncabezado">
+                    <h5 class="modal-title fw-bold" id="ModalEdicionProveedorLabel">Editar Proveedor</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
+
                 <div class="modal-body">
-                    <form>
-                        <div class="form-group" hidden>
-                            <label for="txtIdProveedor" class="lblNombreInput">ID</label>
-                            <input type="text" class="input-nuevomodif" id="txtId" readonly>
+                    <form id="formEditarProveedor" class="row g-3">
+                        <input type="text" id="txtIdProveedor" hidden readonly>
+
+                        <div class="col-md-6">
+                            <label for="txtNombreProveedor" class="form-label">Nombre (*)</label>
+                            <input type="text" class="form-control" id="txtNombreProveedor" required>
                         </div>
-                        <div class="form-group">
-                            <label id="lblNombreProveedor" for="txtNombreProveedor" class="lblNombreInput">Nombre (*)</label>
-                            <input type="text" class="input-nuevomodif" id="txtNombreProveedor" required>
+
+                        <div class="col-md-6">
+                            <label for="txtApodoProveedor" class="form-label">Apodo</label>
+                            <input type="text" class="form-control" id="txtApodoProveedor">
                         </div>
-                        <div class="form-group">
-                            <label for="txtApodo" class="lblNombreInput">Apodo</label>
-                            <input type="text" class="input-nuevomodif" id="txtApodoProveedor">
+
+                        <div class="col-md-6">
+                            <label for="txtUbicacionProveedor" class="form-label">Ubicación</label>
+                            <input type="text" class="form-control" id="txtUbicacionProveedor">
                         </div>
-                        <div class="form-group">
-                            <label for="txtUbicacion" class="lblNombreInput">Ubicacion</label>
-                            <input type="text" class="input-nuevomodif" id="txtUbicacionProveedor">
-                        </div>
-                        <div class="form-group">
-                            <label for="txtTelefono" class="lblNombreInput">Telefono</label>
-                            <input type="text" class="input-nuevomodif" id="txtTelefonoProveedor">
+
+                        <div class="col-md-6">
+                            <label for="txtTelefonoProveedor" class="form-label">Teléfono</label>
+                            <input type="text" class="form-control" id="txtTelefonoProveedor">
                         </div>
                     </form>
                 </div>
+
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                     <button type="button" id="btnGuardarProveedor" class="btn btn-primary" onclick="registrarProveedor()">Registrar</button>
@@ -428,36 +442,35 @@
         </div>
     </div>
 
-    <!-- Modal Choferes -->
     <div class="modal fade" id="modalEdicionChofer" tabindex="-1" role="dialog" aria-labelledby="modalEdicionChoferLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
+        <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modalEdicionChoferLabel">Editar Chofer</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                <div class="modal-header colorEncabezado">
+                    <h5 class="modal-title fw-bold" id="modalEdicionChoferLabel">Editar Chofer</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
+
                 <div class="modal-body">
-                    <form>
-                        <div class="form-group" hidden>
-                            <label for="txtIdChofer" class="lblNombreInput">ID</label>
-                            <input type="text" class="input-nuevomodif" id="txtIdChofer" readonly>
+                    <form id="formEditarChofer" class="row g-3">
+                        <input type="text" id="txtIdChofer" hidden readonly>
+
+                        <div class="col-md-6">
+                            <label for="txtNombreChofer" class="form-label">Nombre (*)</label>
+                            <input type="text" class="form-control" id="txtNombreChofer" required>
                         </div>
-                        <div class="form-group">
-                            <label id="lblNombreChofer" for="txtNombre" class="lblNombreInput">Nombre (*)</label>
-                            <input type="text" class="input-nuevomodif" id="txtNombreChofer" required>
+
+                        <div class="col-md-6">
+                            <label for="txtTelefonoChofer" class="form-label">Teléfono</label>
+                            <input type="text" class="form-control" id="txtTelefonoChofer">
                         </div>
-                        <div class="form-group">
-                            <label for="txtTelefonoChofer" class="lblNombreInput">Teléfono</label>
-                            <input type="text" class="input-nuevomodif" id="txtTelefonoChofer">
-                        </div>
-                        <div class="form-group">
-                            <label for="txtDireccionChofer" class="lblNombreInput">Dirección</label>
-                            <input type="text" class="input-nuevomodif" id="txtDireccionChofer">
+
+                        <div class="col-md-12">
+                            <label for="txtDireccionChofer" class="form-label">Dirección</label>
+                            <input type="text" class="form-control" id="txtDireccionChofer">
                         </div>
                     </form>
                 </div>
+
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                     <button type="button" id="btnGuardarChofer" class="btn btn-primary" onclick="registrarChofer()">Registrar</button>
@@ -466,35 +479,34 @@
         </div>
     </div>
 
-    <!-- Modal Zonas -->
+
     <div class="modal fade" id="modalEdicionZona" tabindex="-1" role="dialog" aria-labelledby="modalEdicionZonaLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
+        <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modalEdicionZonaLabel">Editar Zona</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                <div class="modal-header colorEncabezado">
+                    <h5 class="modal-title fw-bold" id="modalEdicionZonaLabel">Editar Zona</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
+
                 <div class="modal-body">
-                    <form>
-                        <div class="form-group" hidden>
-                            <label for="txtIdZona" class="lblNombreInput">ID</label>
-                            <input type="text" class="input-nuevomodif" id="txtIdZona" readonly>
+                    <form id="formEditarZona" class="row g-3">
+                        <input type="text" id="txtIdZona" hidden readonly>
+
+                        <div class="col-md-6">
+                            <label for="txtNombreZona" class="form-label">Nombre (*)</label>
+                            <input type="text" class="form-control" id="txtNombreZona" required>
                         </div>
-                        <div class="form-group">
-                            <label id="lblNombreZona" for="txtNombreZona" class="lblNombreInput">Nombre (*)</label>
-                            <input type="text" class="input-nuevomodif" id="txtNombreZona" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="txtPrecioZona" class="lblNombreInput">Precio</label>
-                            <input type="text" class="input-nuevomodif" id="txtPrecioZona">
+
+                        <div class="col-md-6">
+                            <label for="txtPrecioZona" class="form-label">Precio</label>
+                            <input type="text" class="form-control" id="txtPrecioZona">
                         </div>
                     </form>
                 </div>
+
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                    <button type="button" id="btnGuardarChofer" class="btn btn-primary" onclick="registrarZona()">Registrar</button>
+                    <button type="button" id="btnGuardarZona" class="btn btn-primary" onclick="registrarZona()">Registrar</button>
                 </div>
             </div>
         </div>
@@ -502,82 +514,80 @@
 
     <!-- Modal Productos -->
     <div class="modal fade" id="modalEdicionProductos" tabindex="-1" role="dialog" aria-labelledby="modalEdicionProductosLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg custom-modal-width" role="document">
+        <div class="modal-dialog modal-dialog-centered modal-edicion" role="document">
             <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modalEdicionProductosLabel">Nuevo Producto</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                <div class="modal-header colorEncabezado">
+                    <h5 class="modal-title fw-bold" id="modalEdicionProductosLabel">Nuevo Producto</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
-                <  <div class="modal-body">
-                    <form>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group" hidden>
-                                    <label for="txtIdProducto" class="lblNombreInput">ID</label>
-                                    <input type="text" class="input-nuevomodif" id="txtId" readonly>
-                                </div>
-                                <div class="form-group">
-                                    <label id="lblDescripcion" for="txtDescripcionProducto" class="lblNombreInput">Descripcion (*)</label>
-                                    <input type="text" class="input-nuevomodif" id="txtDescripcionProducto" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="txtMarcasProducto" class="lblNombreInput">Marca (*)</label>
-                                    <select id="MarcasProducto" name="select" class="input-nuevomodif select-modal-personalizado mt-2">
-                                        <option value="" selected>Marca</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label for="txtCategoriaProducto" class="lblNombreInput">Categoria (*)</label>
-                                    <select id="CategoriasProducto" name="select" class="input-nuevomodif select-modal-personalizado mt-2">
-                                        <option value="" selected>Categoria</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label for="UnidadesDeMedidasProducto" class="lblNombreInput">Unidad de Medida (*)</label>
-                                    <select id="UnidadesDeMedidasProducto" name="select" class="input-nuevomodif select-modal-personalizado mt-2">
-                                        <option value="" selected>Unidad de Medida</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label id="lblProductoCantidad" for="txtProductoCantidad" class="lblNombreInput" hidden>Cantidad</label>
-                                    <input type="number" class="input-nuevomodif" id="txtProductoCantidad" hidden required>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="txtMoneda" class="lblNombreInput">Moneda (*)</label>
-                                    <select id="MonedasProducto" name="select" class="input-nuevomodif select-modal-personalizado mt-2">
-                                        <option value="" selected>Moneda</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label id="lblPrecioCostoProducto" for="txtPrecioCosto" class="lblNombreInput">Precio Costo U. (*)</label>
-                                    <input type="number" class="input-nuevomodif" id="txtPrecioCostoProducto" required step="0.01">
-                                </div>
-                                <div class="form-group">
-                                    <label id="lblPorcentajeGananciaProducto" for="txtPorcentajeGanancia" class="lblNombreInput">Porc. Ganancia (*)</label>
-                                    <input type="number" class="input-nuevomodif" id="txtPorcentajeGananciaProducto" required step="0.01">
-                                </div>
-                                <div class="form-group">
-                                    <label id="lblPrecioVentaProducto" for="txtPrecioVenta" class="lblNombreInput">Precio Venta U.</label>
-                                    <input type="number" class="input-nuevomodif" id="txtPrecioVentaProducto" step="0.01">
-                                </div>
-                                <div class="form-group">
-                                    <label id="lblTotalProducto" for="txtTotal" class="lblNombreInput">Total</label>
-                                    <input type="number" class="input-nuevomodif" id="txtTotalProducto" step="0.01" value="0" readonly hidden>
-                                </div>
-                                @*  <div class="form-group divImagen">
-                                <label for="txtImagen" class="lblNombreInput">Imagen</label>
-                                <img id="imgProducto" class="mb-3" style="width: 150px; height: 80px;" src="" />
-                                <p id="imgProd" class="" hidden></p>
-                            </div>
-                            <input id="Imagen" class="input-imagen" type="file" placeholder="Imagen" name="adjunto" accept=".pdf,.jpg,.png" /> *@
-                            </div>
+
+                <div class="modal-body">
+                    <form id="formEdicionProducto" class="row g-3">
+
+                        <input type="text" id="txtId" hidden readonly>
+                        <input type="text" id="txtActivo" hidden readonly>
+
+                        <div class="col-md-3">
+                            <label id="lblDescripcion" for="txtDescripcionProducto" class="form-label">Descripción (*)</label>
+                            <input type="text" class="form-control" id="txtDescripcionProducto" required>
                         </div>
+
+                        <div class="col-md-3">
+                            <label for="MarcasProducto" class="form-label">Marca (*)</label>
+                            <select id="MarcasProducto" class="form-control">
+                                <option value="" selected>Marca</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label for="CategoriasProducto" class="form-label">Categoría (*)</label>
+                            <select id="CategoriasProducto" class="form-control">
+                                <option value="" selected>Categoría</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label for="UnidadesDeMedidasProducto" class="form-label">Unidad de Medida (*)</label>
+                            <select id="UnidadesDeMedidasProducto" class="form-control">
+                                <option value="" selected>Unidad de Medida</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-3" hidden>
+                            <label id="lblProductoCantidad" for="txtProductoCantidad" class="form-label">Cantidad</label>
+                            <input type="number" class="form-control" id="txtProductoCantidad" required>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label for="MonedasProducto" class="form-label">Moneda (*)</label>
+                            <select id="MonedasProducto" class="form-control">
+                                <option value="" selected>Moneda</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label id="lblPrecioCostoProducto" for="txtPrecioCostoProducto" class="form-label">Precio Costo U. (*)</label>
+                            <input type="number" class="form-control" id="txtPrecioCostoProducto" required step="0.01">
+                        </div>
+
+                        <div class="col-md-3">
+                            <label id="lblPorcentajeGananciaProducto" for="txtPorcentajeGananciaProducto" class="form-label">Porc. Ganancia (*)</label>
+                            <input type="number" class="form-control" id="txtPorcentajeGananciaProducto" required step="0.01">
+                        </div>
+
+                        <div class="col-md-3">
+                            <label id="lblPrecioVentaProducto" for="txtPrecioVentaProducto" class="form-label">Precio Venta U.</label>
+                            <input type="number" class="form-control" id="txtPrecioVentaProducto" step="0.01">
+                        </div>
+
+                        <div class="col-md-3" hidden>
+                            <label id="lblTotalProducto" for="txtTotalProducto" class="form-label">Total</label>
+                            <input type="number" class="form-control" id="txtTotalProducto" step="0.01" value="0" readonly>
+                        </div>
+
                     </form>
                 </div>
+
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                     <button type="button" id="btnGuardarProducto" class="btn btn-primary" onclick="registrarProducto()">Registrar</button>
@@ -587,12 +597,11 @@
     </div>
 
 
-
     <partial name="~/Views/Utils/Modals.cshtml" />
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/home.js?v=1.1"></script>
+    <script src="~/js/home.js?v=1.2"></script>
     <script src="~/js/site.js"></script>
 
 </body>

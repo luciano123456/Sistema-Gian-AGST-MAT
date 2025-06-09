@@ -141,21 +141,32 @@
 
 
 
-<div class="modal fade centered-modal-importar" id="modalProveedores" tabindex="-1" aria-labelledby="modalProveedoresLabel" aria-hidden="true">
-    <div class="modal-dialog estilowpp">
-        <div class="estilowpp modal-content ">
-            <div class="modal-header">
-                <h5 class="modal-title" id="modalProveedorespLabel">Asignar Proveedor</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+<div class="modal fade" id="modalProveedores" tabindex="-1" aria-labelledby="modalProveedoresLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header colorEncabezado">
+                <h5 class="modal-title fw-bold" id="modalProveedoresLabel">Asignar Proveedor</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
-            <label class="lblNombreInput" hidden>Proveedor</label>
-            <select id="Proveedores" name="select" class="input-nuevomodif select-modal-personalizado mt-3">
-                <option value="" selected>Seleccione Proveedor</option>
-            </select>
-            <p id="datos" class="mb-3 text-center text-danger datos-error d-none"></p>
+
+            <div class="modal-body">
+                <form id="formAsignarProveedor" class="row g-3">
+                    <div class="col-md-12">
+                        <label for="Proveedores" class="form-label">Proveedor</label>
+                        <select id="Proveedores" name="select" class="form-control" required>
+                            <option value="" selected>Seleccione Proveedor</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-12">
+                        <p id="datos" class="text-center text-danger datos-error d-none mb-0"></p>
+                    </div>
+                </form>
+            </div>
+
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary btnaccion" data-bs-dismiss="modal">Cerrar</button>
-                <button id="btnRegistrarModificar" type="button" class="btn btn-primary btnaccion" onclick="asignarProveedor()">Asignar</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button id="btnRegistrarModificar" type="button" class="btn btn-primary" onclick="asignarProveedor()">Asignar</button>
             </div>
         </div>
     </div>
@@ -163,68 +174,193 @@
 
 
 
-<div class="modal fade centered-modal-importar" id="modalClientes" tabindex="-1" aria-labelledby="modalClientesLabel" aria-hidden="true">
-    <div class="modal-dialog estilowpp">
-        <div class="estilowpp modal-content ">
-            <div class="modal-header">
-                <h5 class="modal-title" id="modalClientespLabel">Asignar Cliente</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+
+<div class="modal fade" id="modalClientes" tabindex="-1" role="dialog" aria-labelledby="modalClientesLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header colorEncabezado">
+                <h5 class="modal-title fw-bold" id="modalClientesLabel">Asignar Cliente</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
-            <label class="lblNombreInput" hidden>Cliente</label>
-            <select id="Clientes" name="select" class="input-nuevomodif select-modal-personalizado mt-3">
-                <option value="" selected>Seleccione Cliente</option>
-            </select>
-            <p id="datos" class="mb-3 text-center text-danger datos-error d-none"></p>
+
+            <div class="modal-body">
+                <form id="formAsignarCliente" class="row g-3">
+                    <div class="col-md-12">
+                        <label for="Clientes" class="form-label">Cliente</label>
+                        <select id="Clientes" class="form-control">
+                            <option value="" selected>Seleccione Cliente</option>
+                        </select>
+                    </div>
+                    <p id="datosCliente" class="mb-3 text-center text-danger datos-error d-none"></p>
+                </form>
+            </div>
+
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary btnaccion" data-bs-dismiss="modal">Cerrar</button>
-                <button id="btnRegistrarModificar" type="button" class="btn btn-primary btnaccion" onclick="asignarCliente()">Asignar</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary" onclick="asignarCliente()">Asignar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalBajar" tabindex="-1" role="dialog" aria-labelledby="modalBajarLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header colorEncabezado">
+                <h5 class="modal-title fw-bold" id="modalBajarLabel">Bajar Precios</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+
+            <div class="modal-body">
+                <form id="formBajar" class="row g-3">
+
+                    <div class="col-md-6">
+                        <label for="txtBajaPrecioCosto" class="form-label">Porc. Precio Costo (*)</label>
+                        <input type="text" class="form-control" id="txtBajaPrecioCosto" required>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="txtBajaPrecioVenta" class="form-label">Porc. Precio Venta (*)</label>
+                        <input type="text" class="form-control" id="txtBajaPrecioVenta" required>
+                    </div>
+
+                    <div class="col-md-12">
+                        <p id="datosBajar" class="text-center text-danger datos-error d-none mb-0"></p>
+                    </div>
+
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary" onclick="bajarPrecios()">Bajar</button>
             </div>
         </div>
     </div>
 </div>
 
 
-<div class="modal fade centered-modal-importar" id="modalAumentar" tabindex="-1" aria-labelledby="modalAumentarLabel" aria-hidden="true">
-    <div class="modal-dialog estilowpp">
-        <div class="estilowpp modal-content ">
-            <div class="modal-header">
-                <h5 class="modal-title" id="modalAumentarLabel">Aumentar Precios</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+<div class="modal fade" id="modalAumentar" tabindex="-1" role="dialog" aria-labelledby="modalAumentarLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header colorEncabezado">
+                <h5 class="modal-title fw-bold" id="modalAumentarLabel">Aumentar Precios</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
-            <label class="lblNombreInput" hidden>Aumento</label>
-            <label id="lblAumentoPrecioCosto" for="txtAumentoPrecioCosto" class="lblNombreInput">Porc. Precio Costo (*)</label>
-            <input type="text" class="input-nuevomodifporc" id="txtAumentoPrecioCosto" value="0" required>
-            <label id="lblAumentoPrecioVenta" for="txtAumentoPrecioVenta" class="lblNombreInput">Porc. Precio Venta (*)</label>
-            <input type="text" class="input-nuevomodifporc" id="txtAumentoPrecioVenta" value="0" required>
-            <p id="datos" class="mb-3 text-center text-danger datos-error d-none"></p>
+
+            <div class="modal-body">
+                <form id="formAumentar" class="row g-3">
+                    <div class="col-md-6">
+                        <label for="txtAumentoPrecioCosto" class="form-label">Porc. Precio Costo (*)</label>
+                        <input type="text" class="form-control" id="txtAumentoPrecioCosto" value="0" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="txtAumentoPrecioVenta" class="form-label">Porc. Precio Venta (*)</label>
+                        <input type="text" class="form-control" id="txtAumentoPrecioVenta" value="0" required>
+                    </div>
+                    <p id="datosAumentar" class="mb-3 text-center text-danger datos-error d-none"></p>
+                </form>
+            </div>
+
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary btnaccion" data-bs-dismiss="modal">Cerrar</button>
-                <button id="btnRegistrarModificar" type="button" class="btn btn-primary btnaccion" onclick="aumentarPrecios()">Aumentar</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary" onclick="aumentarPrecios()">Aumentar</button>
             </div>
         </div>
     </div>
 </div>
 
-<div class="modal fade centered-modal-importar" id="modalBajar" tabindex="-1" aria-labelledby="modalBajarLabel" aria-hidden="true">
-    <div class="modal-dialog estilowpp">
-        <div class="estilowpp modal-content ">
-            <div class="modal-header">
-                <h5 class="modal-title" id="modalBajarLabel">Bajar Precios</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+<div class="modal fade" id="modalEdicion" tabindex="-1" role="dialog" aria-labelledby="modalEdicionLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-edicion" role="document">
+        <div class="modal-content">
+            <div class="modal-header colorEncabezado">
+                <h5 class="modal-title fw-bold" id="modalEdicionLabel">Editar Producto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
-            <label class="lblNombreInput" hidden>Baja</label>
-            <label id="lblBajaPrecioCosto" for="txtBajaPrecioCosto" class="lblNombreInput">Porc. Precio Costo (*)</label>
-            <input type="text" class="input-nuevomodifporc" id="txtBajaPrecioCosto" required>
-            <label id="lblBajaPrecioVenta" for="txtBajaPrecioVenta" class="lblNombreInput">Porc. Precio Venta (*)</label>
-            <input type="text" class="input-nuevomodifporc" id="txtBajaPrecioVenta" required>
-            <p id="datos" class="mb-3 text-center text-danger datos-error d-none"></p>
+
+            <div class="modal-body">
+                <form id="formEdicionProducto" class="row g-3">
+
+                    <input type="text" id="txtId" hidden readonly>
+                    <input type="text" id="txtActivo" hidden readonly>
+
+                    <div class="col-md-3">
+                        <label id="lblDescripcion" for="txtDescripcion" class="form-label">Descripcion (*)</label>
+                        <input type="text" class="form-control" id="txtDescripcion" required>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label for="txtMarcas" class="form-label">Marca (*)</label>
+                        <select id="Marcas" name="select" class="form-control">
+                            <option value="" selected>Marca</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label for="txtCategoria" class="form-label">Categoria (*)</label>
+                        <select id="Categorias" name="select" class="form-control">
+                            <option value="" selected>Categoria</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label for="txtUnidadDeMedida" class="form-label">Unidad de Medida (*)</label>
+                        <select id="UnidadesDeMedidas" name="select" class="form-control">
+                            <option value="" selected>Unidad de Medida</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-3" hidden>
+                        <label id="lblProductoCantidad" for="txtProductoCantidad" class="form-label">Cantidad</label>
+                        <input type="number" class="form-control" id="txtProductoCantidad" required>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label for="txtMoneda" class="form-label">Moneda (*)</label>
+                        <select id="Monedas" name="select" class="form-control">
+                            <option value="" selected>Moneda</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label id="lblPrecioCosto" for="txtPrecioCosto" class="form-label">Precio Costo U. (*)</label>
+                        <input type="number" class="form-control" id="txtPrecioCosto" required step="0.01">
+                    </div>
+
+                    <div class="col-md-3">
+                        <label id="lblPorcentajeGanancia" for="txtPorcentajeGanancia" class="form-label">Porc. Ganancia (*)</label>
+                        <input type="number" class="form-control" id="txtPorcentajeGanancia" required step="0.01">
+                    </div>
+
+                    <div class="col-md-3">
+                        <label id="lblPrecioVenta" for="txtPrecioVenta" class="form-label">Precio Venta U.</label>
+                        <input type="number" class="form-control" id="txtPrecioVenta" step="0.01">
+                    </div>
+
+                    <div class="col-md-3" hidden>
+                        <label id="lblTotal" for="txtTotal" class="form-label">Total</label>
+                        <input type="number" class="form-control" id="txtTotal" step="0.01" value="0" readonly>
+                    </div>
+
+                    @* 
+                    <div class="form-group divImagen">
+                        <label for="txtImagen" class="form-label">Imagen</label>
+                        <img id="imgProducto" class="mb-3" style="width: 150px; height: 80px;" src="" />
+                        <p id="imgProd" class="" hidden></p>
+                    </div>
+                    <input id="Imagen" class="form-control" type="file" placeholder="Imagen" name="adjunto" accept=".pdf,.jpg,.png" />
+                    *@
+                </form>
+            </div>
+
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary btnaccion" data-bs-dismiss="modal">Cerrar</button>
-                <button id="btnRegistrarModificar" type="button" class="btn btn-primary btnaccion" onclick="bajarPrecios()">Bajar</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" id="btnGuardar" class="btn btn-primary" onclick="guardarCambios()">Registrar</button>
             </div>
         </div>
     </div>
 </div>
+
 
 <!-- HTML para el modal de edición -->
 <div class="modal fade" id="modalEdicion" tabindex="-1" role="dialog" aria-labelledby="modalEdicionLabel" aria-hidden="true">
@@ -346,6 +482,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/js/select2.min.js"></script>
 
-    <script src="~/js/Productos.js?v=1.4"></script>
+    <script src="~/js/Productos.js?v=1.5"></script>
    
 }

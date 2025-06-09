@@ -21,6 +21,7 @@ $(document).ready(() => {
 
     listaZonas(-1);
     listaClientesFiltro();
+    listaZonasFiltro();
 
     $('#txtNombre').on('input', function () {
         validarCampos()
@@ -32,6 +33,12 @@ $(document).ready(() => {
         placeholder: "Selecciona una opción",
         allowClear: false
     });
+
+    $("#clientesfiltro, #zonasfiltro").select2({
+        placeholder: "Selecciona una opción",
+        allowClear: false
+    });
+
 
 
 
@@ -632,12 +639,84 @@ async function listaClientesFiltro() {
     }
 }
 
+async function listaZonasFiltro() {
+    const idCliente = $("#clientesfiltro").val() != "" ? $("#clientesfiltro").val() : -1;
+
+    const url = `/Zonas/Lista?IdCliente=${idCliente}`;
+    const response = await fetch(url);
+    const data = await response.json();
+
+    $('#zonasfiltro option').remove();
+
+    select = document.getElementById("zonasfiltro");
+
+    option = document.createElement("option");
+    option.value = -1;
+    option.text = "-";
+    select.appendChild(option);
+
+    for (i = 0; i < data.length; i++) {
+        option = document.createElement("option");
+        option.value = data[i].Id;
+        option.text = data[i].Nombre;
+        select.appendChild(option);
+
+    }
+}
+
 
 async function aplicarFiltros() {
     const idCliente = document.getElementById("clientesfiltro").value;
-
+    document.getElementById("btnAumentarPrecios").setAttribute("hidden", "hidden");
+    document.getElementById("btnBajarPrecios").setAttribute("hidden", "hidden");
     listaZonas(idCliente);
+    listaZonasFiltro();
 }
+
+
+function actualizarBotonesAccion() {
+    const idClienteFiltro = $("#clientesfiltro").val();
+
+    if (selectedZonas.length > 0 && idClienteFiltro <= 0) {
+        document.getElementById("btnAsignarCliente").removeAttribute("hidden");
+    } else {
+        document.getElementById("btnAsignarCliente").setAttribute("hidden", "hidden");
+    }
+
+    if (selectedZonas.length > 0) {
+        document.getElementById("btnAumentarPrecios").removeAttribute("hidden");
+        document.getElementById("btnBajarPrecios").removeAttribute("hidden");
+    } else {
+        document.getElementById("btnAumentarPrecios").setAttribute("hidden", "hidden");
+        document.getElementById("btnBajarPrecios").setAttribute("hidden", "hidden");
+    }
+}
+
+$('#selectAllCheckbox').on('change', function () {
+    const checked = $(this).is(':checked');
+
+    // Limpiar selección actual
+    selectedZonas = [];
+
+    $('.custom-checkbox').each(function () {
+        const icon = $(this).find('.fa');
+        const id = $(this).data('id');
+
+        if (checked) {
+            if (!icon.hasClass('checked')) {
+                icon.addClass('checked fa-check-square').removeClass('fa-square-o');
+            }
+            if (!selectedZonas.includes(id)) {
+                selectedZonas.push(id);
+            }
+        } else {
+            icon.removeClass('checked fa-check-square').addClass('fa-square-o');
+        }
+    });
+
+    actualizarBotonesAccion();
+});
+
 
 // Manejar el click en el checkbox
 function handleCheckboxClick(event) {
@@ -677,6 +756,14 @@ function handleCheckboxClick(event) {
         document.getElementById("btnAsignarCliente").removeAttribute("hidden");
     } else {
         document.getElementById("btnAsignarCliente").setAttribute("hidden", "hidden");
+    }
+
+    if (selectedZonas.length > 0) {
+        document.getElementById("btnAumentarPrecios").removeAttribute("hidden");
+        document.getElementById("btnBajarPrecios").removeAttribute("hidden");
+    } else {
+        document.getElementById("btnAumentarPrecios").setAttribute("hidden", "hidden");
+        document.getElementById("btnBajarPrecios").setAttribute("hidden", "hidden");
     }
 
     console.log(selectedZonas);
@@ -793,3 +880,122 @@ async function guardarCambiosFila(rowData) {
         console.error('Error de red:', error);
     }
 }
+
+
+function abrirmodalAumentarPrecios() {
+    $("#txtAumentoPrecio").val("0");
+    $("#modalAumentar").modal("show");
+
+}
+
+function abrirmodalBajarPrecios() {
+    $("#txtBajaPrecio").val("0");
+    $("#modalBajar").modal("show");
+}
+
+
+function validarCamposAumentar() {
+    const aumento = $("#txtAumentoPrecio").val();
+
+    const aumentoValido = aumento !== "";
+
+    $("#lblAumentoPrecio").css("color", aumentoValido ? "" : "red");
+    $("#txtAumentoPrecio").css("border-color", aumentoValido ? "" : "red");
+
+    return aumentoValido;
+}
+
+function validarCamposBajar() {
+    const aumento = $("#txtAumentoPrecio").val();
+
+    const aumentoValido = aumento !== "";
+
+    $("#lblBajaPrecio").css("color", aumentoValido ? "" : "red");
+    $("#txtBajaPrecio").css("border-color", aumentoValido ? "" : "red");
+
+    return aumentoValido;
+}
+
+
+function aumentarPrecios() {
+
+    if (validarCamposAumentar) {
+        const idClienteFiltro = $("#clientesfiltro").val();
+
+        const nuevoModelo = {
+            zonas: JSON.stringify(selectedZonas),
+            idCliente: idClienteFiltro,
+            Porcentaje: document.getElementById("txtAumentoPrecio").value,
+
+        };
+
+        const url = "Zonas/AumentarPrecios";
+        const method = "POST";
+
+        fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json;charset=utf-8'
+            },
+            body: JSON.stringify(nuevoModelo)
+        })
+            .then(response => {
+                if (!response.ok) throw new Error(response.statusText);
+                return response.json();
+            })
+            .then(dataJson => {
+                const mensaje = "Precios aumentados correctamente";
+                exitoModal(mensaje);
+                $("#modalAumentar").modal("hide");
+                aplicarFiltros();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    } else {
+        errorModal('Debes completar los campos requeridos')
+    }
+}
+
+function bajarPrecios() {
+   
+    if (validarCamposBajar) {
+        const idClienteFiltro = $("#clientesfiltro").val();
+        const nuevoModelo = {
+            zonas: JSON.stringify(selectedZonas),
+            idCliente: idClienteFiltro,
+            Porcentaje: document.getElementById("txtBajaPrecio").value,
+
+        };
+
+        const url = "Zonas/BajarPrecios";
+        const method = "POST";
+
+        fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json;charset=utf-8'
+            },
+            body: JSON.stringify(nuevoModelo)
+        })
+            .then(response => {
+                if (!response.ok) throw new Error(response.statusText);
+                return response.json();
+            })
+            .then(dataJson => {
+                const mensaje = "Precios bajados correctamente";
+                exitoModal(mensaje);
+                $("#modalBajar").modal("hide");
+                aplicarFiltros();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    } else {
+        errorModal('Debes completar los campos requeridos')
+    }
+}
+
+
+
+

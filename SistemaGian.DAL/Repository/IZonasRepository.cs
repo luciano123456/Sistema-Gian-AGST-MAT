@@ -18,5 +18,7 @@ namespace SistemaGian.DAL.Repository
         Task<IQueryable<Zona>> ObtenerPorCliente(int IdCliente);
         Task<bool> ActualizarZonaCliente(ZonasCliente model);
         Task<bool> InsertarZonaCliente(string zonas, int idCliente);
+        Task<bool> AumentarPrecios(string zonas, int idCliente, decimal porcentaje);
+        Task<bool> BajarPrecios(string zonas, int idCliente, decimal porcentaje);
     }
 }

@@ -52,5 +52,23 @@ namespace SistemaGian.BLL.Service
         {
             return await _contactRepo.InsertarZonaCliente(zonas, idCliente);
         }
+
+        public async Task<bool> AumentarPrecios(string zonas, int idCliente, decimal porcentaje)
+        {
+
+            bool resp = await _contactRepo.AumentarPrecios(zonas, idCliente, porcentaje);
+
+            return resp;
+        }
+
+        public async Task<bool> BajarPrecios(string zonas, int idCliente, decimal porcentaje)
+        {
+
+            bool resp = await _contactRepo.BajarPrecios(zonas, idCliente, porcentaje);
+
+            return resp;
+        }
+
+
     }
 }
