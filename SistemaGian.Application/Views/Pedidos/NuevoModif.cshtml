@@ -63,175 +63,173 @@
             <div class="card mb-4">
                 <div class="card-body">
                     <h3 class="card-title">Datos del Cliente</h3>
-                    <input type="text" class="input-nuevo" id="idCliente" name="idCliente" hidden>
-                    <div class="form-container">
-
-                        <div class="form-group">
-                            <label class="nombreCliente">Cliente</label>
-                            <select id="Clientes" name="select" class="input-nuevomodif select-modal-personalizado mt-3">
+                    <input type="hidden" id="idCliente" name="idCliente">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label for="Clientes" class="form-label">Cliente</label>
+                            <select id="Clientes" class="form-select bg-white text-black border-primary">
                                 <option value="" selected>Seleccione Cliente</option>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label for="dniCliente">DNI</label>
-                            <input type="text" class="input-nuevo" id="dniCliente" name="dniCliente">
+                        <div class="col-md-3">
+                            <label for="dniCliente" class="form-label">DNI</label>
+                            <input type="text" id="dniCliente" class="form-control bg-white text-black border-primary">
                         </div>
-                        <div class="form-group">
-                            <label for="telefonoCliente">Telefono</label>
-                            <input type="text" class="input-nuevo" id="telefonoCliente" name="telefonoCliente">
+                        <div class="col-md-3">
+                            <label for="telefonoCliente" class="form-label">Teléfono</label>
+                            <input type="text" id="telefonoCliente" class="form-control bg-white text-black border-primary">
                         </div>
-                        <div class="form-group">
-                            <label for="direccion">Dirección</label>
-                            <input type="text" class="input-nuevo" id="direccionCliente" name="direccionCliente">
+                        <div class="col-md-3">
+                            <label for="direccionCliente" class="form-label">Dirección</label>
+                            <input type="text" id="direccionCliente" class="form-control bg-white text-black border-primary">
                         </div>
+                        <span id="lblSaldoCliente" hidden></span>
                     </div>
-                    <span id="lblSaldoCliente" hidden></span>
-                   
                 </div>
+
             </div>
         </div>
         <div class="tab-pane fade show" id="proveedor" role="tabpanel" aria-labelledby="proveedor-tab">
             <div class="card mb-4">
                 <div class="card-body">
                     <h3 class="card-title">Datos del Proveedor</h3>
-                    <input type="text" class="input-nuevo" id="idProveedor" name="idProveedor" hidden>
-                    <div class="form-container">
-
-                           <div class="form-group">
-                            <label class="nombreProveedor">Nombre</label>
-                            <select id="Proveedores" name="select" class="input-nuevomodif select-modal-personalizado mt-3">
+                    <input type="hidden" id="idProveedor" name="idProveedor">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label for="Proveedores" class="form-label">Nombre</label>
+                            <select id="Proveedores" class="form-select bg-white text-black border-primary">
                                 <option value="" selected>Seleccione Proveedor</option>
                             </select>
                         </div>
-
-                       
-                        <div class="form-group">
-                            <label for="dniCliente">Apodo</label>
-                            <input type="text" class="input-nuevo" id="apodoProveedor" name="apodoProveedor" readonly>
+                        <div class="col-md-3">
+                            <label for="apodoProveedor" class="form-label">Apodo</label>
+                            <input type="text" id="apodoProveedor" class="form-control bg-white text-black border-primary" readonly>
                         </div>
-                        <div class="form-group">
-                            <label for="telefonoCliente">Dirección</label>
-                            <input type="text" class="input-nuevo" id="direccionProveedor" name="direccionProveedor" readonly>
+                        <div class="col-md-3">
+                            <label for="direccionProveedor" class="form-label">Dirección</label>
+                            <input type="text" id="direccionProveedor" class="form-control bg-white text-black border-primary" readonly>
                         </div>
-                        <div class="form-group">
-                            <label for="direccion">Telefono</label>
-                            <input type="text" class="input-nuevo" id="telefonoProveedor" name="telefonoProveedor" readonly>
+                        <div class="col-md-3">
+                            <label for="telefonoProveedor" class="form-label">Teléfono</label>
+                            <input type="text" id="telefonoProveedor" class="form-control bg-white text-black border-primary" readonly>
                         </div>
                     </div>
                 </div>
+
             </div>
         </div>
 
         <!-- Contenido de la solapa 'Datos del Pedido' -->
         <div class="tab-pane fade" id="pedido" role="tabpanel" aria-labelledby="pedido-tab">
             <div class="card mb-4">
-                <div class="card-body">
-                    <h3 class="card-title">Datos del Pedido</h3>
-                    <input type="text" class="input-nuevo" id="IdPedido" name="IdPedido" hidden>
-                    <input type="text" class="input-nuevo" id="idZona" name="idZona" hidden>
-                    <div class="form-container">
-                        <!-- Sección de Datos del Pedido -->
-                        <div class="form-group">
-                            <label for="fechaPedido">Fecha</label>
-                            <input type="date" class="input-nuevo" id="fechaPedido" name="fechaPedido">
-                        </div>
-                        <div class="form-group">
-                            <label for="fechaEntrega">Fecha Entrega</label>
-                            <input type="date" class="input-nuevo" id="fechaEntrega" name="fechaEntrega">
-                        </div>
-                        <div class="form-group">
-                            <label for="nroRemito">Nro Partida</label>
-                            <input type="text" class="input-nuevo" id="nroRemito" name="nroRemito">
-                        </div>
-                        <div class="form-group">
+               <div class="card-body">
+    <h3 class="card-title">Datos del Pedido</h3>
+    <input type="hidden" id="IdPedido" name="IdPedido">
+    <input type="hidden" id="idZona" name="idZona">
 
-                            <label for="zona">Zona</label>
-                            <div style="display: flex; align-items: center;">
-                                <input type="text" class="input-nuevo" id="Zona" name="Zona" style="flex: 1;" readonly>
-                                <button type="button" class="btn btn-default" id="buscarZona" onclick="abrirZona()"
-                                        style="margin-left: 8px; background-color: #198754; padding: 6px 10px; border-radius: 4px; position: relative; top: -12px;">
-                                    <i class="fa fa-search" style="color: white; font-size: 1em;"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <input type="text" class="input-nuevo" id="idChofer" name="idChofer" value="0" hidden>
-                            <label for="chofer">Chofer</label>
-                            <div style="display: flex; align-items: center;">
-                                <input type="text" class="input-nuevo" id="Chofer" name="Chofer" style="flex: 1;" readonly>
-                                <button type="button" class="btn btn-default" id="buscarChofer" onclick="abrirChofer()"
-                                        style="margin-left: 8px; background-color: #198754; padding: 6px 10px; border-radius: 4px; position: relative; top: -12px;">
-                                    <i class="fa fa-search" style="color: white; font-size: 1em;"></i>
-                                </button>
-                            </div>
-                        </div>
+    <div class="row g-3">
+        <div class="col-md-3">
+            <label for="fechaPedido" class="form-label">Fecha</label>
+            <input type="date" id="fechaPedido" class="form-control bg-white text-black border-primary">
+        </div>
 
-                        <div class="form-group">
-                            <label for="zona">Costo Flete</label>
-                            <input type="text" class="input-nuevo" id="costoFlete" name="costoFlete" placeholder="$0.00" value="$0.00" ">
-                        </div>
-                        <div class="form-group">
-                            <label for="zona">Total Ganancia</label>
-                            <input type="text" class="input-nuevo" id="totalGanancia" name="totalGanancia" placeholder="$0.00" readonly>
-                        </div>
-                        <div class="form-group">
-                            <label for="zona">Porc. Ganancia</label>
-                            <input type="text" class="input-nuevo" id="porcGanancia" name="porcGanancia" placeholder="$0.00" readonly>
-                        </div>
-                        <div class="form-group">
-                            <label class="">Estado</label>
-                            <select id="estado" name="select" class="input-nuevo select-modal-personalizado">
-                                <option value="Pendiente" selected>Pendiente</option>
-                                <option value="Entregado">Entregado</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="observacion">Observacion</label>
-                            <input type="text" class="input-nuevo" id="observacion" name="observacion">
-                        </div>
+        <div class="col-md-3">
+            <label for="fechaEntrega" class="form-label">Fecha Entrega</label>
+            <input type="date" id="fechaEntrega" class="form-control bg-white text-black border-primary">
+        </div>
 
-                            @* <div class="form-group">
-                        <label for="total">Total</label>
-                        <input type="text" class="input-nuevo" id="total" name="total">
-                        </div> *@
-                    </div>
-                </div>
+        <div class="col-md-3">
+            <label for="nroRemito" class="form-label">Nro Partida</label>
+            <input type="text" id="nroRemito" class="form-control bg-white text-black border-primary">
+        </div>
+
+        <div class="col-md-3">
+            <label for="Zona" class="form-label">Zona</label>
+            <div class="d-flex">
+                <input type="text" id="Zona" class="form-control bg-white text-black border-primary" readonly>
+                <button type="button" class="btn btn-success ms-2" id="buscarZona" onclick="abrirZona()">
+                    <i class="fa fa-search text-white"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <input type="hidden" id="idChofer" name="idChofer" value="0">
+            <label for="Chofer" class="form-label">Chofer</label>
+            <div class="d-flex">
+                <input type="text" id="Chofer" class="form-control bg-white text-black border-primary" readonly>
+                <button type="button" class="btn btn-success ms-2" id="buscarChofer" onclick="abrirChofer()">
+                    <i class="fa fa-search text-white"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="col-md-2">
+            <label for="costoFlete" class="form-label">Costo Flete</label>
+            <input type="text" id="costoFlete" class="form-control bg-white text-black border-primary" placeholder="$0.00" value="$0.00">
+        </div>
+
+        <div class="col-md-2">
+            <label for="totalGanancia" class="form-label">Total Ganancia</label>
+            <input type="text" id="totalGanancia" class="form-control bg-white text-black border-primary" placeholder="$0.00" readonly>
+        </div>
+
+        <div class="col-md-2">
+            <label for="porcGanancia" class="form-label">Porc. Ganancia</label>
+            <input type="text" id="porcGanancia" class="form-control bg-white text-black border-primary" placeholder="$0.00" readonly>
+        </div>
+
+        <div class="col-md-2">
+            <label for="estado" class="form-label">Estado</label>
+            <select id="estado" class="form-select bg-white text-black border-primary">
+                <option value="Pendiente" selected>Pendiente</option>
+                <option value="Entregado">Entregado</option>
+            </select>
+        </div>
+
+        <div class="col-md-12">
+            <label for="observacion" class="form-label">Observación</label>
+            <input type="text" id="observacion" class="form-control bg-white text-black border-primary">
+        </div>
+    </div>
+</div>
+
             </div>
 
             <!-- Sección de Detalle de Pagos dentro de la misma solapa -->
             <div class="card mb-4 mt-4">
                 <div class="card-body">
                     <h3 class="card-title">Detalle de Pagos</h3>
-                    <div class="row">
-                        <div class="col-md-4">
-                            <label for="totalPagoProveedor">Total a pagar a proveedor:</label>
-                            <input type="text" class="input-nuevo form-control" id="totalPagoProveedor" name="totalPagoProveedor" readonly>
-                        </div>
-                        <div class="col-md-4">
-                            <label for="totalPagadoaProveedor">Total pagado a proveedor:</label>
-                            <input type="text" class="input-nuevo form-control" id="totalPagadoaProveedor" name="totalPagadoaProveedor" readonly>
-                        </div>
-                        <div class="col-md-4">
-                            <label for="restanteProveedor">Total restante proveedor:</label>
-                            <input type="text" class="input-nuevo form-control" id="restanteProveedor" name="restanteProveedor" readonly>
-                        </div>
-                    </div>
 
-                    <div class="row mt-3">
+                    <div class="row g-3">
                         <div class="col-md-4">
-                            <label for="totalPagoCliente">Total a pagar el cliente:</label>
-                            <input type="text" class="input-nuevo form-control" id="totalPagoCliente" name="totalPagoCliente" readonly>
+                            <label for="totalPagoProveedor" class="form-label">Total a pagar a proveedor</label>
+                            <input type="text" id="totalPagoProveedor" class="form-control bg-white text-black border-primary" readonly>
                         </div>
                         <div class="col-md-4">
-                            <label for="totalPagadoCliente">Total pago cliente:</label>
-                            <input type="text" class="input-nuevo form-control" id="totalPagadoCliente" name="totalPagadoCliente" readonly>
+                            <label for="totalPagadoaProveedor" class="form-label">Total pagado a proveedor</label>
+                            <input type="text" id="totalPagadoaProveedor" class="form-control bg-white text-black border-primary" readonly>
                         </div>
                         <div class="col-md-4">
-                            <label for="restanteCliente">Total restante cliente:</label>
-                            <input type="text" class="input-nuevo form-control" id="restanteCliente" name="restanteCliente" readonly>
+                            <label for="restanteProveedor" class="form-label">Total restante proveedor</label>
+                            <input type="text" id="restanteProveedor" class="form-control bg-white text-black border-primary" readonly>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label for="totalPagoCliente" class="form-label">Total a pagar el cliente</label>
+                            <input type="text" id="totalPagoCliente" class="form-control bg-white text-black border-primary" readonly>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="totalPagadoCliente" class="form-label">Total pago cliente</label>
+                            <input type="text" id="totalPagadoCliente" class="form-control bg-white text-black border-primary" readonly>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="restanteCliente" class="form-label">Total restante cliente</label>
+                            <input type="text" id="restanteCliente" class="form-control bg-white text-black border-primary" readonly>
                         </div>
                     </div>
                 </div>
+
             </div>
 
 
@@ -476,40 +474,51 @@
 
 
 
+        <!-- Modal Productos -->
         <div class="modal fade" id="productosModal" tabindex="-1" role="dialog" aria-labelledby="productosModalLabel" aria-hidden="true" data-editing="false">
-            <div class="modal-dialog" role="document">
+            <div class="modal-dialog modal-dialog-centered modal-edicion" role="document">
                 <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="productosModalLabel">Seleccionar Producto</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <div class="modal-header colorEncabezado">
+                        <h5 class="modal-title fw-bold" id="productosModalLabel">Seleccionar Producto</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                     </div>
-                    <div class="modal-body">
-                        <div class="form-group">
-                            <label for="productoSelect" class="text-black">Producto</label>
-                            <select id="productoSelect" class="form-control"></select>
-                        </div>
-                        <div class="form-group">
-                            <label for="precioSelect" class="text-black">Historial de Precios</label>
-                            <select id="precioSelect" class="form-control"></select>
-                        </div>
-                        <div class="form-group">
-                            <label for="precioInput" class="text-black">Precio</label>
-                            <input type="text" id="precioInput" class="form-control" placeholder="Ingrese precio manual" step="0.01">
-                        </div>
-                        <div class="form-group">
-                            <label for="precioInput" class="text-black">Cantidad de Productos</label>
-                            <input type="text" id="productoCantidad" class="form-control" placeholder="1" step="0.01" readonly>
-                        </div>
-                        <div class="form-group">
-                            <label for="cantidadInput" class="text-black">Cantidad</label>
-                            <input type="number" id="cantidadInput" class="form-control" placeholder="Ingrese cantidad">
-                        </div>
-                        <div class="form-group">
-                            <label for="totalInput" class="text-black">Total</label>
-                            <input type="text" id="totalInput" class="form-control" disabled>
-                        </div>
 
+                    <div class="modal-body">
+                        <form class="row g-3">
+
+                            <div class="col-md-6">
+                                <label for="productoSelect" class="form-label">Producto</label>
+                                <select id="productoSelect" class="form-control"></select>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="precioSelect" class="form-label">Historial de Precios</label>
+                                <select id="precioSelect" class="form-control"></select>
+                            </div>
+
+                            <div class="col-md-3">
+                                <label for="precioInput" class="form-label">Precio Manual</label>
+                                <input type="text" id="precioInput" class="form-control" placeholder="Ingrese precio manual" step="0.01">
+                            </div>
+
+                            <div class="col-md-3">
+                                <label for="productoCantidad" class="form-label">Cantidad de Productos</label>
+                                <input type="text" id="productoCantidad" class="form-control" placeholder="1" step="0.01" readonly>
+                            </div>
+
+                            <div class="col-md-3">
+                                <label for="cantidadInput" class="form-label">Cantidad</label>
+                                <input type="number" id="cantidadInput" class="form-control" placeholder="Ingrese cantidad">
+                            </div>
+
+                            <div class="col-md-3">
+                                <label for="totalInput" class="form-label">Total</label>
+                                <input type="text" id="totalInput" class="form-control" disabled>
+                            </div>
+
+                        </form>
                     </div>
+
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                         <button type="button" id="btnGuardarProducto" class="btn btn-primary" onclick="guardarProducto()">Añadir Producto</button>
@@ -519,50 +528,62 @@
         </div>
 
 
+
         <div class="modal fade" id="pagosClienteModal" tabindex="-1" role="dialog" aria-labelledby="pagosClienteModalLabel" aria-hidden="true" data-editing="false">
-            <div class="modal-dialog" role="document">
+            <div class="modal-dialog modal-dialog-centered" role="document">
                 <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="pagosClienteModalLabel">Pago de cliente</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <div class="modal-header colorEncabezado">
+                        <h5 class="modal-title fw-bold" id="pagosClienteModalLabel">Pago de cliente</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                     </div>
+
                     <div class="modal-body">
-                        <div class="form-group">
-                            <label for="fechapagoCliente" class="text-black">Fecha del pago</label>
-                            <input type="date" id="fechapagoCliente" class="form-control" placeholder="Fecha">
-                        </div>
-                        <div class="form-group">
-                            <label for="MonedasPagoCliente" class="text-black">Moneda</label>
-                            <select id="MonedasPagoCliente" class="form-control"></select>
-                        </div>
-                        <div class="form-group">
-                            <label for="cotizacionInput" class="text-black">Cotizacion</label>
-                            <input type="text" id="cotizacionPagoCliente" class="form-control" placeholder="Cotizacion" step="0.01">
-                        </div>
-                        <div class="form-group">
-                            <label for="cantidadPagoCliente" class="text-black">Cantidad</label>
-                            <input type="number" id="cantidadPagoCliente" class="form-control" placeholder="Ingrese cantidad">
-                        </div>
-                        <div class="form-group">
-                            <label for="totalInput" class="text-black">Total ARS</label>
-                            <input type="text" id="totalARSPagoCliente" class="form-control" disabled>
-                        </div>
-                        <!-- Aquí agregamos el checkbox más grande y con color verde al ser marcado -->
-                        <div class="form-group mt-3 bgSaldoFavor" id="divSaldoFavor" hidden>
-                            <div class="form-check ms-3">
-                                <input type="checkbox" class="form-check-input fs-5" id="usarSaldoFavor">
-                                <label class="form-check-label fs-5 text-black" for="usarSaldoFavor">
-                                    Usar del saldo a favor
-                                </label>
+                        <form class="row g-3">
+
+                            <div class="col-md-6">
+                                <label for="fechapagoCliente" class="form-label">Fecha del pago</label>
+                                <input type="date" id="fechapagoCliente" class="form-control">
                             </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="totalInput" class="text-black">Observaciones</label>
-                            <input type="text" id="observacionPagoCliente" class="form-control">
-                        </div>
 
+                            <div class="col-md-6">
+                                <label for="MonedasPagoCliente" class="form-label">Moneda</label>
+                                <select id="MonedasPagoCliente" class="form-control"></select>
+                            </div>
 
+                            <div class="col-md-6">
+                                <label for="cotizacionPagoCliente" class="form-label">Cotización</label>
+                                <input type="text" id="cotizacionPagoCliente" class="form-control" step="0.01">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="cantidadPagoCliente" class="form-label">Cantidad</label>
+                                <input type="number" id="cantidadPagoCliente" class="form-control">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="totalARSPagoCliente" class="form-label">Total ARS</label>
+                                <input type="text" id="totalARSPagoCliente" class="form-control" disabled>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="observacionPagoCliente" class="form-label">Observaciones</label>
+                                <input type="text" id="observacionPagoCliente" class="form-control">
+                            </div>
+
+                            <div class="col-md-12 bgSaldoFavor px-3 py-2 rounded" id="divSaldoFavor" hidden>
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input fs-5" id="usarSaldoFavor">
+                                    <label class="form-check-label fs-5" for="usarSaldoFavor">
+                                        Usar del saldo a favor
+                                    </label>
+                                </div>
+                            </div>
+
+                           
+
+                        </form>
                     </div>
+
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                         <button type="button" id="btnGuardarPagoCliente" class="btn btn-primary" onclick="guardarPago('Cliente')">Añadir Pago</button>
@@ -572,39 +593,49 @@
         </div>
 
         <div class="modal fade" id="pagosProveedorModal" tabindex="-1" role="dialog" aria-labelledby="pagosProveedorModalLabel" aria-hidden="true" data-editing="false">
-            <div class="modal-dialog" role="document">
+            <div class="modal-dialog modal-dialog-centered" role="document">
                 <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="pagosProveedorModalLabel">Pago de proveedor</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <div class="modal-header colorEncabezado">
+                        <h5 class="modal-title fw-bold" id="pagosProveedorModalLabel">Pago de proveedor</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                     </div>
-                    <div class="modal-body">
-                        <div class="form-group">
-                            <label for="fechapagoProveedor" class="text-black">Fecha del pago</label>
-                            <input type="date" id="fechapagoProveedor" class="form-control" placeholder="Fecha">
-                        </div>
-                        <div class="form-group">
-                            <label for="MonedasPagoProveedor" class="text-black">Moneda</label>
-                            <select id="MonedasPagoProveedor" class="form-control"></select>
-                        </div>
-                        <div class="form-group">
-                            <label for="cotizacionInput" class="text-black">Cotizacion</label>
-                            <input type="text" id="cotizacionPagoProveedor" class="form-control" placeholder="Cotizacion" step="0.01">
-                        </div>
-                        <div class="form-group">
-                            <label for="cantidadPagoProveedor" class="text-black">Cantidad</label>
-                            <input type="number" id="cantidadPagoProveedor" class="form-control" placeholder="Ingrese cantidad">
-                        </div>
-                        <div class="form-group">
-                            <label for="totalInput" class="text-black">Total ARS</label>
-                            <input type="text" id="totalARSPagoProveedor" class="form-control" disabled>
-                        </div>
-                        <div class="form-group">
-                            <label for="totalInput" class="text-black">Observaciones</label>
-                            <input type="text" id="observacionPagoProveedor" class="form-control">
-                        </div>
 
+                    <div class="modal-body">
+                        <form class="row g-3">
+
+                            <div class="col-md-6">
+                                <label for="fechapagoProveedor" class="form-label">Fecha del pago</label>
+                                <input type="date" id="fechapagoProveedor" class="form-control">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="MonedasPagoProveedor" class="form-label">Moneda</label>
+                                <select id="MonedasPagoProveedor" class="form-control"></select>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="cotizacionPagoProveedor" class="form-label">Cotización</label>
+                                <input type="text" id="cotizacionPagoProveedor" class="form-control" step="0.01">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="cantidadPagoProveedor" class="form-label">Cantidad</label>
+                                <input type="number" id="cantidadPagoProveedor" class="form-control">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="totalARSPagoProveedor" class="form-label">Total ARS</label>
+                                <input type="text" id="totalARSPagoProveedor" class="form-control" disabled>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="observacionPagoProveedor" class="form-label">Observaciones</label>
+                                <input type="text" id="observacionPagoProveedor" class="form-control">
+                            </div>
+
+                        </form>
                     </div>
+
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                         <button type="button" id="btnGuardarPagoProveedor" class="btn btn-primary" onclick="guardarPago('Proveedor')">Añadir Pago</button>
@@ -612,6 +643,7 @@
                 </div>
             </div>
         </div>
+
 
 
         <partial name="~/Views/Utils/Modals.cshtml" />
@@ -634,7 +666,7 @@
 
 
             <script src="~/js/utils/moment.js"></script>
-            <script src="~/js/pedidosnuevomodif.js?v=1.0">
+            <script src="~/js/pedidosnuevomodif.js?v=1.1">
 
                 <script src="~/js/site.js"></script>
 

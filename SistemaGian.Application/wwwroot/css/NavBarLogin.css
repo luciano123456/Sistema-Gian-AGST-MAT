@@ -110,3 +110,22 @@ input:checked + .slider {
         height: 15px;
     }
 }
+
+
+
+.modal-edicion {
+    max-width: 60%; /* o lo que necesites */
+}
+
+
+@media (max-width: 1300px) {
+    .modal-edicion {
+        max-width: 80%; /* o lo que necesites */
+    }
+}
+
+@media (max-width: 900px) {
+    .modal-edicion {
+        max-width: 98%; /* o lo que necesites */
+    }
+}

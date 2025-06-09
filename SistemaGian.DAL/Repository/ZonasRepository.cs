@@ -181,6 +181,96 @@ namespace SistemaGian.DAL.Repository
 
         }
 
+        public async Task<bool> BajarPrecios(string zonas, int idCliente, decimal porcentaje)
+        {
+            try
+            {
+                var listaZonas = JsonConvert.DeserializeObject<List<int>>(zonas);
+
+                using (var transaction = await _dbcontext.Database.BeginTransactionAsync())
+                {
+                    if (idCliente == -1)
+                    {
+                        var zonasActualizar = await _dbcontext.Zonas
+                            .Where(z => listaZonas.Contains(z.Id))
+                            .ToListAsync();
+
+                        foreach (var zona in zonasActualizar)
+                        {
+                            zona.Precio = Math.Round((decimal)(zona.Precio * (1 - porcentaje / 100)), 2);
+                        }
+                    }
+                    else
+                    {
+                        var zonasClienteActualizar = await _dbcontext.ZonasClientes
+                            .Where(zc => listaZonas.Contains(zc.IdZona) && zc.IdCliente == idCliente)
+                            .ToListAsync();
+
+                        if (zonasClienteActualizar.Count == 0)
+                            return true; // nada que actualizar, cliente no tiene esas zonas
+
+                        foreach (var zonaCliente in zonasClienteActualizar)
+                        {
+                            zonaCliente.Precio = Math.Round(zonaCliente.Precio * (1 - porcentaje / 100), 2);
+                        }
+                    }
+
+                    await _dbcontext.SaveChangesAsync();
+                    await transaction.CommitAsync();
+                    return true;
+                }
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+
+        public async Task<bool> AumentarPrecios(string zonas, int idCliente, decimal porcentaje)
+        {
+            try
+            {
+                var listaZonas = JsonConvert.DeserializeObject<List<int>>(zonas);
+
+                using (var transaction = await _dbcontext.Database.BeginTransactionAsync())
+                {
+                    if (idCliente == -1)
+                    {
+                        var zonasActualizar = await _dbcontext.Zonas
+                            .Where(z => listaZonas.Contains(z.Id))
+                            .ToListAsync();
+
+                        foreach (var zona in zonasActualizar)
+                        {
+                            zona.Precio = Math.Round((decimal)(zona.Precio * (1 + porcentaje / 100)), 2);
+                        }
+                    }
+                    else
+                    {
+                        var zonasClienteActualizar = await _dbcontext.ZonasClientes
+                            .Where(zc => listaZonas.Contains(zc.IdZona) && zc.IdCliente == idCliente)
+                            .ToListAsync();
+
+                        if (zonasClienteActualizar.Count == 0)
+                            return true; // cliente no tiene esas zonas asociadas
+
+                        foreach (var zonaCliente in zonasClienteActualizar)
+                        {
+                            zonaCliente.Precio = Math.Round(zonaCliente.Precio * (1 + porcentaje / 100), 2);
+                        }
+                    }
+
+                    await _dbcontext.SaveChangesAsync();
+                    await transaction.CommitAsync();
+                    return true;
+                }
+            }
+            catch
+            {
+                return false;
+            }
+        }
 
 
     }

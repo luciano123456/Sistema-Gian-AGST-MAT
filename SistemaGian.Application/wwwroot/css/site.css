@@ -581,7 +581,7 @@ div.dt-button-collection {
 
 
 
-@media screen and (max-width: 1700px) {
+@media screen and (max-width: 1100px) {
     /* Contenedor de Select2 */
     .select2-container--default .select2-selection--single {
         margin-top: -11px !important;
@@ -630,4 +630,28 @@ div.dt-button-collection {
     .ambiente-test-label {
         display: none !important;
     }
+}
+
+.colorEncabezado {
+    background: linear-gradient(to right, #005bea, #418bf9, #7baaf7);
+    color: white;
+    border: none !important
+}
+
+
+.card-body,
+.card-header {
+    background: #323844 !important;
+    color: white;
+}
+
+.card {
+    background-color: #1B2631 !important;
+    border-radius: 50px;
+}
+
+.modal-content {
+    background-color: #323844 !important;
+    border-radius: 0 0 0.5rem 0.5rem;
+    box-shadow: none;
 }

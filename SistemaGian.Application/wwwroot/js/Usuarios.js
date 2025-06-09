@@ -1,5 +1,4 @@
 ﻿let gridUsuarios;
-let isEditing = false;
 
 const columnConfig = [
     { index: 1, filterType: 'text' },
@@ -24,8 +23,11 @@ $(document).ready(() => {
 
     listaUsuarios();
 
-    $('#txtNombre, #txtUsuario, #txtApellido, #txtContrasena').on('input', function () {
-        validarCampos();
+    document.querySelectorAll("#modalEdicion input, #modalEdicion select, #modalEdicion textarea").forEach(el => {
+        el.setAttribute("autocomplete", "off");
+        el.addEventListener("input", () => validarCampoIndividual(el));
+        el.addEventListener("change", () => validarCampoIndividual(el));
+        el.addEventListener("blur", () => validarCampoIndividual(el));
     });
 
 })
@@ -45,7 +47,6 @@ function guardarCambios() {
             "IdEstado": $("#Estados").val(),
             "Contrasena": idUsuario === "" ? $("#txtContrasena").val() : "",
             "ContrasenaNueva": $("#txtContrasenaNueva").val(),
-            "Correo": $("#txtCorreo").val(),
             "CambioAdmin": 1
         };
 
@@ -79,42 +80,10 @@ function guardarCambios() {
                 console.error('Error:', error);
             });
     } else {
-        errorModal('Debes completar los campos requeridos');
+        return false;
     }
 }
-function validarCampos() {
-    const idUsuario = $("#txtId").val();
-    const nombre = $("#txtNombre").val();
-    const usuario = $("#txtUsuario").val();
-    const apellido = $("#txtApellido").val();
-    const contrasena = $("#txtContrasena").val();
-    
 
-    // Validación independiente para cada campo
-    const nombreValido = nombre !== "";
-    const usuarioValido = usuario !== "";
-    const apellidoValido = apellido !== "";
-    const contrasenaValido = contrasena !== "" || idUsuario !== "";
-
-    // Cambiar el color de texto y borde según la validez de los campos
-    $("#lblNombre").css("color", nombreValido ? "" : "red");
-    $("#txtNombre").css("border-color", nombreValido ? "" : "red");
-
-    $("#lblUsuario").css("color", usuarioValido ? "" : "red");
-    $("#txtUsuario").css("border-color", usuarioValido ? "" : "red");
-
-    $("#lblApellido").css("color", apellidoValido ? "" : "red");
-    $("#txtApellido").css("border-color", apellidoValido ? "" : "red");
-
-
-    $("#lblContrasena").css("color", contrasenaValido ? "" : "red");
-    $("#txtContrasena").css("border-color", contrasenaValido ? "" : "red");
-
-   
-
-    // La función retorna 'true' si todos los campos son válidos, de lo contrario 'false'
-    return nombreValido && usuarioValido && apellidoValido && contrasenaValido;
-}
 
 
 function nuevoUsuario() {
@@ -125,24 +94,14 @@ function nuevoUsuario() {
     $("#btnGuardar").text("Registrar");
     $("#modalEdicionLabel").text("Nuevo Usuario");
 
-    $('#lblUsuario').css('color', 'red');
-    $('#txtUsuario').css('border-color', 'red');
-
-    $('#lblNombre').css('color', 'red');
-    $('#txtNombre').css('border-color', 'red');
-
-    $('#lblApellido').css('color', 'red');
-    $('#txtApellido').css('border-color', 'red');
-
-    $('#lblContrasena').css('color', 'red');
-    $('#txtContrasena').css('border-color', 'red');
-
-    document.getElementById("lblContrasena").hidden = false;
-    document.getElementById("txtContrasena").hidden = false;
+    document.getElementById("divContrasena").removeAttribute("hidden");
+    document.getElementById("divContrasenaNueva").setAttribute("hidden", "hidden");
 
 }
 async function mostrarModal(modelo) {
-    const campos = ["Id", "Usuario", "Nombre", "Apellido", "Dni", "Telefono", "Direccion", "Contrasena", "ContrasenaNueva", "Correo"];
+
+    limpiarModal();
+    const campos = ["Id", "Usuario", "Nombre", "Apellido", "Dni", "Telefono", "Direccion", "Contrasena", "ContrasenaNueva"];
     campos.forEach(campo => {
         $(`#txt${campo}`).val(modelo[campo]);
     });
@@ -154,27 +113,13 @@ async function mostrarModal(modelo) {
     $("#btnGuardar").text("Guardar");
     $("#modalEdicionLabel").text("Editar Usuario");
 
-    document.getElementById("lblContrasena").hidden = true;
-    document.getElementById("txtContrasena").hidden = true;
+    document.getElementById("divContrasena").setAttribute("hidden", "hidden");
+    document.getElementById("divContrasenaNueva").removeAttribute("hidden");
 
-    $('#lblUsuario, #txtUsuario').css('color', '').css('border-color', '');
-    $('#lblNombre, #txtNombre').css('color', '').css('border-color', '');
-    $('#lblApellido, #txtApellido').css('color', '').css('border-color', '');
-    
 
-    
+
 }
-function limpiarModal() {
-    const campos = ["Id", "Usuario", "Nombre", "Apellido", "Dni", "Telefono", "Direccion", "Contrasena", "ContrasenaNueva"];
-    campos.forEach(campo => {
-        $(`#txt${campo}`).val("");
-    });
 
-    $("#lblUsuario, #txtUsuario").css("color", "").css("border-color", "");
-    $("#lblNombre, #txtNombre").css("color", "").css("border-color", "");
-    $("#lblApellido, #txtApellido").css("color", "").css("border-color", "");
-    $('#lblContrasena, #txtContrasena').css('color', '').css('border-color', "");
-}
 async function listaUsuarios() {
     const url = `/Usuarios/Lista`;
     const response = await fetch(url);
@@ -274,7 +219,7 @@ async function configurarDataTable(data) {
                         return data === "Bloqueado" ? `<span style="color: red">${data}</span>` : data;
                     }
                 },
-                
+
             ],
             dom: 'Bfrtip',
             buttons: [
@@ -361,169 +306,6 @@ async function configurarDataTable(data) {
                     $(this).css('cursor', 'pointer');
                 });
 
-                $('#grd_Usuarios tbody').on('dblclick', 'td', async function () {
-                    var cell = gridUsuarios.cell(this);
-                    var originalData = cell.data();
-                    var colIndex = cell.index().column;
-                    var rowData = gridUsuarios.row($(this).closest('tr')).data();
-
-                    // Verificar si la columna es la de usuario 
-                    if (colIndex === 1) {
-                        return; // No permitir editar en la columna de usuario
-                    }
-
-
-                    if (isEditing == true) {
-                        return;
-                    } else {
-                        isEditing = true;
-                    }
-
-                    // Eliminar la clase 'blinking' si está presente
-                    if ($(this).hasClass('blinking')) {
-                        $(this).removeClass('blinking');
-                    }
-
-                    // Si ya hay un input o select, evitar duplicados
-                    if ($(this).find('input').length > 0 || $(this).find('select').length > 0) {
-                        return;
-                    }
-
-                    // Si la columna es la de la provincia (por ejemplo, columna 3)
-                    if (colIndex === 7 || colIndex === 8) {
-                        var select = $('<select class="form-control" style="background-color: transparent; border: none; border-bottom: 2px solid green; color: green; text-align: center;" />')
-                            .appendTo($(this).empty())
-                            .on('change', function () {
-                                // No hacer nada en el change, lo controlamos con el botón de aceptar
-                            });
-
-                        // Estilo para las opciones del select
-                        select.find('option').css('color', 'white'); // Cambiar el color del texto de las opciones a blanco
-                        select.find('option').css('background-color', 'black'); // Cambiar el fondo de las opciones a negro
-
-                        // Obtener las provincias disponibles
-                        var selectResult = colIndex === 7 ? await obtenerRoles() : await obtenerEstados();
-                        selectResult.forEach(function (result) {
-                            select.append('<option value="' + result.Id + '">' + result.Nombre + '</option>');
-                        });
-
-                        colIndex === 7 ? select.val(rowData.IdRol) : select.val(rowData.IdEstado);
-
-                        // Crear los botones de guardar y cancelar
-                        var saveButton = $('<i class="fa fa-check text-success"></i>').on('click', function () {
-                            var selectedValue = select.val();
-                            var selectedText = select.find('option:selected').text();
-                            saveEdit(colIndex, gridUsuarios.row($(this).closest('tr')).data(), selectedText, selectedValue, $(this).closest('tr'));
-                        });
-
-                        var cancelButton = $('<i class="fa fa-times text-danger"></i>').on('click', cancelEdit);
-
-                        // Agregar los botones de guardar y cancelar en la celda
-                        $(this).append(saveButton).append(cancelButton);
-
-                        // Enfocar el select
-                        select.focus();
-
-                    } else { // Para las demás columnas, como Dirección
-                        var valueToDisplay = originalData && originalData.trim() !== "" ? originalData.replace(/<[^>]+>/g, "") : originalData || "";
-
-                        var input = $('<input type="text" class="form-control" style="background-color: transparent; border: none; border-bottom: 2px solid green; color: green; text-align: center;" />')
-                            .val(valueToDisplay)
-                            .on('input', function () {
-                                var saveBtn = $(this).siblings('.fa-check'); // Botón de guardar
-
-                                if (colIndex === 0) { // Validar solo si es la columna 0
-                                    if ($(this).val().trim() === "") {
-                                        $(this).css('border-bottom', '2px solid red'); // Borde rojo
-                                        saveBtn.css('opacity', '0.5'); // Desactivar botón de guardar visualmente
-                                        saveBtn.prop('disabled', true); // Desactivar funcionalidad del botón
-                                    } else {
-                                        $(this).css('border-bottom', '2px solid green'); // Borde verde
-                                        saveBtn.css('opacity', '1'); // Habilitar botón de guardar visualmente
-                                        saveBtn.prop('disabled', false); // Habilitar funcionalidad del botón
-                                    }
-                                }
-                            })
-                            .on('keydown', function (e) {
-                                if (e.key === 'Enter') {
-                                    saveEdit(colIndex, gridUsuarios.row($(this).closest('tr')).data(), input.val(), input.val(), $(this).closest('tr'));
-                                } else if (e.key === 'Escape') {
-                                    cancelEdit();
-                                }
-                            });
-
-                        var saveButton = $('<i class="fa fa-check text-success"></i>').on('click', function () {
-                            if (!$(this).prop('disabled')) { // Solo guardar si el botón no está deshabilitado
-                                saveEdit(colIndex, gridUsuarios.row($(this).closest('tr')).data(), input.val(), input.val(), $(this).closest('tr'));
-                            }
-                        });
-
-                        var cancelButton = $('<i class="fa fa-times text-danger"></i>').on('click', cancelEdit);
-
-                        // Reemplazar el contenido de la celda
-                        $(this).empty().append(input).append(saveButton).append(cancelButton);
-
-                        input.focus();
-                    }
-
-                    // Función para guardar los cambios
-                    async function saveEdit(colIndex, rowData, newText, newValue, trElement) {
-                        // Obtener el nodo de la celda desde el índice
-                        var celda = $(trElement).find('td').eq(colIndex); // Obtener la celda correspondiente dentro de la fila
-                        // Obtener el valor original de la celda
-                        var originalText = gridUsuarios.cell(trElement, colIndex).data();
-
-                        // Verificar si el texto realmente ha cambiado
-                        if (originalText === newText) {
-                            cancelEdit();
-                            return; // Si no ha cambiado, no hacer nada
-                        }
-
-                        if (colIndex === 7) { // Si es la columna de la provincia
-                            rowData.IdRol = newValue;
-                            rowData.Rol = newText;
-                        } else if (colIndex === 8) { // Si es la columna de la provincia
-                            rowData.IdEstado = newValue;
-                            rowData.Estado = newText;
-                        } else {
-                            rowData[gridUsuarios.column(colIndex).header().textContent] = newText; // Usamos el nombre de la columna para guardarlo
-                        }
-
-
-
-
-
-                        // Enviar los datos al servidor
-                        var resp = await guardarCambiosFila(rowData);
-
-                        if (resp) {
-                            // Aplicar el parpadeo solo si el texto cambió
-                            if (originalText !== newText) {
-                                // Actualizar la fila en la tabla con los nuevos datos
-                                gridUsuarios.row(trElement).data(rowData).draw();
-                                celda.addClass('blinking'); // Aplicar la clase 'blinking' a la celda que fue editada
-                            }
-                        } else {
-                            cancelEdit();
-                        }
-
-                        // Desactivar el modo de edición
-                        isEditing = false;
-
-                        // Eliminar la clase 'blinking' después de 3 segundos (para hacer el efecto de parpadeo)
-                        setTimeout(function () {
-                            celda.removeClass('blinking');
-                        }, 3000); // Duración de la animación de parpadeo (3 segundos)
-                    }
-
-
-                    // Función para cancelar la edición
-                    function cancelEdit() {
-                        // Restaurar el valor original
-                        gridUsuarios.cell(cell.index()).data(originalData).draw();
-                        isEditing = false;
-                    }
-                });
 
 
                 $('body').on('click', '#grd_Usuarios .fa-map-marker', function () {
@@ -533,10 +315,10 @@ async function configurarDataTable(data) {
                 });
 
             },
-});
+        });
     } else {
-    gridUsuarios.clear().rows.add(data).draw();
-}
+        gridUsuarios.clear().rows.add(data).draw();
+    }
 }
 
 
@@ -665,57 +447,89 @@ $(document).on('click', function (e) {
     }
 });
 
-async function obtenerRoles() {
-    const response = await fetch(`/Roles/Lista`);
-    const result = await response.json();
-    return result;
-}
 
-async function obtenerEstados() {
-    const response = await fetch(`/EstadosUsuarios/Lista`);
-    const result = await response.json();
-    return result;
-}
+function limpiarModal() {
+    const formulario = document.querySelector("#modalEdicion");
+    if (!formulario) return;
 
-async function guardarCambiosFila(rowData) {
-    try {
-        rowData.cambioAdmin = 1;  // Puedes modificar este valor según necesites.
-
-        // Realizando la solicitud PUT con fetch.
-        const response = await fetch('/Usuarios/Actualizar', {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(rowData)
-        });
-
-        if (!response.ok) {
-            throw new Error(response.statusText);
-        }
-
-        // Parsear la respuesta JSON.
-        const dataJson = await response.json();
-
-        // Verificar los valores en la respuesta y mostrar los mensajes correspondientes.
-        let mensaje = "";
-
-        if (dataJson.valor === 'Contrasena') {
-            mensaje = "Contrasena incorrecta";
-            errorModal(mensaje);
-            return false;
-        } else if (dataJson.valor === 'Usuario') {
-            mensaje = "El usuario ya existe en el sistema";
-            errorModal(mensaje);
-            return false;
+    formulario.querySelectorAll("input, select, textarea").forEach(el => {
+        if (el.tagName === "SELECT") {
+            el.selectedIndex = 0;
         } else {
-            return true;
+            el.value = "";
+        }
+        el.classList.remove("is-invalid", "is-valid");
+    });
+
+    // Ocultar mensaje general de error
+    const errorMsg = document.getElementById("errorCampos");
+    if (errorMsg) errorMsg.classList.add("d-none");
+}
+
+
+function validarCampoIndividual(el) {
+    const tag = el.tagName.toLowerCase();
+    const id = el.id;
+    const valor = el.value ? el.value.trim() : ""; // Para inputs/selects
+
+    const feedback = el.nextElementSibling;
+
+    if (id != "txtNombre" && id != "txtContrasena" && id != "txtUsuario") return //Solo valida el nombre
+
+
+    // Validación para inputs/selects normales
+    if (tag === "input" || tag === "select" || tag === "textarea") {
+        if (feedback && feedback.classList.contains("invalid-feedback")) {
+            feedback.textContent = "Campo obligatorio";
         }
 
-    } catch (error) {
-        // Si hubo un error en la red o en el servidor.
-        console.error('Error de red:', error);
-        errorModal('Ha ocurrido un error al guardar los datos...');
+        if (valor === "" || valor === "Seleccionar") {
+            el.classList.remove("is-valid");
+            el.classList.add("is-invalid");
+        } else {
+            el.classList.remove("is-invalid");
+            el.classList.add("is-valid");
+        }
+    }
+
+    verificarErroresGenerales();
+}
+
+function verificarErroresGenerales() {
+    const errorMsg = document.getElementById("errorCampos");
+    const hayInvalidos = document.querySelectorAll("#modalEdicion .is-invalid").length > 0;
+    if (!errorMsg) return;
+
+    if (!hayInvalidos) {
+        errorMsg.classList.add("d-none");
     }
 }
 
+function validarCampos() {
+    const campos = [
+        "#txtNombre",
+        "#txtUsuario",
+        "#txtContrasena"
+    ];
+
+    let valido = true;
+
+    campos.forEach(selector => {
+        const campo = document.querySelector(selector);
+        const valor = campo?.value.trim();
+        const feedback = campo?.nextElementSibling;
+
+        if (!campo || !valor || valor === "Seleccionar") {
+            campo.classList.add("is-invalid");
+            campo.classList.remove("is-valid");
+            if (feedback) feedback.textContent = "Campo obligatorio";
+            valido = false;
+        } else {
+            campo.classList.remove("is-invalid");
+            campo.classList.add("is-valid");
+        }
+    });
+
+    document.getElementById("errorCampos").classList.toggle("d-none", valido);
+    return valido;
+}

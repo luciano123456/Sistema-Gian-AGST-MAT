@@ -69,6 +69,40 @@ namespace SistemaGian.Application.Controllers
         }
 
         [HttpPost]
+        public async Task<IActionResult> AumentarPrecios([FromBody] VMAumentoZonas modelo)
+        {
+            try
+            {
+                var result = await _ZonasService.AumentarPrecios(modelo.zonas, modelo.idCliente, modelo.porcentaje);
+
+                return Json(result);
+            }
+            catch (Exception ex)
+            {
+                return Json(null);
+            }
+
+
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> BajarPrecios([FromBody] VMAumentoZonas modelo)
+        {
+            try
+            {
+                var result = await _ZonasService.BajarPrecios(modelo.zonas, modelo.idCliente, modelo.porcentaje);
+
+                return Json(result);
+            }
+            catch (Exception ex)
+            {
+                return Json(null);
+            }
+
+
+        }
+
+        [HttpPost]
         public async Task<IActionResult> InsertarZonaCliente([FromBody] VMZonaAsignarCliente model)
         {
             bool respuesta = await _ZonasService.InsertarZonaCliente(model.zonas, model.idCliente);

@@ -80,36 +80,35 @@
 
 
 
-<!-- HTML para el modal de edición -->
 <div class="modal fade" id="modalEdicion" tabindex="-1" role="dialog" aria-labelledby="modalEdicionLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
+    <div class="modal-dialog modal-dialog-centered modal-edicion" role="document">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="modalEdicionLabel">Editar Chofer</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+            <div class="modal-header colorEncabezado">
+                <h5 class="modal-title fw-bold" id="modalEdicionLabel">Editar Chofer</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
+
             <div class="modal-body">
-                <form>
-                    <div class="form-group" hidden>
-                        <label for="txtIdChofer" class="lblNombreInput">ID</label>
-                        <input type="text" class="input-nuevomodif" id="txtId" readonly>
+                <form id="formEditarChofer" class="row g-3">
+                    <input type="text" id="txtId" hidden readonly>
+
+                    <div class="col-md-6">
+                        <label for="txtNombre" class="form-label">Nombre (*)</label>
+                        <input type="text" class="form-control" id="txtNombre" required>
                     </div>
-                    <div class="form-group">
-                        <label id="lblNombre" for="txtNombre" class="lblNombreInput">Nombre (*)</label>
-                        <input type="text" class="input-nuevomodif" id="txtNombre" required>
+
+                    <div class="col-md-6">
+                        <label for="txtTelefono" class="form-label">Teléfono</label>
+                        <input type="text" class="form-control" id="txtTelefono">
                     </div>
-                    <div class="form-group">
-                        <label for="txtTelefono" class="lblNombreInput">Teléfono</label>
-                        <input type="text" class="input-nuevomodif" id="txtTelefono">
-                    </div>
-                    <div class="form-group">
-                        <label for="txtDireccion" class="lblNombreInput">Dirección</label>
-                        <input type="text" class="input-nuevomodif" id="txtDireccion">
+
+                    <div class="col-md-12">
+                        <label for="txtDireccion" class="form-label">Dirección</label>
+                        <input type="text" class="form-control" id="txtDireccion">
                     </div>
                 </form>
             </div>
+
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                 <button type="button" id="btnGuardar" class="btn btn-primary" onclick="guardarCambios()">Registrar</button>
@@ -175,6 +174,6 @@
     <script src="https://cdn.datatables.net/fixedheader/3.2.2/js/dataTables.fixedHeader.min.js"></script>
 
 
-    <script src="~/js/Choferes.js"></script>
+    <script src="~/js/Choferes.js?v=1.0"></script>
    
 }

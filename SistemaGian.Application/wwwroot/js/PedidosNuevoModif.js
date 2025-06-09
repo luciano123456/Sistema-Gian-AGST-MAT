@@ -47,9 +47,9 @@ $(document).ready(async function () {
         const selectElement = document.getElementById("estado");
 
         if (selectedValue === "Pendiente") {
-            selectElement.style.setProperty('color', 'yellow', 'important');
+            selectElement.style.setProperty('color', 'red', 'important');
         } else if (selectedValue === "Entregado") {
-            selectElement.style.setProperty('color', 'white', 'important');
+            selectElement.style.setProperty('color', 'green', 'important');
         }
 
     }
@@ -1786,7 +1786,7 @@ document.getElementById("estado").addEventListener("change", function () {
 
     // Cambiar el color de la opción seleccionada
     if (selectedValue === "Pendiente") {
-        selectElement.style.setProperty('color', 'yellow', 'important');  // Cambia a amarillo si es "Pendiente"
+        selectElement.style.setProperty('color', 'red', 'important');  // Cambia a amarillo si es "Pendiente"
     } else if (selectedValue === "Entregado") {
         selectElement.style.setProperty('color', 'green', 'important');  // Cambia a blanco si es "Entregado"
     }
