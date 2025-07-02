@@ -22,6 +22,8 @@ let productos = [];
 $(document).ready(async function () {
     listaClientes();
     listaProveedores();
+    listaChoferes ();
+    
 
     if (pedidoData && pedidoData.Id > 0) {
         await cargarDatosPedido()
@@ -37,9 +39,6 @@ $(document).ready(async function () {
 
         document.getElementById(`fechaPedido`).value = moment().format('YYYY-MM-DD');
         document.getElementById(`fechaEntrega`).value = moment().add(3, 'days').format('YYYY-MM-DD');
-        document.getElementById(`idZona`).value = 0;
-        document.getElementById(`idChofer`).value = 0;
-
 
         calcularTotalPago('Cliente');
         calcularTotalPago('Proveedor');
@@ -56,6 +55,7 @@ $(document).ready(async function () {
 
     }
 
+    
 
     if (userSession.ModoVendedor == 1) {
         $(".ocultarmodoVendedor").hide();
@@ -63,7 +63,7 @@ $(document).ready(async function () {
 
 
 
-    $("#Clientes, #Proveedores").select2({
+    $("#Clientes, #Proveedores, #Zonas, #Choferes").select2({
         width: "100%",
         placeholder: "Selecciona una opción",
         allowClear: false
@@ -108,6 +108,62 @@ async function listaProveedores() {
 }
 
 
+async function listaChoferes() {
+    const url = `/Choferes/Lista`;
+    const response = await fetch(url);
+    const data = await response.json();
+
+    $('#Choferes option').remove();
+
+    select = document.getElementById("Choferes");
+
+    option = document.createElement("option");
+    option.value = -1;
+    option.text = "Seleccionar";
+    option.disabled = true;
+    select.appendChild(option);
+
+    for (i = 0; i < data.length; i++) {
+        option = document.createElement("option");
+        option.value = data[i].Id;
+        option.text = data[i].Nombre;
+        select.appendChild(option);
+
+    }
+
+
+    select.selectedIndex = -1;
+
+}
+
+async function listaZonas() {
+    let idCliente = parseInt($("#idCliente").val());
+    const url = `/Zonas/Lista?idCliente=${idCliente}`;
+    const response = await fetch(url);
+    const data = await response.json();
+
+    $('#Zonas option').remove();
+
+    select = document.getElementById("Zonas");
+
+    option = document.createElement("option");
+    option.value = -1;
+    option.text = "Seleccionar";
+    option.disabled = true;
+    select.appendChild(option);
+
+    for (i = 0; i < data.length; i++) {
+        option = document.createElement("option");
+        option.value = data[i].Id;
+        option.text = data[i].Nombre;
+        select.appendChild(option);
+
+    }
+
+
+    select.selectedIndex = -1;
+}
+
 async function listaClientes() {
     const url = `/Clientes/Lista`;
     const response = await fetch(url);
@@ -138,7 +194,7 @@ async function listaClientes() {
 
 async function cargarDatosPedido() {
     if (pedidoData && pedidoData.Id > 0) {
-
+       
         const datosPedido = await ObtenerDatosPedido(pedidoData.Id);
         await cargarDataTableProductos(datosPedido.productos);
         await cargarDataTablePagoaProveedores(datosPedido.pagosaProveedores);
@@ -150,7 +206,9 @@ async function cargarDatosPedido() {
 
 async function insertarDatosPedido(datosPedido) {
 
+    document.getElementById("divDatosPedido").removeAttribute("hidden");
     document.getElementById("IdPedido").value = datosPedido.Id;
+
 
     //Cargamos Datos del Cliente
     document.getElementById("idCliente").value = datosPedido.IdCliente;
@@ -158,6 +216,8 @@ async function insertarDatosPedido(datosPedido) {
     document.getElementById("direccionCliente").value = datosPedido.DireccionCliente;
     document.getElementById("telefonoCliente").value = datosPedido.TelefonoCliente;
     document.getElementById("dniCliente").value = datosPedido.DniCliente;
+
+    await listaZonas(); //CARGAMOS LAS ZONAS ACA YA QUE DESPUES DE CARGAR EL CLIENTE, AHI CARGAMOS LAS ZONAS
 
     //Cargamos Datos del Proveedor
     document.getElementById("idProveedor").value = datosPedido.IdProveedor;
@@ -173,10 +233,8 @@ async function insertarDatosPedido(datosPedido) {
     document.getElementById("nroRemito").value = datosPedido.NroRemito;
     //document.getElementById("costoFlete").value = formatoMoneda.format(datosPedido.CostoFlete);
     document.getElementById("costoFlete").value = formatoMoneda.format(datosPedido.CostoFlete.toFixed(2));
-    document.getElementById("idZona").value = datosPedido.IdZona != null ? datosPedido.IdZona : 0,
-        document.getElementById("idChofer").value = datosPedido.IdChofer != null ? datosPedido.IdChofer : 0,
-        document.getElementById("Zona").value = datosPedido.Zona;
-    document.getElementById("Chofer").value = datosPedido.Chofer;
+    document.getElementById("Zonas").value = datosPedido.IdZona;
+    document.getElementById("Choferes").value = datosPedido.IdChofer;
 
 
     document.getElementById("estado").value = datosPedido.Estado;
@@ -491,7 +549,6 @@ function cargarDatosCliente(data) {
 }
 
 function cargarDatosChofer(data) {
-    $('#idChofer').val(data.Id);
     $('#Chofer').val(data.Nombre);
 }
 
@@ -1959,8 +2016,8 @@ async function guardarCambios() {
             "NroRemito": $("#nroRemito").val(),
             "CostoFlete": parseFloat(convertirMonedaAFloat($("#costoFlete").val())),
             "IdProveedor": parseInt($("#Proveedores").val()),
-            "IdZona": parseInt($("#idZona").val()),
-            "IdChofer": parseInt($("#idChofer").val()),
+            "IdZona": parseInt($("#Zonas").val()),
+            "IdChofer": parseInt($("#Choferes").val()),
             "TotalCliente": parseFloat(convertirMonedaAFloat($("#totalPagoCliente").val())),
             "RestanteCliente": parseFloat(convertirMonedaAFloat($("#restanteCliente").val())),
             "TotalProveedor": parseFloat(convertirMonedaAFloat($("#totalPagoProveedor").val())),
@@ -2067,6 +2124,8 @@ $('#Clientes').on('change', async function () {
     dataCliente = await ObtenerDatosCliente(idCliente);
 
     cargarDatosCliente(dataCliente);
+    listaZonas();
+    document.getElementById("divDatosPedido").removeAttribute("hidden");
 });
 
 
