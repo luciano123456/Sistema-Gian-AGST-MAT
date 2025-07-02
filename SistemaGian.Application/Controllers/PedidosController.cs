@@ -39,15 +39,7 @@ namespace SistemaGian.Application.Controllers
             // Obtener el usuario actual desde la sesión usando el helper inyectado
             var userSession = await SessionHelper.GetUsuarioSesion(HttpContext);
 
-            // Si no se pudo obtener el usuario de la sesión
-            if (userSession != null)
-            {
-                // Verificar si el usuario está en modo vendedor
-                if (userSession.ModoVendedor == 1)
-                {
-                    return RedirectToAction("Index", "Home");
-                }
-            }
+            
             return View();
         }
 
@@ -444,6 +436,7 @@ namespace SistemaGian.Application.Controllers
                     Zona = pedido.IdZona.HasValue && pedido.IdZona.Value > 0 ? (await _zonaService.Obtener(pedido.IdZona.Value, -1)).Nombre : "",
                     Chofer = pedido.IdChofer.HasValue && pedido.IdChofer.Value > 0 ? (await _choferService.Obtener(pedido.IdChofer.Value)).Nombre : "",
                     SaldoAFavor = pedido.IdClienteNavigation.SaldoAfavor
+                    
                 };
 
                 var pagosaProveedores = await _pedidoservice.ObtenerPagosaProveedores(idPedido);
@@ -461,6 +454,8 @@ namespace SistemaGian.Application.Controllers
                     ProductoCantidad = p.ProductoCantidad,
                     Nombre = p.IdProductoNavigation.Descripcion,
                     Total = p.PrecioVenta * p.Cantidad,
+                    Peso = p.IdProductoNavigation.Peso,
+                    UnidadMedida = p.IdProductoNavigation.IdUnidadDeMedidaNavigation.Nombre
                 }).ToList();
 
 
@@ -553,6 +548,8 @@ namespace SistemaGian.Application.Controllers
                         IdProducto = grupo.Key,
                         Nombre = productoDatos.Descripcion, // Asumiendo que Descripcion es el nombre del producto
                         ProductoCantidad = cantidadFinal,
+                        UnidadMedida = productoDatos.IdUnidadDeMedidaNavigation.Nombre,
+                        Peso = productoDatos.Peso,
                         Precios = grupo.Select(p => new
                         {
                             Id = p.Id,
@@ -591,6 +588,8 @@ namespace SistemaGian.Application.Controllers
                         IdProducto = g.Key,
                         Nombre = _Productoservice.ObtenerDatos(g.FirstOrDefault().IdProducto).Result.Descripcion, // Suponiendo que Nombre es un campo del producto
                         ProductoCantidad = _Productoservice.ObtenerDatos(g.FirstOrDefault().IdProducto).Result.ProductoCantidad, // Suponiendo que Nombre es un campo del producto
+                        UnidadMedida = _Productoservice.ObtenerDatos(g.FirstOrDefault().IdProducto).Result.IdUnidadDeMedidaNavigation.Nombre, // Suponiendo que Nombre es un campo del producto
+                        Peso = _Productoservice.ObtenerDatos(g.FirstOrDefault().IdProducto).Result.Peso,
                         Precios = g.Select(p => new
                         {
                             Id = p.Id,

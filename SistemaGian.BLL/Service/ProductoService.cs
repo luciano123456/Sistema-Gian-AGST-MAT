@@ -105,6 +105,7 @@ namespace SistemaGian.BLL.Service
                     PorcGanancia = ProductoPrecioCliente != null ? ProductoPrecioCliente.PorcGanancia : ProductoPrecioProveedor.PorcGanancia,
                     Image = producto.Image,
                     ProductoCantidad = ProductoPrecioCliente != null ? ProductoPrecioProveedorDos.ProductoCantidad : ProductoPrecioProveedor.ProductoCantidad,
+                    Peso = producto.Peso
                 };
 
                 return productoConPrecio;

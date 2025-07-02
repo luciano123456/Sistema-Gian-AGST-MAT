@@ -36,6 +36,13 @@ $(document).ready(() => {
 
     listapedidos(document.getElementById("txtFechaDesde").value, document.getElementById("txtFechaHasta").value, -1, -1)
 
+    $("#clientesfiltro, #Proveedoresfiltro").select2({
+        placeholder: "Selecciona una opción",
+        allowClear: false
+    });
+
+
+
 })
 
 async function aplicarFiltros() {

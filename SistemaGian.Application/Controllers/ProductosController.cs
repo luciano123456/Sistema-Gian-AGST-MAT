@@ -234,7 +234,8 @@ namespace SistemaGian.Application.Controllers
                 Total = c.PVenta * (int)c.ProductoCantidad,
                 Image = c.Image,
                 Activo = (int)c.Activo != null ? (int)c.Activo : 1,
-                Orden = c.Orden != null ? c.Orden : 0
+                Orden = c.Orden != null ? c.Orden : 0,
+                Peso = c.Peso
             }).ToList();
 
             var conOrden = baseList.Where(p => p.Orden > 0).OrderBy(p => p.Orden).ToList();
@@ -262,6 +263,70 @@ namespace SistemaGian.Application.Controllers
             resultado.AddRange(sinOrden);
 
             return Ok(resultado);
+        }
+
+
+        [HttpGet]
+        public async Task<IActionResult> ListaProductosProveedor(int idProveedor) { 
+            try
+            {
+                var productos = await _Productoservice.ListaProductosFiltro(-1, idProveedor, -1);
+
+                var baseList = productos.Select(c => new VMProducto
+                {
+                    Id = c.Id,
+                    FechaActualizacion = c.FechaActualizacion,
+                    Descripcion = c.Descripcion,
+                    Marca = c.IdMarcaNavigation != null ? c.IdMarcaNavigation.Nombre : string.Empty,
+                    Categoria = c.IdCategoriaNavigation != null ? c.IdCategoriaNavigation.Nombre : string.Empty,
+                    UnidadDeMedida = c.IdUnidadDeMedidaNavigation != null ? c.IdUnidadDeMedidaNavigation.Nombre : string.Empty,
+                    Moneda = c.IdMonedaNavigation != null ? c.IdMonedaNavigation.Nombre : string.Empty,
+                    Proveedor = c.IdProveedor > 0 ? _proveedorService.Obtener((int)c.IdProveedor).Result.Nombre : null,
+                    IdMoneda = c.IdMoneda,
+                    IdUnidadDeMedida = c.IdUnidadDeMedida,
+                    IdMarca = c.IdMarca,
+                    IdCategoria = c.IdCategoria,
+                    PCosto = c.PCosto,
+                    PVenta = c.PVenta,
+                    PorcGanancia = c.PorcGanancia,
+                    ProductoCantidad = c.ProductoCantidad,
+                    Total = c.PVenta * (int)c.ProductoCantidad,
+                    Image = c.Image,
+                    Activo = c.Activo,
+                    Orden = c.Orden ?? 0 // 👈 Asegurate que c.Orden venga correctamente desde el servicio
+                }).ToList();
+
+
+                // Caso general: ordenar por Orden
+                var conOrden = baseList.Where(p => p.Orden > 0).OrderBy(p => p.Orden).ToList();
+                var sinOrden = baseList.Where(p => p.Orden <= 0).ToList();
+
+                var resultado = new List<VMProducto>();
+                int maxOrden = (int)(conOrden.Any() ? conOrden.Max(p => p.Orden) : 0);
+                int maxIndex = Math.Max(baseList.Count, maxOrden);
+
+                for (int i = 1; i <= maxIndex; i++)
+                {
+                    var prod = conOrden.FirstOrDefault(p => p.Orden == i);
+                    if (prod != null)
+                    {
+                        resultado.Add(prod);
+                    }
+                    else if (sinOrden.Any())
+                    {
+                        resultado.Add(sinOrden[0]);
+                        sinOrden.RemoveAt(0);
+                    }
+                }
+
+                resultado.AddRange(sinOrden);
+
+                return Ok(resultado);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Error al obtener los productos: {ex.Message}");
+            }
         }
 
 
@@ -384,7 +449,8 @@ namespace SistemaGian.Application.Controllers
                 PorcGanancia = model.PorcGanancia,
                 ProductoCantidad = model.ProductoCantidad != null ? model.ProductoCantidad : 1,
                 Image = model.Image,
-                Activo = 1
+                Activo = 1,
+                Peso = model.Peso
             };
 
             bool respuesta = await _Productoservice.Insertar(Producto);
@@ -416,7 +482,8 @@ namespace SistemaGian.Application.Controllers
                 PorcGanancia = model.PorcGanancia,
                 ProductoCantidad = model.ProductoCantidad,
                 Image = model.Image,
-                Activo = model.Activo
+                Activo = model.Activo,
+                Peso = model.Peso
             };
 
 
@@ -480,6 +547,7 @@ namespace SistemaGian.Application.Controllers
                 PorcGanancia = model.PorcGanancia,
                 ProductoCantidad = model.ProductoCantidad != null ? model.ProductoCantidad : 1,
                 Image = model.Image,
+                Peso = model.Peso,
                 Activo = model.Activo
             };
 

@@ -122,77 +122,77 @@
         <!-- Contenido de la solapa 'Datos del Pedido' -->
         <div class="tab-pane fade" id="pedido" role="tabpanel" aria-labelledby="pedido-tab">
             <div class="card mb-4">
-               <div class="card-body">
-    <h3 class="card-title">Datos del Pedido</h3>
-    <input type="hidden" id="IdPedido" name="IdPedido">
-    <input type="hidden" id="idZona" name="idZona">
+                <div class="card-body">
+                    <h3 class="card-title">Datos del Pedido</h3>
+                    <input type="hidden" id="IdPedido" name="IdPedido">
+                    <input type="hidden" id="idZona" name="idZona">
 
-    <div class="row g-3">
-        <div class="col-md-3">
-            <label for="fechaPedido" class="form-label">Fecha</label>
-            <input type="date" id="fechaPedido" class="form-control bg-white text-black border-primary">
-        </div>
+                    <div class="row g-3">
+                        <div class="col-md-3 ocultarmodoVendedor">
+                            <label for="fechaPedido" class="form-label">Fecha</label>
+                            <input type="date" id="fechaPedido" class="form-control bg-white text-black border-primary">
+                        </div>
 
-        <div class="col-md-3">
-            <label for="fechaEntrega" class="form-label">Fecha Entrega</label>
-            <input type="date" id="fechaEntrega" class="form-control bg-white text-black border-primary">
-        </div>
+                        <div class="col-md-3 ">
+                            <label for="fechaEntrega" class="form-label">Fecha Entrega</label>
+                            <input type="date" id="fechaEntrega" class="form-control bg-white text-black border-primary">
+                        </div>
 
-        <div class="col-md-3">
-            <label for="nroRemito" class="form-label">Nro Partida</label>
-            <input type="text" id="nroRemito" class="form-control bg-white text-black border-primary">
-        </div>
+                        <div class="col-md-3 ocultarmodoVendedor">
+                            <label for="nroRemito" class="form-label">Nro Partida</label>
+                            <input type="text" id="nroRemito" class="form-control bg-white text-black border-primary">
+                        </div>
 
-        <div class="col-md-3">
-            <label for="Zona" class="form-label">Zona</label>
-            <div class="d-flex">
-                <input type="text" id="Zona" class="form-control bg-white text-black border-primary" readonly>
-                <button type="button" class="btn btn-success ms-2" id="buscarZona" onclick="abrirZona()">
-                    <i class="fa fa-search text-white"></i>
-                </button>
-            </div>
-        </div>
+                        <div class="col-md-3 ocultarmodoVendedor">
+                            <label for="Zona" class="form-label">Zona</label>
+                            <div class="d-flex">
+                                <input type="text" id="Zona" class="form-control bg-white text-black border-primary" readonly>
+                                <button type="button" class="btn btn-success ms-2" id="buscarZona" onclick="abrirZona()">
+                                    <i class="fa fa-search text-white"></i>
+                                </button>
+                            </div>
+                        </div>
 
-        <div class="col-md-4">
-            <input type="hidden" id="idChofer" name="idChofer" value="0">
-            <label for="Chofer" class="form-label">Chofer</label>
-            <div class="d-flex">
-                <input type="text" id="Chofer" class="form-control bg-white text-black border-primary" readonly>
-                <button type="button" class="btn btn-success ms-2" id="buscarChofer" onclick="abrirChofer()">
-                    <i class="fa fa-search text-white"></i>
-                </button>
-            </div>
-        </div>
+                        <div class="col-md-4 ocultarmodoVendedor">
+                            <input type="hidden" id="idChofer" name="idChofer" value="0">
+                            <label for="Chofer" class="form-label">Chofer</label>
+                            <div class="d-flex">
+                                <input type="text" id="Chofer" class="form-control bg-white text-black border-primary" readonly>
+                                <button type="button" class="btn btn-success ms-2" id="buscarChofer" onclick="abrirChofer()">
+                                    <i class="fa fa-search text-white"></i>
+                                </button>
+                            </div>
+                        </div>
 
-        <div class="col-md-2">
-            <label for="costoFlete" class="form-label">Costo Flete</label>
-            <input type="text" id="costoFlete" class="form-control bg-white text-black border-primary" placeholder="$0.00" value="$0.00">
-        </div>
+                        <div class="col-md-2 ocultarmodoVendedor">
+                            <label for="costoFlete" class="form-label">Costo Flete</label>
+                            <input type="text" id="costoFlete" class="form-control bg-white text-black border-primary" placeholder="$0.00" value="$0.00">
+                        </div>
 
-        <div class="col-md-2">
-            <label for="totalGanancia" class="form-label">Total Ganancia</label>
-            <input type="text" id="totalGanancia" class="form-control bg-white text-black border-primary" placeholder="$0.00" readonly>
-        </div>
+                        <div class="col-md-2 ocultarmodoVendedor">
+                            <label for="totalGanancia" class="form-label">Total Ganancia</label>
+                            <input type="text" id="totalGanancia" class="form-control bg-white text-black border-primary" placeholder="$0.00" readonly>
+                        </div>
 
-        <div class="col-md-2">
-            <label for="porcGanancia" class="form-label">Porc. Ganancia</label>
-            <input type="text" id="porcGanancia" class="form-control bg-white text-black border-primary" placeholder="$0.00" readonly>
-        </div>
+                        <div class="col-md-2 ocultarmodoVendedor">
+                            <label for="porcGanancia" class="form-label">Porc. Ganancia</label>
+                            <input type="text" id="porcGanancia" class="form-control bg-white text-black border-primary" placeholder="$0.00" readonly>
+                        </div>
 
-        <div class="col-md-2">
-            <label for="estado" class="form-label">Estado</label>
-            <select id="estado" class="form-select bg-white text-black border-primary">
-                <option value="Pendiente" selected>Pendiente</option>
-                <option value="Entregado">Entregado</option>
-            </select>
-        </div>
+                        <div class="col-md-2">
+                            <label for="estado" class="form-label">Estado</label>
+                            <select id="estado" class="form-select bg-white text-black border-primary">
+                                <option value="Pendiente" selected>Pendiente</option>
+                                <option value="Entregado">Entregado</option>
+                            </select>
+                        </div>
 
-        <div class="col-md-12">
-            <label for="observacion" class="form-label">Observación</label>
-            <input type="text" id="observacion" class="form-control bg-white text-black border-primary">
-        </div>
-    </div>
-</div>
+                        <div class="col-md-12">
+                            <label for="observacion" class="form-label">Observación</label>
+                            <input type="text" id="observacion" class="form-control bg-white text-black border-primary">
+                        </div>
+                    </div>
+                </div>
 
             </div>
 
@@ -202,15 +202,15 @@
                     <h3 class="card-title">Detalle de Pagos</h3>
 
                     <div class="row g-3">
-                        <div class="col-md-4">
+                        <div class="col-md-4 ocultarmodoVendedor">
                             <label for="totalPagoProveedor" class="form-label">Total a pagar a proveedor</label>
                             <input type="text" id="totalPagoProveedor" class="form-control bg-white text-black border-primary" readonly>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-4 ocultarmodoVendedor">
                             <label for="totalPagadoaProveedor" class="form-label">Total pagado a proveedor</label>
                             <input type="text" id="totalPagadoaProveedor" class="form-control bg-white text-black border-primary" readonly>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-4 ocultarmodoVendedor">
                             <label for="restanteProveedor" class="form-label">Total restante proveedor</label>
                             <input type="text" id="restanteProveedor" class="form-control bg-white text-black border-primary" readonly>
                         </div>
@@ -241,10 +241,10 @@
             <li class="nav-item" role="presentation">
                 <a class="nav-link active" id="productos-tab" data-bs-toggle="tab" href="#productos" role="tab" aria-controls="productos-tab" aria-selected="true">Productos</a>
             </li>
-            <li class="nav-item" role="presentation">
+            <li class="nav-item " role="presentation">
                 <a class="nav-link" id="cliente-pagos-tab" data-bs-toggle="tab" href="#cliente-pagos" role="tab" aria-controls="cliente-pagos" aria-selected="false">Pagos del Cliente</a>
             </li>
-            <li class="nav-item" role="presentation">
+            <li class="nav-item ocultarmodoVendedor" role="presentation">
                 <a class="nav-link" id="proveedor-pagos-tab" data-bs-toggle="tab" href="#proveedor-pagos" role="tab" aria-controls="proveedor-pagos" aria-selected="false">Pagos a Proveedor</a>
             </li>
         </ul>
@@ -259,11 +259,14 @@
                             <thead>
                                 <tr>
                                     <th>Nombre</th>
-                                    <th hidden>Precio Costo</th>
+                                    <th>Precio Costo</th>
                                     <th>Precio Venta</th>
                                     <th>Cantidad de Productos</th>
                                     <th>Cantidad</th>
                                     <th>Total</th>
+                                    <th>Peso</th>
+                                    <th>Unidad Medida</th>
+                                    <th>Observacion</th>
                                     <th>Acciones</th>
                                 </tr>
                             </thead>
@@ -496,17 +499,23 @@
                                 <select id="precioSelect" class="form-control"></select>
                             </div>
 
-                            <div class="col-md-3">
+                            <div class="col-md-2">
                                 <label for="precioInput" class="form-label">Precio Manual</label>
                                 <input type="text" id="precioInput" class="form-control" placeholder="Ingrese precio manual" step="0.01">
                             </div>
 
                             <div class="col-md-3">
-                                <label for="productoCantidad" class="form-label">Cantidad de Productos</label>
+                                <label for="productoUnidadMedida" class="form-label">Unidad de Medida</label>
+                                <input type="text" id="productoUnidadMedida" class="form-control" readonly>
+                            </div>
+
+
+                            <div class="col-md-2">
+                                <label for="productoCantidad" class="form-label">Cant. de Productos</label>
                                 <input type="text" id="productoCantidad" class="form-control" placeholder="1" step="0.01" readonly>
                             </div>
 
-                            <div class="col-md-3">
+                            <div class="col-md-2">
                                 <label for="cantidadInput" class="form-label">Cantidad</label>
                                 <input type="number" id="cantidadInput" class="form-control" placeholder="Ingrese cantidad">
                             </div>
@@ -515,6 +524,8 @@
                                 <label for="totalInput" class="form-label">Total</label>
                                 <input type="text" id="totalInput" class="form-control" disabled>
                             </div>
+
+                            <label id="totalBarras" class="form-label" hidden></label>
 
                         </form>
                     </div>
@@ -579,7 +590,7 @@
                                 </div>
                             </div>
 
-                           
+
 
                         </form>
                     </div>
@@ -654,14 +665,14 @@
 
 
 
-                            @section Scripts {
+        @section Scripts {
 
 
             <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/js/select2.min.js"></script>
 
             <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
 
-                                @*SCRIPTS DE BOTONES*@
+            @*SCRIPTS DE BOTONES*@
             < src="https://cdn.datatables.net/buttons/2.2.2/js/dataTables.buttons.min.js">
 
 

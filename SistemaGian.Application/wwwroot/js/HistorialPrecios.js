@@ -24,13 +24,27 @@ $(document).ready(() => {
         document.getElementById("txtFechaHasta").value = moment().format('YYYY-MM-DD');
 
         await listaProveedoresFiltro();
-        await listaProductosFiltro();
+     
         configurarDataTable(null);
         
     };
 
     init(); // Llamar a la función asíncrona
+
+
+    $("#Productosfiltro, #Proveedoresfiltro").select2({
+        placeholder: "Selecciona una opción",
+        allowClear: false
+    });
+
+
 });
+
+$("#Proveedoresfiltro").on("change", async function () {
+    const idProveedor = parseInt($(this).val());
+    await listaProductosFiltro(idProveedor);
+});
+
 
 async function aplicarFiltros() {
     $('#labelIncrementoDecremento').text("");  // Borra solo el texto
@@ -150,6 +164,17 @@ async function configurarDataTable(data) {
                         return `${formatNumber(data)} ${arrow} ${percentageChange}`;
                     }
                 },
+                {
+                    data: "Id",
+                    render: function (data, type, row) {
+                        return `
+                <button class='btn btn-sm btneditar btnacciones' type='button' onclick='eliminarHistorial(${row.Id})' title='Eliminar'>
+                    <i class='fa fa-trash-o fa-lg text-danger' aria-hidden='true'></i>
+                </button>`;
+                    },
+                    orderable: true,
+                    searchable: true,
+                },
             ],
             dom: 'Bfrtip',
             buttons: [
@@ -259,6 +284,8 @@ async function configurarDataTable(data) {
                 setTimeout(function () {
                     gridHistorial.columns.adjust();
                 }, 10);
+
+                $('.filters th').eq(4).html('');
 
                 configurarOpcionesColumnas();
 
@@ -415,8 +442,8 @@ async function listaProveedoresFiltro() {
 
     }
 }
-async function listaProductosFiltro() {
-    const url = `/Productos/Lista`;
+async function listaProductosFiltro(idproveedor) {
+    const url = `/Productos/ListaProductosProveedor?IdProveedor=${idproveedor}`;
     const response = await fetch(url);
     const data = await response.json();
 
@@ -435,5 +462,31 @@ async function listaProductosFiltro() {
         option.text = data[i].Descripcion;
         selectProductos.appendChild(option);
 
+    }
+}
+
+
+async function eliminarHistorial(id) {
+    let resultado = await confirmarModal("¿Desea eliminar el registro?");
+
+    if (resultado) {
+        try {
+            const response = await fetch(`HistorialPrecios/Eliminar?id=${id}`, {
+                method: "DELETE"
+            });
+
+            if (!response.ok) {
+                throw new Error("Error al eliminar el Producto.");
+            }
+
+            const dataJson = await response.json();
+
+            if (dataJson.valor) {
+                aplicarFiltros();
+                exitoModal("Registro eliminado correctamente")
+            }
+        } catch (error) {
+            errorModal("Ha ocurrido un error al eliminar el registro");
+        }
     }
 }

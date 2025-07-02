@@ -193,6 +193,7 @@ namespace SistemaGian.DAL.Repository
 
                 var producto = await _dbcontext.Productos
            .Include(p => p.ProductosPreciosHistorial)
+           .Include(p => p.IdUnidadDeMedidaNavigation)
            .Include(p => p.ProductosPreciosProveedor) // Incluye la relación con ProductosPreciosProveedores
            .Where(p => p.ProductosPreciosProveedor.Any(ppp => ppp.IdProveedor == idProveedor)) // Filtra por proveedor específico
            .FirstOrDefaultAsync(p => p.Id == idProducto);
@@ -259,6 +260,25 @@ namespace SistemaGian.DAL.Repository
                 throw;
             }
         }
+
+        public async Task<bool> Eliminar(int id)
+        {
+            try
+            {
+                var entity = await _dbcontext.ProductosPreciosHistorial.FirstOrDefaultAsync(x => x.Id == id);
+                if (entity == null)
+                    return false;
+
+                _dbcontext.ProductosPreciosHistorial.Remove(entity);
+                await _dbcontext.SaveChangesAsync();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
 
 
 

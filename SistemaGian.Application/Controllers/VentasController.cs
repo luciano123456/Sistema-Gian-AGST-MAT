@@ -18,15 +18,15 @@ namespace SistemaGian.Application.Controllers
             // Obtener el usuario actual desde la sesión usando el helper inyectado
             var userSession = await SessionHelper.GetUsuarioSesion(HttpContext);
 
-            // Si no se pudo obtener el usuario de la sesión
-            if (userSession != null)
-            {
-                // Verificar si el usuario está en modo vendedor
-                if (userSession.ModoVendedor == 1)
-                {
-                    return RedirectToAction("Index", "Home");
-                }
-            }
+            //// Si no se pudo obtener el usuario de la sesión
+            //if (userSession != null)
+            //{
+            //    // Verificar si el usuario está en modo vendedor
+            //    if (userSession.ModoVendedor == 1)
+            //    {
+            //        return RedirectToAction("Index", "Home");
+            //    }
+            //}
             return View();
         }
 

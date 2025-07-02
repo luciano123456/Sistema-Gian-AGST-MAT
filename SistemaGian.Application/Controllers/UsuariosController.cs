@@ -8,6 +8,7 @@ using SistemaGian.Models;
 using System.Diagnostics;
 using System.Net.Mail;
 using System.Net;
+using Microsoft.AspNetCore.Authentication;
 
 namespace SistemaGian.Application.Controllers
 {
@@ -167,9 +168,40 @@ namespace SistemaGian.Application.Controllers
             {
                 // Actualiza las propiedades del objeto ya cargado
                 userbase.ModoVendedor = modo;
+         
 
                 // Realiza la actualización en la base de datos
                 bool respuesta = await _Usuarioservice.Actualizar(userbase);
+
+                if (respuesta)
+                {
+                    var vmUser = new VMUser
+                    {
+                        Id = userbase.Id,
+                        Usuario = userbase.Usuario,
+                        IdRol = userbase.IdRol,
+                        Nombre = userbase.Nombre,
+                        Apellido = userbase.Apellido,
+                        Direccion = userbase.Direccion,
+                        Dni = userbase.Dni,
+                        Telefono = userbase.Telefono,
+                        ModoVendedor = userbase.ModoVendedor,
+                    };
+
+                    // Cerrar sesión vieja
+                    await SessionHelper.CerrarSession(HttpContext);
+
+                    // SignOut si estás usando cookies de autenticación
+                    await HttpContext.SignOutAsync();
+
+                    // Guardar la nueva sesión
+                    await SessionHelper.SetUsuarioSesion(vmUser, HttpContext);
+
+                    // Prueba leyendo de nuevo
+                    var testSession = await SessionHelper.GetUsuarioSesion(HttpContext);
+                    Console.WriteLine($"TEST Sesion después de setear: {testSession.ModoVendedor}");
+                }
+
 
                 return Ok(new { valor = respuesta ? "OK" : "Error" });
             } else

@@ -24,6 +24,7 @@ public partial class Producto
     public decimal PVenta { get; set; }
 
     public decimal PorcGanancia { get; set; }
+    public decimal Peso { get; set; }
 
     public string? Image { get; set; }
 
