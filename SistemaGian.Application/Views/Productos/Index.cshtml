@@ -310,10 +310,17 @@
                         </select>
                     </div>
 
+                    <div class="col-md-3" id="divPeso" hidden>
+                        <label id="lblPesoCantidad" for="txtProductoPeso" class="form-label">Peso</label>
+                        <input type="number" class="form-control" id="txtProductoPeso" required>
+                    </div>
+
                     <div class="col-md-3" hidden>
                         <label id="lblProductoCantidad" for="txtProductoCantidad" class="form-label">Cantidad</label>
                         <input type="number" class="form-control" id="txtProductoCantidad" required>
                     </div>
+
+
 
                     <div class="col-md-3">
                         <label for="txtMoneda" class="form-label">Moneda (*)</label>
@@ -362,92 +369,6 @@
 </div>
 
 
-<!-- HTML para el modal de edición -->
-<div class="modal fade" id="modalEdicion" tabindex="-1" role="dialog" aria-labelledby="modalEdicionLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg custom-modal-width" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="modalEdicionLabel">Editar Producto</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group" hidden>
-                                <label for="txtIdProducto" class="lblNombreInput">ID</label>
-                                <input type="text" class="input-nuevomodif" id="txtId" readonly>
-                                <input type="text" class="input-nuevomodif" id="txtActivo" readonly>
-                            </div>
-                            <div class="form-group">
-                                <label id="lblDescripcion" for="txtDescripcion" class="lblNombreInput">Descripcion (*)</label>
-                                <input type="text" class="input-nuevomodif" id="txtDescripcion" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="txtMarcas" class="lblNombreInput">Marca (*)</label>
-                                <select id="Marcas" name="select" class="input-nuevomodif select-modal-personalizado mt-2">
-                                    <option value="" selected>Marca</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="txtCategoria" class="lblNombreInput">Categoria (*)</label>
-                                <select id="Categorias" name="select" class="input-nuevomodif select-modal-personalizado mt-2">
-                                    <option value="" selected>Categoria</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="txtUnidadDeMedida" class="lblNombreInput">Unidad de Medida (*)</label>
-                                <select id="UnidadesDeMedidas" name="select" class="input-nuevomodif select-modal-personalizado mt-2">
-                                    <option value="" selected>Unidad de Medida</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label id="lblProductoCantidad" for="txtProductoCantidad" class="lblNombreInput" hidden>Cantidad</label>
-                                <input type="number" class="input-nuevomodif" id="txtProductoCantidad" hidden required>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="txtMoneda" class="lblNombreInput">Moneda (*)</label>
-                                <select id="Monedas" name="select" class="input-nuevomodif select-modal-personalizado mt-2">
-                                    <option value="" selected>Moneda</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label id="lblPrecioCosto" for="txtPrecioCosto" class="lblNombreInput">Precio Costo U. (*)</label>
-                                <input type="number" class="input-nuevomodif" id="txtPrecioCosto" required step="0.01">
-                            </div>
-                            <div class="form-group">
-                                <label id="lblPorcentajeGanancia" for="txtPorcentajeGanancia" class="lblNombreInput">Porc. Ganancia (*)</label>
-                                <input type="number" class="input-nuevomodif" id="txtPorcentajeGanancia" required step="0.01">
-                            </div>
-                            <div class="form-group">
-                                <label id="lblPrecioVenta" for="txtPrecioVenta" class="lblNombreInput">Precio Venta U.</label>
-                                <input type="number" class="input-nuevomodif" id="txtPrecioVenta" step="0.01">
-                            </div>
-                            <div class="form-group">
-                                <label id="lblTotal" for="txtTotal" class="lblNombreInput">Total</label>
-                                <input type="number" class="input-nuevomodif" id="txtTotal" step="0.01" value="0" readonly hidden>
-                            </div>
-                           @*  <div class="form-group divImagen">
-                                <label for="txtImagen" class="lblNombreInput">Imagen</label>
-                                <img id="imgProducto" class="mb-3" style="width: 150px; height: 80px;" src="" />
-                                <p id="imgProd" class="" hidden></p>
-                            </div>
-                            <input id="Imagen" class="input-imagen" type="file" placeholder="Imagen" name="adjunto" accept=".pdf,.jpg,.png" /> *@
-                        </div>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                <button type="button" id="btnGuardar" class="btn btn-primary" onclick="guardarCambios()">Registrar</button>
-            </div>
-        </div>
-    </div>
-</div>
 
 
 <partial name="~/Views/Utils/Modals.cshtml" />

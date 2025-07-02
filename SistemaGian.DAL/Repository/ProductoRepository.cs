@@ -225,6 +225,7 @@ namespace SistemaGian.DAL.Repository
                         PVenta = model.PVenta,
                         FechaActualizacion = DateTime.Now,
                         ProductoCantidad = model.ProductoCantidad,
+                        Peso = model.Peso,
                         PorcGanancia = model.PorcGanancia,
                         IdUnidadDeMedida = model.IdUnidadDeMedida
                     };
@@ -250,9 +251,13 @@ namespace SistemaGian.DAL.Repository
 
         public async Task<Producto> ObtenerDatos(int idProducto)
         {
-            Producto model = await _dbcontext.Productos.FindAsync(idProducto);
+            Producto model = await _dbcontext.Productos
+                .Include(p => p.IdUnidadDeMedidaNavigation)
+                .FirstOrDefaultAsync(p => p.Id == idProducto);
+
             return model;
         }
+
 
         public async Task<bool> GuardarOrden(int idProducto, int nuevoOrden)
         {

@@ -16,7 +16,8 @@ namespace SistemaGian.DAL.Repository
         Task<List<ProductosPreciosHistorial>> ObtenerUltimosPreciosProductoFecha(int idProducto, int idProveedor, DateTime FechaDesde, DateTime FechaHasta);
         Task<bool> Insertar(ProductosPreciosHistorial model);
         Task<bool> Actualizar(ProductosPreciosHistorial model);
-        
+        Task<bool> Eliminar(int id);
+
 
     }
 }

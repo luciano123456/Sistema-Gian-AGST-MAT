@@ -494,6 +494,7 @@ namespace SistemaGian.DAL.Repository
 
                 List<PedidosProducto> productos = _dbcontext.PedidosProductos
                     .Include(c => c.IdProductoNavigation)
+                    .ThenInclude(c => c.IdUnidadDeMedidaNavigation)
                     .Where(c => c.IdPedido == idPedido).ToList();
                 return productos;
 

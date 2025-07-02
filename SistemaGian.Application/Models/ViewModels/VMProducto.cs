@@ -30,6 +30,7 @@ namespace SistemaGian.Application.Models.ViewModels
         public decimal PCosto { get; set; }
 
         public decimal PVenta { get; set; }
+        public decimal Peso { get; set; }
 
         public decimal PorcGanancia { get; set; }
 

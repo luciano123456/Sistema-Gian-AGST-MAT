@@ -78,6 +78,8 @@ namespace SistemaGian.Application.Controllers
                         ModoVendedor = user.ModoVendedor,
                     };
 
+
+
                     // Configurar la sesión con el usuario
                     await SessionHelper.SetUsuarioSesion(vmUser, HttpContext);
 

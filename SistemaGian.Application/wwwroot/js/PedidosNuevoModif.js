@@ -13,6 +13,8 @@ const cantidadPagoProveedorInput = document.getElementById('cantidadPagoProveedo
 const cotizacionPagoProveedorInput = document.getElementById('cotizacionPagoProveedor');
 const costoFleteInput = document.getElementById('costoFlete');
 const checkSaldoFavor = document.getElementById('usarSaldoFavor');
+var userSession = JSON.parse(localStorage.getItem('userSession'));
+
 
 const IdPedido = document.getElementById('IdPedido').value;
 let productos = [];
@@ -20,6 +22,8 @@ let productos = [];
 $(document).ready(async function () {
     listaClientes();
     listaProveedores();
+    listaChoferes ();
+    
 
     if (pedidoData && pedidoData.Id > 0) {
         await cargarDatosPedido()
@@ -35,9 +39,6 @@ $(document).ready(async function () {
 
         document.getElementById(`fechaPedido`).value = moment().format('YYYY-MM-DD');
         document.getElementById(`fechaEntrega`).value = moment().add(3, 'days').format('YYYY-MM-DD');
-        document.getElementById(`idZona`).value = 0;
-        document.getElementById(`idChofer`).value = 0;
-
 
         calcularTotalPago('Cliente');
         calcularTotalPago('Proveedor');
@@ -54,12 +55,28 @@ $(document).ready(async function () {
 
     }
 
+    
 
-    $("#Clientes, #Proveedores").select2({
+    if (userSession.ModoVendedor == 1) {
+        $(".ocultarmodoVendedor").hide();
+    }
+
+
+
+    $("#Clientes, #Proveedores, #Zonas, #Choferes").select2({
         width: "100%",
         placeholder: "Selecciona una opción",
         allowClear: false
     });
+
+
+    $("#productoSelect").select2({
+        dropdownParent: $("#productosModal"),
+        width: "100%",
+        placeholder: "Selecciona una opción",
+        allowClear: false
+    });
+
 });
 
 
@@ -91,6 +108,62 @@ async function listaProveedores() {
 }
 
 
+async function listaChoferes() {
+    const url = `/Choferes/Lista`;
+    const response = await fetch(url);
+    const data = await response.json();
+
+    $('#Choferes option').remove();
+
+    select = document.getElementById("Choferes");
+
+    option = document.createElement("option");
+    option.value = -1;
+    option.text = "Seleccionar";
+    option.disabled = true;
+    select.appendChild(option);
+
+    for (i = 0; i < data.length; i++) {
+        option = document.createElement("option");
+        option.value = data[i].Id;
+        option.text = data[i].Nombre;
+        select.appendChild(option);
+
+    }
+
+
+    select.selectedIndex = -1;
+
+}
+
+async function listaZonas() {
+    let idCliente = parseInt($("#idCliente").val());
+    const url = `/Zonas/Lista?idCliente=${idCliente}`;
+    const response = await fetch(url);
+    const data = await response.json();
+
+    $('#Zonas option').remove();
+
+    select = document.getElementById("Zonas");
+
+    option = document.createElement("option");
+    option.value = -1;
+    option.text = "Seleccionar";
+    option.disabled = true;
+    select.appendChild(option);
+
+    for (i = 0; i < data.length; i++) {
+        option = document.createElement("option");
+        option.value = data[i].Id;
+        option.text = data[i].Nombre;
+        select.appendChild(option);
+
+    }
+
+
+    select.selectedIndex = -1;
+}
+
 async function listaClientes() {
     const url = `/Clientes/Lista`;
     const response = await fetch(url);
@@ -121,7 +194,7 @@ async function listaClientes() {
 
 async function cargarDatosPedido() {
     if (pedidoData && pedidoData.Id > 0) {
-
+       
         const datosPedido = await ObtenerDatosPedido(pedidoData.Id);
         await cargarDataTableProductos(datosPedido.productos);
         await cargarDataTablePagoaProveedores(datosPedido.pagosaProveedores);
@@ -133,7 +206,9 @@ async function cargarDatosPedido() {
 
 async function insertarDatosPedido(datosPedido) {
 
+    document.getElementById("divDatosPedido").removeAttribute("hidden");
     document.getElementById("IdPedido").value = datosPedido.Id;
+
 
     //Cargamos Datos del Cliente
     document.getElementById("idCliente").value = datosPedido.IdCliente;
@@ -141,6 +216,8 @@ async function insertarDatosPedido(datosPedido) {
     document.getElementById("direccionCliente").value = datosPedido.DireccionCliente;
     document.getElementById("telefonoCliente").value = datosPedido.TelefonoCliente;
     document.getElementById("dniCliente").value = datosPedido.DniCliente;
+
+    await listaZonas(); //CARGAMOS LAS ZONAS ACA YA QUE DESPUES DE CARGAR EL CLIENTE, AHI CARGAMOS LAS ZONAS
 
     //Cargamos Datos del Proveedor
     document.getElementById("idProveedor").value = datosPedido.IdProveedor;
@@ -156,10 +233,8 @@ async function insertarDatosPedido(datosPedido) {
     document.getElementById("nroRemito").value = datosPedido.NroRemito;
     //document.getElementById("costoFlete").value = formatoMoneda.format(datosPedido.CostoFlete);
     document.getElementById("costoFlete").value = formatoMoneda.format(datosPedido.CostoFlete.toFixed(2));
-    document.getElementById("idZona").value = datosPedido.IdZona != null ? datosPedido.IdZona : 0,
-        document.getElementById("idChofer").value = datosPedido.IdChofer != null ? datosPedido.IdChofer : 0,
-        document.getElementById("Zona").value = datosPedido.Zona;
-    document.getElementById("Chofer").value = datosPedido.Chofer;
+    document.getElementById("Zonas").value = datosPedido.IdZona;
+    document.getElementById("Choferes").value = datosPedido.IdChofer;
 
 
     document.getElementById("estado").value = datosPedido.Estado;
@@ -474,7 +549,6 @@ function cargarDatosCliente(data) {
 }
 
 function cargarDatosChofer(data) {
-    $('#idChofer').val(data.Id);
     $('#Chofer').val(data.Nombre);
 }
 
@@ -538,6 +612,27 @@ async function cargarDataTableProductos(data) {
             { data: 'ProductoCantidad', width: "15%" },
             { data: 'Cantidad', width: "15%" },
             { data: 'Total', width: "15%" },
+            { data: 'Peso', width: "15%", visible: false },
+            { data: 'UnidadMedida', width: "15%", visible: false },
+            {
+                data: null,
+                width: "15%",
+                render: function (data, type, row) {
+                    const descripcion = row.Nombre ? row.Nombre.toLowerCase() : '';
+                    const unidadMedida = row.UnidadMedida ? row.UnidadMedida.toUpperCase() : '';
+                    const peso = parseFloat(row.Peso) || 0;
+
+                    if (descripcion.includes('hierro') && unidadMedida === 'KG' && peso > 0) {
+                        const kilosTotales = row.ProductoCantidad * row.Cantidad;
+                        const cantidadBarras = kilosTotales / peso;
+                        return `Barras: <span style="color: yellow; font-weight: bold;">${cantidadBarras.toFixed(2)}</span>`;
+                    }
+                    return '';
+                },
+                orderable: false,
+                searchable: false
+            },
+
             {
                 data: "Id",
                 render: function (data, type, row) {
@@ -763,10 +858,12 @@ async function anadirProducto() {
         const precioInput = $("#precioInput");
         const cantidadInput = $("#cantidadInput");
         const productoCantidadInput = $("#productoCantidad");
+        const unidadMedidaInput = $("#productoUnidadMedida");
 
         productoSelect.empty();
         precioSelect.empty();
         productoCantidadInput.empty();
+        unidadMedidaInput.empty();
 
         // Obtener los productos que ya están en la tabla (evitar duplicados)
         const productosEnTabla = [];
@@ -814,10 +911,14 @@ async function anadirProducto() {
                 const precioVenta = selectedProduct.Precios[0].PrecioVenta;
                 const precioCosto = selectedProduct.Precios[0].PrecioCosto;
                 const productoCantidad = selectedProduct.ProductoCantidad;
+                const productoUnidadMedida = selectedProduct.UnidadMedida;
                 const diferencia = precioVenta - precioCosto;
 
                 productoCantidadInput.val(productoCantidad);
+           
                 precioInput.val(formatoMoneda.format(precioVenta));
+
+                document.getElementById("productoUnidadMedida").value = productoUnidadMedida;
 
 
                 // Calcular el total
@@ -990,12 +1091,15 @@ async function guardarProducto() {
             grdProductos.row.add({
                 IdProducto: productoId,
                 Nombre: productoNombre,
-                ProductoCantidad: selectedProduct.ProductoCantidad, // Usar la cantidad del input,
-                PrecioVenta: precioManual, // Agregar PrecioVenta
-                PrecioCosto: precioCosto, // Agregar PrecioCosto
-                Cantidad: cantidadInput, // Usar la cantidad proporcionada
-                Total: totalInput // Recalcular el total con formato de moneda
+                ProductoCantidad: selectedProduct.ProductoCantidad,
+                PrecioVenta: precioManual,
+                PrecioCosto: precioCosto,
+                Cantidad: cantidadInput,
+                Total: totalInput,
+                UnidadMedida: selectedProduct.UnidadMedida || "",
+                Peso: selectedProduct.Peso || 0
             }).draw();
+
         }
     }
 
@@ -1063,7 +1167,7 @@ async function calcularDatosPedido() {
     if (restanteproveedor < 0) {
         inputRestanteProveedor.style.setProperty("color", "red", "important"); // Aplicar color rojo con !important
     } else {
-        inputRestanteProveedor.style.setProperty("color", "white", "important"); // Aplicar color blanco con !important
+        inputRestanteProveedor.style.setProperty("color", "black", "important"); // Aplicar color blanco con !important
     }
 
     inputRestanteCliente.value = formatoMoneda.format(restantecliente);
@@ -1072,7 +1176,7 @@ async function calcularDatosPedido() {
     if (restantecliente < 0) {
         inputRestanteCliente.style.setProperty("color", "red", "important"); // Aplicar color rojo con !important
     } else {
-        inputRestanteCliente.style.setProperty("color", "white", "important"); // Aplicar color blanco con !important
+        inputRestanteCliente.style.setProperty("color", "black", "important"); // Aplicar color blanco con !important
     }
 
 }
@@ -1112,6 +1216,7 @@ async function editarProducto(id) {
         $('#productosModal').modal('show');
     }
 }
+
 function actualizarCantidad(rowIndex) {
     const rowData = grdProductos.row(rowIndex).data();
     const cantidad = parseFloat($(`.cantidad:eq(${rowIndex})`).val());
@@ -1126,6 +1231,8 @@ async function abrirModalProducto(isEdit = false, productoId = null) {
     const precioInput = document.getElementById('precioInput');  // El select donde se cargarán los precios
     const cantidadInput = document.getElementById('cantidadInput');
     const productoCantidadInput = document.getElementById('productoCantidad');
+    const unidadMedidaInput = $("#productoUnidadMedida");
+    
 
     let i = 0, optionSeleccionado = 0;
 
@@ -1134,6 +1241,8 @@ async function abrirModalProducto(isEdit = false, productoId = null) {
     cantidadInput.value = '';
     precioInput.value = '';
     productoCantidadInput.value = '';
+    unidadMedidaInput.value = '';
+    
 
     // Configurar modal para añadir o editar
     const modal = $('#productosModal');
@@ -1157,11 +1266,15 @@ async function abrirModalProducto(isEdit = false, productoId = null) {
             productos = productosResponse ? productosResponse.valor : [];
             const selectedProduct = productos.find(p => p.IdProducto === parseInt(productoId));
 
+            document.getElementById("productoUnidadMedida").value = selectedProduct.UnidadMedida;
+          
+
             if (Array.isArray(productos) && productos.length > 0) {
                 const productoSelect = $("#productoSelect");
                 const precioSelect = $("#precioSelect");
                 const precioInput = $("#precioInput");
                 const cantidadInput = $("#cantidadInput");
+                const productoUnidadMedidaValue = selectedProduct.UnidadMedida;
 
                 productoSelect.empty();
                 precioSelect.empty();
@@ -1227,8 +1340,14 @@ async function abrirModalProducto(isEdit = false, productoId = null) {
             productoCantidadInput.value = productoData.ProductoCantidad;
             cantidadInput.value = productoData.Cantidad;
 
+            document.getElementById("productoUnidadMedida").value = productoData.UnidadMedida != null ? productoData.UnidadMedida : selectedProduct.UnidadMedida;
+
+         
+            
+
             let precioTotal = productoData.PrecioVenta;
             precioInput.value = formatoMoneda.format(precioTotal);
+          
 
             // Deshabilitar el select si estamos editando el producto
             productoSelect.disabled = true;
@@ -1237,6 +1356,7 @@ async function abrirModalProducto(isEdit = false, productoId = null) {
 
             // Calcular el total
             await calcularTotal();
+            await calcularBarras(productoData, productoData.Cantidad)
         }
 
         modal.attr('data-editing', 'true');
@@ -1251,19 +1371,60 @@ async function abrirModalProducto(isEdit = false, productoId = null) {
     // Mostrar el modal
     modal.modal('show');
 }
+
 async function calcularTotal() {
     const precioRaw = document.getElementById('precioInput').value;
     const cantidad = parseFloat(document.getElementById('cantidadInput').value) || 0;
     const cantidadProducto = parseFloat(document.getElementById('productoCantidad').value) || 0;
 
     // Extraer solo el número del campo precio
-    const precio = parseFloat(convertirMonedaAFloat((precioRaw)));
+    const precio = parseFloat(convertirMonedaAFloat(precioRaw));
 
     const total = (precio * cantidadProducto) * cantidad;
 
     // Mostrar el total formateado en el campo
     document.getElementById('totalInput').value = formatoMoneda.format(total);
+
+    // Obtener datos necesarios
+    const productoSelectElement = document.getElementById('productoSelect');
+    const productoId = parseInt(productoSelectElement.value);
+
+    // Buscar el producto seleccionado en la lista "productos"
+    const selectedProduct = productos.find(p => p.IdProducto === productoId);
+
+    calcularBarras(selectedProduct, cantidad)
+    
 }
+
+async function calcularBarras(selectedProduct, cantidad) {
+    const cantidadBarrasLabel = document.getElementById('totalBarras');
+
+   
+
+    if (selectedProduct) {
+        const descripcion = selectedProduct.Nombre ? selectedProduct.Nombre.toLowerCase() : '';
+        const unidadMedida = selectedProduct.UnidadMedida ? selectedProduct.UnidadMedida.toUpperCase() : '';
+        const peso = parseFloat(selectedProduct.Peso) || 0;
+
+        // Validar condiciones
+        if (descripcion.includes("hierro") && unidadMedida === "KG" && peso > 0) {
+            // Calcular cantidad de barras
+            const cantidadBarras = cantidad / peso;
+
+            cantidadBarrasLabel.hidden = false;
+            cantidadBarrasLabel.innerHTML = `Cantidad de barras: <span style="color: yellow; font-weight: bold;">${cantidadBarras.toFixed(2)}</span>`;
+        } else {
+            // Si no cumple condiciones, ocultar
+            cantidadBarrasLabel.hidden = true;
+            cantidadBarrasLabel.innerHTML = "";
+        }
+    } else {
+        // Si no hay producto seleccionado, ocultar
+        cantidadBarrasLabel.hidden = true;
+        cantidadBarrasLabel.innerHTML = "";
+    }
+}
+
 
 document.getElementById('precioInput').addEventListener('input', function () {
     calcularTotal();
@@ -1855,8 +2016,8 @@ async function guardarCambios() {
             "NroRemito": $("#nroRemito").val(),
             "CostoFlete": parseFloat(convertirMonedaAFloat($("#costoFlete").val())),
             "IdProveedor": parseInt($("#Proveedores").val()),
-            "IdZona": parseInt($("#idZona").val()),
-            "IdChofer": parseInt($("#idChofer").val()),
+            "IdZona": parseInt($("#Zonas").val()),
+            "IdChofer": parseInt($("#Choferes").val()),
             "TotalCliente": parseFloat(convertirMonedaAFloat($("#totalPagoCliente").val())),
             "RestanteCliente": parseFloat(convertirMonedaAFloat($("#restanteCliente").val())),
             "TotalProveedor": parseFloat(convertirMonedaAFloat($("#totalPagoProveedor").val())),
@@ -1963,6 +2124,8 @@ $('#Clientes').on('change', async function () {
     dataCliente = await ObtenerDatosCliente(idCliente);
 
     cargarDatosCliente(dataCliente);
+    listaZonas();
+    document.getElementById("divDatosPedido").removeAttribute("hidden");
 });
 
 

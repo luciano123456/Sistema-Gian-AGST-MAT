@@ -25,6 +25,7 @@ const columnConfig = [
     { index: 15, filterType: 'text' },
     { index: 16, filterType: 'text' },
     { index: 17, filterType: 'text' },
+    { index: 18, filterType: 'text' },
 ];
 
 const Modelo_base = {
@@ -36,6 +37,19 @@ const Modelo_base = {
 }
 
 $(document).ready(() => {
+
+
+    // Eliminar tr de filtros previos
+    $('#grd_Productos thead tr.filters').remove();
+
+    // Crear el <tr> de filtros
+    var $filterRow = $('<tr class="filters"></tr>');
+    $('#grd_Productos thead tr').first().children().each(function () {
+        $('<th></th>').appendTo($filterRow);
+    });
+
+    // Agregarlo al <thead>
+    $('#grd_Productos thead').append($filterRow);
 
 
 
@@ -331,7 +345,7 @@ async function aplicarFiltros() {
         }
 
 
-     
+
 
         selectedProductos = [];
 
@@ -607,6 +621,7 @@ function guardarCambios() {
             "PCosto": parseDecimal($("#txtPrecioCosto").val()),
             "PVenta": parseDecimal($("#txtPrecioVenta").val()),
             "PorcGanancia": parseDecimal($("#txtPorcentajeGanancia").val()),
+            "Peso": parseDecimal($("#txtProductoPeso").val()),
             "ProductoCantidad": (isNaN(productoCantidad) || productoCantidad === null || productoCantidad.trim() === "") ? 1 : parseFloat(productoCantidad),
             "Image": null,
             "Activo": idProducto !== "" ? $("#txtActivo").val() : 1,
@@ -760,6 +775,12 @@ async function mostrarModal(modelo) {
     const idCliente = document.getElementById("clientesfiltro").value;
     const idProveedor = document.getElementById("Proveedoresfiltro").value;
 
+    if (modelo.Descripcion && modelo.Descripcion.toLowerCase().includes("hierro")) {
+        document.getElementById("divPeso").removeAttribute("hidden");
+    } else {
+        document.getElementById("divPeso").setAttribute("hidden", true);
+    }
+
     if (idProveedor > 0 || idCliente > 0) {
         document.getElementById("Marcas").setAttribute("disabled", "disabled");
         document.getElementById("txtDescripcion").setAttribute("disabled", "disabled");
@@ -805,8 +826,10 @@ async function mostrarModal(modelo) {
 
 
     document.getElementById('txtProductoCantidad').value = modelo.ProductoCantidad;
+    document.getElementById('txtProductoPeso').value = modelo.Peso;
 
     document.getElementById('txtTotal').value = (modelo.PVenta * modelo.ProductoCantidad);
+
 
     actualizarProductoCantidad();
 
@@ -852,6 +875,8 @@ async function listaProductos() {
         const url = `/Productos/Lista`;
         const response = await fetch(url);
         const data = await response.json();
+
+
         await configurarDataTable(data);
     }
 
@@ -1030,8 +1055,7 @@ async function eliminarProducto(id) {
 
 async function configurarDataTable(data) {
     if (!gridProductos) {
-        $('#grd_Productos thead tr').clone(true).addClass('filters').appendTo('#grd_Productos thead');
-
+       
 
         gridProductos = $('#grd_Productos').DataTable({
             data: data,
@@ -1204,8 +1228,8 @@ async function configurarDataTable(data) {
                             select.append(`<option value="${item.Nombre}">${item.Nombre}</option>`);
                         });
 
-                        
-                    
+
+
                     } else if (config.filterType === 'text') {
                         var input = $('<input type="text" placeholder="Buscar..." />')
                             .appendTo(cell.empty())
@@ -1236,7 +1260,7 @@ async function configurarDataTable(data) {
 
                 $('.filters th').eq(0).html('');
 
-               
+
 
                 configurarOpcionesColumnas();
 
@@ -1716,39 +1740,35 @@ async function listaClientes() {
     }
 }
 
-
 function generarColumnConfig() {
     const config = [];
-
     const columnasVisibles = gridProductos?.columns().visible().toArray();
 
-    // Empezá a recorrer por índice real y visible
     columnasVisibles.forEach((esVisible, realIndex) => {
         if (!esVisible) return;
 
-        const colName = gridProductos.column(realIndex).dataSrc();
+        let colName = gridProductos.column(realIndex).dataSrc();
+        if (!colName) return;
+        colName = colName.toLowerCase(); // Normalizar
 
-        if (colName === "Descripcion") {
+        console.log("Columna detectada:", colName, "Index:", realIndex);
+
+        if (colName === "descripcion") {
             config.push({ index: realIndex, filterType: 'text' });
         }
-
-        if (colName === "Proveedor" ) {
+        if (colName === "proveedor") {
             config.push({ index: realIndex, filterType: 'select', fetchDataFunc: listaProveedoresFilter });
         }
-
-        if (colName === "Marca") {
+        if (colName === "marca") {
             config.push({ index: realIndex, filterType: 'select', fetchDataFunc: listaMarcasFilter });
         }
-
-        if (colName === "Categoria") {
+        if (colName === "categoria") {
             config.push({ index: realIndex, filterType: 'select', fetchDataFunc: listaCategoriasFilter });
         }
-
-        if (colName === "UnidadDeMedida") {
+        if (colName === "unidaddemedida") {
             config.push({ index: realIndex, filterType: 'select', fetchDataFunc: listaUnidadesDeMedidaFilter });
         }
-
-        if (["PCosto", "PVenta", "ProductoCantidad", "Total", "PorcGanancia"].includes(colName)) {
+        if (["pcosto", "pventa", "productocantidad", "total", "porcganancia"].includes(colName)) {
             config.push({ index: realIndex, filterType: 'text' });
         }
     });
@@ -1836,8 +1856,19 @@ function actualizarProductoCantidad() {
     }
 }
 
+
 $('#txtProductoCantidad').on('input blur', function () {
     calcularTotal();
+});
+
+$('#txtDescripcion').on('input blur', function () {
+    if (this.value.includes("Hierro")) {
+        document.getElementById("txtProductoPeso").value = 0;
+        document.getElementById("divPeso").removeAttribute("hidden");
+    } else {
+        document.getElementById("txtProductoPeso").value = 0;
+        document.getElementById("divPeso").setAttribute("hidden", true);
+    }
 });
 
 async function guardarCambiosFila(rowData) {
@@ -2025,7 +2056,7 @@ function activarDrag(iconElement) {
             });
         }, 1000);
 
-         guardarNuevoOrdenProductos(); // ← tu lógica de guardar si querés activarla
+        guardarNuevoOrdenProductos(); // ← tu lógica de guardar si querés activarla
     };
 
 

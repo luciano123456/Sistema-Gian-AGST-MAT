@@ -16,6 +16,10 @@ namespace SistemaGian.BLL.Service
             
         }
 
+        public async Task<bool> Eliminar(int id)
+        {
+            return await _productospreciorepo.Eliminar(id);
+        }
 
         public async Task<List<ProductosPreciosHistorial>> ObtenerHistorialProducto(int idProducto, int idProveedor, DateTime FechaDesde, DateTime FechaHasta)
         {

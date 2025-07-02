@@ -57,8 +57,19 @@ namespace SistemaGian.Application.Controllers
             return Ok(lista);
         }
 
+        [HttpDelete]
+        public async Task<IActionResult> Eliminar(int id)
+        {
+            var eliminado = await _ProductosPrecioHistorialService.Eliminar(id);
+            if (eliminado)
+                return StatusCode(StatusCodes.Status200OK, new { valor = eliminado });
+            else
+                return StatusCode(StatusCodes.Status500InternalServerError, new { valor = eliminado, mensaje = "Error al eliminar el registro." });
+        }
 
-    
+
+
+
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
