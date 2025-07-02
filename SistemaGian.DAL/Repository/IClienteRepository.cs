@@ -13,8 +13,10 @@ namespace SistemaGian.DAL.Repository
         Task<bool> Actualizar(TEntityModel model);
         Task<bool> Eliminar(int id);
         Task<TEntityModel> Obtener(int id);
+        Task<IQueryable<ClientesHistorialSaldo>> ObtenerHistorialCrediticio(int idCliente);
         Task<IQueryable<TEntityModel>> ObtenerTodos();
-        Task<bool> SumarSaldo(int idCliente, decimal Saldo);
-        Task<bool> RestarSaldo(int idCliente, decimal Saldo);
+        Task<bool> SumarSaldo(int idCliente, decimal Saldo, string observaciones);
+        Task<bool> RestarSaldo(int idCliente, decimal Saldo, string observaciones);
+        Task<bool> SumarSaldoInterno(int idCliente, decimal Saldo, string observaciones);
     }
 }
