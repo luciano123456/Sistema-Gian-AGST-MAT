@@ -422,6 +422,8 @@ async function configurarDataTable(data) {
                     var colIndex = cell.index().column;
                     var rowData = gridClientes.row($(this).closest('tr')).data();
 
+                    if (colIndex == 7) return;
+
 
                     if (isEditing == true) {
                         return;
