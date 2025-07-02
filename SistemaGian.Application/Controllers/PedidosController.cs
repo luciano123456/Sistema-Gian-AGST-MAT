@@ -295,7 +295,9 @@ namespace SistemaGian.Application.Controllers
 
             if(model.SaldoUsado > 0)
             {
-                respSaldo = await _clienteService.RestarSaldo((int)model.IdCliente, (decimal)model.SaldoUsado);
+                var observacion = $"Se resta el saldo por el pago de {model.SaldoUsado} en el pedido Nro {pedido.Id}";
+
+                respSaldo = await _clienteService.RestarSaldo((int)model.IdCliente, (decimal)model.SaldoUsado, observacion);
             }
 
 

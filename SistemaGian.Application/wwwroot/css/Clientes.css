@@ -1,12 +1,12 @@
-#grd_clientes tbody tr {
+ï»¿#grd_clientes tbody tr {
     border-bottom: none; /* Elimina el borde inferior de cada fila */
-    margin: 0; /* Asegúrate de que no haya margen entre filas */
-    padding: 0; /* Asegúrate de que no haya relleno entre filas */
+    margin: 0; /* AsegÃºrate de que no haya margen entre filas */
+    padding: 0; /* AsegÃºrate de que no haya relleno entre filas */
 }
 
     #grd_clientes tbody tr:nth-child(odd),
     #grd_clientes tbody tr:nth-child(even) {
-        border-bottom: none; /* Asegúrate de que los estilos alternos tampoco tengan bordes */
+        border-bottom: none; /* AsegÃºrate de que los estilos alternos tampoco tengan bordes */
     }
 
 
@@ -25,4 +25,14 @@
     .modal-edicion {
         max-width: 98%; /* o lo que necesites */
     }
+}
+
+.observacion-texto {
+    display: inline-block;
+    max-width: 600px; /* mÃ¡s ancho */
+    font-size: 0.9em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    vertical-align: middle;
 }

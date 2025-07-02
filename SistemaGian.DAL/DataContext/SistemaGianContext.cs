@@ -20,6 +20,8 @@ public partial class SistemaGianContext : DbContext
 
     public virtual DbSet<Cliente> Clientes { get; set; }
 
+    public virtual DbSet<ClientesHistorialSaldo> ClientesHistorialSaldos { get; set; }
+
     public virtual DbSet<EstadosUsuario> EstadosUsuarios { get; set; }
 
     public virtual DbSet<Moneda> Monedas { get; set; }
@@ -103,6 +105,20 @@ public partial class SistemaGianContext : DbContext
             entity.HasOne(d => d.IdProvinciaNavigation).WithMany(p => p.Clientes)
                 .HasForeignKey(d => d.IdProvincia)
                 .HasConstraintName("FK_Clientes_Provincias");
+        });
+
+        modelBuilder.Entity<ClientesHistorialSaldo>(entity =>
+        {
+            entity.Property(e => e.Egreso).HasColumnType("decimal(20, 2)");
+            entity.Property(e => e.Fecha).HasColumnType("datetime");
+            entity.Property(e => e.Ingreso).HasColumnType("decimal(20, 2)");
+            entity.Property(e => e.Observaciones)
+                .HasMaxLength(500)
+                .IsUnicode(false);
+
+            entity.HasOne(d => d.IdClienteNavigation).WithMany(p => p.ClientesHistorialSaldos)
+                .HasForeignKey(d => d.IdCliente)
+                .HasConstraintName("FK_ClientesHistorialSaldos_ClientesHistorialSaldos");
         });
 
         modelBuilder.Entity<EstadosUsuario>(entity =>
@@ -309,7 +325,7 @@ public partial class SistemaGianContext : DbContext
                 .HasColumnType("decimal(20, 2)")
                 .HasColumnName("Porc_Ganancia_Anterior");
 
-            entity.HasOne(d => d.IdClienteNavigation).WithMany(p => p.ProductosPreciosHistorial)
+            entity.HasOne(d => d.IdClienteNavigation).WithMany(p => p.ProductosPreciosHistorials)
                 .HasForeignKey(d => d.IdCliente)
                 .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("FK_ProductosPreciosHistorial_Clientes");
@@ -447,7 +463,6 @@ public partial class SistemaGianContext : DbContext
 
             entity.HasOne(d => d.IdZonaNavigation).WithMany(p => p.ZonasClientes)
                 .HasForeignKey(d => d.IdZona)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_ZonasClientes_Zonas");
         });
 

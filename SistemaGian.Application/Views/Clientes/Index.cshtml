@@ -147,12 +147,53 @@
                         <label for="txtSaldo" class="form-label">Saldo</label>
                         <input type="text" class="form-control" id="txtSaldo" required>
                     </div>
+
+                    <div class="col-md-12">
+                        <label for="txtObservaciones" class="form-label">Observaciones</label>
+                        <input type="text" class="form-control" id="txtObservaciones" required>
+                    </div>
+
                 </form>
             </div>
 
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                 <button type="button" id="btnGuardarSaldo" class="btn btn-primary" onclick="agregarSaldo()">Aceptar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalHistorialSaldo" tabindex="-1" aria-labelledby="modalHistorialSaldoLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title fw-bold" id="modalHistorialSaldoLabel">Historial de Saldos</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="text-center">Fecha</th>
+                                <th class="text-center">Ingreso</th>
+                                <th class="text-center">Egreso</th>
+                                <th>Observaciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaHistorialBody">
+                            <!-- Aquí se cargan las filas -->
+                        </tbody>
+                        <tfoot id="tablaHistorialFooter">
+                            <!-- Aquí se insertan los totales -->
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
             </div>
         </div>
     </div>
@@ -177,6 +218,8 @@
 
     @*pdf*@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
 
     @*imprimir*@
@@ -185,7 +228,7 @@
     @*filter columns*@
     <script src="https://cdn.datatables.net/fixedheader/3.2.2/js/dataTables.fixedHeader.min.js"></script>
 
-
+    <script src="~/js/utils/moment.js"></script>
     <script src="~/js/clientes.js?v=1.1"></script>
 
 }

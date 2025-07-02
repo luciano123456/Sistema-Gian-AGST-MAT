@@ -58,32 +58,118 @@ namespace SistemaGian.DAL.Repository
             return await Task.FromResult(query);
         }
 
-        public async Task<bool> RestarSaldo(int idCliente, decimal Saldo)
+        public async Task<bool> SumarSaldoInterno(int idCliente, decimal saldo, string observaciones = null)
         {
-            Cliente model = await _dbcontext.Clientes.FindAsync(idCliente);
-
-            if(model != null)
+            try
             {
-                model.SaldoAfavor = (model.SaldoAfavor ?? 0) - Saldo; // Si es null, lo convierte en 0 antes de sumar
+                        var model = await _dbcontext.Clientes.FindAsync(idCliente);
+
+                if (model == null)
+                    return false;
+
+                model.SaldoAfavor = (model.SaldoAfavor ?? 0) + saldo;
+
+                var historial = new ClientesHistorialSaldo
+                {
+                    Fecha = DateTime.Now,
+                    IdCliente = idCliente,
+                    Ingreso = saldo,
+                    Egreso = 0,
+                    Observaciones = observaciones
+                };
+
+                _dbcontext.ClientesHistorialSaldos.Add(historial);
+
                 await _dbcontext.SaveChangesAsync();
                 return true;
             }
-
-            return false;
+            catch
+            {
+                throw;
+            }
         }
 
-        public async Task<bool> SumarSaldo(int idCliente, decimal Saldo)
-        {
-            Cliente model = await _dbcontext.Clientes.FindAsync(idCliente);
 
-            if (model != null)
+        public async Task<bool> SumarSaldo(int idCliente, decimal saldo, string observaciones = null)
+        {
+            using var transaction = await _dbcontext.Database.BeginTransactionAsync();
+            try
             {
-                model.SaldoAfavor = (model.SaldoAfavor ?? 0) + Saldo; // Si es null, lo convierte en 0 antes de sumar
+                var model = await _dbcontext.Clientes.FindAsync(idCliente);
+
+                if (model == null)
+                    return false;
+
+                model.SaldoAfavor = (model.SaldoAfavor ?? 0) + saldo;
+
+                var historial = new ClientesHistorialSaldo
+                {
+                    Fecha = DateTime.Now,
+                    IdCliente = idCliente,
+                    Ingreso = saldo,
+                    Egreso = 0,
+                    Observaciones = observaciones
+                };
+
+                _dbcontext.ClientesHistorialSaldos.Add(historial);
+
                 await _dbcontext.SaveChangesAsync();
+                await transaction.CommitAsync();
+
                 return true;
             }
-
-            return false;
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw; // O simplemente return false si preferís no propagar la excepción
+            }
         }
+
+        public async Task<bool> RestarSaldo(int idCliente, decimal saldo, string observaciones = null)
+        {
+            using var transaction = await _dbcontext.Database.BeginTransactionAsync();
+            try
+            {
+                var model = await _dbcontext.Clientes.FindAsync(idCliente);
+
+                if (model == null)
+                    return false;
+
+                model.SaldoAfavor = (model.SaldoAfavor ?? 0) - saldo;
+
+                var historial = new ClientesHistorialSaldo
+                {
+                    Fecha = DateTime.Now,
+                    IdCliente = idCliente,
+                    Ingreso = 0,
+                    Egreso = saldo,
+                    Observaciones = observaciones
+                };
+
+                _dbcontext.ClientesHistorialSaldos.Add(historial);
+
+                await _dbcontext.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                return true;
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw; // O return false si no querés propagar
+            }
+        }
+
+        public async Task<IQueryable<ClientesHistorialSaldo>> ObtenerHistorialCrediticio(int idCliente)
+        {
+            IQueryable<ClientesHistorialSaldo> query = _dbcontext.ClientesHistorialSaldos
+                .Where(h => h.IdCliente == idCliente)
+                .OrderByDescending(h => h.Fecha);
+
+            return await Task.FromResult(query);
+        }
+
+
+
     }
 }

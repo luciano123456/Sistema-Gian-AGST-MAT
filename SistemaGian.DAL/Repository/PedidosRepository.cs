@@ -14,12 +14,14 @@ namespace SistemaGian.DAL.Repository
 {
     public class PedidosRepository : IPedidosRepository<Pedido>
     {
-
+        private readonly IClienteRepository<Cliente> _clienteRepository;
         private readonly SistemaGianContext _dbcontext;
 
-        public PedidosRepository(SistemaGianContext context)
+
+        public PedidosRepository(SistemaGianContext context, IClienteRepository<Cliente> clienteRepository)
         {
             _dbcontext = context;
+            _clienteRepository = clienteRepository;
         }
 
         public async Task<bool> EliminarPagoCliente(int idPago)
@@ -39,25 +41,67 @@ namespace SistemaGian.DAL.Repository
 
         public async Task<bool> Eliminar(int idPedido)
         {
-            try
+            using (var transaction = await _dbcontext.Database.BeginTransactionAsync())
             {
-                Pedido pedido = _dbcontext.Pedidos.FirstOrDefault(c => c.Id == idPedido);
-                if (pedido == null)
+                try
                 {
-                    return false; // No se encontró el pedido
-                }
 
-                _dbcontext.Pedidos.Remove(pedido);
-                await _dbcontext.SaveChangesAsync();
-                return true;
-            }
-            catch (Exception ex)
-            {
-                // Aquí podrías registrar el error para depuración
-                Console.WriteLine(ex.Message);
-                return false;
+                    decimal devolucionPagos = 0;
+                    // Obtener el pedido
+                    var pedido = _dbcontext.Pedidos.FirstOrDefault(c => c.Id == idPedido);
+                    if (pedido == null)
+                        return false;
+
+                    // Obtener los pagos de cliente asociados
+                    var pagosCliente = await _dbcontext.PagosPedidosClientes
+                        .Where(p => p.IdPedido == idPedido)
+                        .ToListAsync();
+
+                    // Devolver el saldo usado en cada pago
+                    foreach (var pago in pagosCliente)
+                    {
+                        // Este método suma saldo al cliente
+
+                        devolucionPagos = pago.SaldoUsado;
+                        
+                    }
+
+                    if(devolucionPagos > 0)
+                    {
+                        await _clienteRepository.SumarSaldoInterno((int)pedido.IdCliente, devolucionPagos,
+                            $"Devolución por eliminación del pedido N° {pedido.Id}");
+                    }
+                    // Eliminar los pagos de cliente
+                    _dbcontext.PagosPedidosClientes.RemoveRange(pagosCliente);
+
+                    // Eliminar los pagos de proveedor (opcional, si aplica)
+                    var pagosProveedor = await _dbcontext.PagosPedidosProveedores
+                        .Where(p => p.IdPedido == idPedido)
+                        .ToListAsync();
+                    _dbcontext.PagosPedidosProveedores.RemoveRange(pagosProveedor);
+
+                    // Eliminar los productos
+                    var productos = await _dbcontext.PedidosProductos
+                        .Where(p => p.IdPedido == idPedido)
+                        .ToListAsync();
+                    _dbcontext.PedidosProductos.RemoveRange(productos);
+
+                    // Eliminar el pedido
+                    _dbcontext.Pedidos.Remove(pedido);
+
+                    await _dbcontext.SaveChangesAsync();
+                    await transaction.CommitAsync();
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    Console.WriteLine(ex);
+                    return false;
+                }
             }
         }
+
 
         public async Task<bool> Actualizar(Pedido pedido, List<PagosPedidosCliente> pagosCliente, List<PagosPedidosProveedor> pagosProveedores, List<PedidosProducto> productos)
         {
@@ -204,7 +248,18 @@ namespace SistemaGian.DAL.Repository
                 if (pagos.Count == 0)
                 {
                     foreach (var pago in pagosExistentes)
+                    {
                         cliente.SaldoAfavor += pago.SaldoUsado;
+
+                        _dbcontext.ClientesHistorialSaldos.Add(new ClientesHistorialSaldo
+                        {
+                            Fecha = DateTime.Now,
+                            IdCliente = cliente.Id,
+                            Ingreso = pago.SaldoUsado,
+                            Egreso = 0,
+                            Observaciones = $"Devolución de saldo por eliminación de pago del pedido N° {idPedido}"
+                        });
+                    }
 
                     _dbcontext.PagosPedidosClientes.RemoveRange(pagosExistentes);
 
@@ -218,7 +273,18 @@ namespace SistemaGian.DAL.Repository
                     .ToList();
 
                 foreach (var pe in pagosAEliminar)
+                {
                     cliente.SaldoAfavor += pe.SaldoUsado;
+
+                    _dbcontext.ClientesHistorialSaldos.Add(new ClientesHistorialSaldo
+                    {
+                        Fecha = DateTime.Now,
+                        IdCliente = cliente.Id,
+                        Ingreso = pe.SaldoUsado,
+                        Egreso = 0,
+                        Observaciones = $"Devolución de saldo por eliminación de pago del pedido N° {idPedido}"
+                    });
+                }
 
                 _dbcontext.PagosPedidosClientes.RemoveRange(pagosAEliminar);
 
@@ -229,7 +295,20 @@ namespace SistemaGian.DAL.Repository
                     if (pagoExistente != null)
                     {
                         decimal diferencia = p.SaldoUsado - pagoExistente.SaldoUsado;
-                        cliente.SaldoAfavor -= diferencia;
+
+                        if (diferencia != 0)
+                        {
+                            cliente.SaldoAfavor -= diferencia;
+
+                            _dbcontext.ClientesHistorialSaldos.Add(new ClientesHistorialSaldo
+                            {
+                                Fecha = DateTime.Now,
+                                IdCliente = cliente.Id,
+                                Ingreso = diferencia < 0 ? Math.Abs(diferencia) : 0,
+                                Egreso = diferencia > 0 ? diferencia : 0,
+                                Observaciones = $"Ajuste de saldo por modificación de pago del pedido N° {idPedido}"
+                            });
+                        }
 
                         pagoExistente.Fecha = p.Fecha;
                         pagoExistente.Cotizacion = p.Cotizacion;
@@ -241,7 +320,19 @@ namespace SistemaGian.DAL.Repository
                     else
                     {
                         cliente.SaldoAfavor -= p.SaldoUsado;
+
+                        if(p.SaldoUsado > 0) { 
+                        _dbcontext.ClientesHistorialSaldos.Add(new ClientesHistorialSaldo
+                        {
+                            Fecha = DateTime.Now,
+                            IdCliente = cliente.Id,
+                            Ingreso = 0,
+                            Egreso = p.SaldoUsado,
+                            Observaciones = $"Uso de saldo por nuevo pago del pedido N° {idPedido}"
+                        });
+
                         _dbcontext.PagosPedidosClientes.Add(p);
+                    }
                     }
                 }
 
@@ -254,6 +345,7 @@ namespace SistemaGian.DAL.Repository
                 return false;
             }
         }
+
 
 
 
@@ -513,5 +605,7 @@ namespace SistemaGian.DAL.Repository
                 .Include(c => c.IdProveedorNavigation);
             return await Task.FromResult(query);
         }
+
+
     }
 }

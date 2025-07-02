@@ -195,11 +195,13 @@ const agregarSaldoModal = id => {
 async function agregarSaldo() {
     var idCliente = $("#txtIdClienteSaldo").val();
     var saldo = parseFloat(convertirMonedaAFloat($("#txtSaldo").val()));
+    var observaciones = $("#txtObservaciones").val();
 
     try {
         const queryString = new URLSearchParams({
             idCliente: idCliente,
-            Saldo: saldo
+            Saldo: saldo,
+            Observaciones: observaciones,
         }).toString();
 
         const response = await fetch(`/Clientes/SumarSaldo?${queryString}`, {
@@ -297,7 +299,18 @@ async function configurarDataTable(data) {
                 { data: 'Provincia',width: "22%" },
                 { data: 'Localidad', width: "18%" },
                 { data: 'Dni', width: "14%" },
-                { data: 'SaldoAfavor'},
+                {
+                    data: null,
+                    render: function (data, type, row) {
+                        return `
+            <div class="d-flex align-items-center justify-content-center">
+                <span>${formatNumber(row.SaldoAfavor)}</span>
+                <i class="fa fa-history text-primary ms-2" title="Ver Historial" style="cursor:pointer;"
+                   onclick="verHistorialSaldo(${row.Id})"></i>
+            </div>`;
+                    }
+                },
+
             ],
             dom: 'Bfrtip',
             buttons: [
@@ -695,3 +708,97 @@ document.getElementById('txtSaldo').addEventListener('blur', function () {
 
 });
 
+async function verHistorialSaldo(idCliente) {
+    const tbody = document.getElementById("tablaHistorialBody");
+    const tfoot = document.getElementById("tablaHistorialFooter");
+
+    // Limpiar contenido previo
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="4" class="text-center">Cargando...</td>
+      </tr>
+    `;
+    tfoot.innerHTML = "";
+
+    $("#modalHistorialSaldo").modal("show");
+
+    try {
+        const response = await fetch(`/Clientes/ObtenerHistorial?idCliente=${idCliente}`);
+        if (!response.ok) throw new Error("Error en la respuesta del servidor");
+
+        const data = await response.json();
+
+        if (!data || data.length === 0) {
+            tbody.innerHTML = `
+              <tr>
+                <td colspan="4" class="text-center">No hay movimientos registrados.</td>
+              </tr>
+            `;
+            return;
+        }
+
+        let rows = "";
+        let totalIngresos = 0;
+        let totalEgresos = 0;
+
+        data.forEach(item => {
+            const fecha = item.Fecha
+                ? formatearFechaParaVista(item.Fecha)
+                : "-";
+
+            const ingreso = item.Ingreso !== null && item.Ingreso !== 0
+                ? `<span class="text-success fw-bold"><i class="fa fa-arrow-up"></i> ${formatNumber(item.Ingreso)}</span>`
+                : "-";
+
+            const egreso = item.Egreso !== null && item.Egreso !== 0
+                ? `<span class="text-danger fw-bold"><i class="fa fa-arrow-down"></i> ${formatNumber(item.Egreso)}</span>`
+                : "-";
+
+            totalIngresos += item.Ingreso || 0;
+            totalEgresos += item.Egreso || 0;
+
+            // Limitar longitud y mostrar tooltip
+            let obsTexto = item.Observaciones || "";
+            const maxLen = 200;
+            const obsMostrada = obsTexto.length > maxLen
+                ? obsTexto.substring(0, maxLen) + "..."
+                : obsTexto;
+
+            const obsHtml = `<span class="observacion-texto" title="${obsTexto.replace(/"/g, "&quot;")}">${obsMostrada}</span>`;
+
+            rows += `
+              <tr>
+                <td class="text-center">${fecha}</td>
+                <td class="text-center">${ingreso}</td>
+                <td class="text-center">${egreso}</td>
+                <td>${obsHtml}</td>
+              </tr>
+            `;
+        });
+
+        tbody.innerHTML = rows;
+
+        const saldoFinal = totalIngresos - totalEgresos;
+
+        tfoot.innerHTML = `
+            <tr>
+                <td colspan="4" class="text-end small">
+                    <div class="d-flex justify-content-end gap-4">
+                        <div><strong>Total Ingresos:</strong> <span class="text-success">${formatNumber(totalIngresos)}</span></div>
+                        <div><strong>Total Egresos:</strong> <span class="text-danger">${formatNumber(totalEgresos)}</span></div>
+                        <div><strong>Saldo:</strong> <span class="${saldoFinal >= 0 ? 'text-success' : 'text-danger'}">${formatNumber(saldoFinal)}</span></div>
+                    </div>
+                </td>
+            </tr>
+        `;
+
+    } catch (error) {
+        console.error(error);
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="4" class="text-center text-danger">Ocurrió un error al cargar el historial.</td>
+          </tr>
+        `;
+        tfoot.innerHTML = "";
+    }
+}

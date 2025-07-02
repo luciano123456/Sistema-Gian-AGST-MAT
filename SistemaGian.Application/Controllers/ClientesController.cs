@@ -80,22 +80,42 @@ namespace SistemaGian.Application.Controllers
 
 
         [HttpPost]
-        public async Task<IActionResult> SumarSaldo(int idCliente, decimal Saldo)
+        public async Task<IActionResult> SumarSaldo(int idCliente, decimal Saldo, string observaciones)
         {
 
-            bool respuesta = await _clienteService.SumarSaldo(idCliente, Saldo);
+            bool respuesta = await _clienteService.SumarSaldo(idCliente, Saldo, observaciones);
 
             return Ok(new { valor = respuesta });
         }
 
         [HttpPost]
-        public async Task<IActionResult> RestarSaldo(int idCliente, decimal Saldo)
+        public async Task<IActionResult> RestarSaldo(int idCliente, decimal Saldo, string observaciones)
         {
 
-            bool respuesta = await _clienteService.RestarSaldo(idCliente, Saldo);
+            bool respuesta = await _clienteService.RestarSaldo(idCliente, Saldo, observaciones);
 
             return Ok(new { valor = respuesta });
         }
+
+
+        [HttpGet]
+        public async Task<IActionResult> ObtenerHistorial(int idCliente)
+        {
+            var historial = await _clienteService.ObtenerHistorialCrediticio(idCliente);
+
+            var lista = historial.Select(h => new VMClienteHistorialSaldo
+            {
+                Id = h.Id,
+                Fecha = h.Fecha,
+                IdCliente = h.IdCliente,
+                Ingreso = h.Ingreso,
+                Egreso = h.Egreso,
+                Observaciones = h.Observaciones
+            }).ToList();
+
+            return Ok(lista);
+        }
+
 
         [HttpPost]
         public async Task<IActionResult> Insertar([FromBody] VMCliente model)

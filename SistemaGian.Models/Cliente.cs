@@ -23,13 +23,15 @@ public partial class Cliente
 
     public decimal? SaldoAfavor { get; set; }
 
+    public virtual ICollection<ClientesHistorialSaldo> ClientesHistorialSaldos { get; set; } = new List<ClientesHistorialSaldo>();
+
     public virtual Provincia? IdProvinciaNavigation { get; set; }
 
     public virtual ICollection<Pedido> Pedidos { get; set; } = new List<Pedido>();
 
     public virtual ICollection<ProductosPreciosCliente> ProductosPreciosClientes { get; set; } = new List<ProductosPreciosCliente>();
 
-    public virtual ICollection<ProductosPreciosHistorial> ProductosPreciosHistorial { get; set; } = new List<ProductosPreciosHistorial>();
+    public virtual ICollection<ProductosPreciosHistorial> ProductosPreciosHistorials { get; set; } = new List<ProductosPreciosHistorial>();
 
     public virtual ICollection<ZonasCliente> ZonasClientes { get; set; } = new List<ZonasCliente>();
 }
