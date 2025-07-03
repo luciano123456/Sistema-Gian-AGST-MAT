@@ -32,7 +32,12 @@
 
     <partial name="~/Views/Shared/Partials/NavbarLogin.cshtml" />
 
-    <div class="container-fluid>
+    @if (ambienteTest == 1)
+    {
+        <div class="marca-agua-svg"></div>
+    }
+
+    <div class="container-fluid">
 
         <div class="row mt-5">
             <!-- Columna del logo -->

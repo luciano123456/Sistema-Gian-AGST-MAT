@@ -17,10 +17,14 @@
     <link rel="stylesheet" href="~/SistemaGian.Application.styles.css" asp-append-version="true" />
     @await RenderSectionAsync("Estilos", required: false)
 </head>
-<body class="@(ambienteTest == 1 ? "fondo-test" : "")">
+<body class="@(ambienteTest == 1 ? "ambiente-test" : "")">
     <partial name="~/Views/Shared/Partials/NavbarLogin.cshtml" />
 
-  
+    @if (ambienteTest == 1)
+    {
+        <div class="marca-agua-svg"></div>
+    }
+
 
     <div class="row">
         <!-- Columna del logo -->
