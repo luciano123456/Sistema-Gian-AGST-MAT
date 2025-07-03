@@ -26,6 +26,7 @@ public partial class ProductosPreciosHistorial
     public decimal PorcGananciaAnterior { get; set; }
 
     public decimal PorGananciaNuevo { get; set; }
+    public decimal ProductoCantidad { get; set; }
 
     public virtual Cliente? IdClienteNavigation { get; set; }
 

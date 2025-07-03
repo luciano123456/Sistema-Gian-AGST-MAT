@@ -18,7 +18,7 @@ namespace SistemaGian.Application.Models.ViewModels
         public string Proveedor { get; set; } = null!;
 
         public int? IdMarca { get; set; }
-        public int? ProductoCantidad { get; set; }
+        public decimal? ProductoCantidad { get; set; }
         public decimal? Total { get; set; }
 
         public int? IdCategoria { get; set; }
