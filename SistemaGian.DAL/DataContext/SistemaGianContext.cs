@@ -8,14 +8,17 @@ namespace SistemaGian.DAL.DataContext;
 
 public partial class SistemaGianContext : DbContext
 {
-
-    private readonly IConfiguration _configuration;
-
+    public SistemaGianContext()
+    {
+    }
 
     public SistemaGianContext(DbContextOptions<SistemaGianContext> options)
         : base(options)
     {
     }
+
+    private readonly IConfiguration _configuration;
+
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -69,6 +72,7 @@ public partial class SistemaGianContext : DbContext
     public virtual DbSet<Zona> Zonas { get; set; }
 
     public virtual DbSet<ZonasCliente> ZonasClientes { get; set; }
+
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -216,7 +220,7 @@ public partial class SistemaGianContext : DbContext
             entity.Property(e => e.Cantidad).HasColumnType("decimal(20, 2)");
             entity.Property(e => e.PrecioCosto).HasColumnType("decimal(20, 2)");
             entity.Property(e => e.PrecioVenta).HasColumnType("decimal(20, 2)");
-            entity.Property(e => e.ProductoCantidad).HasColumnType("decimal(20, 2)");
+            entity.Property(e => e.ProductoCantidad).HasColumnType("decimal(20, 10)");
 
             entity.HasOne(d => d.IdPedidoNavigation).WithMany(p => p.PedidosProductos)
                 .HasForeignKey(d => d.IdPedido)
@@ -247,6 +251,7 @@ public partial class SistemaGianContext : DbContext
             entity.Property(e => e.PorcGanancia)
                 .HasColumnType("decimal(20, 2)")
                 .HasColumnName("Porc_Ganancia");
+            entity.Property(e => e.ProductoCantidad).HasColumnType("decimal(20, 10)");
 
             entity.HasOne(d => d.IdCategoriaNavigation).WithMany(p => p.Productos)
                 .HasForeignKey(d => d.IdCategoria)
@@ -331,6 +336,7 @@ public partial class SistemaGianContext : DbContext
             entity.Property(e => e.PorcGananciaAnterior)
                 .HasColumnType("decimal(20, 2)")
                 .HasColumnName("Porc_Ganancia_Anterior");
+            entity.Property(e => e.ProductoCantidad).HasColumnType("decimal(20, 10)");
 
             entity.HasOne(d => d.IdClienteNavigation).WithMany(p => p.ProductosPreciosHistorials)
                 .HasForeignKey(d => d.IdCliente)
@@ -363,6 +369,7 @@ public partial class SistemaGianContext : DbContext
             entity.Property(e => e.PorcGanancia)
                 .HasColumnType("decimal(20, 2)")
                 .HasColumnName("Porc_Ganancia");
+            entity.Property(e => e.ProductoCantidad).HasColumnType("decimal(20, 10)");
 
             entity.HasOne(d => d.IdProductoNavigation).WithMany(p => p.ProductosPreciosProveedor)
                 .HasForeignKey(d => d.IdProducto)

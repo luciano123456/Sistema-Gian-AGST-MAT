@@ -44,7 +44,7 @@ namespace SistemaGian.BLL.Service
                     PorcGanancia = prod.PorcGanancia,
                     PCosto = prod.PCosto,
                     PVenta = prod.PVenta,
-                    ProductoCantidad = (int)prod.ProductoCantidad
+                    ProductoCantidad = (decimal)prod.ProductoCantidad
                 };
 
                 productosList.Add(productoPrecio);

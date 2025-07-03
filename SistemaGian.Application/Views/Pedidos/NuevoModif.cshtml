@@ -49,7 +49,7 @@
         <li class="nav-item" role="presentation">
             <a class="nav-link active" id="cliente-tab" data-bs-toggle="tab" href="#cliente" role="tab" aria-controls="cliente" aria-selected="true">Datos del Cliente</a>
         </li>
-        <li class="nav-item" role="presentation">
+        <li class="nav-item ocultarmodoVendedor" role="presentation">
             <a class="nav-link" id="proveedor-tab" data-bs-toggle="tab" href="#proveedor" role="tab" aria-controls="proveedor" aria-selected="true">Datos del Proveedor</a>
         </li>
         <li class="nav-item" role="presentation" id="divDatosPedido" hidden>
@@ -511,15 +511,60 @@
 
                             <div class="col-md-2">
                                 <label for="cantidadInput" class="form-label">Cantidad</label>
-                                <input type="number" id="cantidadInput" class="form-control" placeholder="Ingrese cantidad">
+                                <input type="text" id="cantidadInput" class="form-control" placeholder="Ingrese cantidad">
                             </div>
 
-                            <div class="col-md-3">
+                            <div class="col-md-3" id="divTotal">
                                 <label for="totalInput" class="form-label">Total</label>
                                 <input type="text" id="totalInput" class="form-control" disabled>
                             </div>
 
                             <label id="totalBarras" class="form-label" hidden></label>
+
+                            <div id="detalleFacturaIVA" class="p-3 border rounded shadow-lg" style="display:none;">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="fw-bold text-uppercase text-secondary">Fac. IVA</span>
+                                    <span id="facIVA" class="fw-bold text-success fs-5"></span>
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="fw-bold text-uppercase text-secondary">Fac. SIN IVA</span>
+                                    <span id="facSinIVA" class="fw-bold fs-5"></span>
+                                </div>
+
+                                <hr>
+
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="fw-bold text-uppercase text-secondary">% Precio Proveedor</span>
+                                    <span id="precioProveedor" class="badge bg-info fs-6"></span>
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="fw-bold text-uppercase text-secondary">% Precio Venta</span>
+                                    <span id="precioVenta" class="badge bg-warning text-dark fs-6"></span>
+                                </div>
+
+                                <hr>
+
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="fw-bold text-uppercase text-primary">Venta</span>
+                                    <span id="venta" class="fw-bold text-primary fs-5"></span>
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="fw-bold text-uppercase text-danger">Costo</span>
+                                    <span id="costo" class="fw-bold text-danger fs-5"></span>
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="fw-bold text-uppercase text-success">Ganancia</span>
+                                    <span id="ganancia" class="fw-bold text-success fs-5"></span>
+                                </div>
+                            </div>
+
+
+
+
 
                         </form>
                     </div>
@@ -671,7 +716,7 @@
 
 
             <script src="~/js/utils/moment.js"></script>
-            <script src="~/js/pedidosnuevomodif.js?v=1.2">
+            <script src="~/js/pedidosnuevomodif.js?v=1.3">
 
                 <script src="~/js/site.js"></script>
 

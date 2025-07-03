@@ -12,7 +12,7 @@ public partial class ProductosPreciosProveedor
     public DateTime? FechaActualizacion { get; set; }
 
     public int IdProveedor { get; set; }
-    public int? ProductoCantidad { get; set; }
+    public decimal? ProductoCantidad { get; set; }
 
     public decimal PCosto { get; set; }
 

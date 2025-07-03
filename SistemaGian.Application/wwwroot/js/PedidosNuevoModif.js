@@ -611,7 +611,21 @@ async function cargarDataTableProductos(data) {
             { data: 'PrecioVenta', width: "15%" },
             { data: 'ProductoCantidad', width: "15%" },
             { data: 'Cantidad', width: "15%" },
-            { data: 'Total', width: "15%" },
+            {
+                data: null, // Usamos data null para poder acceder a toda la fila
+                width: "15%",
+                render: function (data, type, row) {
+                    let total = 0;
+                    if (row.Nombre.toUpperCase().includes("FAC. IVA")) {
+                        // Cálculo FAC. IVA
+                        total = parseFloat(row.Cantidad) * (parseFloat(row.PrecioVenta) / 100);
+                    } else {
+                        // Cálculo normal
+                        total = (parseFloat(row.PrecioVenta) * parseFloat(row.ProductoCantidad)) * parseFloat(row.Cantidad);
+                    }
+                    return formatoMoneda.format(total);
+                }
+            },
             { data: 'Peso', width: "15%", visible: false },
             { data: 'UnidadMedida', width: "15%", visible: false },
             {
@@ -923,6 +937,7 @@ async function anadirProducto() {
 
                 // Calcular el total
                 await calcularTotal();
+                calcularDetalleFacturaIVA(selectedProduct);
 
             } else {
                 precioInput.val("");
@@ -1025,30 +1040,11 @@ async function calcularSaldoUsado() {
 async function guardarProducto() {
     const precioSelect = document.getElementById('precioSelect');
     const productoSelect = document.getElementById('productoSelect');
-    const precioManual = parseFloat(convertirMonedaAFloat(document.getElementById('precioInput').value));
-    const totalInput = parseFloat(convertirMonedaAFloat(document.getElementById('totalInput').value));
-    const cantidadInput = parseFloat(document.getElementById('cantidadInput').value) || 1; // Obtener cantidad, por defecto 1 si no es válida
+    const cantidadInput = parseFloat(formatearSinMiles(document.getElementById('cantidadInput').value)) || 1;
     const productoId = productoSelect.value;
     const productoNombre = productoSelect.options[productoSelect.selectedIndex]?.text || '';
     const primerOptionValue = precioSelect.options[0].value;
     let [precioVenta, precioCosto] = primerOptionValue.split(",").map(Number);
-
-    let i = 0;
-
-    Array.from(precioSelect.options).forEach(option => {
-
-        const value = option.value; // Obtener el valor del atributo value
-
-        // Si necesitas trabajar con precios separados por coma
-        const [precioVentaSelect, precioCostoSelect] = value.split(',').map(Number); // Separar precios y convertir a números
-
-        if (precioVentaSelect == parseFloat(precioManual)) {
-            precioVenta = precioVentaSelect;
-            precioCosto = precioCostoSelect;
-        }
-
-        i++;
-    });
 
     const modal = $('#productosModal');
     const isEditing = modal.attr('data-editing') === 'true';
@@ -1056,58 +1052,78 @@ async function guardarProducto() {
 
     const selectedProduct = productos.find(p => p.IdProducto === parseInt(productoId));
 
-    // Verificar si el producto ya existe en la tabla
     let productoExistente = false;
 
+    // Factor sin IVA es la cantidad de productos
+    const factorSinIVA = selectedProduct.ProductoCantidad;
+
+    let importeVentaUnitario = precioVenta;
+    let importeCostoUnitario = precioCosto;
+    let totalVenta = 0;
+
+    if (productoNombre.toUpperCase().includes("FAC. IVA")) {
+        // Lo que paga el cliente: Cantidad * (PrecioVenta%)
+        totalVenta = cantidadInput * (precioVenta / 100);
+
+        // El importeCostoUnitario NO debe calcularse, debe seguir siendo el porcentaje
+        importeCostoUnitario = precioCosto;
+
+        // Para la grilla mostramos como porcentaje
+        importeVentaUnitario = precioVenta;
+   
+    } else {
+        // Normal
+        totalVenta = (importeVentaUnitario * factorSinIVA) * cantidadInput;
+    }
+
     if (isEditing) {
-        // Si estamos editando, solo actualizamos la fila correspondiente
         grdProductos.rows().every(function () {
             const data = this.data();
             if (data.IdProducto == editId) {
                 data.Nombre = productoNombre;
-                data.PrecioVenta = precioManual; // Guardar PrecioVenta
-                data.PrecioCosto = precioCosto; // Guardar PrecioCosto
-                data.ProductoCantidad = selectedProduct.ProductoCantidad; // Usar la cantidad del input
-                data.Cantidad = cantidadInput; // Usar la cantidad del input
-                data.Total = totalInput; // Recalcular el total con formato de moneda
+                data.PrecioVenta = importeVentaUnitario;
+                data.PrecioCosto = importeCostoUnitario;
+                data.ProductoCantidad = factorSinIVA;
+                data.Cantidad = cantidadInput;
+                data.Total = totalVenta;
                 this.data(data).draw();
             }
         });
     } else {
-        // Buscar si el producto ya existe en la tabla
         grdProductos.rows().every(function () {
             const data = this.data();
             if (data.IdProducto == productoId) {
-                // Producto existe, sumamos las cantidades y recalculamos el total
-                data.Cantidad += cantidadInput; // Sumar la cantidad proporcionada
-                data.Total = precioManual * data.Cantidad; // Recalcular el total con formato de moneda
+                // Si no es FAC. IVA, sumamos cantidad
+                if (!productoNombre.toUpperCase().includes("FAC. IVA")) {
+                    data.Cantidad += cantidadInput;
+                    data.Total = (data.PrecioVenta * data.ProductoCantidad) * data.Cantidad;
+                }
                 this.data(data).draw();
                 productoExistente = true;
             }
         });
 
         if (!productoExistente) {
-            // Si no existe, agregar un nuevo producto
             grdProductos.row.add({
                 IdProducto: productoId,
                 Nombre: productoNombre,
-                ProductoCantidad: selectedProduct.ProductoCantidad,
-                PrecioVenta: precioManual,
-                PrecioCosto: precioCosto,
+                ProductoCantidad: factorSinIVA,
+                PrecioVenta: importeVentaUnitario,
+                PrecioCosto: importeCostoUnitario,
                 Cantidad: cantidadInput,
-                Total: totalInput,
+                Total: totalVenta,
                 UnidadMedida: selectedProduct.UnidadMedida || "",
                 Peso: selectedProduct.Peso || 0
             }).draw();
-
         }
     }
 
-    // Limpiar y cerrar el modal
     modal.modal('hide');
-
     await calcularDatosPedido();
 }
+
+
+
 
 async function calcularDatosPedido() {
     let pedidoVenta = 0, pedidoCosto = 0, pagosaproveedores = 0, pagosclientes = 0, restantecliente = 0, restanteproveedor = 0, pedidoVentaFinal = 0, totalPagaraProveedor = 0;
@@ -1119,10 +1135,21 @@ async function calcularDatosPedido() {
     if (grdProductos != null && grdProductos.rows().count() > 0) {
         grdProductos.rows().every(function () {
             const producto = this.data();
-            pedidoVenta += (parseFloat(producto.PrecioVenta) * producto.ProductoCantidad) * producto.Cantidad;
-            pedidoCosto += (parseFloat(producto.PrecioCosto) * producto.ProductoCantidad) * producto.Cantidad;
+
+            if (producto.Nombre.toUpperCase().includes("FAC. IVA")) {
+                // Venta = cantidad * %venta
+                pedidoVenta += producto.Cantidad * (parseFloat(producto.PrecioVenta) / 100);
+
+                // Costo = cantidad * productocantidad * %costo
+                pedidoCosto += producto.Cantidad * producto.ProductoCantidad * (parseFloat(producto.PrecioCosto) / 100);
+            } else {
+                pedidoVenta += (parseFloat(producto.PrecioVenta) * producto.ProductoCantidad) * producto.Cantidad;
+                pedidoCosto += (parseFloat(producto.PrecioCosto) * producto.ProductoCantidad) * producto.Cantidad;
+            }
+
         });
     }
+
 
     if (grdPagosaProveedores != null && grdPagosaProveedores.rows().count() > 0) {
         grdPagosaProveedores.rows().every(function () {
@@ -1138,17 +1165,17 @@ async function calcularDatosPedido() {
         });
     }
 
+    const flete = parseFloat(convertirMonedaAFloat(costoFlete.value));
 
-    totalGanancia = pedidoVenta - pedidoCosto - parseFloat(convertirMonedaAFloat(costoFlete.value));
-    porcGanancia = pedidoCosto > 0 ? (totalGanancia / pedidoCosto) * 100 : 0;
+    const totalGanancia = pedidoVenta - pedidoCosto - flete;
+    const porcGanancia = pedidoCosto > 0 ? (totalGanancia / pedidoCosto) * 100 : 0;
 
     restanteproveedor = pedidoCosto - pagosaproveedores;
-    pedidoVentaFinal = pedidoVenta + parseFloat(convertirMonedaAFloat(costoFlete.value));
-    restantecliente = pedidoVentaFinal - pagosclientes
+    pedidoVentaFinal = pedidoVenta + flete;
+    restantecliente = pedidoVentaFinal - pagosclientes;
 
-    totalPagaraProveedor = pedidoCosto + parseFloat(convertirMonedaAFloat(costoFlete.value));
+    totalPagaraProveedor = pedidoCosto + flete;
 
-    //document.getElementById("total").value = formatoMoneda.format(pedidoVenta);
     document.getElementById("totalPagoProveedor").value = formatoMoneda.format(parseFloat(totalPagaraProveedor));
     document.getElementById("totalPagadoaProveedor").value = formatoMoneda.format(parseFloat(pagosaproveedores));
     document.getElementById("totalPagoCliente").value = formatoMoneda.format(parseFloat(pedidoVentaFinal));
@@ -1156,29 +1183,19 @@ async function calcularDatosPedido() {
     document.getElementById("totalGanancia").value = formatoMoneda.format(parseFloat(totalGanancia));
     document.getElementById("porcGanancia").value = `${porcGanancia.toFixed(2)}%`;
 
-
-
-
-
-
     inputRestanteProveedor.value = formatoMoneda.format(restanteproveedor);
-
-    // Cambiar el color según el valor de restanteproveedor
     if (restanteproveedor < 0) {
-        inputRestanteProveedor.style.setProperty("color", "red", "important"); // Aplicar color rojo con !important
+        inputRestanteProveedor.style.setProperty("color", "red", "important");
     } else {
-        inputRestanteProveedor.style.setProperty("color", "black", "important"); // Aplicar color blanco con !important
+        inputRestanteProveedor.style.setProperty("color", "black", "important");
     }
 
     inputRestanteCliente.value = formatoMoneda.format(restantecliente);
-
-    // Cambiar el color según el valor de restanteproveedor
     if (restantecliente < 0) {
-        inputRestanteCliente.style.setProperty("color", "red", "important"); // Aplicar color rojo con !important
+        inputRestanteCliente.style.setProperty("color", "red", "important");
     } else {
-        inputRestanteCliente.style.setProperty("color", "black", "important"); // Aplicar color blanco con !important
+        inputRestanteCliente.style.setProperty("color", "black", "important");
     }
-
 }
 
 
@@ -1374,7 +1391,7 @@ async function abrirModalProducto(isEdit = false, productoId = null) {
 
 async function calcularTotal() {
     const precioRaw = document.getElementById('precioInput').value;
-    const cantidad = parseFloat(document.getElementById('cantidadInput').value) || 0;
+    const cantidad = parseFloat(formatearSinMiles(document.getElementById('cantidadInput').value)) || 0;
     const cantidadProducto = parseFloat(document.getElementById('productoCantidad').value) || 0;
 
     // Extraer solo el número del campo precio
@@ -1393,6 +1410,11 @@ async function calcularTotal() {
     const selectedProduct = productos.find(p => p.IdProducto === productoId);
 
     calcularBarras(selectedProduct, cantidad)
+
+    
+
+    calcularDetalleFacturaIVA(selectedProduct);
+
     
 }
 
@@ -2135,3 +2157,70 @@ $('#Proveedores').on('change', async function () {
 
     cargarDatosProveedor(data);
 });
+
+document.querySelectorAll("#cantidadInput").forEach(input => {
+    input.addEventListener("input", function () {
+        const cursorPos = this.selectionStart;
+        const originalLength = this.value.length;
+
+        const formateado = formatearMiles(this.value);
+        this.value = formateado;
+
+        const newLength = formateado.length;
+        this.setSelectionRange(
+            cursorPos + (newLength - originalLength),
+            cursorPos + (newLength - originalLength)
+        );
+    });
+});
+
+function calcularDetalleFacturaIVA(selectedProduct) {
+    const detalleDiv = document.getElementById("detalleFacturaIVA");
+    const divTotal = document.getElementById("divTotal"); // 🚀 capturamos el div
+
+    if (!detalleDiv) return;
+
+    if (!selectedProduct || !selectedProduct.Nombre || !selectedProduct.Nombre.toUpperCase().includes("FAC. IVA")) {
+        detalleDiv.style.display = "none";
+
+        // Si NO es FAC. IVA, mostrar el total
+        if (divTotal) divTotal.style.display = "block";
+        return;
+    }
+
+    detalleDiv.style.display = "block";
+
+    // Si ES FAC. IVA, ocultar el total
+    if (divTotal) divTotal.style.display = "none";
+
+    // Factor para quitar el 21% IVA
+    const factorSinIVA = parseFloat(document.getElementById('productoCantidad').value) || 1;
+
+    // Cantidad = Fac IVA
+    const cantidadFacIVA = parseFloat(formatearSinMiles(document.getElementById('cantidadInput').value));
+
+    // Fac. SIN IVA
+    const facSinIVA = cantidadFacIVA * factorSinIVA;
+
+    // Porcentaje venta del input oculto
+    const precioVentaPorc = parseFloat(convertirMonedaAFloat(document.getElementById('precioInput').value)) || 0;
+
+    // Porcentaje proveedor = precio costo
+    const precioProveedorPorc = parseFloat(selectedProduct.Precios[0].PrecioCosto) || 0;
+
+    // Venta sobre Fac. IVA
+    const venta = cantidadFacIVA * (precioVentaPorc / 100);
+
+    // Costo sobre Fac. SIN IVA
+    const costo = facSinIVA * (precioProveedorPorc / 100);
+
+    const ganancia = venta - costo;
+
+    document.getElementById("facIVA").textContent = formatoMoneda.format(cantidadFacIVA);
+    document.getElementById("facSinIVA").textContent = formatoMoneda.format(facSinIVA);
+    document.getElementById("precioProveedor").textContent = precioProveedorPorc.toFixed(2) + "%";
+    document.getElementById("precioVenta").textContent = precioVentaPorc.toFixed(2) + "%";
+    document.getElementById("venta").textContent = formatoMoneda.format(venta);
+    document.getElementById("costo").textContent = formatoMoneda.format(costo);
+    document.getElementById("ganancia").textContent = formatoMoneda.format(ganancia);
+}

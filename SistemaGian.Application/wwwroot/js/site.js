@@ -200,3 +200,19 @@ function formatearFechaParaVista(fecha) {
     const m = moment(fecha, [moment.ISO_8601, 'YYYY-MM-DD HH:mm:ss', 'YYYY-MM-DD']);
     return m.isValid() ? m.format('DD/MM/YYYY') : '';
 }
+
+function formatearMiles(valor) {
+    let num = String(valor).replace(/\D/g, '');
+    return num.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+}
+
+function formatearSinMiles(valor) {
+    if (!valor) return 0;
+
+    // Si no tiene puntos, devolvés directamente el número original
+    if (!valor.includes('.')) return parseFloat(valor) || 0;
+
+    const limpio = valor.replace(/\./g, '').replace(',', '.');
+    const num = parseFloat(limpio);
+    return isNaN(num) ? 0 : num;
+}

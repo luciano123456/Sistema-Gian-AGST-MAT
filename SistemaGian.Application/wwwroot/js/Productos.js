@@ -754,8 +754,7 @@ function nuevoProducto() {
     document.getElementById("txtPrecioVenta").classList.remove("txtEdicion");
     document.getElementById('txtTotal').setAttribute('hidden', 'hidden');
     document.getElementById('lblTotal').setAttribute('hidden', 'hidden');
-    document.getElementById('txtProductoCantidad').setAttribute('hidden', 'hidden');
-    document.getElementById('lblProductoCantidad').setAttribute('hidden', 'hidden');
+    document.getElementById('divProductoCantidad').setAttribute('hidden', 'hidden');
     $('#modalEdicion').modal('show');
     $("#btnGuardar").text("Registrar");
     $("#modalEdicionLabel").text("Nuevo Producto");
@@ -1831,14 +1830,19 @@ $('#UnidadesDeMedidas').on('change', function () {
     actualizarProductoCantidad();
 });
 
+$('#txtDescripcion').on('change', function () {
+    actualizarProductoCantidad();
+});
+
+
 function actualizarProductoCantidad() {
     const selectedText = $('#UnidadesDeMedidas option:selected').text(); // Obtiene el texto seleccionado
     const idCliente = parseInt(document.getElementById("clientesfiltro").value);
+    const nombreProducto = document.getElementById("txtDescripcion").value;
 
-    if (selectedText === 'Pallet') {
+    if (selectedText === 'Pallet' || nombreProducto == 'Fac. IVA') {
         // Muestra el label y el input
-        document.getElementById('txtProductoCantidad').removeAttribute('hidden');
-        document.getElementById('lblProductoCantidad').removeAttribute('hidden');
+        document.getElementById('divProductoCantidad').removeAttribute('hidden');
         document.getElementById('txtTotal').removeAttribute('hidden');
         document.getElementById('lblTotal').removeAttribute('hidden');
 
@@ -1851,8 +1855,7 @@ function actualizarProductoCantidad() {
         // Oculta el label y el input
         document.getElementById('txtTotal').setAttribute('hidden', 'hidden');
         document.getElementById('lblTotal').setAttribute('hidden', 'hidden');
-        document.getElementById('txtProductoCantidad').setAttribute('hidden', 'hidden');
-        document.getElementById('lblProductoCantidad').setAttribute('hidden', 'hidden');
+        document.getElementById('divProductoCantidad').setAttribute('hidden', 'hidden');
     }
 }
 
