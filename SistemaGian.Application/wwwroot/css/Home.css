@@ -1,4 +1,4 @@
-
+ï»¿
 html {
     font-size: 14px;
 }
@@ -75,17 +75,17 @@ html {
 
     .btnModificarConfiguracion-container {
     display: flex;
-    justify-content: center; /* Centra el botón horizontalmente */
-    align-items: center; /* Centra el botón verticalmente (si es necesario) */
-    width: 100%; /* Asegúrate de que el contenedor tome el ancho completo del modal */
+    justify-content: center; /* Centra el botÃ³n horizontalmente */
+    align-items: center; /* Centra el botÃ³n verticalmente (si es necesario) */
+    width: 100%; /* AsegÃºrate de que el contenedor tome el ancho completo del modal */
     margin-bottom: 10px;
 }
 
 .btnAgregarConfiguracion-container {
     display: flex;
-    justify-content: right; /* Centra el botón horizontalmente */
-    align-items: center; /* Centra el botón verticalmente (si es necesario) */
-    width: 100%; /* Asegúrate de que el contenedor tome el ancho completo del modal */
+    justify-content: right; /* Centra el botÃ³n horizontalmente */
+    align-items: center; /* Centra el botÃ³n verticalmente (si es necesario) */
+    width: 100%; /* AsegÃºrate de que el contenedor tome el ancho completo del modal */
     margin-bottom: 10px;
     margin-top: 30px;
     
@@ -326,3 +326,26 @@ background: #240370;
 
 
 
+.marca-agua-svg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9999;
+    background-image: url("data:image/svg+xml;utf8, <svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'> <text x='150' y='150' font-size='20' fill='yellow' text-anchor='middle' transform='rotate(-45 150 150)'> âš  AMBIENTE TEST âš  </text> </svg>");
+    background-repeat: repeat;
+    opacity: 0.1;
+    animation: respirar 4s ease-in-out infinite;
+}
+
+@keyframes respirar {
+    0%, 100% {
+        opacity: 0.1;
+    }
+
+    50% {
+        opacity: 0.3;
+    }
+}
