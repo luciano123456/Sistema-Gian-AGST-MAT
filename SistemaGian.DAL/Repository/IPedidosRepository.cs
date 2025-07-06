@@ -29,6 +29,7 @@ namespace SistemaGian.DAL.Repository
         Task<bool> EliminarPagoCliente(int idPago);
         Task<bool> EliminarPagoProveedor(int idPago);
         Task<IQueryable<Pedido>> ObtenerTodos();
+        Task<int> ObtenerUltimoNroRemito();
 
     }
 }
