@@ -96,5 +96,9 @@ namespace SistemaGian.BLL.Service
             return await _contactRepo.ObtenerTodos();
         }
 
+        public async Task<int> ObtenerUltimoNroRemito()
+        {
+            return await _contactRepo.ObtenerUltimoNroRemito();
+        }
     }
 }
