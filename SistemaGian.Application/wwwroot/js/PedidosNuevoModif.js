@@ -31,6 +31,11 @@ $(document).ready(async function () {
         await cargarDatosPedido()
     } else {
 
+        const proximoNro = await obtenerProximoNroRemito();
+
+        // Asignarlo al input
+        document.getElementById("nroRemito").value = proximoNro.valor + 1;
+
         const idPedido = 0; // Reemplaza con el id correspondiente
 
         await cargarDataTableProductos(null);
@@ -211,9 +216,11 @@ async function insertarDatosPedido(datosPedido) {
     document.getElementById("divDatosPedido").removeAttribute("hidden");
     document.getElementById("IdPedido").value = datosPedido.Id;
 
+    document.getElementById("titulopedido").innerText = "Editar Pedido";
 
     //Cargamos Datos del Cliente
     document.getElementById("idCliente").value = datosPedido.IdCliente;
+   
     document.getElementById("Clientes").value = datosPedido.IdCliente;
     document.getElementById("direccionCliente").value = datosPedido.DireccionCliente;
     document.getElementById("telefonoCliente").value = datosPedido.TelefonoCliente;
@@ -2280,4 +2287,17 @@ function calcularDetalleFacturaIVA(selectedProduct) {
     document.getElementById("venta").textContent = formatoMoneda.format(venta);
     document.getElementById("costo").textContent = formatoMoneda.format(costo);
     document.getElementById("ganancia").textContent = formatoMoneda.format(ganancia);
+}
+
+
+async function obtenerProximoNroRemito() {
+    try {
+        const response = await fetch('/Pedidos/ObtenerProximoNroRemito');
+        if (!response.ok) throw new Error('Error al obtener el número de partida.');
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error:', error);
+        return '';
+    }
 }

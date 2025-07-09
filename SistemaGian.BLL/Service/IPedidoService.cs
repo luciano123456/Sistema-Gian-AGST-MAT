@@ -22,5 +22,6 @@ namespace SistemaGian.BLL.Service
         Task<bool> EliminarPagoCliente(int idPago);
         Task<bool> EliminarPagoProveedor(int idPago);
         Task<IQueryable<Pedido>> ObtenerTodos();
+        Task<int> ObtenerUltimoNroRemito();
     }
 }

@@ -357,8 +357,9 @@ namespace SistemaGian.DAL.Repository
                             Observaciones = $"Uso de saldo por nuevo pago del pedido N° {idPedido}"
                         });
 
-                        _dbcontext.PagosPedidosClientes.Add(p);
+                      
                     }
+                        _dbcontext.PagosPedidosClientes.Add(p);
                     }
                 }
 
@@ -390,7 +391,6 @@ namespace SistemaGian.DAL.Repository
                     _dbcontext.PagosPedidosProveedores.RemoveRange(pagosExistentes);
 
                     await _dbcontext.SaveChangesAsync();
-                    return true;
                 }
 
                 // ✅ Si hay pagos nuevos, actualizar lo necesario
@@ -708,6 +708,24 @@ namespace SistemaGian.DAL.Repository
                 .Include(c => c.IdProveedorNavigation);
             return await Task.FromResult(query);
         }
+
+        public async Task<int> ObtenerUltimoNroRemito()
+        {
+            var ultimoNroRemitoStr = await _dbcontext.Pedidos
+                .OrderByDescending(p => p.NroRemito)
+                .Select(p => p.NroRemito)
+                .FirstOrDefaultAsync();
+
+            if (string.IsNullOrWhiteSpace(ultimoNroRemitoStr))
+                return 0;
+
+            if (int.TryParse(ultimoNroRemitoStr, out int nro))
+                return nro;
+
+            return 0;
+        }
+
+
 
 
     }

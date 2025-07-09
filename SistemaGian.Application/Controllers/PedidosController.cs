@@ -47,12 +47,11 @@ namespace SistemaGian.Application.Controllers
         {
             if (id.HasValue)
             {
-                // Obtén el pedido según el ID
+                // Modo edición
                 var pedido = await _pedidoservice.ObtenerPedido(id.Value);
 
                 if (pedido != null)
                 {
-                    // Mapea los datos del pedido a un ViewModel
                     var vmPedido = new VMPedido
                     {
                         Id = pedido.Id,
@@ -74,25 +73,30 @@ namespace SistemaGian.Application.Controllers
                         PorcGanancia = pedido.PorcGanancia,
                         Estado = pedido.Estado,
                         Observacion = pedido.Observacion,
-                        SaldoAFavor = pedido.IdClienteNavigation.SaldoAfavor,
-                        Zona = pedido.IdZona.HasValue && pedido.IdZona.Value > 0 ? (await _zonaService.Obtener(pedido.IdZona.Value, -1)).Nombre : "",
-
+                        SaldoAFavor = pedido.IdClienteNavigation?.SaldoAfavor ?? 0,
+                        Zona = pedido.IdZona.HasValue && pedido.IdZona.Value > 0
+                            ? (await _zonaService.Obtener(pedido.IdZona.Value, -1)).Nombre
+                            : ""
                     };
 
-                    // Pasar los datos a la vista mediante ViewBag o ViewModel
                     ViewBag.Data = vmPedido;
                 }
                 else
                 {
-                    // Maneja el caso en el que no se encuentra el pedido
                     ViewBag.Error = "No se encontró el pedido.";
                 }
             }
-
-            // Retorna la vista
+            
             return View();
         }
 
+
+        [HttpGet]
+        public async Task<IActionResult> ObtenerProximoNroRemito()
+        {
+            int respuesta = await _pedidoservice.ObtenerUltimoNroRemito();
+            return Ok(new { valor = respuesta });
+        }
 
         // Método de ejemplo para obtener datos
         private object ObtenerDatosPorId(int id)
