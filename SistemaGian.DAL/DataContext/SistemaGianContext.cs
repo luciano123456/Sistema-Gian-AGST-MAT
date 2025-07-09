@@ -19,7 +19,6 @@ public partial class SistemaGianContext : DbContext
 
     private readonly IConfiguration _configuration;
 
-
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         if (!optionsBuilder.IsConfigured)
@@ -28,6 +27,11 @@ public partial class SistemaGianContext : DbContext
             optionsBuilder.UseSqlServer(connectionString);
         }
     }
+
+
+    public virtual DbSet<AcopioHistorial> AcopioHistorial { get; set; }
+
+    public virtual DbSet<AcopioStockActual> AcopioStockActual { get; set; }
 
     public virtual DbSet<Chofer> Choferes { get; set; }
 
@@ -74,9 +78,47 @@ public partial class SistemaGianContext : DbContext
     public virtual DbSet<ZonasCliente> ZonasClientes { get; set; }
 
 
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<AcopioHistorial>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__Acopio_H__3214EC073EB4E8B4");
+
+            entity.ToTable("Acopio_Historial");
+
+            entity.Property(e => e.Egreso).HasColumnType("decimal(20, 2)");
+            entity.Property(e => e.Fecha)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.Ingreso).HasColumnType("decimal(20, 2)");
+            entity.Property(e => e.Observaciones)
+                .HasMaxLength(250)
+                .IsUnicode(false);
+
+            entity.HasOne(d => d.IdProductoNavigation).WithMany(p => p.AcopioHistorial)
+                .HasForeignKey(d => d.IdProducto)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_AcopioHistorial_Producto");
+        });
+
+        modelBuilder.Entity<AcopioStockActual>(entity =>
+        {
+            entity.HasKey(e => e.IdProducto).HasName("PK__Acopio_S__098892100FB8CA8A");
+
+            entity.ToTable("Acopio_StockActual");
+
+            entity.Property(e => e.IdProducto).ValueGeneratedNever();
+            entity.Property(e => e.CantidadActual).HasColumnType("decimal(20, 2)");
+            entity.Property(e => e.FechaUltimaActualizacion)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+
+            entity.HasOne(d => d.IdProductoNavigation).WithOne(p => p.AcopioStockActual)
+                .HasForeignKey<AcopioStockActual>(d => d.IdProducto)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_AcopioStockActual_Producto");
+        });
+
         modelBuilder.Entity<Chofer>(entity =>
         {
             entity.Property(e => e.Direccion)
@@ -218,6 +260,7 @@ public partial class SistemaGianContext : DbContext
         modelBuilder.Entity<PedidosProducto>(entity =>
         {
             entity.Property(e => e.Cantidad).HasColumnType("decimal(20, 2)");
+            entity.Property(e => e.CantidadUsadaAcopio).HasColumnType("decimal(20, 2)");
             entity.Property(e => e.PrecioCosto).HasColumnType("decimal(20, 2)");
             entity.Property(e => e.PrecioVenta).HasColumnType("decimal(20, 2)");
             entity.Property(e => e.ProductoCantidad).HasColumnType("decimal(20, 10)");
@@ -338,7 +381,7 @@ public partial class SistemaGianContext : DbContext
                 .HasColumnName("Porc_Ganancia_Anterior");
             entity.Property(e => e.ProductoCantidad).HasColumnType("decimal(20, 10)");
 
-            entity.HasOne(d => d.IdClienteNavigation).WithMany(p => p.ProductosPreciosHistorials)
+            entity.HasOne(d => d.IdClienteNavigation).WithMany(p => p.ProductosPreciosHistorial)
                 .HasForeignKey(d => d.IdCliente)
                 .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("FK_ProductosPreciosHistorial_Clientes");

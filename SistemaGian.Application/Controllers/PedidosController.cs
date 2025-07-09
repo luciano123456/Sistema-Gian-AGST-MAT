@@ -253,6 +253,7 @@ namespace SistemaGian.Application.Controllers
                         PrecioVenta = producto.PrecioVenta,
                         ProductoCantidad = producto.ProductoCantidad,
                         Cantidad = producto.Cantidad,
+                        CantidadUsadaAcopio = producto.CantidadUsadaAcopio
                     };
                     pedidosProducto.Add(nuevoProducto);
                 }
@@ -359,6 +360,7 @@ namespace SistemaGian.Application.Controllers
                             PrecioVenta = producto.PrecioVenta,
                             ProductoCantidad = producto.ProductoCantidad,
                             Cantidad = producto.Cantidad,
+                            CantidadUsadaAcopio = producto.CantidadUsadaAcopio
                         };
                         pedidosProducto.Add(nuevoProducto);
                     }
@@ -461,7 +463,9 @@ namespace SistemaGian.Application.Controllers
                     Nombre = p.IdProductoNavigation.Descripcion,
                     Total = p.PrecioVenta * p.Cantidad,
                     Peso = p.IdProductoNavigation.Peso,
-                    UnidadMedida = p.IdProductoNavigation.IdUnidadDeMedidaNavigation.Nombre
+                    UnidadMedida = p.IdProductoNavigation.IdUnidadDeMedidaNavigation.Nombre,
+                    CantidadUsadaAcopio = p.CantidadUsadaAcopio
+
                 }).ToList();
 
 

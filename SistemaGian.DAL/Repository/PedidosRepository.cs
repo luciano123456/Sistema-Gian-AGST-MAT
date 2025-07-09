@@ -45,8 +45,8 @@ namespace SistemaGian.DAL.Repository
             {
                 try
                 {
-
                     decimal devolucionPagos = 0;
+
                     // Obtener el pedido
                     var pedido = _dbcontext.Pedidos.FirstOrDefault(c => c.Id == idPedido);
                     if (pedido == null)
@@ -60,30 +60,55 @@ namespace SistemaGian.DAL.Repository
                     // Devolver el saldo usado en cada pago
                     foreach (var pago in pagosCliente)
                     {
-                        // Este método suma saldo al cliente
-
                         devolucionPagos = pago.SaldoUsado;
-                        
                     }
 
-                    if(devolucionPagos > 0)
+                    if (devolucionPagos > 0)
                     {
                         await _clienteRepository.SumarSaldoInterno((int)pedido.IdCliente, devolucionPagos,
                             $"Devolución por eliminación del pedido N° {pedido.Id}");
                     }
+
                     // Eliminar los pagos de cliente
                     _dbcontext.PagosPedidosClientes.RemoveRange(pagosCliente);
 
-                    // Eliminar los pagos de proveedor (opcional, si aplica)
+                    // Eliminar los pagos de proveedor
                     var pagosProveedor = await _dbcontext.PagosPedidosProveedores
                         .Where(p => p.IdPedido == idPedido)
                         .ToListAsync();
                     _dbcontext.PagosPedidosProveedores.RemoveRange(pagosProveedor);
 
-                    // Eliminar los productos
+                    // Obtener los productos del pedido
                     var productos = await _dbcontext.PedidosProductos
                         .Where(p => p.IdPedido == idPedido)
                         .ToListAsync();
+
+                    foreach (var producto in productos)
+                    {
+                        if (producto.CantidadUsadaAcopio > 0)
+                        {
+                            var stock = await _dbcontext.AcopioStockActual
+                                .FirstOrDefaultAsync(x => x.IdProducto == producto.IdProducto);
+
+                            if (stock != null)
+                            {
+                                // Sumar la cantidad devuelta al stock
+                                stock.CantidadActual += producto.CantidadUsadaAcopio;
+
+                                // Registrar historial
+                                _dbcontext.AcopioHistorial.Add(new AcopioHistorial
+                                {
+                                    IdProducto = (int)producto.IdProducto,
+                                    Fecha = DateTime.Now,
+                                    Ingreso = producto.CantidadUsadaAcopio,
+                                    Egreso = null,
+                                    Observaciones = $"Devolución de acopio por eliminación del pedido N° {idPedido}"
+                                });
+                            }
+                        }
+                    }
+
+                    // Eliminar los productos
                     _dbcontext.PedidosProductos.RemoveRange(productos);
 
                     // Eliminar el pedido
@@ -101,6 +126,7 @@ namespace SistemaGian.DAL.Repository
                 }
             }
         }
+
 
 
         public async Task<bool> Actualizar(Pedido pedido, List<PagosPedidosCliente> pagosCliente, List<PagosPedidosProveedor> pagosProveedores, List<PedidosProducto> productos)
@@ -414,31 +440,107 @@ namespace SistemaGian.DAL.Repository
                 foreach (var idPedido in idPedidos)
                 {
                     var productosExistentes = await _dbcontext.PedidosProductos
-                                                              .Where(x => x.IdPedido == idPedido)
-                                                              .ToListAsync();
+                        .Where(x => x.IdPedido == idPedido)
+                        .ToListAsync();
 
-                    // Eliminar los productos que no están en la lista
                     var productosAEliminar = productosExistentes
-                                             .Where(pe => !productos.Any(p => p.IdPedido == pe.IdPedido && p.IdProducto == pe.IdProducto))
-                                             .ToList();
+                        .Where(pe => !productos.Any(p => p.IdPedido == pe.IdPedido && p.IdProducto == pe.IdProducto))
+                        .ToList();
+
+                    foreach (var eliminado in productosAEliminar)
+                    {
+                        if (eliminado.CantidadUsadaAcopio > 0)
+                        {
+                            var stock = await _dbcontext.AcopioStockActual
+                                .FirstOrDefaultAsync(x => x.IdProducto == eliminado.IdProducto);
+                            if (stock != null)
+                            {
+                                stock.CantidadActual += eliminado.CantidadUsadaAcopio;
+
+                                _dbcontext.AcopioHistorial.Add(new AcopioHistorial
+                                {
+                                    IdProducto = (int)eliminado.IdProducto,
+                                    Fecha = DateTime.Now,
+                                    Ingreso = eliminado.CantidadUsadaAcopio,
+                                    Egreso = 0,
+                                    Observaciones = $"Devolución por eliminación del producto en pedido N° {idPedido}"
+                                });
+                            }
+                        }
+                    }
 
                     _dbcontext.PedidosProductos.RemoveRange(productosAEliminar);
 
-                    // Insertar los productos nuevos o actualizar los existentes
-                    foreach (PedidosProducto p in productos)
+                    foreach (var p in productos)
                     {
                         var productoExistente = productosExistentes
-                                                .FirstOrDefault(x => x.IdPedido == p.IdPedido && x.IdProducto == p.IdProducto);
+                            .FirstOrDefault(x => x.IdPedido == p.IdPedido && x.IdProducto == p.IdProducto);
+
+                        var stock = await _dbcontext.AcopioStockActual
+                            .FirstOrDefaultAsync(x => x.IdProducto == p.IdProducto);
 
                         if (productoExistente != null)
                         {
+                            var diferencia = p.CantidadUsadaAcopio - productoExistente.CantidadUsadaAcopio;
+
+                            if (diferencia != 0 && stock != null)
+                            {
+                                if (diferencia > 0)
+                                {
+                                    if (stock.CantidadActual < diferencia)
+                                        throw new InvalidOperationException("Stock de acopio insuficiente.");
+
+                                    stock.CantidadActual -= diferencia;
+
+                                    _dbcontext.AcopioHistorial.Add(new AcopioHistorial
+                                    {
+                                        IdProducto = (int)p.IdProducto,
+                                        Fecha = DateTime.Now,
+                                        Ingreso = 0,
+                                        Egreso = diferencia,
+                                        Observaciones = $"Uso adicional por modificación de producto en pedido N° {idPedido}"
+                                    });
+                                }
+                                else
+                                {
+                                    stock.CantidadActual += Math.Abs(diferencia);
+
+                                    _dbcontext.AcopioHistorial.Add(new AcopioHistorial
+                                    {
+                                        IdProducto = (int)p.IdProducto,
+                                        Fecha = DateTime.Now,
+                                        Ingreso = Math.Abs(diferencia),
+                                        Egreso = 0,
+                                        Observaciones = $"Devolución por modificación de producto en pedido N° {idPedido}"
+                                    });
+                                }
+                            }
+
                             productoExistente.PrecioCosto = p.PrecioCosto;
                             productoExistente.PrecioVenta = p.PrecioVenta;
                             productoExistente.Cantidad = p.Cantidad;
                             productoExistente.ProductoCantidad = p.ProductoCantidad;
+                            productoExistente.CantidadUsadaAcopio = p.CantidadUsadaAcopio;
                         }
                         else
                         {
+                            if (p.CantidadUsadaAcopio > 0 && stock != null)
+                            {
+                                if (stock.CantidadActual < p.CantidadUsadaAcopio)
+                                    throw new InvalidOperationException("Stock de acopio insuficiente.");
+
+                                stock.CantidadActual -= p.CantidadUsadaAcopio;
+
+                                _dbcontext.AcopioHistorial.Add(new AcopioHistorial
+                                {
+                                    IdProducto = (int)p.IdProducto,
+                                    Fecha = DateTime.Now,
+                                    Ingreso = 0,
+                                    Egreso = p.CantidadUsadaAcopio,
+                                    Observaciones = $"Uso de acopio por alta de producto en pedido N° {idPedido}"
+                                });
+                            }
+
                             _dbcontext.PedidosProductos.Add(p);
                         }
                     }
@@ -449,10 +551,11 @@ namespace SistemaGian.DAL.Repository
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex); // Opcional: loguear el error
+                Console.WriteLine(ex);
                 return false;
             }
         }
+
 
 
         public async Task<bool> NuevoPedido(Pedido model)

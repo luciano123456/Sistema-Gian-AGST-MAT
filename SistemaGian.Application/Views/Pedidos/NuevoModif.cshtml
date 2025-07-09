@@ -257,6 +257,7 @@
                                     <th>Precio Venta</th>
                                     <th>Cantidad de Productos</th>
                                     <th>Cantidad</th>
+                                    <th>Cant. Acopio</th>
                                     <th>Total</th>
                                     <th>Peso</th>
                                     <th>Unidad Medida</th>
@@ -512,7 +513,16 @@
                             <div class="col-md-2">
                                 <label for="cantidadInput" class="form-label">Cantidad</label>
                                 <input type="text" id="cantidadInput" class="form-control" placeholder="Ingrese cantidad">
+                                
+
                             </div>
+
+                            <div class="col-md-2" id="divCantidadAcopio" hidden>
+                                <label for="cantidadAcopioInput" class="form-label">Cantidad de Acopio</label>
+                                <input type="number" id="cantidadAcopioInput" class="form-control" placeholder="0" min="0">
+                                <label id="lblStockDisponible" class="form-label text-info"></label>
+                            </div>
+
 
                             <div class="col-md-3" id="divTotal">
                                 <label for="totalInput" class="form-label">Total</label>

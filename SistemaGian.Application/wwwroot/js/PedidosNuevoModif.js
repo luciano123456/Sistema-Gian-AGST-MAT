@@ -2,6 +2,8 @@
 let saldoClienteFavor = 0;
 let saldoClienteFavorInicial = 0;
 
+let cantidadAcopioDisponible = 0;
+
 let saldoUsadoInicial = 0;
 
 let editandopagoCliente = false;  // Indica si estamos en modo edición
@@ -619,16 +621,25 @@ async function cargarDataTableProductos(data) {
             { data: 'ProductoCantidad', width: "15%" },
             { data: 'Cantidad', width: "15%" },
             {
-                data: null, // Usamos data null para poder acceder a toda la fila
+                data: 'CantidadUsadaAcopio',
+                width: "15%",
+                render: function (data) {
+                    return data ? data : "0";
+                }
+            },
+            {
+                data: null,
                 width: "15%",
                 render: function (data, type, row) {
                     let total = 0;
+                    const cantidadBase = parseFloat(row.Cantidad) || 0;
+                    const cantidadAcopio = parseFloat(row.CantidadUsadaAcopio) || 0;
+                    const cantidadTotal = cantidadBase + cantidadAcopio;
+
                     if (row.Nombre.toUpperCase().includes("FAC. IVA")) {
-                        // Cálculo FAC. IVA
-                        total = parseFloat(row.Cantidad) * (parseFloat(row.PrecioVenta) / 100);
+                        total = cantidadBase * (parseFloat(row.PrecioVenta) / 100);
                     } else {
-                        // Cálculo normal
-                        total = (parseFloat(row.PrecioVenta) * parseFloat(row.ProductoCantidad)) * parseFloat(row.Cantidad);
+                        total = (parseFloat(row.PrecioVenta) * parseFloat(row.ProductoCantidad)) * cantidadTotal;
                     }
                     return formatoMoneda.format(total);
                 }
@@ -873,6 +884,8 @@ async function anadirProducto() {
 
     productos = productosResponse ? productosResponse.valor : [];
 
+
+
     if (Array.isArray(productos) && productos.length > 0) {
         const productoSelect = $("#productoSelect");
         const precioSelect = $("#precioSelect");
@@ -913,10 +926,44 @@ async function anadirProducto() {
             return false; // No continuar con la adición si todos ya están añadidos
         }
 
-        // Evento para actualizar precios cuando se selecciona un producto
         productoSelect.on("change", async function () {
             const selectedProductId = parseInt(this.value);
             const selectedProduct = productos.find(p => p.IdProducto === selectedProductId);
+
+            // Obtener stock disponible de este producto
+            const acopioResponse = await fetch(`/Acopio/ObtenerStock?id=${selectedProductId}`);
+
+            if (acopioResponse.ok) {
+                const acopioData = await acopioResponse.json();
+                const cantidadDisponible = acopioData.CantidadActual || 0;
+                cantidadAcopioDisponible = acopioData.CantidadActual || 0;
+
+
+                // Mostrar label con stock
+                document.getElementById("lblStockDisponible").innerHTML = `Stock disponible: <b>${cantidadDisponible}</b>`;
+
+                // Mostrar/ocultar campo de cantidad de acopio
+                const divCantidadAcopio = document.getElementById("divCantidadAcopio");
+                if (cantidadAcopioDisponible > 0) {
+                    divCantidadAcopio.hidden = false;
+                } else {
+                    divCantidadAcopio.hidden = true;
+                    document.getElementById("cantidadAcopioInput").value = ""; // limpiar
+                }
+            } else if (acopioResponse.status === 404) {
+                document.getElementById("lblStockDisponible").innerHTML = "";
+                document.getElementById("divCantidadAcopio").hidden = true;
+                document.getElementById("cantidadAcopioInput").value = "";
+            } else {
+                console.error("Error al obtener el stock");
+                document.getElementById("lblStockDisponible").innerHTML = "";
+                document.getElementById("divCantidadAcopio").hidden = true;
+                document.getElementById("cantidadAcopioInput").value = "";
+            }
+
+
+             
+
 
             precioSelect.empty();
             if (selectedProduct && Array.isArray(selectedProduct.Precios) && selectedProduct.Precios.length > 0) {
@@ -928,21 +975,15 @@ async function anadirProducto() {
                     );
                 });
 
-                // Establecer el precio inicial en el input
                 const precioVenta = selectedProduct.Precios[0].PrecioVenta;
                 const precioCosto = selectedProduct.Precios[0].PrecioCosto;
                 const productoCantidad = selectedProduct.ProductoCantidad;
                 const productoUnidadMedida = selectedProduct.UnidadMedida;
-                const diferencia = precioVenta - precioCosto;
 
                 productoCantidadInput.val(productoCantidad);
-           
                 precioInput.val(formatoMoneda.format(precioVenta));
-
                 document.getElementById("productoUnidadMedida").value = productoUnidadMedida;
 
-
-                // Calcular el total
                 await calcularTotal();
                 calcularDetalleFacturaIVA(selectedProduct);
 
@@ -950,6 +991,7 @@ async function anadirProducto() {
                 precioInput.val("");
             }
         });
+
 
         // Evento para actualizar el input de precio cuando se cambia el precio en el select
         precioSelect.on("change", async function () {
@@ -1051,7 +1093,21 @@ async function guardarProducto() {
     const productoId = productoSelect.value;
     const productoNombre = productoSelect.options[productoSelect.selectedIndex]?.text || '';
     const primerOptionValue = precioSelect.options[0].value;
+   
     let [precioVenta, precioCosto] = primerOptionValue.split(",").map(Number);
+
+    const cantidadAcopio = parseFloat(document.getElementById('cantidadAcopioInput').value) || 0;
+
+    if (cantidadAcopio > cantidadAcopioDisponible) {
+        errorModal(`La cantidad de acopio no puede ser mayor al stock disponible (${cantidadAcopioDisponible})`);
+        return;
+    }
+
+    if (cantidadAcopio > cantidadAcopioDisponible) {
+        errorModal(`La cantidad de acopio no puede ser mayor a la cantidad vendida (${cantidadInput})`);
+        return;
+    }
+
 
     const modal = $('#productosModal');
     const isEditing = modal.attr('data-editing') === 'true';
@@ -1080,7 +1136,8 @@ async function guardarProducto() {
    
     } else {
         // Normal
-        totalVenta = (importeVentaUnitario * factorSinIVA) * cantidadInput;
+        const cantidadTotal = cantidadInput + cantidadAcopio;
+        totalVenta = (importeVentaUnitario * factorSinIVA) * cantidadTotal;
     }
 
     if (isEditing) {
@@ -1092,6 +1149,7 @@ async function guardarProducto() {
                 data.PrecioCosto = importeCostoUnitario;
                 data.ProductoCantidad = factorSinIVA;
                 data.Cantidad = cantidadInput;
+                data.CantidadUsadaAcopio = cantidadAcopio; // <-- aquí también
                 data.Total = totalVenta;
                 this.data(data).draw();
             }
@@ -1118,6 +1176,7 @@ async function guardarProducto() {
                 PrecioVenta: importeVentaUnitario,
                 PrecioCosto: importeCostoUnitario,
                 Cantidad: cantidadInput,
+                CantidadUsadaAcopio: cantidadAcopio,
                 Total: totalVenta,
                 UnidadMedida: selectedProduct.UnidadMedida || "",
                 Peso: selectedProduct.Peso || 0
@@ -1143,15 +1202,16 @@ async function calcularDatosPedido() {
         grdProductos.rows().every(function () {
             const producto = this.data();
 
-            if (producto.Nombre.toUpperCase().includes("FAC. IVA")) {
-                // Venta = cantidad * %venta
-                pedidoVenta += producto.Cantidad * (parseFloat(producto.PrecioVenta) / 100);
+            const cantidadBase = parseFloat(producto.Cantidad) || 0;
+            const cantidadAcopio = parseFloat(producto.CantidadUsadaAcopio) || 0;
+            const cantidadTotal = cantidadBase + cantidadAcopio;
 
-                // Costo = cantidad * productocantidad * %costo
-                pedidoCosto += producto.Cantidad * producto.ProductoCantidad * (parseFloat(producto.PrecioCosto) / 100);
+            if (producto.Nombre.toUpperCase().includes("FAC. IVA")) {
+                pedidoVenta += cantidadBase * (parseFloat(producto.PrecioVenta) / 100);
+                pedidoCosto += cantidadBase * producto.ProductoCantidad * (parseFloat(producto.PrecioCosto) / 100);
             } else {
-                pedidoVenta += (parseFloat(producto.PrecioVenta) * producto.ProductoCantidad) * producto.Cantidad;
-                pedidoCosto += (parseFloat(producto.PrecioCosto) * producto.ProductoCantidad) * producto.Cantidad;
+                pedidoVenta += (parseFloat(producto.PrecioVenta) * producto.ProductoCantidad) * cantidadTotal;
+                pedidoCosto += (parseFloat(producto.PrecioCosto) * producto.ProductoCantidad) * cantidadTotal;
             }
 
         });
@@ -1248,153 +1308,144 @@ function actualizarCantidad(rowIndex) {
     rowData.Total = rowData.Precio * cantidad;
     grdProductos.row(rowIndex).data(rowData).draw();
 }
+
 async function abrirModalProducto(isEdit = false, productoId = null) {
-    // Resetear campos del modal
     const productoSelect = document.getElementById('productoSelect');
-    const precioSelect = document.getElementById('precioSelect');  // El select donde se cargarán los precios
-    const precioInput = document.getElementById('precioInput');  // El select donde se cargarán los precios
+    const precioSelect = document.getElementById('precioSelect');
+    const precioInput = document.getElementById('precioInput');
     const cantidadInput = document.getElementById('cantidadInput');
     const productoCantidadInput = document.getElementById('productoCantidad');
     const unidadMedidaInput = $("#productoUnidadMedida");
-    
+    const cantidadAcopioInput = document.getElementById('cantidadAcopioInput');
+    const lblStockDisponible = document.getElementById("lblStockDisponible");
+    const divCantidadAcopio = document.getElementById("divCantidadAcopio");
 
     let i = 0, optionSeleccionado = 0;
 
     productoSelect.value = '';
-    precioSelect.innerHTML = '';  // Limpiar precios anteriores
+    precioSelect.innerHTML = '';
     cantidadInput.value = '';
     precioInput.value = '';
     productoCantidadInput.value = '';
-    unidadMedidaInput.value = '';
-    
+    unidadMedidaInput.val('');
+    cantidadAcopioInput.value = '';
+    lblStockDisponible.innerHTML = '';
+    divCantidadAcopio.hidden = true;
 
-    // Configurar modal para añadir o editar
     const modal = $('#productosModal');
 
     if (isEdit && productoId) {
-        // Cargar datos del producto en el modal si estamos editando
         const productoData = grdProductos.row(function (idx, data) {
             return data.IdProducto == productoId;
         }).data();
 
-
-
         if (productoData) {
-            // Obtener los productos con los últimos precios
-            const idCliente = parseInt($("#idCliente").val());  // Asegúrate de que este valor esté disponible
-            const idProveedor = parseInt($("#idProveedor").val());  // Lo mismo para el proveedor
+            const idCliente = parseInt($("#idCliente").val());
+            const idProveedor = parseInt($("#idProveedor").val());
 
-            // Llamada a la función para obtener los precios del producto
             const productosResponse = await ObtenerUltimosPreciosProducto(idCliente, idProveedor, productoData.IdProducto);
-
             productos = productosResponse ? productosResponse.valor : [];
             const selectedProduct = productos.find(p => p.IdProducto === parseInt(productoId));
+            const cantidadUsadaAcopio = productoData.CantidadUsadaAcopio || 0;
+
 
             document.getElementById("productoUnidadMedida").value = selectedProduct.UnidadMedida;
-          
 
-            if (Array.isArray(productos) && productos.length > 0) {
-                const productoSelect = $("#productoSelect");
-                const precioSelect = $("#precioSelect");
-                const precioInput = $("#precioInput");
-                const cantidadInput = $("#cantidadInput");
-                const productoUnidadMedidaValue = selectedProduct.UnidadMedida;
+            try {
+                const acopioResponse = await fetch(`/Acopio/ObtenerStock?id=${productoData.IdProducto}`);
+                if (acopioResponse.ok) {
+                    const acopioData = await acopioResponse.json();
+                    const stockLibre = acopioData.CantidadActual || 0;
+                    const cantidadYaUsada = cantidadUsadaAcopio || 0;
 
-                productoSelect.empty();
-                precioSelect.empty();
+                    // Para la validación
+                    cantidadAcopioDisponible = stockLibre + cantidadYaUsada;
 
-                // Obtener los productos que ya están en la tabla (evitar duplicados)
-                const productosEnTabla = [];
-                grdProductos.rows().every(function () {
-                    const data = this.data();
-                    productosEnTabla.push(Number(data.IdProducto));
-                });
-
-                // Llenar el select de productos, deshabilitar los ya agregados
-                productos.forEach(producto => {
-                    const option = $(`<option value="${producto.IdProducto}">${producto.Nombre}</option>`);
-
-                    // Deshabilitar si el producto ya está en la tabla
-                    if (productosEnTabla.includes(producto.IdProducto)) {
-                        option.prop('disabled', true); // Deshabilitar la opción si ya está en la tabla
-                    }
-
-                    productoSelect.append(option);
-                });
-            }
-
-            // Verifica la estructura de productosResponse y valor
-            console.log("Respuesta de productos:", productosResponse);
-
-            // Comprueba que 'valor' exista y contenga al menos un producto
-            if (productosResponse && productosResponse.valor && productosResponse.valor.length > 0) {
-                const producto = productosResponse.valor[0];  // Tomamos el primer producto (el actual)
-                console.log("Producto actual:", producto);  // Verifica qué contiene 'producto'
-
-                // Si 'producto' tiene la estructura correcta, puedes continuar
-                if (producto && producto.Precios) {
-                    // Procesa los precios
-                    const precioSelect = $('#precioSelect');
-                    producto.Precios.forEach(precio => {
-                        const option = $(`<option value="${precio.PrecioVenta},${precio.PrecioCosto}">
-                                        ${formatoMoneda.format(precio.PrecioVenta)}
-                                        </option>`);
-
-                        precioSelect.append(option);
-
-                        if (productoData.PrecioVenta == precio.PrecioVenta) {
-                            optionSeleccionado = i;
-                        }
-
-                        i++;
-                    });
-
-
-
-
+                    // Mostrar solo el stock libre
+                    lblStockDisponible.innerHTML = `Stock disponible: <b>${stockLibre}</b>`;
+                } else {
+                    cantidadAcopioDisponible = cantidadUsadaAcopio || 0;
+                    lblStockDisponible.innerHTML = `Stock disponible: <b>0</b>`;
                 }
-            } else {
-                console.log("No se encontraron productos en la respuesta o la propiedad 'valor' está vacía.");
+            } catch (e) {
+                console.error("Error obteniendo acopio", e);
+                cantidadAcopioDisponible = cantidadUsadaAcopio || 0;
+                lblStockDisponible.innerHTML = `Stock disponible: <b>0</b>`;
             }
 
 
 
-            // Cargar datos del producto en el producto select
+            // Mostrar u ocultar div según stock disponible o si el producto ya tenía acopio usado
+            if (cantidadAcopioDisponible > 0 || cantidadUsadaAcopio > 0) {
+                divCantidadAcopio.hidden = false;
+
+                // Si ya tenía acopio usado, mostrar ese valor
+                cantidadAcopioInput.value = cantidadUsadaAcopio > 0 ? cantidadUsadaAcopio : "";
+
+                // Mostrar leyenda indicando cuánto estaba usado y cuánto disponible
+               lblStockDisponible.innerHTML = `Stock disponible: <b>${cantidadAcopioDisponible}</b>`;
+            } else {
+                divCantidadAcopio.hidden = true;
+                cantidadAcopioInput.value = "";
+                lblStockDisponible.innerHTML = "";
+            }
+
+
+            // Llenar selects de productos
+            if (Array.isArray(productos) && productos.length > 0) {
+                productoSelect.innerHTML = '';
+                precioSelect.innerHTML = '';
+
+                productos.forEach(p => {
+                    const option = document.createElement("option");
+                    option.value = p.IdProducto;
+                    option.text = p.Nombre;
+                    productoSelect.appendChild(option);
+                });
+            }
+
+            // Cargar precios
+            if (selectedProduct && selectedProduct.Precios) {
+                selectedProduct.Precios.forEach(precio => {
+                    const option = document.createElement("option");
+                    option.value = `${precio.PrecioVenta},${precio.PrecioCosto}`;
+                    option.text = formatoMoneda.format(precio.PrecioVenta);
+                    precioSelect.appendChild(option);
+
+                    if (productoData.PrecioVenta == precio.PrecioVenta) {
+                        optionSeleccionado = i;
+                    }
+                    i++;
+                });
+            }
+
+            // Setear valores
             productoSelect.value = productoData.IdProducto;
             productoCantidadInput.value = productoData.ProductoCantidad;
             cantidadInput.value = productoData.Cantidad;
+            precioInput.value = formatoMoneda.format(productoData.PrecioVenta);
 
-            document.getElementById("productoUnidadMedida").value = productoData.UnidadMedida != null ? productoData.UnidadMedida : selectedProduct.UnidadMedida;
-
-         
-            
-
-            let precioTotal = productoData.PrecioVenta;
-            precioInput.value = formatoMoneda.format(precioTotal);
-          
-
-            // Deshabilitar el select si estamos editando el producto
             productoSelect.disabled = true;
+            if (precioSelect.options.length > 0) {
+                precioSelect.options[optionSeleccionado].selected = true;
+            }
 
-            precioSelect.options[optionSeleccionado].selected = true;
-
-            // Calcular el total
             await calcularTotal();
-            await calcularBarras(productoData, productoData.Cantidad)
-        }
+            await calcularBarras(productoData, productoData.Cantidad);
 
-        modal.attr('data-editing', 'true');
-        modal.attr('data-id', productoId);
-        $('#btnGuardarProducto').text('Editar Producto');
+            modal.attr('data-editing', 'true');
+            modal.attr('data-id', productoId);
+            $('#btnGuardarProducto').text('Editar Producto');
+        }
     } else {
         modal.attr('data-editing', 'false');
         modal.removeAttr('data-id');
         $('#btnGuardarProducto').text('Añadir Producto');
     }
 
-    // Mostrar el modal
     modal.modal('show');
 }
+
 
 async function calcularTotal() {
     const precioRaw = document.getElementById('precioInput').value;
@@ -1404,7 +1455,12 @@ async function calcularTotal() {
     // Extraer solo el número del campo precio
     const precio = parseFloat(convertirMonedaAFloat(precioRaw));
 
-    const total = (precio * cantidadProducto) * cantidad;
+    const cantidadVendida = parseFloat(formatearSinMiles(document.getElementById('cantidadInput').value)) || 0;
+    const cantidadAcopio = parseFloat(document.getElementById('cantidadAcopioInput')?.value) || 0;
+    const cantidadTotal = cantidadVendida + cantidadAcopio;
+
+    const total = (precio * cantidadProducto) * cantidadTotal;
+
 
     // Mostrar el total formateado en el campo
     document.getElementById('totalInput').value = formatoMoneda.format(total);
@@ -2014,15 +2070,16 @@ async function guardarCambios() {
             grd.rows().every(function () {
                 const producto = this.data();
                 const productoJson = {
-                    "Id": idPedido != "" ? producto.Id : 0,
-                    "IdProducto": parseInt(producto.IdProducto),
-                    "Nombre": producto.Nombre,
-                    "PrecioCosto": parseFloat(producto.PrecioCosto),
-                    "PrecioVenta": parseFloat(producto.PrecioVenta),
-                    "ProductoCantidad": parseFloat(producto.ProductoCantidad),
-                    "Cantidad": parseFloat(producto.Cantidad),
-
+                    Id: idPedido != "" ? producto.Id : 0,
+                    IdProducto: parseInt(producto.IdProducto),
+                    Nombre: producto.Nombre,
+                    PrecioCosto: parseFloat(producto.PrecioCosto),
+                    PrecioVenta: parseFloat(producto.PrecioVenta),
+                    ProductoCantidad: parseFloat(producto.ProductoCantidad),
+                    Cantidad: parseFloat(producto.Cantidad),
+                    CantidadUsadaAcopio: parseFloat(producto.CantidadUsadaAcopio) // NUEVO
                 };
+
                 productos.push(productoJson);
             });
             return productos;

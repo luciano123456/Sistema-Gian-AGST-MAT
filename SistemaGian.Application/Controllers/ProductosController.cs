@@ -235,7 +235,7 @@ namespace SistemaGian.Application.Controllers
                 Image = c.Image,
                 Activo = (int)c.Activo != null ? (int)c.Activo : 1,
                 Orden = c.Orden != null ? c.Orden : 0,
-                Peso = c.Peso
+                Peso = (int)c.Peso
             }).ToList();
 
             var conOrden = baseList.Where(p => p.Orden > 0).OrderBy(p => p.Orden).ToList();
@@ -244,7 +244,7 @@ namespace SistemaGian.Application.Controllers
             var resultado = new List<VMProducto>();
 
             int maxOrden = (int)(conOrden.Any() ? conOrden.Max(p => p.Orden) : 0);
-            int maxIndex = Math.Max(baseList.Count, maxOrden);
+            int maxIndex = Math.Max(baseList.Count, (int)maxOrden); // Ensure maxOrden is cast to int
 
             for (int i = 1; i <= maxIndex; i++)
             {
@@ -292,7 +292,7 @@ namespace SistemaGian.Application.Controllers
                     ProductoCantidad = c.ProductoCantidad,
                     Total = c.PVenta * (int)c.ProductoCantidad,
                     Image = c.Image,
-                    Activo = c.Activo,
+                    Activo = (int)c.Activo,
                     Orden = c.Orden ?? 0 // 👈 Asegurate que c.Orden venga correctamente desde el servicio
                 }).ToList();
 
@@ -358,7 +358,7 @@ namespace SistemaGian.Application.Controllers
                     ProductoCantidad = c.ProductoCantidad,
                     Total = c.PVenta * (int)c.ProductoCantidad,
                     Image = c.Image,
-                    Activo = c.Activo,
+                    Activo = (int)c.Activo,
                     Orden = c.Orden ?? 0 // 👈 Asegurate que c.Orden venga correctamente desde el servicio
                 }).ToList();
 
@@ -547,8 +547,8 @@ namespace SistemaGian.Application.Controllers
                 PorcGanancia = model.PorcGanancia,
                 ProductoCantidad = model.ProductoCantidad != null ? model.ProductoCantidad : 1,
                 Image = model.Image,
-                Peso = model.Peso,
-                Activo = model.Activo
+                Peso = (int)model.Peso,
+                Activo = (int)model.Activo
             };
 
 

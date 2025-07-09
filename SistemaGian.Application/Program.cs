@@ -76,6 +76,15 @@ builder.Services.AddScoped<IEstadosUsuariosService, EstadosUsuariosService>();
 builder.Services.AddScoped<ILoginRepository<User>, LoginRepository>();
 builder.Services.AddScoped<ILoginService, LoginService>();
 
+// Repositorios
+builder.Services.AddScoped<IAcopioHistorialRepository, AcopioHistorialRepository>();
+builder.Services.AddScoped<IAcopioStockActualRepository, AcopioStockActualRepository>();
+
+// Servicios
+builder.Services.AddScoped<IAcopioHistorialService, AcopioHistorialService>();
+builder.Services.AddScoped<IAcopioStockActualService, AcopioStockActualService>();
+
+
 builder.Services.AddControllersWithViews()
     .AddJsonOptions(o =>
     {
