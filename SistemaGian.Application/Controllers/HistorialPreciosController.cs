@@ -11,48 +11,47 @@ namespace SistemaGian.Application.Controllers
     [Authorize]
     public class HistorialPreciosController : Controller
     {
-        private readonly IProductosPrecioHistorialService _ProductosPrecioHistorialService;
+        private readonly IProductosPrecioHistorialService _historialService;
 
-        public HistorialPreciosController(IProductosPrecioHistorialService ProductosPrecioHistorialService)
+        public HistorialPreciosController(IProductosPrecioHistorialService historialService)
         {
-            _ProductosPrecioHistorialService = ProductosPrecioHistorialService;
+            _historialService = historialService;
         }
 
         public async Task<IActionResult> Index()
         {
-            // Obtener el usuario actual desde la sesión usando el helper inyectado
             var userSession = await SessionHelper.GetUsuarioSesion(HttpContext);
 
-            // Si no se pudo obtener el usuario de la sesión
-            if (userSession != null)
+            if (userSession != null && userSession.ModoVendedor == 1)
             {
-                // Verificar si el usuario está en modo vendedor
-                if (userSession.ModoVendedor == 1)
-                {
-                    return RedirectToAction("Index", "Home");
-                }
+                return RedirectToAction("Index", "Home");
             }
+
             return View();
         }
 
         [HttpGet]
         public async Task<IActionResult> Lista(int idProducto, int idProveedor, DateTime FechaDesde, DateTime FechaHasta)
         {
-            var historialPrecios = await _ProductosPrecioHistorialService.ObtenerHistorialProducto(idProducto, idProveedor, FechaDesde, FechaHasta);
+            var historialPrecios = await _historialService.ObtenerHistorialProducto(idProducto, idProveedor, FechaDesde, FechaHasta);
 
-            if(historialPrecios == null)
+            if (historialPrecios == null)
             {
                 return Ok(null);
             }
-            var lista = historialPrecios.Select(c => new VMProductosPreciosHistorial
-            { 
-                  Fecha = c.Fecha,
-                  Id = c.Id,
-                  IdProducto = c.IdProducto,
-                  PVentaNuevo = c.PVentaNuevo,
-                  PCostoNuevo = c.PCostoNuevo,
-                  Producto = c.IdProductoNavigation.Descripcion,
-            }).ToList();
+
+            var lista = historialPrecios
+                .OrderByDescending(c => c.Fecha)
+                .Select(c => new VMProductosPreciosHistorial
+                {
+                    Id = c.Id,
+                    IdProducto = c.IdProducto,
+                    Producto = c.IdProductoNavigation.Descripcion,
+                    PVentaNuevo = c.PVentaNuevo,
+                    PCostoNuevo = c.PCostoNuevo,
+                    Fecha = c.Fecha
+                })
+                .ToList();
 
             return Ok(lista);
         }
@@ -60,16 +59,13 @@ namespace SistemaGian.Application.Controllers
         [HttpDelete]
         public async Task<IActionResult> Eliminar(int id)
         {
-            var eliminado = await _ProductosPrecioHistorialService.Eliminar(id);
+            var eliminado = await _historialService.Eliminar(id);
+
             if (eliminado)
                 return StatusCode(StatusCodes.Status200OK, new { valor = eliminado });
             else
                 return StatusCode(StatusCodes.Status500InternalServerError, new { valor = eliminado, mensaje = "Error al eliminar el registro." });
         }
-
-
-
-
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()

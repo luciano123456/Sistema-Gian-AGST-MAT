@@ -20,4 +20,7 @@ public partial class PedidosProducto
     public virtual Pedido? IdPedidoNavigation { get; set; }
 
     public virtual Producto? IdProductoNavigation { get; set; }
+
+    public decimal CantidadUsadaAcopio { get; set; }
+
 }

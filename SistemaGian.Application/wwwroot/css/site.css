@@ -606,6 +606,11 @@ div.dt-button-collection {
     animation: respirar 4s ease-in-out infinite;
 }
 
+#exitoModal, #AdvertenciaModal, #ErrorModal {
+    z-index: 99999999;
+}
+
+
 @keyframes respirar {
     0%, 100% {
         opacity: 0.1;

@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <Content Remove="wwwroot\css\NavBarLogin.css~RF1f800e21.TMP" />
+    <Content Remove="wwwroot\js\AcopioHistorial.js" />
     <Content Remove="wwwroot\js\Choferes.js" />
     <Content Remove="wwwroot\js\HistorialPRecios.js" />
     <Content Remove="wwwroot\js\Home.js" />
@@ -27,6 +28,7 @@
   <ItemGroup>
     <None Include="wwwroot\Imagenes\Clientes.png" />
     <None Include="wwwroot\js\Login.js" />
+    <None Include="wwwroot\js\AcopioHistorial.js" />
     <None Include="wwwroot\js\Ventas.js" />
     <None Include="wwwroot\js\Pedidos.js" />
     <None Include="wwwroot\js\UsuariosConfiguracion.js" />

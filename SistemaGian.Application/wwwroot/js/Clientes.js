@@ -305,7 +305,7 @@ async function configurarDataTable(data) {
                         return `
             <div class="d-flex align-items-center justify-content-center">
                 <span>${formatNumber(row.SaldoAfavor)}</span>
-                <i class="fa fa-history text-primary ms-2" title="Ver Historial" style="cursor:pointer;"
+                <i class="fa fa-eye text-primary ms-2" title="Ver Historial" style="cursor:pointer;"
                    onclick="verHistorialSaldo(${row.Id})"></i>
             </div>`;
                     }
