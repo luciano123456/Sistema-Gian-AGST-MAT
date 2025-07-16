@@ -36,16 +36,18 @@ namespace SistemaGian.Application.Controllers
                 IdProducto = c.IdProducto,
                 CantidadActual = c.CantidadActual,
                 FechaUltimaActualizacion = c.FechaUltimaActualizacion,
-                NombreProducto = c.IdProductoNavigation.Descripcion
+                NombreProducto = c.IdProductoNavigation.Descripcion,
+                Proveedor = c.IdProveedorNavigation.Nombre,
+                IdProveedor = (int)c.IdProveedor
             }).ToList();
 
             return Ok(lista);
         }
 
         [HttpGet]
-        public async Task<IActionResult> ObtenerStock(int id)
+        public async Task<IActionResult> ObtenerStock(int idProducto, int idProveedor)
         {
-            var c = await _stockService.Obtener(id);
+            var c = await _stockService.Obtener(idProducto, idProveedor);
 
             if (c == null)
                 return NotFound();
@@ -55,7 +57,7 @@ namespace SistemaGian.Application.Controllers
                 IdProducto = c.IdProducto,
                 CantidadActual = c.CantidadActual,
                 FechaUltimaActualizacion = c.FechaUltimaActualizacion,
-                NombreProducto = c.IdProductoNavigation.Descripcion
+                NombreProducto = c.IdProductoNavigation.Descripcion,
             };
 
             return Ok(vm);
@@ -74,7 +76,8 @@ namespace SistemaGian.Application.Controllers
                 Egreso = c.Egreso,
                 Observaciones = c.Observaciones,
                 Fecha = c.Fecha,
-                NombreProducto = c.IdProductoNavigation?.Descripcion
+                NombreProducto = c.IdProductoNavigation?.Descripcion,
+                Proveedor = c.IdProveedorNavigation?.Nombre
             }).ToList();
 
             return Ok(lista);
@@ -89,13 +92,14 @@ namespace SistemaGian.Application.Controllers
                 Ingreso = model.Ingreso,
                 Egreso = model.Egreso,
                 Observaciones = model.Observaciones,
+                IdProveedor = model.IdProveedor,
                 Fecha = DateTime.Now
             };
 
             var resHistorial = await _historialService.Insertar(historialEntity);
 
             // 2) Actualizar o insertar stock actual
-            var stockActual = await _stockService.Obtener(model.IdProducto);
+            var stockActual = await _stockService.Obtener(model.IdProducto, model.IdProveedor);
             if (stockActual != null)
             {
                 // Sumar ingresos, restar egresos
@@ -110,8 +114,10 @@ namespace SistemaGian.Application.Controllers
                 var nuevoStock = new AcopioStockActual
                 {
                     IdProducto = model.IdProducto,
+                    IdProveedor = model.IdProveedor,
                     CantidadActual = (model.Ingreso ?? 0) - (model.Egreso ?? 0),
                     FechaUltimaActualizacion = DateTime.Now
+                  
                 };
                 await _stockService.Insertar(nuevoStock);
             }

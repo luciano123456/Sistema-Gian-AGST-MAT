@@ -931,7 +931,7 @@ async function anadirProducto() {
             const selectedProduct = productos.find(p => p.IdProducto === selectedProductId);
 
             // Obtener stock disponible de este producto
-            const acopioResponse = await fetch(`/Acopio/ObtenerStock?id=${selectedProductId}`);
+            const acopioResponse = await fetch(`/Acopio/ObtenerStock?idProducto=${selectedProductId}&idProveedor=${idProveedor}`);
 
             if (acopioResponse.ok) {
                 const acopioData = await acopioResponse.json();
@@ -1089,7 +1089,7 @@ async function calcularSaldoUsado() {
 async function guardarProducto() {
     const precioSelect = document.getElementById('precioSelect');
     const productoSelect = document.getElementById('productoSelect');
-    const cantidadInput = parseFloat(formatearSinMiles(document.getElementById('cantidadInput').value)) || 1;
+    const cantidadInput = parseFloat(formatearSinMiles(document.getElementById('cantidadInput').value)) || 0;
     const productoId = productoSelect.value;
     const productoNombre = productoSelect.options[productoSelect.selectedIndex]?.text || '';
     const primerOptionValue = precioSelect.options[0].value;
@@ -1352,7 +1352,7 @@ async function abrirModalProducto(isEdit = false, productoId = null) {
             document.getElementById("productoUnidadMedida").value = selectedProduct.UnidadMedida;
 
             try {
-                const acopioResponse = await fetch(`/Acopio/ObtenerStock?id=${productoData.IdProducto}`);
+                const acopioResponse = await fetch(`/Acopio/ObtenerStock?idProducto=${productoData.IdProducto}&idProveedor=${productoData.IdProveedor}`);
                 if (acopioResponse.ok) {
                     const acopioData = await acopioResponse.json();
                     const stockLibre = acopioData.CantidadActual || 0;

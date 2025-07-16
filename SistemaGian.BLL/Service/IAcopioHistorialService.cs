@@ -10,5 +10,6 @@ namespace SistemaGian.BLL.Service
         Task<AcopioHistorial> Obtener(int id);
         Task<IQueryable<AcopioHistorial>> ObtenerTodos();
         Task<List<AcopioHistorial>> ObtenerPorProducto(int idProducto);
+        Task<List<AcopioHistorial>> ObtenerPorProveedor(int IdProveedor);
     }
 }

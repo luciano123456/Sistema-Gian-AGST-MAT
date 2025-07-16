@@ -41,5 +41,10 @@ namespace SistemaGian.BLL.Service
         {
             return await _historialRepo.ObtenerPorProducto(idProducto);
         }
+
+        public async Task<List<AcopioHistorial>> ObtenerPorProveedor(int idProveedor)
+        {
+            return await _historialRepo.ObtenerPorProveedor(idProveedor);
+        }
     }
 }

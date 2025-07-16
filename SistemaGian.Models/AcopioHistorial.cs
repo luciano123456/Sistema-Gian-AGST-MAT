@@ -17,5 +17,9 @@ public partial class AcopioHistorial
 
     public DateTime Fecha { get; set; }
 
+    public int IdProveedor { get; set; }
+
     public virtual Producto IdProductoNavigation { get; set; } = null!;
+
+    public virtual Proveedor? IdProveedorNavigation { get; set; }
 }

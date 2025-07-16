@@ -8,6 +8,7 @@ namespace SistemaGian.Application.Models.ViewModels
         public int Id { get; set; }
 
         public int IdProducto { get; set; }
+        public int IdProveedor { get; set; }
 
         public decimal? Ingreso { get; set; }
 
@@ -18,6 +19,7 @@ namespace SistemaGian.Application.Models.ViewModels
         public DateTime Fecha { get; set; }
 
         public string? NombreProducto { get; set; }
+        public string? Proveedor { get; set; }
     }
 
 }
