@@ -99,6 +99,7 @@ namespace SistemaGian.DAL.Repository
                                 _dbcontext.AcopioHistorial.Add(new AcopioHistorial
                                 {
                                     IdProducto = (int)producto.IdProducto,
+                                    IdProveedor = (int)pedido.IdProveedor,
                                     Fecha = DateTime.Now,
                                     Ingreso = producto.CantidadUsadaAcopio,
                                     Egreso = null,
@@ -154,7 +155,7 @@ namespace SistemaGian.DAL.Repository
                     }
 
                     // Insertar productos
-                    bool productosResult = await InsertarProductos(productos).ConfigureAwait(false);
+                    bool productosResult = await InsertarProductos(productos, (int)pedido.IdProveedor).ConfigureAwait(false);
                     if (!productosResult)
                     {
                         await transaction.RollbackAsync();
@@ -228,7 +229,7 @@ namespace SistemaGian.DAL.Repository
                     }
 
                     // Insertar productos
-                    bool productosResult = await InsertarProductos(productos).ConfigureAwait(false);
+                    bool productosResult = await InsertarProductos(productos, (int)pedido.IdProveedor).ConfigureAwait(false);
                     if (!productosResult)
                     {
                         await transaction.RollbackAsync();
@@ -431,7 +432,7 @@ namespace SistemaGian.DAL.Repository
 
 
 
-        public async Task<bool> InsertarProductos(List<PedidosProducto> productos)
+        public async Task<bool> InsertarProductos(List<PedidosProducto> productos, int idProveedor)
         {
             try
             {
@@ -460,6 +461,7 @@ namespace SistemaGian.DAL.Repository
                                 _dbcontext.AcopioHistorial.Add(new AcopioHistorial
                                 {
                                     IdProducto = (int)eliminado.IdProducto,
+                                    IdProveedor = idProveedor,
                                     Fecha = DateTime.Now,
                                     Ingreso = eliminado.CantidadUsadaAcopio,
                                     Egreso = 0,
@@ -495,6 +497,7 @@ namespace SistemaGian.DAL.Repository
                                     _dbcontext.AcopioHistorial.Add(new AcopioHistorial
                                     {
                                         IdProducto = (int)p.IdProducto,
+                                        IdProveedor = idProveedor,
                                         Fecha = DateTime.Now,
                                         Ingreso = 0,
                                         Egreso = diferencia,
@@ -508,6 +511,7 @@ namespace SistemaGian.DAL.Repository
                                     _dbcontext.AcopioHistorial.Add(new AcopioHistorial
                                     {
                                         IdProducto = (int)p.IdProducto,
+                                        IdProveedor = idProveedor,
                                         Fecha = DateTime.Now,
                                         Ingreso = Math.Abs(diferencia),
                                         Egreso = 0,
@@ -534,6 +538,7 @@ namespace SistemaGian.DAL.Repository
                                 _dbcontext.AcopioHistorial.Add(new AcopioHistorial
                                 {
                                     IdProducto = (int)p.IdProducto,
+                                    IdProveedor = idProveedor,
                                     Fecha = DateTime.Now,
                                     Ingreso = 0,
                                     Egreso = p.CantidadUsadaAcopio,

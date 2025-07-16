@@ -19,6 +19,7 @@ public partial class SistemaGianContext : DbContext
 
     private readonly IConfiguration _configuration;
 
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         if (!optionsBuilder.IsConfigured)
@@ -27,7 +28,6 @@ public partial class SistemaGianContext : DbContext
             optionsBuilder.UseSqlServer(connectionString);
         }
     }
-
 
     public virtual DbSet<AcopioHistorial> AcopioHistorial { get; set; }
 
@@ -77,7 +77,6 @@ public partial class SistemaGianContext : DbContext
 
     public virtual DbSet<ZonasCliente> ZonasClientes { get; set; }
 
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<AcopioHistorial>(entity =>
@@ -99,6 +98,11 @@ public partial class SistemaGianContext : DbContext
                 .HasForeignKey(d => d.IdProducto)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_AcopioHistorial_Producto");
+
+            entity.HasOne(d => d.IdProveedorNavigation).WithMany(p => p.AcopioHistorial)
+                .HasForeignKey(d => d.IdProveedor)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_Acopio_Historial_Proveedores");
         });
 
         modelBuilder.Entity<AcopioStockActual>(entity =>
@@ -115,8 +119,12 @@ public partial class SistemaGianContext : DbContext
 
             entity.HasOne(d => d.IdProductoNavigation).WithOne(p => p.AcopioStockActual)
                 .HasForeignKey<AcopioStockActual>(d => d.IdProducto)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_AcopioStockActual_Producto");
+
+            entity.HasOne(d => d.IdProveedorNavigation).WithMany(p => p.AcopioStockActual)
+                .HasForeignKey(d => d.IdProveedor)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_Acopio_StockActual_Proveedores");
         });
 
         modelBuilder.Entity<Chofer>(entity =>

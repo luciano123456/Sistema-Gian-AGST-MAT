@@ -6,7 +6,7 @@ namespace SistemaGian.BLL.Service
     {
         Task<bool> Insertar(AcopioStockActual model);
         Task<bool> Actualizar(AcopioStockActual model);
-        Task<AcopioStockActual> Obtener(int idProducto);
+        Task<AcopioStockActual> Obtener(int idProducto, int idProveedor);
         Task<IQueryable<AcopioStockActual>> ObtenerTodos();
         Task<bool> AjustarStockAlEliminarMovimiento(AcopioHistorial movimiento);
     }

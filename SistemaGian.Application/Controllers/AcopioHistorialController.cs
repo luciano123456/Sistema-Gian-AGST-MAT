@@ -22,9 +22,9 @@ namespace SistemaGian.Application.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Lista()
+        public async Task<IActionResult> Lista(int idProveedor)
         {
-            var data = await _service.ObtenerTodos();
+            var data = await _service.ObtenerPorProveedor(idProveedor);
             var lista = data
                 .OrderByDescending(c => c.Fecha)
                 .Select(c => new VMAcopioHistorial

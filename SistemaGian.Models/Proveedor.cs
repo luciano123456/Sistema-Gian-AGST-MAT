@@ -22,4 +22,7 @@ public partial class Proveedor
     public virtual ICollection<ProductosPreciosHistorial> ProductosPreciosHistorial { get; set; } = new List<ProductosPreciosHistorial>();
 
     public virtual ICollection<ProductosPreciosProveedor> ProductosPreciosProveedores { get; set; } = new List<ProductosPreciosProveedor>();
+
+    public virtual ICollection<AcopioHistorial> AcopioHistorial { get; set; } = new List<AcopioHistorial>();
+    public virtual ICollection<AcopioStockActual> AcopioStockActual { get; set; } = new List<AcopioStockActual>();
 }

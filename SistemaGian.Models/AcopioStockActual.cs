@@ -9,7 +9,10 @@ public partial class AcopioStockActual
 
     public decimal CantidadActual { get; set; }
 
+    public int? IdProveedor { get; set; }
+
     public DateTime FechaUltimaActualizacion { get; set; }
 
     public virtual Producto IdProductoNavigation { get; set; } = null!;
+    public virtual Proveedor? IdProveedorNavigation { get; set; }
 }

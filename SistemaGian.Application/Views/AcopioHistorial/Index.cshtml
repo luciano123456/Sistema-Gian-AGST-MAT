@@ -53,6 +53,7 @@
                             <thead>
                                 <tr>
                                     <th></th>
+                                    <th>Proveedor</th>
                                     <th>Producto</th>
                                     <th>Cantidad</th>
                                     <th>Última Actualización</th>
@@ -110,6 +111,12 @@
             </div>
             <div class="modal-body">
                 <div class="mb-3">
+                    <label>Proveedor</label>
+                    <select id="selectProveedorMovimiento" class="form-control">
+                        <option value="">Seleccione un Proveedor...</option>
+                    </select>
+                </div>
+                <div class="mb-3">
                     <label>Producto</label>
                     <select id="selectProductoMovimiento" class="form-control">
                         <option value="">Seleccione un producto...</option>
@@ -145,5 +152,5 @@
     <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.print.min.js"></script>
     <script src="https://cdn.datatables.net/fixedheader/3.2.2/js/dataTables.fixedHeader.min.js"></script>
     <script src="~/js/utils/moment.js"></script>
-    <script src="~/js/AcopioHistorial.js?v=1.0"></script>
+    <script src="~/js/AcopioHistorial.js?v=1.2"></script>
 }

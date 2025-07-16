@@ -55,5 +55,14 @@ namespace SistemaGian.DAL.Repository
                 .OrderByDescending(x => x.Fecha)
                 .ToListAsync();
         }
+
+        public async Task<List<AcopioHistorial>> ObtenerPorProveedor(int idProveedor)
+        {
+            return await _dbcontext.AcopioHistorial
+                .Where(x => x.IdProveedor == idProveedor)
+                .OrderByDescending(x => x.Fecha)
+                .ToListAsync();
+        }
+
     }
 }

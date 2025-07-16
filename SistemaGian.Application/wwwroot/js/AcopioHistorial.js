@@ -5,7 +5,7 @@ let gridHistorial;
 $(document).ready(() => {
     cargarStock();
 
-    $("#selectProductoMovimiento").select2({
+    $("#selectProductoMovimiento, #selectProveedorMovimiento").select2({
         dropdownParent: $("#modalMovimiento"),
         width: "100%",
         placeholder: "Selecciona una opción",
@@ -13,7 +13,7 @@ $(document).ready(() => {
     });
 });
 
-
+    
 async function cargarStock() {
     const url = `/Acopio/ListaStock`;
     const response = await fetch(url);
@@ -40,7 +40,7 @@ async function configurarTablaStock(data) {
                     data: 'IdProducto',
                     title: '',
                     width: "1%",
-                    render: function (data) {
+                    render: function (data, type, row) {
                         return `
                             <div class="acciones-menu" data-id="${data}">
                                 <button class='btn btn-sm btnacciones' type='button' onclick='toggleAcciones(${data})'>
@@ -50,9 +50,13 @@ async function configurarTablaStock(data) {
                                     <button class='btn btn-sm btnver' onclick='verHistorial(${data})' title='Ver historial'>
                                         <i class='fa fa-eye text-primary'></i> Ver Historial
                                     </button>
-                                    <button class='btn btn-sm btnnuevo' onclick='nuevoMovimiento(${data})' title='Nuevo movimiento'>
-                                        <i class='fa fa-plus text-success'></i> Nuevo Movimiento
-                                    </button>
+                                    <button
+                                          class='btn btn-sm btnnuevo'
+                                          onclick='nuevoMovimiento(${row.IdProducto}, ${row.IdProveedor})' 
+                                          title='Nuevo movimiento'>
+                                          <i class='fa fa-plus text-success'></i> Nuevo Movimiento
+                                        </button>
+
                                 </div>
                             </div>
                         `;
@@ -60,7 +64,9 @@ async function configurarTablaStock(data) {
                     orderable: false,
                     searchable: false
                 },
+                { data: 'Proveedor', title: 'Proveedor' },
                 { data: 'NombreProducto', title: 'Producto' },
+                
                 {
                     data: 'CantidadActual',
                     title: 'Stock Actual',
@@ -237,23 +243,57 @@ async function verHistorial(idProducto) {
     `;
     }
 }
-
-// Abrir el modal
-function nuevoMovimiento(idProducto) {
-    if (idProducto) {
-        $("#selectProductoMovimiento").html(`<option value="${idProducto}" selected>Producto ID ${idProducto}</option>`);
-    } else {
-        listaProductosEnModal();
-    }
-
+async function nuevoMovimiento(idProducto, idProveedor) {
     $("#txtIngreso").val("");
     $("#txtObservaciones").val("");
+
+    const selectProveedor = $("#selectProveedorMovimiento");
+    const selectProducto = $("#selectProductoMovimiento");
+
+    if (idProducto && idProveedor) {
+        // Cargar todos los proveedores
+        await listaProveedoresEnModal();
+
+        // Seleccionar el proveedor
+        selectProveedor.val(idProveedor);
+
+        // Cargar productos del proveedor
+        await listaProductosEnModal(idProveedor);
+
+        // Seleccionar el producto
+        selectProducto.val(idProducto);
+    } else {
+        // Si no hay IDs, limpiar todo
+        selectProveedor.empty();
+        selectProducto.empty();
+        await listaProveedoresEnModal();
+    }
+
     $("#modalMovimiento").modal("show");
 }
 
+
+$("#selectProveedorMovimiento").on("change", function () {
+    const idProveedor = $(this).val();
+    listaProductosEnModal(idProveedor);
+});
+
 // Cargar productos en el select si no viene ID
-async function listaProductosEnModal() {
-    const response = await fetch(`/Productos/Lista`);
+async function listaProveedoresEnModal() {
+    const response = await fetch(`/Proveedores/Lista`);
+    const data = await response.json();
+
+    const select = $("#selectProveedorMovimiento");
+    select.empty().append('<option value="">Seleccione un proveedor...</option>');
+
+    data.forEach(p => {
+        select.append(`<option value="${p.Id}">${p.Nombre}</option>`);
+    });
+}
+
+// Cargar productos en el select si no viene ID
+async function listaProductosEnModal(idProveedor) {
+    const response = await fetch(`/Productos/ListaProductosProveedor?idProveedor=${idProveedor}`);
     const data = await response.json();
 
     const select = $("#selectProductoMovimiento");
@@ -267,13 +307,20 @@ async function listaProductosEnModal() {
 // Guardar el movimiento
 async function guardarMovimiento() {
     const idProducto = $("#selectProductoMovimiento").val();
+    const idProveedor = $("#selectProveedorMovimiento").val();
     const ingreso = parseFloat($("#txtIngreso").val()) || 0;
     const observaciones = $("#txtObservaciones").val();
+
+    if (!idProveedor) {
+        errorModal("Debe seleccionar un proveedor.");
+        return;
+    }
 
     if (!idProducto) {
         errorModal("Debe seleccionar un producto.");
         return;
     }
+  
     if (ingreso <= 0) {
         errorModal("Debe ingresar una cantidad mayor a cero.");
         return;
@@ -281,6 +328,7 @@ async function guardarMovimiento() {
 
     const model = {
         IdProducto: idProducto,
+        IdProveedor: idProveedor,
         Ingreso: ingreso,
         Egreso: 0,
         Observaciones: observaciones
@@ -342,18 +390,6 @@ $(document).on('click', function (e) {
     }
 });
 
-
-async function listaProductosEnModal() {
-    const response = await fetch(`/Productos/Lista`);
-    const data = await response.json();
-
-    const select = $("#selectProductoMovimiento");
-    select.empty().append('<option value="">Seleccione un producto...</option>');
-
-    data.forEach(p => {
-        select.append(`<option value="${p.Id}">${p.Descripcion}</option>`);
-    });
-}
 
 
 async function aplicarFiltros() {

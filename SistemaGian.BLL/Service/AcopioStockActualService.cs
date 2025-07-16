@@ -22,9 +22,9 @@ namespace SistemaGian.BLL.Service
             return await _stockRepo.Actualizar(model);
         }
 
-        public async Task<AcopioStockActual> Obtener(int idProducto)
+        public async Task<AcopioStockActual> Obtener(int idProducto, int idProveedor)
         {
-            return await _stockRepo.Obtener(idProducto);
+            return await _stockRepo.Obtener(idProducto, idProveedor);
         }
 
         public async Task<IQueryable<AcopioStockActual>> ObtenerTodos()
@@ -37,7 +37,7 @@ namespace SistemaGian.BLL.Service
         {
             if (movimiento == null) return false;
 
-            var stockActual = await _stockRepo.Obtener(movimiento.IdProducto);
+            var stockActual = await _stockRepo.Obtener(movimiento.IdProducto, movimiento.IdProveedor);
             if (stockActual == null)
                 return false; // No debería pasar, pero controlamos
 
