@@ -271,30 +271,7 @@ namespace SistemaGian.DAL.Repository
                                                       .Where(x => x.IdPedido == idPedido)
                                                       .ToListAsync();
 
-                // ✅ Si no hay pagos nuevos, eliminar todos los existentes
-                if (pagos.Count == 0)
-                {
-                    foreach (var pago in pagosExistentes)
-                    {
-                        cliente.SaldoAfavor += pago.SaldoUsado;
-
-                        _dbcontext.ClientesHistorialSaldos.Add(new ClientesHistorialSaldo
-                        {
-                            Fecha = DateTime.Now,
-                            IdCliente = cliente.Id,
-                            Ingreso = pago.SaldoUsado,
-                            Egreso = 0,
-                            Observaciones = $"Devolución de saldo por eliminación de pago del pedido N° {idPedido}"
-                        });
-                    }
-
-                    _dbcontext.PagosPedidosClientes.RemoveRange(pagosExistentes);
-
-                    await _dbcontext.SaveChangesAsync();
-                    return true;
-                }
-
-                // ✅ Si hay pagos nuevos, actualizar lo necesario
+                // 🔍 Identificar pagos a eliminar
                 var pagosAEliminar = pagosExistentes
                     .Where(pe => !pagos.Any(p => p.Id == pe.Id))
                     .ToList();
@@ -315,13 +292,15 @@ namespace SistemaGian.DAL.Repository
 
                 _dbcontext.PagosPedidosClientes.RemoveRange(pagosAEliminar);
 
-                foreach (PagosPedidosCliente p in pagos)
+                // 🔁 Insertar nuevos o modificar existentes
+                foreach (var p in pagos)
                 {
-                    var pagoExistente = pagosExistentes.FirstOrDefault(x => x.Id == p.Id);
+                    var existente = pagosExistentes.FirstOrDefault(x => x.Id == p.Id);
 
-                    if (pagoExistente != null)
+                    if (existente != null)
                     {
-                        decimal diferencia = p.SaldoUsado - pagoExistente.SaldoUsado;
+                        // 🔁 Modificación
+                        decimal diferencia = p.SaldoUsado - existente.SaldoUsado;
 
                         if (diferencia != 0)
                         {
@@ -337,29 +316,31 @@ namespace SistemaGian.DAL.Repository
                             });
                         }
 
-                        pagoExistente.Fecha = p.Fecha;
-                        pagoExistente.Cotizacion = p.Cotizacion;
-                        pagoExistente.Total = p.Total;
-                        pagoExistente.TotalArs = p.TotalArs;
-                        pagoExistente.Observacion = p.Observacion;
-                        pagoExistente.SaldoUsado = p.SaldoUsado;
+                        existente.Fecha = p.Fecha;
+                        existente.Cotizacion = p.Cotizacion;
+                        existente.Total = p.Total;
+                        existente.TotalArs = p.TotalArs;
+                        existente.Observacion = p.Observacion;
+                        existente.SaldoUsado = p.SaldoUsado;
                     }
                     else
                     {
+                        // ➕ Nuevo
+                        p.IdPedido = idPedido;
                         cliente.SaldoAfavor -= p.SaldoUsado;
 
-                        if(p.SaldoUsado > 0) { 
-                        _dbcontext.ClientesHistorialSaldos.Add(new ClientesHistorialSaldo
+                        if (p.SaldoUsado > 0)
                         {
-                            Fecha = DateTime.Now,
-                            IdCliente = cliente.Id,
-                            Ingreso = 0,
-                            Egreso = p.SaldoUsado,
-                            Observaciones = $"Uso de saldo por nuevo pago del pedido N° {idPedido}"
-                        });
+                            _dbcontext.ClientesHistorialSaldos.Add(new ClientesHistorialSaldo
+                            {
+                                Fecha = DateTime.Now,
+                                IdCliente = cliente.Id,
+                                Ingreso = 0,
+                                Egreso = p.SaldoUsado,
+                                Observaciones = $"Uso de saldo por nuevo pago del pedido N° {idPedido}"
+                            });
+                        }
 
-                      
-                    }
                         _dbcontext.PagosPedidosClientes.Add(p);
                     }
                 }
@@ -373,6 +354,7 @@ namespace SistemaGian.DAL.Repository
                 return false;
             }
         }
+
 
 
 

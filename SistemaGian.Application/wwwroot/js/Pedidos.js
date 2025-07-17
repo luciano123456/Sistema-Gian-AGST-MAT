@@ -1,4 +1,6 @@
 ﻿let gridpedidos;
+let ultimoPedidoActualizadoId = null;
+
 
 const columnConfig = [
     { index: 1, filterType: 'text' },
@@ -16,11 +18,28 @@ const columnConfig = [
 ];
 
 
+let audioNotificacion = null;
+
+
 var userSession = JSON.parse(localStorage.getItem('userSession'));
 
 $(document).ready(() => {
     // Usando Moment.js para obtener la fecha actual
     const hoy = moment();
+
+    inicializarSonidoNotificacion();
+
+    document.addEventListener("touchstart", desbloquearAudio, { once: true });
+    document.addEventListener("click", desbloquearAudio, { once: true });
+
+
+    function desbloquearAudio() {
+        if (audioContext && audioContext.state === "suspended") {
+            audioContext.resume().then(() => {
+                console.log("🔊 AudioContext reanudado");
+            });
+        }
+    }
 
 
     localStorage.removeItem('EditandoPedidoDesdeVenta'); //POR SI LAS DUDAS
@@ -451,4 +470,82 @@ function actualizarSumaDeudas(table) {
 
     document.getElementById('sumaCliente').innerText = totalCliente.toLocaleString('es-AR', { style: 'currency', currency: 'ARS' });
     document.getElementById('sumaProveedor').innerText = totalProveedor.toLocaleString('es-AR', { style: 'currency', currency: 'ARS' });
+}
+
+
+
+const connection = new signalR.HubConnectionBuilder()
+    .withUrl("/notificacionesHub")
+    .build();
+
+connection.on("PedidoActualizado", function (data) {
+    toastr.success(`Pedido #${data.idPedido} Modificado por ${data.usuario}.`, "Pedidos", {
+        timeOut: 5000,
+        positionClass: "toast-bottom-right",
+        progressBar: true,
+        toastClass: "toastr ancho-personalizado"
+    });
+
+    if (data.idUsuario !== userSession.Id) {
+
+        reproducirSonidoNotificacion();
+
+        if (typeof aplicarFiltros === "function") {
+            aplicarFiltros().then(() => {
+                setTimeout(() => {
+                    marcarFilaPedido(data.idPedido);
+                }, 500);
+            });
+        }
+    }
+});
+
+
+connection.start()
+    .then(() => console.log("✅ SignalR conectado"))
+    .catch(err => console.error(err.toString()));
+
+
+function marcarFilaPedido(idPedido) {
+ 
+    gridpedidos.rows({ page: 'current' }).every(function () {
+        const data = this.data();
+        if (data && data.Id === idPedido) {
+            const rowNode = this.node();
+
+            $(rowNode).addClass('zoom-green-highlight');
+
+            setTimeout(() => {
+                $(rowNode).removeClass('zoom-green-highlight');
+            }, 2000);
+        }
+    });
+}
+
+let audioContext = null;
+let audioBuffer = null;
+
+// Inicializar el contexto y cargar el sonido
+async function inicializarSonidoNotificacion() {
+    if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    }
+
+    const response = await fetch('/sonidos/notificacion.mp3');
+    const arrayBuffer = await response.arrayBuffer();
+    audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+}
+
+// Reproducir el sonido (por encima de otros)
+function reproducirSonidoNotificacion() {
+    if (!audioBuffer || !audioContext) return;
+
+    const source = audioContext.createBufferSource();
+    source.buffer = audioBuffer;
+
+    const gainNode = audioContext.createGain();
+    gainNode.gain.value = 1.0; // Máximo volumen
+
+    source.connect(gainNode).connect(audioContext.destination);
+    source.start(0);
 }

@@ -18,17 +18,31 @@ const checkSaldoFavor = document.getElementById('usarSaldoFavor');
 var userSession = JSON.parse(localStorage.getItem('userSession'));
 
 
-const IdPedido = document.getElementById('IdPedido').value;
+let idPedido = document.getElementById('IdPedido').value;
 let productos = [];
 
 $(document).ready(async function () {
     listaClientes();
     listaProveedores();
     listaChoferes ();
-    
+
+    inicializarSonidoNotificacion();
+
+    document.addEventListener("touchstart", desbloquearAudio, { once: true });
+    document.addEventListener("click", desbloquearAudio, { once: true });
+
+    function desbloquearAudio() {
+        if (audioContext && audioContext.state === "suspended") {
+            audioContext.resume().then(() => {
+                console.log("🔊 AudioContext reanudado");
+            });
+        }
+    }
 
     if (pedidoData && pedidoData.Id > 0) {
         await cargarDatosPedido()
+
+        idPedido = pedidoData.Id;
     } else {
 
         const proximoNro = await obtenerProximoNroRemito();
@@ -36,7 +50,7 @@ $(document).ready(async function () {
         // Asignarlo al input
         document.getElementById("nroRemito").value = proximoNro.valor + 1;
 
-        const idPedido = 0; // Reemplaza con el id correspondiente
+        idPedido = 0; // Reemplaza con el id correspondiente
 
         await cargarDataTableProductos(null);
         await cargarDataTablePagoaProveedores(null);
@@ -455,58 +469,6 @@ async function abrirChofer() {
 
 }
 
-async function abrirZona() {
-
-    let idCliente = parseInt($("#idCliente").val());
-
-    // Comprobar si idCliente es NaN o vacío
-    if (isNaN(idCliente) || idCliente === "") {
-        errorModal("Primero debes elegir un cliente");
-        return;
-    }
-
-    const zonas = await obtenerZonas(idCliente);
-    await cargarDataTableZonas(zonas);
-
-    // Configura eventos de selección
-    $('#tablaZonas tbody').on('dblclick', 'tr', function () {
-        var data = $('#tablaZonas').DataTable().row(this).data();
-        cargarDatosZona(data);
-        $('#zonaModal').modal('hide');
-    });
-
-    $('#btnSeleccionarZona').on('click', function () {
-        var data = $('#tablaZonas').DataTable().row('.selected').data();
-        if (data) {
-            cargarDatosZona(data);
-            $('#zonaModal').modal('hide');
-        } else {
-            errorModal('Seleccione una Zona');
-        }
-    });
-
-    let filaSeleccionada = null; // Variable para almacenar la fila seleccionada
-
-    $('#tablaZonas tbody').on('click', 'tr', function () {
-        // Remover la clase de la fila anteriormente seleccionada
-        if (filaSeleccionada) {
-            $(filaSeleccionada).removeClass('selected');
-            $('td', filaSeleccionada).removeClass('selected');
-
-        }
-
-        // Obtener la fila actual
-        filaSeleccionada = $(this);
-
-        // Agregar la clase a la fila actual
-        $(filaSeleccionada).addClass('selected');
-        $('td', filaSeleccionada).addClass('selected');
-    });
-
-    // Abre el modal
-    $('#zonaModal').modal('show');
-
-}
 
 async function obtenerProveedores() {
     const response = await fetch('/Proveedores/Lista');
@@ -548,8 +510,6 @@ function cargarDatosCliente(data) {
             .html(``);
 
     }
-
-
 
 
     // Limpiar solo los registros de la grilla de productos
@@ -606,8 +566,17 @@ async function ObtenerDatosProveedor(id) {
 }
 
 async function cargarDataTableProductos(data) {
+    const datos = data != null ? data.$values : data;
+
+    if (grdProductos) {
+        grdProductos.clear().rows.add(datos).draw();
+        return;
+    }
+
+
+
     grdProductos = $('#grd_Productos').DataTable({
-        data: data != null ? data.$values : data,
+        data: datos,
         language: {
             sLengthMenu: "Mostrar _MENU_ registros",
             url: "//cdn.datatables.net/plug-ins/2.0.7/i18n/es-MX.json"
@@ -704,160 +673,7 @@ async function cargarDataTableProductos(data) {
 
 }
 
-async function cargarDataTableZonas(data) {
 
-    if (grdZonas) {
-        $('#tablaZonas').DataTable().columns.adjust().draw();
-        grdZonas.destroy();
-        grdZonas = null; // Opcional: Limpiar la variable
-
-    }
-
-    grdZonas = $('#tablaZonas').DataTable({
-        data: data,
-        language: {
-            sLengthMenu: "Mostrar _MENU_ registros",
-            url: "//cdn.datatables.net/plug-ins/2.0.7/i18n/es-MX.json"
-        },
-        scrollX: true,
-        autoWidth: false,
-        columns: [
-            { data: 'Id', width: "20%", visible: false },
-            { data: 'Nombre', width: "40%" },
-            { data: 'Precio', width: "20%" },
-
-        ],
-        orderCellsTop: true,
-        fixedHeader: true,
-
-        "columnDefs": [
-            {
-                "render": function (data, type, row) {
-                    return formatNumber(data); // Formatear número en la columna
-                },
-                "targets": [2] // Columna Precio
-            }
-        ],
-
-
-
-        initComplete: async function () {
-            setTimeout(function () {
-                $('#tablaZonas').DataTable().columns.adjust().draw();
-            }, 200);
-        }
-    });
-
-}
-
-async function cargarDataTableChoferes(data) {
-
-    if (grdChoferes) {
-        $('#tablaChoferes').DataTable().columns.adjust().draw();
-        grdChoferes.destroy();
-        grdChoferes = null; // Opcional: Limpiar la variable
-
-    }
-
-    grdChoferes = $('#tablaChoferes').DataTable({
-        data: data,
-        language: {
-            sLengthMenu: "Mostrar _MENU_ registros",
-            url: "//cdn.datatables.net/plug-ins/2.0.7/i18n/es-MX.json"
-        },
-        scrollX: true,
-        autoWidth: false,
-        columns: [
-            { data: 'Id', width: "20%", visible: false },
-            { data: 'Nombre', width: "20%" },
-            { data: 'Direccion', width: "20%" },
-            { data: 'Telefono', width: "20%" },
-
-        ],
-        orderCellsTop: true,
-        fixedHeader: true,
-
-        initComplete: async function () {
-            setTimeout(function () {
-                $('#tablaChoferes').DataTable().columns.adjust().draw();
-            }, 200);
-        }
-    });
-
-}
-async function cargarDataTableClientes(data) {
-
-    if (grdClientes) {
-        $('#tablaClientes').DataTable().columns.adjust().draw();
-        grdClientes.destroy();
-        grdClientes = null; // Opcional: Limpiar la variable
-
-    }
-
-    grdClientes = $('#tablaClientes').DataTable({
-        data: data,
-        language: {
-            sLengthMenu: "Mostrar _MENU_ registros",
-            url: "//cdn.datatables.net/plug-ins/2.0.7/i18n/es-MX.json"
-        },
-        scrollX: true,
-        autoWidth: false,
-        columns: [
-            { data: 'Id', width: "20%", visible: false },
-            { data: 'Nombre', width: "20%" },
-            { data: 'Dni', width: "20%" },
-            { data: 'Direccion', width: "20%" },
-            { data: 'Telefono', width: "20%" },
-
-        ],
-        orderCellsTop: true,
-        fixedHeader: true,
-
-        initComplete: async function () {
-            setTimeout(function () {
-                $('#tablaClientes').DataTable().columns.adjust().draw();
-            }, 200);
-        }
-    });
-
-}
-async function cargarDataTableProveedores(data) {
-
-
-    if (grdProveedores) {
-        $('#tablaProveedores').DataTable().columns.adjust().draw();
-        grdProveedores.destroy();
-        grdProveedores = null; // Opcional: Limpiar la variable
-
-    }
-
-    grdProveedores = $('#tablaProveedores').DataTable({
-        data: data,
-        language: {
-            sLengthMenu: "Mostrar _MENU_ registros",
-            url: "//cdn.datatables.net/plug-ins/2.0.7/i18n/es-MX.json"
-        },
-        scrollX: true,
-        autoWidth: false,
-        columns: [
-            { data: 'Id', width: "20%", visible: false },
-            { data: 'Nombre', width: "20%" },
-            { data: 'Apodo', width: "20%" },
-            { data: 'Ubicacion', width: "20%" },
-            { data: 'Telefono', width: "20%" },
-
-        ],
-        orderCellsTop: true,
-        fixedHeader: true,
-
-        initComplete: async function () {
-            setTimeout(function () {
-                $('#tablaProveedores').DataTable().columns.adjust().draw();
-            }, 200);
-        }
-    });
-
-}
 
 async function anadirProducto() {
     let idCliente = parseInt($("#idCliente").val());
@@ -1269,7 +1085,7 @@ async function calcularDatosPedido() {
 function eliminarProducto(id) {
     grdProductos.rows().every(function (rowIdx, tableLoop, rowLoop) {
         const data = this.data();
-        if (data.IdProducto == id) {
+        if (data != null && data.IdProducto == id) {
             grdProductos.row(rowIdx).remove().draw();
         }
     });
@@ -1532,11 +1348,17 @@ document.getElementById('precioInput').addEventListener('blur', function () {
 
 // PAGOS DE CLIENTES Y PROVEEDORES
 async function cargarDataTablePagoaProveedores(data) {
-    if (!grdPagosaProveedores) {
-        $('#grd_pagosaProveedores thead tr').clone(true).addClass('filters').appendTo('#grd_Proveedores thead');
 
+
+    const datos = data != null ? data.$values : data;
+
+    if (grdPagosaProveedores) {
+        grdPagosaProveedores.clear().rows.add(datos).draw();
+        return;
+
+    }
         grdPagosaProveedores = $('#grd_pagosaProveedores').DataTable({
-            data: data != null ? data.$values : data,
+            data: datos,
             language: {
                 sLengthMenu: "Mostrar _MENU_ registros",
                 url: "//cdn.datatables.net/plug-ins/2.0.7/i18n/es-MX.json"
@@ -1592,12 +1414,16 @@ async function cargarDataTablePagoaProveedores(data) {
 
 
         });
-    } else {
-        grdPagosaProveedores.clear().rows.add(data).draw();
-    }
-
 }
 async function cargarDataTablePagoaClientes(data) {
+
+    const datos = data != null ? data.$values : data;
+
+    if (grdPagosaClientes) {
+        grdPagosaClientes.clear().rows.add(datos).draw();
+        return;
+    }
+
     grdPagosaClientes = $('#grd_pagosClientes').DataTable({
         data: data != null ? data.$values : data,
         language: {
@@ -1669,8 +1495,6 @@ async function editarPago(tipo, id) {
     } else if (tipo == 'Proveedor') {
         grid = $('#grd_pagosaProveedores').DataTable();
     }
-
-    const idPedido = $("#IdPedido").val();
 
     let row = null;
 
@@ -1758,8 +1582,6 @@ function eliminarPago(tipo, id) {
         grid = $('#grd_pagosaProveedores').DataTable();
     }
 
-    const idPedido = $("#IdPedido").val();
-
     // Verificar si el ID contiene "pago_", y tratarlo correctamente
     let idNumerico = id;
     if (String(id).includes("pago_")) {
@@ -1840,6 +1662,10 @@ function guardarPago(tipo) {
 
     calcularTotalPago(tipo);
     calcularDatosPedido();
+
+    const idsActuales = grid.rows().data().toArray().map(p => p.Id);
+    console.log(`IDs actuales en grdPagos${tipo}:`, idsActuales);
+
     // Limpiar y cerrar el modal
     modal.modal('hide');
 }
@@ -2038,60 +1864,64 @@ document.getElementById("estado").addEventListener("change", function () {
     }
 });
 
+function obtenerPagos(grd) {
+    let pagos = [];
+    grd.rows().every(function () {
+        const pago = this.data();
+        const idNumerico = parseInt(pago.Id);
+        const esNuevo = isNaN(idNumerico) || String(pago.Id).includes("pago_");
 
+        pagos.push({
+            Id: idPedido && !esNuevo ? idNumerico : 0,
+            Fecha: moment(pago.Fecha, 'YYYY-MM-DD').format('YYYY-MM-DD'),
+            IdMoneda: parseInt(pago.IdMoneda),
+            Cotizacion: parseFloat(pago.Cotizacion),
+            Total: parseFloat(pago.Total),
+            TotalArs: parseFloat(pago.TotalArs),
+            Observacion: pago.Observacion,
+            SaldoUsado: parseFloat(pago.SaldoUsado)
+        });
+    });
+    return pagos;
+}
+
+
+
+
+
+function obtenerProductos(grd) {
+    let productos = [];
+    grd.rows().every(function () {
+        const producto = this.data();
+        const productoJson = {
+            Id: idPedido != "" ? producto.Id : 0,
+            IdProducto: parseInt(producto.IdProducto),
+            Nombre: producto.Nombre,
+            PrecioCosto: parseFloat(producto.PrecioCosto),
+            PrecioVenta: parseFloat(producto.PrecioVenta),
+            ProductoCantidad: parseFloat(producto.ProductoCantidad),
+            Cantidad: parseFloat(producto.Cantidad),
+            CantidadUsadaAcopio: parseFloat(producto.CantidadUsadaAcopio) // NUEVO
+        };
+
+        productos.push(productoJson);
+    });
+    return productos;
+
+}
 async function guardarCambios() {
-    const idPedido = $("#IdPedido").val();
-
+   
     if (isValidPedido()) {
         // Función reutilizable para recolectar los pagos
-        function obtenerPagos(grd) {
-            let pagos = [];
-            grd.rows().every(function () {
-                const pago = this.data();
-                const pagoJson = {
-                    Id: idPedido !== ""
-                        ? (String(pago.Id).includes("pago_") ? 0 : pago.Id)
-                        : 0,
-                    "Fecha": moment(pago.Fecha, 'YYYY-MM-DD').format('YYYY-MM-DD'),
-                    "IdMoneda": parseInt(pago.IdMoneda),
-                    "Cotizacion": parseFloat(pago.Cotizacion),
-                    "Total": parseFloat(pago.Total),
-                    "TotalArs": parseFloat(pago.TotalArs),
-                    "Observacion": pago.Observacion, // Ajusta si es necesario
-                    "SaldoUsado": parseFloat(pago.SaldoUsado)
-                };
-                pagos.push(pagoJson);
-            });
-            return pagos;
-        }
-
-        function obtenerProductos(grd) {
-            let productos = [];
-            grd.rows().every(function () {
-                const producto = this.data();
-                const productoJson = {
-                    Id: idPedido != "" ? producto.Id : 0,
-                    IdProducto: parseInt(producto.IdProducto),
-                    Nombre: producto.Nombre,
-                    PrecioCosto: parseFloat(producto.PrecioCosto),
-                    PrecioVenta: parseFloat(producto.PrecioVenta),
-                    ProductoCantidad: parseFloat(producto.ProductoCantidad),
-                    Cantidad: parseFloat(producto.Cantidad),
-                    CantidadUsadaAcopio: parseFloat(producto.CantidadUsadaAcopio) // NUEVO
-                };
-
-                productos.push(productoJson);
-            });
-            return productos;
-        }
+       
 
         const saldoUsado = await calcularSaldoUsado();
 
 
         // Obtener los pagos de clientes y proveedores usando la función reutilizable
-        const pagosClientes = obtenerPagos(grdPagosaClientes);
-        const pagosaProveedores = obtenerPagos(grdPagosaProveedores);
-        const productos = obtenerProductos(grdProductos);
+        const pagosClientes = await obtenerPagos(grdPagosaClientes);
+        const pagosaProveedores = await obtenerPagos(grdPagosaProveedores);
+        const productos = await obtenerProductos(grdProductos);
 
         // Construcción del objeto para el modelo
         const nuevoModelo = {
@@ -2161,10 +1991,9 @@ function isValidPedido() {
     var cantidadFilas = $('#grd_Productos').DataTable().rows().count();
     var restanteProveedor = parseFloat(convertirMonedaAFloat($("#restanteProveedor").val()));
     var restanteCliente = parseFloat(convertirMonedaAFloat($("#restanteCliente").val()));
-    const IdPedido = document.getElementById('IdPedido').value;
 
     if (cantidadFilas <= 0) {
-        if (IdPedido == "") {
+        if (idPedido == "") {
             errorModal('No puedes crear un pedido sin productos.')
         } else {
             errorModal('No puedes modificar un pedido sin productos.')
@@ -2300,4 +2129,417 @@ async function obtenerProximoNroRemito() {
         console.error('Error:', error);
         return '';
     }
+}
+
+const connection = new signalR.HubConnectionBuilder()
+    .withUrl("/notificacionesHub")
+    .build();
+
+connection.on("PedidoActualizado", async function (data) {
+    const idPedidoActual = pedidoData.Id;
+    if (data.idPedido !== idPedidoActual) return;
+
+    if (data.idUsuario !== userSession.Id) {
+        reproducirSonidoNotificacion();
+        sincronizarTodo(data.idPedido, data); // Esto sí ejecuta mensajes
+    }
+});
+
+connection.start()
+    .then(() => console.log("✅ SignalR conectado"))
+    .catch(err => console.error(err.toString()));
+
+async function sincronizarTodo(idPedido, data) {
+    const productosViejos = obtenerProductos(grdProductos);
+    const pagosClientesViejos = await obtenerPagos(grdPagosaClientes);
+    const pagosProveedoresViejos = await obtenerPagos(grdPagosaProveedores);
+    const datosGeneralesViejos = obtenerDatosGeneralesDelPedido();
+
+    const datosPedido = await ObtenerDatosPedido(idPedido);
+    if (!datosPedido) return;
+
+    await cargarDataTableProductos(datosPedido.productos);
+    await cargarDataTablePagoaProveedores(datosPedido.pagosaProveedores);
+    await cargarDataTablePagoaClientes(datosPedido.pagosClientes);
+    cargarDatosGeneralesDelPedido(datosPedido.pedido);
+
+    const productosNuevos = obtenerProductos(grdProductos);
+    const pagosClientesNuevos = obtenerPagos(grdPagosaClientes);
+    const pagosProveedoresNuevos = await obtenerPagos(grdPagosaProveedores);
+    const datosGeneralesNuevos = obtenerDatosGeneralesDelPedido();
+
+    compararYAnimarCambios(productosViejos, productosNuevos, grdProductos, 'producto');
+    compararYAnimarCambios(pagosClientesViejos, pagosClientesNuevos, grdPagosaClientes, 'pagoCliente');
+    compararYAnimarCambios(pagosProveedoresViejos, pagosProveedoresNuevos, grdPagosaProveedores, 'pagoProveedor');
+    compararYActualizarDatosGenerales(datosGeneralesViejos, datosGeneralesNuevos);
+
+
+    mostrarTooltipNotificacion(`Pedido #${idPedido} modificado por ${data.usuario}`);
+}
+
+function cargarDatosGeneralesDelPedido(datos) {
+    if (datos.Fecha) {
+        const nuevaFecha = moment(datos.Fecha, 'YYYY-MM-DD').format('YYYY-MM-DD');
+        if ($("#fechaPedido").val() !== nuevaFecha) {
+            $("#fechaPedido").val(nuevaFecha);
+            mostrarTooltipCampoModificado("fechaPedido", "Fecha actualizada");
+        }
+    }
+
+    if (datos.FechaEntrega) {
+        const nuevaFechaEntrega = moment(datos.FechaEntrega, 'YYYY-MM-DD').format('YYYY-MM-DD');
+        if ($("#fechaEntrega").val() !== nuevaFechaEntrega) {
+            $("#fechaEntrega").val(nuevaFechaEntrega);
+            mostrarTooltipCampoModificado("fechaEntrega", "Fecha de entrega actualizada");
+        }
+    }
+
+    if (datos.NroRemito && $("#nroRemito").val() !== datos.NroRemito) {
+        $("#nroRemito").val(datos.NroRemito);
+        mostrarTooltipCampoModificado("nroRemito", "N° de Partida actualizado");
+    }
+
+    if (datos.IdZona && $("#Zonas").val() !== String(datos.IdZona)) {
+        $("#Zonas").val(datos.IdZona).trigger("change");
+        mostrarTooltipCampoModificado("Zonas", "Zona actualizada");
+    }
+
+    if (datos.IdChofer && $("#Choferes").val() !== String(datos.IdChofer)) {
+        $("#Choferes").val(datos.IdChofer).trigger("change");
+        mostrarTooltipCampoModificado("Choferes", "Chofer actualizado");
+    }
+
+    if (datos.CostoFlete != null) {
+        const nuevoFlete = formatoMoneda.format(datos.CostoFlete.toFixed(2));
+        if ($("#costoFlete").val() !== nuevoFlete) {
+            $("#costoFlete").val(nuevoFlete);
+            mostrarTooltipCampoModificado("costoFlete", "Costo Flete actualizado");
+        }
+    }
+
+    if (datos.Estado && $("#estado").val() !== datos.Estado) {
+        $("#estado").val(datos.Estado);
+        mostrarTooltipCampoModificado("estado", "Estado actualizado");
+    }
+
+    if (datos.Observacion != null && $("#observacion").val() !== datos.Observacion) {
+        $("#observacion").val(datos.Observacion);
+        mostrarTooltipCampoModificado("observacion", "Observación actualizada");
+    }
+}
+
+function mostrarTooltipCampoModificado(idCampo, mensajeExtra = "") {
+    const campo = document.getElementById(idCampo);
+    if (!campo) return;
+
+    // Obtener label del campo si existe
+    const label = document.querySelector(`label[for='${idCampo}']`);
+    const nombreCampo = label ? label.innerText.trim() : idCampo;
+
+    const mensaje = `${mensajeExtra}`;
+
+    toastr.success(mensaje, "Pedido actualizado", {
+        timeOut: 2500,
+        positionClass: "toast-bottom-right",
+        progressBar: true,
+        toastClass: "toastr ancho-personalizado"
+    });
+
+    try {
+        const audio = new Audio("/sonidos/actualizacion.mp3");
+        audio.volume = 0.2;
+        audio.play().catch(() => { });
+    } catch (e) { }
+}
+
+function obtenerDatosGeneralesDelPedido() {
+    return {
+        fecha: $("#fechaPedido").val(),
+        fechaEntrega: $("#fechaEntrega").val(),
+        nroRemito: $("#nroRemito").val(),
+        costoFlete: $("#costoFlete").val(),
+        zona: $("#Zonas").val(),
+        chofer: $("#Choferes").val(),
+        estado: $("#estado").val(),
+        observacion: $("#observacion").val(),
+
+        idCliente: $("#Clientes").val(),
+        NombreCliente: $("#Clientes option:selected").text(),
+        direccionCliente: $("#direccionCliente").val(),
+        telefonoCliente: $("#telefonoCliente").val(),
+        dniCliente: $("#dniCliente").val(),
+
+        idProveedor: $("#Proveedores").val(),
+        NombreProveedor: $("#Proveedores option:selected").text(),
+        apodoProveedor: $("#apodoProveedor").val(),
+        telefonoProveedor: $("#telefonoProveedor").val(),
+        direccionProveedor: $("#direccionProveedor").val()
+    };
+}
+
+function compararYActualizarDatosGenerales(viejo, nuevo) {
+    const mapaIds = {
+        fecha: "fechaPedido",
+        fechaEntrega: "fechaEntrega",
+        nroRemito: "nroRemito",
+        costoFlete: "costoFlete",
+        zona: "Zonas",
+        chofer: "Choferes",
+        estado: "estado",
+        observacion: "observacion",
+        idCliente: "Clientes",
+        direccionCliente: "direccionCliente",
+        telefonoCliente: "telefonoCliente",
+        dniCliente: "dniCliente",
+        idProveedor: "Proveedores",
+        apodoProveedor: "apodoProveedor",
+        telefonoProveedor: "telefonoProveedor",
+        direccionProveedor: "direccionProveedor"
+    };
+
+    let huboCambios = false;
+
+    for (const campo in nuevo) {
+        const nuevoValor = nuevo[campo];
+        const viejoValor = viejo[campo];
+
+        if (
+            nuevoValor !== undefined &&
+            nuevoValor !== null &&
+            nuevoValor !== "" &&
+            nuevoValor !== viejoValor
+        ) {
+            const $input = $(`#${mapaIds[campo]}`);
+            $input.val(nuevoValor);
+            animarCambioCampo($input);
+            huboCambios = true;
+        }
+    }
+
+    if (huboCambios) {
+        calcularDatosPedido();
+    }
+
+    
+}
+
+function animarCambioCampo($elemento) {
+    $elemento
+        .css("transition", "all 0.3s ease")
+        .css("box-shadow", `0 0 6px 3px #ffc107`)
+        .css("border-color", "#ffc107");
+
+    setTimeout(() => {
+        $elemento.css("box-shadow", "").css("border-color", "");
+    }, 2000);
+}
+
+function compararYAnimarCambios(viejos, nuevos, grid, tipo) {
+    const usarSoloId = tipo === "pagoCliente" || tipo === "pagoProveedor";
+    const usarIdProducto = tipo === "producto";
+
+    const clave = (x) => usarIdProducto ? x.IdProducto : x.Id;
+
+    const mapViejos = new Map(viejos.map(x => [clave(x), x]));
+    const mapNuevos = new Map(nuevos.map(x => [clave(x), x]));
+
+    const agregados = [];
+    const eliminados = [];
+    const modificados = [];
+
+    nuevos.forEach(nuevo => {
+        const id = clave(nuevo);
+        const viejo = mapViejos.get(id);
+
+        if (!viejo) {
+            agregados.push(nuevo);
+        } else if (!sonIgualesCamposClave(viejo, nuevo, tipo)) {
+        modificados.push(nuevo);
+    }
+    });
+
+    viejos.forEach(viejo => {
+        const id = clave(viejo);
+        if (!mapNuevos.has(id)) {
+            eliminados.push(viejo);
+        }
+    });
+
+    // Animar filas individualmente
+    agregados.forEach(x => animarFilaPorCambio(grid, clave(x), "agregado"));
+    modificados.forEach(x => animarFilaPorCambio(grid, clave(x), "modificado"));
+    eliminados.forEach(x => animarFilaPorCambio(grid, clave(x), "eliminado"));
+
+    // Mostrar un solo toastr por grupo
+    if (agregados.length > 0) {
+        mostrarToastrAgrupado("success", tipo, "agregado", agregados.length);
+        calcularDatosPedido();
+    }
+
+    if (modificados.length > 0) {
+        mostrarToastrAgrupado("warning", tipo, "modificado", modificados.length);
+        calcularDatosPedido();
+    }
+
+    if (eliminados.length > 0) {
+        mostrarToastrAgrupado("error", tipo, "eliminado", eliminados.length);
+        calcularDatosPedido();
+    }
+
+}
+
+function obtenerNombreEntidadPlural(tipo) {
+    switch (tipo) {
+        case "producto": return "productos";
+        case "pagoProveedor": return "pagos de proveedor";
+        case "pagoCliente": return "pagos de cliente";
+        default: return "elementos";
+    }
+}
+
+function obtenerVerboAccion(accion) {
+    switch (accion) {
+        case "agregado": return "agregaron";
+        case "modificado": return "modificaron";
+        case "eliminado": return "eliminaron";
+        default: return "";
+    }
+}
+
+function mostrarToastrAgrupado(tipoToastr, tipoEntidad, accion, cantidad) {
+    const nombreEntidad = obtenerNombreEntidadPlural(tipoEntidad);
+    const verbo = obtenerVerboAccion(accion);
+
+    toastr[tipoToastr](
+        `Se ${verbo} ${cantidad} ${nombreEntidad}.`,
+        "Pedido actualizado",
+        estiloToastr(tipoToastr === "error")
+    );
+}
+
+function mostrarToastr(tipoToast, tipo, obj, accion) {
+    const nombre = obtenerNombreElemento(obj, tipo);
+    const acciones = {
+        "agregado": `Se agregó ${nombre}`,
+        "modificado": `Se modificó ${nombre}`,
+        "eliminado": `Se eliminó ${nombre}`
+    };
+
+    const opciones = {
+        timeOut: 5000,
+        positionClass: "toast-bottom-right",
+        progressBar: true,
+        toastClass: "toastr ancho-personalizado"
+    };
+
+    switch (tipoToast) {
+        case "success":
+            toastr.success(acciones[accion], "Pedido actualizado", opciones);
+            break;
+        case "warning":
+            toastr.warning(acciones[accion], "Pedido actualizado", opciones);
+            break;
+        case "error":
+            toastr.error(acciones[accion], "Pedido actualizado", opciones);
+            break;
+    }
+}
+
+function sonIgualesCamposClave(a, b, tipo) {
+    switch (tipo) {
+        case "producto":
+            return a.IdProducto === b.IdProducto &&
+                a.Cantidad === b.Cantidad &&
+                a.PrecioUnitario === b.PrecioUnitario;
+        case "pagoCliente":
+        case "pagoProveedor":
+            return a.TotalArs === b.TotalArs &&
+                a.Observacion === b.Observacion &&
+                a.IdMoneda === b.IdMoneda &&
+                a.Fecha === b.Fecha;
+            a.Cotizacion === b.Cotizacion;
+        default:
+            return JSON.stringify(a) === JSON.stringify(b);
+    }
+}
+
+function obtenerNombreElemento(obj, tipo) {
+    switch (tipo) {
+        case "producto":
+            return `"${obj.NombreProducto || obj.Descripcion || obj.Nombre || 'producto desconocido'}"`;
+        case "pagoProveedor":
+            const nombreProveedor = $("#Proveedores option:selected").text() || 'desconocido';
+            return `el pago del proveedor "${nombreProveedor}"`;
+        case "pagoCliente":
+            const nombreCliente = $("#Clientes option:selected").text() || 'desconocido';
+            return `el pago del cliente "${nombreCliente}"`;
+        default:
+            return `"desconocido"`;
+    }
+}
+
+function estiloToastr(error = false) {
+    return {
+        timeOut: 3500,
+        positionClass: "toast-bottom-right",
+        progressBar: true,
+        toastClass: error ? "toastr ancho-personalizado bg-danger" : "toastr ancho-personalizado"
+    };
+}
+
+function animarFilaPorCambio(tabla, idFila, tipo) {
+    let clase = "";
+
+    if (tipo === "agregado") clase = "zoom-green-highlight";
+    else if (tipo === "modificado") clase = "zoom-green-highlight";
+    else if (tipo === "eliminado") clase = "zoom-green-highlight"; // si tenés una clase propia para eliminar
+
+    const fila = tabla.row(function (idx, data) {
+        return data.Id == idFila;
+    });
+
+    if (fila.node()) {
+        const nodo = $(fila.node());
+        nodo.addClass(clase);
+        setTimeout(() => nodo.removeClass(clase), 2000);
+    }
+}
+
+
+function mostrarTooltipNotificacion(texto) {
+    toastr.success(texto, "Pedidos", {
+        timeOut: 5000,
+        positionClass: "toast-bottom-right",
+        progressBar: true,
+        toastClass: "toastr ancho-personalizado"
+    });
+}
+
+
+let audioContext = null;
+let audioBuffer = null;
+
+// Inicializar el contexto y cargar el sonido
+async function inicializarSonidoNotificacion() {
+    if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    }
+
+    const response = await fetch('/sonidos/notificacion.mp3');
+    const arrayBuffer = await response.arrayBuffer();
+    audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+}
+
+// Reproducir el sonido (por encima de otros)
+function reproducirSonidoNotificacion() {
+    if (!audioBuffer || !audioContext) return;
+
+    const source = audioContext.createBufferSource();
+    source.buffer = audioBuffer;
+
+    const gainNode = audioContext.createGain();
+    gainNode.gain.value = 1.0; // Máximo volumen
+
+    source.connect(gainNode).connect(audioContext.destination);
+    source.start(0);
 }
