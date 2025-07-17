@@ -8,6 +8,8 @@ using SistemaGian.Models;
 using System.Diagnostics;
 using System.Text.Json.Serialization;
 using System.Text.Json;
+using Microsoft.AspNetCore.SignalR;
+using SistemaGian.Application.Hubs;
 
 namespace SistemaGian.Application.Controllers
 {
@@ -22,16 +24,27 @@ namespace SistemaGian.Application.Controllers
         private readonly IMonedaService _monedaService;
         private readonly IProductosPrecioProveedorService _productosPrecioProveedorService;
         private readonly IClienteService _clienteService;
+        private readonly IHubContext<NotificacionesHub> _hubContext;
 
-        public PedidosController(IPedidoService pedidoservice, IProductoService Productoservice, IZonasService zonaService, IMonedaService monedaService, IChoferService choferService, IProductosPrecioProveedorService productosPrecioProveedorService, IClienteService clienteService)
+        public PedidosController(
+                                 IPedidoService pedidoservice,
+                                 IProductoService Productoservice,
+                                 IZonasService zonaService,
+                                 IMonedaService monedaService,
+                                 IChoferService choferService,
+                                 IProductosPrecioProveedorService productosPrecioProveedorService,
+                                 IClienteService clienteService,
+                                 IHubContext<NotificacionesHub> hubContext // <-- AGREGAR
+                             )
         {
-            _pedidoservice = pedidoservice;
-            _Productoservice = Productoservice;
-            _zonaService = zonaService;
-            _monedaService = monedaService;
-            _choferService = choferService;
-            _productosPrecioProveedorService = productosPrecioProveedorService;
-            _clienteService = clienteService;
+                                _pedidoservice = pedidoservice;
+                                _Productoservice = Productoservice;
+                                _zonaService = zonaService;
+                                _monedaService = monedaService;
+                                _choferService = choferService;
+                                _productosPrecioProveedorService = productosPrecioProveedorService;
+                                _clienteService = clienteService;
+                                _hubContext = hubContext; // <-- AGREGAR
         }
 
         public async Task<IActionResult> Index()
@@ -39,7 +52,7 @@ namespace SistemaGian.Application.Controllers
             // Obtener el usuario actual desde la sesión usando el helper inyectado
             var userSession = await SessionHelper.GetUsuarioSesion(HttpContext);
 
-            
+
             return View();
         }
 
@@ -86,7 +99,7 @@ namespace SistemaGian.Application.Controllers
                     ViewBag.Error = "No se encontró el pedido.";
                 }
             }
-            
+
             return View();
         }
 
@@ -205,8 +218,8 @@ namespace SistemaGian.Application.Controllers
                 {
                     var nuevoPagoCliente = new PagosPedidosCliente
                     {
-                        IdPedido = pedido.Id,
                         Id = pagoCliente.Id,
+                        IdPedido = pedido.Id,
                         Fecha = pagoCliente.Fecha,
                         IdMoneda = pagoCliente.IdMoneda,
                         Cotizacion = pagoCliente.Cotizacion,
@@ -226,8 +239,8 @@ namespace SistemaGian.Application.Controllers
                 {
                     var nuevoPagoProveedor = new PagosPedidosProveedor
                     {
-                        IdPedido = pedido.Id,
                         Id = pagoProveedor.Id,
+                        IdPedido = pedido.Id,
                         Fecha = pagoProveedor.Fecha,
                         IdMoneda = pagoProveedor.IdMoneda,
                         Cotizacion = pagoProveedor.Cotizacion,
@@ -261,8 +274,22 @@ namespace SistemaGian.Application.Controllers
 
             var respuesta = await _pedidoservice.Actualizar(pedido, pagosCliente, pagosProveedor, pedidosProducto);
 
+            var userSession = await SessionHelper.GetUsuarioSesion(HttpContext);
 
-            return Ok(new { valor = respuesta});
+            if (respuesta)
+            {
+                await _hubContext.Clients.All.SendAsync("PedidoActualizado", new
+                {
+                    IdPedido = pedido.Id,
+                    Cliente = pedido.IdClienteNavigation.Nombre,
+                    Tipo = "Modificado",
+                    Fecha = pedido.Fecha,
+                    Usuario = userSession.Nombre,
+                    IdUsuario = userSession.Id
+                });
+            }
+
+            return Ok(new { valor = respuesta });
         }
 
 
@@ -298,7 +325,7 @@ namespace SistemaGian.Application.Controllers
             List<PedidosProducto> pedidosProducto = new List<PedidosProducto>();
 
 
-            if(model.SaldoUsado > 0)
+            if (model.SaldoUsado > 0)
             {
                 var observacion = $"Se resta el saldo por el pago de {model.SaldoUsado} en el pedido Nro {pedido.Id}";
 
@@ -366,10 +393,28 @@ namespace SistemaGian.Application.Controllers
                     }
                 }
 
-               
+
             }
 
             bool respuesta = await _pedidoservice.Insertar(pedido, pagosCliente, pagosProveedor, pedidosProducto);
+
+            var userSession = await SessionHelper.GetUsuarioSesion(HttpContext);
+
+
+            if (respuesta)
+            {
+                await _hubContext.Clients.All.SendAsync("PedidoActualizado", new
+                {
+                    IdPedido = pedido.Id,
+                    Cliente = pedido.IdClienteNavigation.Nombre,
+                    Proveedor = pedido.IdProveedorNavigation.Nombre,
+                    Tipo = "Creado",
+                    Fecha = pedido.Fecha,
+                    Usuario = userSession.Nombre,
+                    IdUsuario = userSession.Id
+                });
+            }
+
 
             return Ok(new { valor = respuesta });
 
@@ -444,7 +489,7 @@ namespace SistemaGian.Application.Controllers
                     Zona = pedido.IdZona.HasValue && pedido.IdZona.Value > 0 ? (await _zonaService.Obtener(pedido.IdZona.Value, -1)).Nombre : "",
                     Chofer = pedido.IdChofer.HasValue && pedido.IdChofer.Value > 0 ? (await _choferService.Obtener(pedido.IdChofer.Value)).Nombre : "",
                     SaldoAFavor = pedido.IdClienteNavigation.SaldoAfavor
-                    
+
                 };
 
                 var pagosaProveedores = await _pedidoservice.ObtenerPagosaProveedores(idPedido);

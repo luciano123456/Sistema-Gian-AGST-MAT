@@ -18,6 +18,8 @@ builder.Services.AddDbContext<SistemaGianContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("SistemaDB")));
 
 
+builder.Services.AddSignalR();
+
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
@@ -135,10 +137,14 @@ app.UseStaticFiles(new StaticFileOptions
 });
 
 
+
 app.UseRouting();
 
 app.UseAuthentication(); // Habilitar la autenticación con cookies
 app.UseAuthorization();  // Habilitar la autorización
+
+app.MapHub<SistemaGian.Application.Hubs.NotificacionesHub>("/notificacionesHub");
+
 
 app.MapControllerRoute(
     name: "default",
@@ -150,3 +156,4 @@ app.MapControllerRoute(
     pattern: "Login/{action=Index}",
     defaults: new { controller = "Login", action = "Index" });
 app.Run();
+

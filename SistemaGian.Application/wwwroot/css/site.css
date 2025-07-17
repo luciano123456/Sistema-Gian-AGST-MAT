@@ -681,3 +681,58 @@ div.dt-button-collection {
     border-radius: 0 0 0.5rem 0.5rem;
     box-shadow: none;
 }
+
+/* Efecto blinking robusto */
+.blinking-resaltado td {
+    animation: blink 1s linear infinite;
+}
+
+/* Si querés que también cambie el texto a negro */
+.blinking-resaltado td {
+    color: black !important;
+}
+
+@keyframes blink {
+    0% {
+        background-color: #ffff99 !important;
+    }
+
+    50% {
+        background-color: #ffffff !important;
+    }
+
+    100% {
+        background-color: #ffff99 !important;
+    }
+}
+
+
+.toastr.ancho-personalizado {
+    min-width: 400px; /* O el ancho que prefieras */
+}
+
+
+/* Efecto zoom y color verde en cada celda */
+.zoom-green-highlight td {
+    animation: zoomGreenEffect 2s ease;
+}
+
+@keyframes zoomGreenEffect {
+    0% {
+        transform: scale(1);
+        color: inherit;
+        background-color: transparent;
+    }
+
+    50% {
+        transform: scale(1.1);
+        color: #4CAF50; /* Verde */
+        background-color: rgba(76, 175, 80, 0.1);
+    }
+
+    100% {
+        transform: scale(1);
+        color: inherit;
+        background-color: transparent;
+    }
+}

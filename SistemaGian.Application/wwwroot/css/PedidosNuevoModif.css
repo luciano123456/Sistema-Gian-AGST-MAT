@@ -131,3 +131,65 @@ select option:disabled {
         font-weight: bold;
         color: #333;
     }
+
+
+.resaltado-cambio {
+    background-color: #e1ffd9 !important;
+    border: 2px solid #5cb85c !important;
+    transition: all 0.4s ease;
+}
+
+
+.fila-agregada {
+    animation: flashGreen 2s ease-in-out;
+}
+
+.fila-modificada {
+    animation: flashYellow 2s ease-in-out;
+}
+
+.fila-eliminada {
+    animation: flashRed 2s ease-in-out;
+}
+
+@keyframes flashGreen {
+    0% {
+        background-color: #d4edda;
+    }
+
+    100% {
+        background-color: transparent;
+    }
+}
+
+@keyframes flashYellow {
+    0% {
+        background-color: #fff3cd;
+    }
+
+    100% {
+        background-color: transparent;
+    }
+}
+
+@keyframes flashRed {
+    0% {
+        background-color: #f8d7da;
+    }
+
+    100% {
+        background-color: transparent;
+    }
+}
+
+.fila-agregada {
+    background-color: #d4edda !important;
+}
+
+.fila-modificada {
+    background-color: #fff3cd !important;
+}
+
+.fila-eliminada {
+    background-color: #f8d7da !important;
+}
