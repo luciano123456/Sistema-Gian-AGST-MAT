@@ -188,7 +188,9 @@ namespace SistemaGian.DAL.Repository
                         FechaActualizacion = DateTime.Now,
                         ProductoCantidad = model.ProductoCantidad,
                         PorcGanancia = model.PorcGanancia,
-                        IdUnidadDeMedida = model.IdUnidadDeMedida
+                        IdUnidadDeMedida = model.IdUnidadDeMedida,
+                        Activo = model.Activo,
+                        Peso = model.Peso
                     };
 
 

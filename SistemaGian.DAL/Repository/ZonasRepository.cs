@@ -93,9 +93,19 @@ namespace SistemaGian.DAL.Repository
                     model.Id = modelo.IdZona;
                     model.Nombre = modelo.IdZonaNavigation.Nombre;
                 }
+            } else
+            {
+                Zona modelo = await _dbcontext.Zonas.Where(x => x.Id == id).FirstOrDefaultAsync();
+
+                if (modelo != null)
+                {
+                    model.Precio = modelo.Precio;
+                    model.Id = modelo.Id;
+                    model.Nombre = modelo.Nombre;
+                }
             }
 
-            return model;
+                return model;
         }
         public async Task<IQueryable<Zona>> ObtenerTodos()
         {

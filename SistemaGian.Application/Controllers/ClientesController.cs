@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
+using SistemaGian.Application.Hubs;
 using SistemaGian.Application.Models;
 using SistemaGian.Application.Models.ViewModels;
 using SistemaGian.BLL.Service;
@@ -14,12 +16,14 @@ namespace SistemaGian.Application.Controllers
         private readonly IClienteService _clienteService;
         private readonly IProvinciaService _provinciaService;
         private readonly IProveedorService _proveedorservice;
+        private readonly IHubContext<NotificacionesHub> _hubContext;
 
-        public ClientesController(IClienteService clienteService, IProvinciaService provinciaService, IProveedorService proveedorservice)
+        public ClientesController(IClienteService clienteService, IProvinciaService provinciaService, IProveedorService proveedorservice, IHubContext<NotificacionesHub> hubContext)
         {
             _clienteService = clienteService;
             _provinciaService = provinciaService;
             _proveedorservice = proveedorservice;
+            _hubContext = hubContext;
         }
 
         public async Task<IActionResult> Index()
@@ -135,6 +139,20 @@ namespace SistemaGian.Application.Controllers
 
             bool respuesta = await _clienteService.Insertar(cliente);
 
+            var userSession = await SessionHelper.GetUsuarioSesion(HttpContext);
+
+            if (respuesta)
+            {
+                await _hubContext.Clients.All.SendAsync("ActualizarSignalR", new
+                {
+                    Id = cliente.Id,
+                    UsuarioModificado = model.Nombre,
+                    Tipo = "Creado",
+                    Usuario = userSession.Nombre,
+                    IdUsuario = userSession.Id
+                });
+            }
+
             return Ok(new { valor = respuesta });
         }
 
@@ -163,6 +181,20 @@ namespace SistemaGian.Application.Controllers
 
             bool respuesta = await _clienteService.Actualizar(cliente);
 
+            var userSession = await SessionHelper.GetUsuarioSesion(HttpContext);
+
+            if (respuesta)
+            {
+                await _hubContext.Clients.All.SendAsync("ActualizarSignalR", new
+                {
+                    Id = model.Id,
+                    Tipo = "Actualizado",
+                    UsuarioModificado = model.Nombre,
+                    Usuario = userSession.Nombre,
+                    IdUsuario = userSession.Id
+                });
+            }
+
             return Ok(new { valor = respuesta });
         }
 
@@ -170,7 +202,24 @@ namespace SistemaGian.Application.Controllers
         [HttpDelete]
         public async Task<IActionResult> Eliminar(int id)
         {
+
+            Cliente cliente = await _clienteService.Obtener(id);
+
             bool respuesta = await _clienteService.Eliminar(id);
+
+            var userSession = await SessionHelper.GetUsuarioSesion(HttpContext);
+
+            if (respuesta)
+            {
+                await _hubContext.Clients.All.SendAsync("ActualizarSignalR", new
+                {
+                    Id = id,
+                    Tipo = "Eliminado",
+                    UsuarioModificado = cliente.Nombre,
+                    Usuario = userSession.Nombre,
+                    IdUsuario = userSession.Id
+                });
+            }
 
             return StatusCode(StatusCodes.Status200OK, new { valor = respuesta });
         }

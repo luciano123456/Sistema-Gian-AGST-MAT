@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
+using SistemaGian.Application.Hubs;
 using SistemaGian.Application.Models;
 using SistemaGian.Application.Models.ViewModels;
 using SistemaGian.BLL.Service;
@@ -12,10 +14,14 @@ namespace SistemaGian.Application.Controllers
     public class ZonasController : Controller
     {
         private readonly IZonasService _ZonasService;
+        private readonly IClienteService _ClienteService;
+        private readonly IHubContext<NotificacionesHub> _hubContext;
 
-        public ZonasController(IZonasService ZonasService, IProvinciaService provinciaService)
+        public ZonasController(IZonasService ZonasService, IClienteService clienteService, IProvinciaService provinciaService, IHubContext<NotificacionesHub> hubContext)
         {
             _ZonasService = ZonasService;
+            _ClienteService = clienteService;
+            _hubContext = hubContext;
         }
 
         public async Task<IActionResult> Index()
@@ -64,6 +70,21 @@ namespace SistemaGian.Application.Controllers
             };
 
             bool respuesta = await _ZonasService.Insertar(Zona);
+
+
+            var userSession = await SessionHelper.GetUsuarioSesion(HttpContext);
+
+            if (respuesta)
+            {
+                await _hubContext.Clients.All.SendAsync("ActualizarSignalR", new
+                {
+                    Id = Zona.Id,
+                    Nombre = model.Nombre,
+                    Tipo = "Creada",
+                    Usuario = userSession.Nombre,
+                    IdUsuario = userSession.Id
+                });
+            }
 
             return Ok(new { valor = respuesta });
         }
@@ -114,6 +135,8 @@ namespace SistemaGian.Application.Controllers
         public async Task<bool> Actualizar([FromBody] VMZonas model)
         {
             bool respuesta = false;
+            var nombreCliente = "";
+           
 
             try
             {
@@ -128,7 +151,9 @@ namespace SistemaGian.Application.Controllers
                             IdCliente = model.IdCliente,
                             Precio = model.Precio
                         };
+                        
                         respuesta = await _ZonasService.ActualizarZonaCliente(Zona);
+                        nombreCliente = _ClienteService.Obtener(model.IdCliente).Result.Nombre;
                     }
                     else
                     {
@@ -141,8 +166,24 @@ namespace SistemaGian.Application.Controllers
                         respuesta = await _ZonasService.Actualizar(Zona);
                     }
                 }
-    
-        } catch(Exception ex)
+
+                var userSession = await SessionHelper.GetUsuarioSesion(HttpContext);
+
+                if (respuesta)
+                {
+                    await _hubContext.Clients.All.SendAsync("ActualizarSignalR", new
+                    {
+                        Id = model.Id,
+                        Nombre = model.Nombre,
+                        Cliente = nombreCliente,
+                        Tipo = "Actualizada",
+                        Usuario = userSession.Nombre,
+                        IdUsuario = userSession.Id
+                    });
+                }
+
+            }
+            catch (Exception ex)
             {
                 return false;
             }
@@ -150,37 +191,62 @@ namespace SistemaGian.Application.Controllers
             return respuesta;
         }
 
-[HttpDelete]
-public async Task<IActionResult> Eliminar(int id, int idCliente)
-{
-    bool respuesta = await _ZonasService.Eliminar(id, idCliente);
+        [HttpDelete]
+        public async Task<IActionResult> Eliminar(int id, int idCliente)
+        {
 
-    return StatusCode(StatusCodes.Status200OK, new { valor = respuesta });
-}
+            var nombreCliente = "";
 
-[HttpGet]
-public async Task<IActionResult> EditarInfo(int id, int idCliente)
-{
-    var Zona = await _ZonasService.Obtener(id, idCliente);
+            Zona zona = await _ZonasService.Obtener(id, idCliente);
 
-    if (Zona != null)
-    {
-        return StatusCode(StatusCodes.Status200OK, Zona);
-    }
-    else
-    {
-        return StatusCode(StatusCodes.Status404NotFound);
-    }
-}
-public IActionResult Privacy()
-{
-    return View();
-}
+            if(idCliente > 0)
+            {
+                nombreCliente = _ClienteService.Obtener(idCliente).Result.Nombre;
+            }
 
-[ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-public IActionResult Error()
-{
-    return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
-}
+            bool respuesta = await _ZonasService.Eliminar(id, idCliente);
+
+            var userSession = await SessionHelper.GetUsuarioSesion(HttpContext);
+
+            if (respuesta)
+            {
+                await _hubContext.Clients.All.SendAsync("ActualizarSignalR", new
+                {
+                    Id = zona.Id,
+                    Nombre = zona.Nombre,
+                    Cliente = nombreCliente,
+                    Tipo = "Eliminada",
+                    Usuario = userSession.Nombre,
+                    IdUsuario = userSession.Id
+                });
+            }
+
+            return StatusCode(StatusCodes.Status200OK, new { valor = respuesta });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> EditarInfo(int id, int idCliente)
+        {
+            var Zona = await _ZonasService.Obtener(id, idCliente);
+
+            if (Zona != null)
+            {
+                return StatusCode(StatusCodes.Status200OK, Zona);
+            }
+            else
+            {
+                return StatusCode(StatusCodes.Status404NotFound);
+            }
+        }
+        public IActionResult Privacy()
+        {
+            return View();
+        }
+
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+        public IActionResult Error()
+        {
+            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        }
     }
 }

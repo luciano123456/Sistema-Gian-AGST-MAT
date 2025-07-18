@@ -26,6 +26,12 @@ $(document).ready(() => {
     // Obtener la fecha de 4 días atrás
     const fechaDesde = moment().add(-15, 'days').format('YYYY-MM-DD');
 
+    inicializarSonidoNotificacion();
+
+    document.addEventListener("touchstart", desbloquearAudio, { once: true });
+    document.addEventListener("click", desbloquearAudio, { once: true });
+
+
     // Establecer las fechas en los campos correspondientes
     document.getElementById("txtFechaDesde").value = fechaDesde; // Fecha 4 días atrás
     document.getElementById("txtFechaHasta").value = moment().format('YYYY-MM-DD');
@@ -439,3 +445,49 @@ $(document).on('click', function (e) {
         $('.acciones-dropdown').hide(); // Cerrar todos los dropdowns
     }
 });
+
+
+const connection = new signalR.HubConnectionBuilder()
+    .withUrl("/notificacionesHub")
+    .build();
+
+connection.on("PedidoActualizado", function (data) {
+    if (data.idUsuario !== userSession.Id) {
+
+        reproducirSonidoNotificacion();
+
+        if (typeof aplicarFiltros === "function") {
+            aplicarFiltros().then(() => {
+                setTimeout(() => {
+                    marcarFilaCambio(gridventas, data.idPedido, tipo);
+                }, 500);
+            });
+        }
+
+        // Mostrar notificación según tipo
+        const tipo = data.tipo?.toLowerCase();
+
+        let mensaje = `Venta #${data.idPedido} ${data.tipo} por ${data.usuario}.`;
+        let opciones = {
+            timeOut: 5000,
+            positionClass: "toast-bottom-right",
+            progressBar: true,
+            toastClass: "toastr ancho-personalizado"
+        };
+
+        if (tipo === "eliminado") {
+            toastr.error(mensaje, "Ventas", opciones);
+        } else if (tipo === "actualizado") {
+            toastr.warning(mensaje, "Ventas", opciones);
+        } else {
+            toastr.success(mensaje, "Ventas", opciones);
+        }
+    }
+});
+
+
+
+connection.start()
+    .then(() => console.log("✅ SignalR conectado"))
+    .catch(err => console.error(err.toString()));
+

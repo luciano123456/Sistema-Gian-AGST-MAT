@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Newtonsoft.Json;
+using SistemaGian.Application.Hubs;
 using SistemaGian.Application.Models;
 using SistemaGian.Application.Models.ViewModels;
 using SistemaGian.BLL.Service;
@@ -19,8 +21,10 @@ namespace SistemaGian.Application.Controllers
         private readonly IProductosPrecioProveedorService _productoprecioProveedorService;
         private readonly IProductosPrecioClienteService _productoPrecioClienteService;
         private readonly IProveedorService _proveedorService;
+        private readonly IClienteService _clienteService;
+        private readonly IHubContext<NotificacionesHub> _hubContext;
 
-        public ProductosController(IProductoService Productoservice, IMarcaService marcaservice, ICategoriaService categoriaservice, IUnidadDeMedidaService unidadDeMedidaService, IProductosPrecioProveedorService productoprecioProveedorService, IProductosPrecioClienteService productoPrecioClienteService, IProveedorService proveedorService)
+        public ProductosController(IProductoService Productoservice, IMarcaService marcaservice, ICategoriaService categoriaservice, IUnidadDeMedidaService unidadDeMedidaService, IProductosPrecioProveedorService productoprecioProveedorService, IProductosPrecioClienteService productoPrecioClienteService, IProveedorService proveedorService, IClienteService clienteService, IHubContext<NotificacionesHub> hubContext)
         {
             _Productoservice = Productoservice;
             _Marcaservice = marcaservice;
@@ -29,6 +33,8 @@ namespace SistemaGian.Application.Controllers
             _productoprecioProveedorService = productoprecioProveedorService;
             _productoPrecioClienteService = productoPrecioClienteService;
             _proveedorService = proveedorService;
+            _clienteService = clienteService;
+            _hubContext = hubContext;
         }
 
         public IActionResult Index()
@@ -60,14 +66,31 @@ namespace SistemaGian.Application.Controllers
             {
                 var result = await _Productoservice.DuplicarProductos(modelo.productos);
 
+                var userSession = await SessionHelper.GetUsuarioSesion(HttpContext);
+
+                if (result)
+                {
+                    var ids = modelo.productos.Split(',', StringSplitOptions.RemoveEmptyEntries);
+
+                    await _hubContext.Clients.All.SendAsync("ActualizarSignalR", new
+                    {
+                        Tipo = "CreadoMasivo",
+                        Cliente = "",
+                        Cantidad = ids.Length, // ✅ Cantidad real de productos
+                        Proveedor = "",
+                        Usuario = userSession.Nombre,
+                        IdUsuario = userSession.Id
+                    });
+                }
+
                 return Json(result);
             }
             catch (Exception ex)
             {
                 return Json(null);
             }
-
         }
+
 
         [HttpPost]
         public async Task<IActionResult> DuplicarProducto(int idProducto)
@@ -75,6 +98,8 @@ namespace SistemaGian.Application.Controllers
             try
             {
                 var result = await _Productoservice.DuplicarProducto(idProducto);
+
+
 
                 return Json(result);
             }
@@ -90,9 +115,14 @@ namespace SistemaGian.Application.Controllers
         {
             try
             {
+
+
+
                 // Obtener filtros desde query o header si los estás usando
                 var idProveedor = Convert.ToInt32(HttpContext.Request.Headers["idProveedor"]);
                 var idCliente = Convert.ToInt32(HttpContext.Request.Headers["idCliente"]);
+
+                var producto = await _Productoservice.Obtener(model.Id, idCliente, idProveedor);
 
                 bool result;
 
@@ -110,6 +140,22 @@ namespace SistemaGian.Application.Controllers
                 {
                     // Guardar en la tabla base
                     result = await _Productoservice.GuardarOrden(model.Id, model.Orden);
+                }
+
+                var userSession = await SessionHelper.GetUsuarioSesion(HttpContext);
+
+                if (result)
+                {
+                    await _hubContext.Clients.All.SendAsync("ActualizarSignalR", new
+                    {
+                        Id = model.Id,
+                        Tipo = "Actualizado",
+                        Producto = producto.Descripcion,
+                        Cliente = idCliente > 0 ? _clienteService.Obtener(idCliente).Result.Nombre : "",
+                        Proveedor = idProveedor > 0 ? _proveedorService.Obtener(idProveedor).Result.Nombre : "",
+                        Usuario = userSession.Nombre,
+                        IdUsuario = userSession.Id
+                    });
                 }
 
                 return Json(result);
@@ -162,15 +208,31 @@ namespace SistemaGian.Application.Controllers
             {
                 var result = await _Productoservice.AumentarPrecios(modelo.productos, modelo.idCliente, modelo.idProveedor, modelo.porcentajeCosto, modelo.porcentajeVenta);
 
+                var userSession = await SessionHelper.GetUsuarioSesion(HttpContext);
+
+                if (result)
+                {
+                    var ids = modelo.productos.Split(',', StringSplitOptions.RemoveEmptyEntries);
+
+                    await _hubContext.Clients.All.SendAsync("ActualizarSignalR", new
+                    {
+                        Tipo = "ActualizadoMasivo",
+                        Cliente = modelo.idCliente > 0 ? _clienteService.Obtener(modelo.idCliente).Result.Nombre : "",
+                        Cantidad = ids.Length, // ✅ ahora calcula bien la cantidad
+                        Proveedor = modelo.idProveedor > 0 ? _proveedorService.Obtener(modelo.idProveedor).Result.Nombre : "",
+                        Usuario = userSession.Nombre,
+                        IdUsuario = userSession.Id
+                    });
+                }
+
                 return Json(result);
             }
             catch (Exception ex)
             {
                 return Json(null);
             }
-
-
         }
+
 
         [HttpPost]
         public async Task<IActionResult> BajarPrecios([FromBody] VMAumentoProductos modelo)
@@ -178,6 +240,25 @@ namespace SistemaGian.Application.Controllers
             try
             {
                 var result = await _Productoservice.BajarPrecios(modelo.productos, modelo.idCliente, modelo.idProveedor, modelo.porcentajeCosto, modelo.porcentajeVenta);
+
+                var userSession = await SessionHelper.GetUsuarioSesion(HttpContext);
+
+                if (result)
+                {
+
+
+                    var ids = modelo.productos.Split(',', StringSplitOptions.RemoveEmptyEntries);
+                    await _hubContext.Clients.All.SendAsync("ActualizarSignalR", new
+                    {
+
+                        Tipo = "ActualizadoMasivo",
+                        Cliente = modelo.idCliente > 0 ? _clienteService.Obtener(modelo.idCliente).Result.Nombre : "",
+                        Cantidad = ids.Length, // ✅ ahora calcula bien la cantidad
+                        Proveedor = modelo.idProveedor > 0 ? _proveedorService.Obtener(modelo.idProveedor).Result.Nombre : "",
+                        Usuario = userSession.Nombre,
+                        IdUsuario = userSession.Id
+                    });
+                }
 
                 return Json(result);
             }
@@ -198,6 +279,21 @@ namespace SistemaGian.Application.Controllers
             {
                 var result = await _productoPrecioClienteService.AsignarCliente(modelo.productos, modelo.idCliente, modelo.idProveedor);
 
+                var userSession = await SessionHelper.GetUsuarioSesion(HttpContext);
+
+                if (result)
+                {
+                    await _hubContext.Clients.All.SendAsync("ActualizarSignalR", new
+                    {
+
+                        Tipo = "ActualizadoMasivo",
+                        Cliente = modelo.idCliente > 0 ? _clienteService.Obtener(modelo.idCliente).Result.Nombre : "",
+                        Cantidad = modelo.productos.Length,
+                        Proveedor = modelo.idProveedor > 0 ? _proveedorService.Obtener(modelo.idProveedor).Result.Nombre : "",
+                        Usuario = userSession.Nombre,
+                        IdUsuario = userSession.Id
+                    });
+                }
 
                 return Json(result);
             }
@@ -212,6 +308,8 @@ namespace SistemaGian.Application.Controllers
         [HttpGet]
         public async Task<IActionResult> Lista()
         {
+
+            try { 
             var productos = await _Productoservice.ObtenerTodos();
 
             var baseList = productos.Select(c => new VMProducto
@@ -235,7 +333,7 @@ namespace SistemaGian.Application.Controllers
                 Image = c.Image,
                 Activo = (int)c.Activo != null ? (int)c.Activo : 1,
                 Orden = c.Orden != null ? c.Orden : 0,
-                Peso = (int)c.Peso
+                Peso = c.Peso != null ? (int)c.Peso : 0
             }).ToList();
 
             var conOrden = baseList.Where(p => p.Orden > 0).OrderBy(p => p.Orden).ToList();
@@ -263,11 +361,16 @@ namespace SistemaGian.Application.Controllers
             resultado.AddRange(sinOrden);
 
             return Ok(resultado);
+            } catch (Exception ex)
+            {
+                return BadRequest($"Error al obtener los productos: {ex.Message}");
+            }
         }
 
 
         [HttpGet]
-        public async Task<IActionResult> ListaProductosProveedor(int idProveedor) { 
+        public async Task<IActionResult> ListaProductosProveedor(int idProveedor)
+        {
             try
             {
                 var productos = await _Productoservice.ListaProductosFiltro(-1, idProveedor, -1);
@@ -418,10 +521,28 @@ namespace SistemaGian.Application.Controllers
                 var result = await _Productoservice.EditarActivo(model.Id, (int)model.activo);
 
                 if (result)
+                {
+
+                    var userSession = await SessionHelper.GetUsuarioSesion(HttpContext);
+
+                    await _hubContext.Clients.All.SendAsync("ActualizarSignalR", new
+                    {
+                        Id = model.Id,
+                        Tipo = "Actualizado",
+                        Producto = model.Id > 0 ? _Productoservice.Obtener(model.Id, -1, -1).Result.Descripcion : "",
+                        Cliente =  "",
+                        Proveedor =  "",
+                        Usuario = userSession.Nombre,
+                        IdUsuario = userSession.Id
+                    });
+
                     return Json(new { Status = true });
 
+                }
                 else
+                {
                     return Json(new { Status = false });
+                }
             }
             catch (Exception ex)
             {
@@ -455,7 +576,26 @@ namespace SistemaGian.Application.Controllers
 
             bool respuesta = await _Productoservice.Insertar(Producto);
 
+
             await _Productoservice.Actualizar(Producto);
+
+            if (respuesta)
+            {
+
+                var userSession = await SessionHelper.GetUsuarioSesion(HttpContext);
+
+                await _hubContext.Clients.All.SendAsync("ActualizarSignalR", new
+                {
+                    Id = model.Id,
+                    Tipo = "Creado",
+                    Producto = model.Descripcion,
+                    Cliente = "",
+                    Proveedor = "",
+                    Usuario = userSession.Nombre,
+                    IdUsuario = userSession.Id
+                });
+
+            }
 
             return Ok(new { valor = respuesta });
         }
@@ -499,8 +639,24 @@ namespace SistemaGian.Application.Controllers
             {
                 respuesta = await _Productoservice.Actualizar(Producto);
             }
-          
-            
+
+
+            var userSession = await SessionHelper.GetUsuarioSesion(HttpContext);
+
+            if (respuesta)
+            {
+                await _hubContext.Clients.All.SendAsync("ActualizarSignalR", new
+                {
+                    Id = model.Id,
+                    Tipo = "Actualizado",
+                    Producto = Producto.Descripcion,
+                    Cliente = model.IdCliente > 0 ? _clienteService.Obtener(model.IdCliente).Result.Nombre : "",
+                    Proveedor = model.IdProveedor > 0 ? _proveedorService.Obtener(model.IdProveedor).Result.Nombre : "",
+                    Usuario = userSession.Nombre,
+                    IdUsuario = userSession.Id
+                });
+            }
+
 
             return Ok(new { valor = respuesta });
         }
@@ -511,10 +667,13 @@ namespace SistemaGian.Application.Controllers
 
             bool respuesta = false;
 
-            if(idProveedor > 0 && idCliente <= 0)
+            var nombreProducto = _Productoservice.Obtener(id, -1, -1).Result.Descripcion;
+
+            if (idProveedor > 0 && idCliente <= 0)
             {
                 respuesta = await _productoprecioProveedorService.Eliminar(id, idProveedor);
-            } else if (idProveedor > 0 && idCliente > 0)
+            }
+            else if (idProveedor > 0 && idCliente > 0)
             {
                 respuesta = await _productoPrecioClienteService.Eliminar(id, idCliente, idProveedor);
             }
@@ -522,7 +681,22 @@ namespace SistemaGian.Application.Controllers
             {
                 respuesta = await _Productoservice.Eliminar(id);
             }
-            
+
+            var userSession = await SessionHelper.GetUsuarioSesion(HttpContext);
+
+            if (respuesta)
+            {
+                await _hubContext.Clients.All.SendAsync("ActualizarSignalR", new
+                {
+                    Id = id,
+                    Tipo = "Eliminado",
+                    Producto = nombreProducto,
+                    Cliente = idCliente > 0 ? _clienteService.Obtener(idCliente).Result.Nombre : "",
+                    Proveedor = idProveedor > 0 ? _proveedorService.Obtener(idProveedor).Result.Nombre : "",
+                    Usuario = userSession.Nombre,
+                    IdUsuario = userSession.Id
+                });
+            }
 
             return StatusCode(StatusCodes.Status200OK, new { valor = respuesta });
         }
@@ -548,7 +722,7 @@ namespace SistemaGian.Application.Controllers
                 ProductoCantidad = model.ProductoCantidad != null ? model.ProductoCantidad : 1,
                 Image = model.Image,
                 Peso = (int)model.Peso,
-                Activo = (int)model.Activo
+                Activo = model.Activo != null ? (int)model.Activo : 1
             };
 
 

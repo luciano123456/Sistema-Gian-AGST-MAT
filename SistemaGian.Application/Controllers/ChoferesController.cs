@@ -5,6 +5,8 @@ using SistemaGian.BLL.Service;
 using SistemaGian.Models;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.SignalR;
+using SistemaGian.Application.Hubs;
 
 namespace SistemaGian.Application.Controllers
 {
@@ -15,12 +17,14 @@ namespace SistemaGian.Application.Controllers
         private readonly IChoferService _Chofereservice;
         private readonly IProvinciaService _provinciaService;
         private readonly IUsuariosService _userService;
+        private readonly IHubContext<NotificacionesHub> _hubContext;
 
-        public ChoferesController(IChoferService Chofereservice, IProvinciaService provinciaService, IUsuariosService userService)
+        public ChoferesController(IChoferService Chofereservice, IProvinciaService provinciaService, IUsuariosService userService, IHubContext<NotificacionesHub> hubContext)
         {
             _Chofereservice = Chofereservice;
             _provinciaService = provinciaService;
             _userService = userService;
+            _hubContext = hubContext;
         }
 
         public async Task<IActionResult> Index()
@@ -73,6 +77,20 @@ namespace SistemaGian.Application.Controllers
 
             bool respuesta = await _Chofereservice.Insertar(Chofer);
 
+            var userSession = await SessionHelper.GetUsuarioSesion(HttpContext);
+
+            if (respuesta)
+            {
+                await _hubContext.Clients.All.SendAsync("ActualizarSignalR", new
+                {
+                    Id = Chofer.Id,
+                    UsuarioModificado = model.Nombre,
+                    Tipo = "Creado",
+                    Usuario = userSession.Nombre,
+                    IdUsuario = userSession.Id
+                });
+            }
+
             return Ok(new { valor = respuesta });
         }
 
@@ -89,6 +107,20 @@ namespace SistemaGian.Application.Controllers
 
             bool respuesta = await _Chofereservice.Actualizar(Chofer);
 
+            var userSession = await SessionHelper.GetUsuarioSesion(HttpContext);
+
+            if (respuesta)
+            {
+                await _hubContext.Clients.All.SendAsync("ActualizarSignalR", new
+                {
+                    Id = model.Id,
+                    Tipo = "Actualizado",
+                    UsuarioModificado = model.Nombre,
+                    Usuario = userSession.Nombre,
+                    IdUsuario = userSession.Id
+                });
+            }
+
             return Ok(new { valor = respuesta });
         }
 
@@ -96,6 +128,22 @@ namespace SistemaGian.Application.Controllers
         public async Task<IActionResult> Eliminar(int id)
         {
             bool respuesta = await _Chofereservice.Eliminar(id);
+
+
+            var userSession = await SessionHelper.GetUsuarioSesion(HttpContext);
+
+            if (respuesta)
+            {
+                await _hubContext.Clients.All.SendAsync("ActualizarSignalR", new
+                {
+                    Id = id,
+                    Tipo = "Eliminado",
+                    UsuarioModificado = userSession.Nombre,
+                    Usuario = userSession.Nombre,
+                    IdUsuario = userSession.Id
+                });
+            }
+
 
             return StatusCode(StatusCodes.Status200OK, new { valor = respuesta });
         }

@@ -51,7 +51,10 @@ $(document).ready(() => {
     // Agregarlo al <thead>
     $('#grd_Productos thead').append($filterRow);
 
+    inicializarSonidoNotificacion();
 
+    document.addEventListener("touchstart", desbloquearAudio, { once: true });
+    document.addEventListener("click", desbloquearAudio, { once: true });
 
     listaProductos();
     listaProductosFiltro();
@@ -2156,3 +2159,99 @@ function guardarNuevoOrdenProductos() {
             errorModal('Error al guardar el orden');
         });
 }
+
+
+
+const connection = new signalR.HubConnectionBuilder()
+    .withUrl("/notificacionesHub")
+    .build();
+
+connection.on("ActualizarSignalR", function (data) {
+    const userSession = JSON.parse(localStorage.getItem('userSession'));
+
+    if (data.idUsuario !== userSession.Id) {
+
+        if (typeof reproducirSonidoNotificacion === "function") {
+            reproducirSonidoNotificacion();
+        }
+
+        if (typeof aplicarFiltros === "function") {
+            const paginaActual = gridProductos.page();
+
+            aplicarFiltros().then(() => {
+                setTimeout(() => {
+                    gridProductos.page(paginaActual).draw('page');
+
+                    if (typeof marcarFilaCambio === "function" && typeof gridProductos !== "undefined") {
+                        const tipoAnimacion = data.tipo?.toLowerCase() === "creado" ? "nueva" : "actualizada";
+                        marcarFilaCambio(gridProductos, data.id, tipoAnimacion);
+                    }
+                }, 500);
+            });
+        }
+
+        // Notificación
+        const tipo = data.tipo?.toLowerCase();
+        const titulo = "Productos";
+        let mensaje = "";
+
+        if (tipo === "actualizadomasivo") {
+            const cantidad = `<span class="fw-bold text-primary">${data.cantidad} productos</span>`;
+            const cliente = data.cliente ? ` del cliente <span class="fw-bold text-primary">${data.cliente}</span>` : "";
+            const proveedor = data.proveedor ? `${data.cliente ? " y" : " del"} proveedor <span class="fw-bold text-primary">${data.proveedor}</span>` : "";
+            const usuario = `<span class="fw-bold text-primary">${data.usuario}</span>`;
+
+            mensaje = `${cantidad}${cliente}${proveedor} actualizados por ${usuario}.`;
+        
+        
+        } else if (tipo === "creadomasivo") {
+            mensaje = `${data.cantidad} productos han sido creados por ${data.usuario}.`;
+        }  else {
+            const producto = `<span class="fw-bold text-primary">#${data.producto}</span>`;
+            const usuario = `<span class="fw-bold text-primary">${data.usuario}</span>`;
+
+            if (tipo === "actualizado" || tipo === "eliminado") {
+                if (data.cliente && data.proveedor) {
+                    mensaje = `${producto} del cliente <span class="fw-bold text-primary">${data.cliente}</span>` +
+                        ` y proveedor <span class="fw-bold text-primary">${data.proveedor}</span>` +
+                        ` ${tipo} por ${usuario}.`;
+                } else if (data.cliente) {
+                    mensaje = `${producto} del cliente <span class="fw-bold text-primary">${data.cliente}</span>` +
+                        ` ${tipo} por ${usuario}.`;
+                } else if (data.proveedor) {
+                    mensaje = `${producto} del proveedor <span class="fw-bold text-primary">${data.proveedor}</span>` +
+                        ` ${tipo} por ${usuario}.`;
+                } else {
+                    mensaje = `${producto} ${tipo} por ${usuario}.`;
+                }
+            } else {
+                mensaje = `${producto} ${tipo} por ${usuario}.`;
+            }
+        }
+
+
+        const opciones = {
+            timeOut: 5000,
+            positionClass: "toast-bottom-right",
+            progressBar: true,
+            toastClass: "toastr ancho-personalizado",
+            allowHtml: true // ✅ Importante para que funcione el HTML
+        };
+
+        if (tipo === "eliminado") {
+            toastr.error(mensaje, titulo, opciones);
+        } else if (tipo === "actualizado" || tipo === "actualizadomasivo") {
+            toastr.warning(mensaje, titulo, opciones);
+        } else {
+            toastr.success(mensaje, titulo, opciones);
+        }
+    }
+});
+
+connection.start()
+    .then(() => console.log("✅ SignalR conectado [productos.js]"))
+    .catch(err => console.error("❌ Error SignalR:", err.toString()));
+
+connection.start()
+    .then(() => console.log("✅ SignalR conectado [productos.js]"))
+    .catch(err => console.error("❌ Error SignalR:", err.toString()));

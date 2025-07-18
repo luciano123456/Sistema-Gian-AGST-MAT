@@ -1925,7 +1925,7 @@ async function guardarCambios() {
 
         // Construcción del objeto para el modelo
         const nuevoModelo = {
-            "Id": idPedido !== "" ? parseInt(idPedido) : 0,
+            "Id": idPedido !== "" || idPedido === 0  ? parseInt(idPedido) : 0,
             "Fecha": moment($("#fechaPedido").val(), 'YYYY-MM-DD').format('YYYY-MM-DD'),
             "IdCliente": parseInt($("#Clientes").val()),
             "FechaEntrega": moment($("#fechaEntrega").val(), 'YYYY-MM-DD').format('YYYY-MM-DD'),
@@ -1948,8 +1948,8 @@ async function guardarCambios() {
         };
 
         // Definir la URL y el método para el envío
-        const url = idPedido === "" ? "/Pedidos/Insertar" : "/Pedidos/Actualizar";
-        const method = idPedido === "" ? "POST" : "PUT";
+        const url = idPedido === "" || idPedido === 0 ? "/Pedidos/Insertar" : "/Pedidos/Actualizar";
+        const method = idPedido === "" || idPedido === 0 ? "POST" : "PUT";
 
         console.log(JSON.stringify(nuevoModelo))
 
@@ -2239,7 +2239,7 @@ function mostrarTooltipCampoModificado(idCampo, mensajeExtra = "") {
     const mensaje = `${mensajeExtra}`;
 
     toastr.success(mensaje, "Pedido actualizado", {
-        timeOut: 2500,
+        timeOut: 3000,
         positionClass: "toast-bottom-right",
         progressBar: true,
         toastClass: "toastr ancho-personalizado"
@@ -2515,31 +2515,3 @@ function mostrarTooltipNotificacion(texto) {
     });
 }
 
-
-let audioContext = null;
-let audioBuffer = null;
-
-// Inicializar el contexto y cargar el sonido
-async function inicializarSonidoNotificacion() {
-    if (!audioContext) {
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    }
-
-    const response = await fetch('/sonidos/notificacion.mp3');
-    const arrayBuffer = await response.arrayBuffer();
-    audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-}
-
-// Reproducir el sonido (por encima de otros)
-function reproducirSonidoNotificacion() {
-    if (!audioBuffer || !audioContext) return;
-
-    const source = audioContext.createBufferSource();
-    source.buffer = audioBuffer;
-
-    const gainNode = audioContext.createGain();
-    gainNode.gain.value = 1.0; // Máximo volumen
-
-    source.connect(gainNode).connect(audioContext.destination);
-    source.start(0);
-}
