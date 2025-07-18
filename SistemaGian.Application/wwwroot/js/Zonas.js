@@ -23,6 +23,11 @@ $(document).ready(() => {
     listaClientesFiltro();
     listaZonasFiltro();
 
+    inicializarSonidoNotificacion();
+
+    document.addEventListener("touchstart", desbloquearAudio, { once: true });
+    document.addEventListener("click", desbloquearAudio, { once: true });
+
     $('#txtNombre').on('input', function () {
         validarCampos()
     });
@@ -996,6 +1001,60 @@ function bajarPrecios() {
     }
 }
 
+
+
+
+
+const connection = new signalR.HubConnectionBuilder()
+    .withUrl("/notificacionesHub")
+    .build();
+
+connection.on("ActualizarSignalR", function (data) {
+    var userSession = JSON.parse(localStorage.getItem('userSession'));
+
+
+    if (data.idUsuario !== userSession.Id) {
+
+        reproducirSonidoNotificacion();
+
+        if (typeof aplicarFiltros === "function") {
+            aplicarFiltros().then(() => {
+                setTimeout(() => {
+                    marcarFilaCambio(gridZonas, data.id, tipo);
+                }, 500);
+            });
+        }
+
+        // Mostrar notificación según tipo
+        const tipo = data.tipo?.toLowerCase();
+
+        let mensaje = `#${data.nombre} ${data.tipo} por ${data.usuario}.`;
+
+        if ((data.tipo == "Actualizada" || data.tipo == "Eliminada") && data.cliente != "") {
+            mensaje = `#${data.nombre} del cliente ${data.cliente} ${data.tipo} por ${data.usuario}.`;
+
+        }
+        let opciones = {
+            timeOut: 5000,
+            positionClass: "toast-bottom-right",
+            progressBar: true,
+            toastClass: "toastr ancho-personalizado"
+        };
+
+        if (tipo === "eliminada") {
+            toastr.error(mensaje, "Zonas", opciones);
+        }   else if (tipo === "actualizada") {
+                toastr.warning(mensaje, "Zonas", opciones);
+        } else {
+            toastr.success(mensaje, "Zonas", opciones);
+        }
+    }
+});
+
+
+connection.start()
+    .then(() => console.log("✅ SignalR conectado"))
+    .catch(err => console.error(err.toString()));
 
 
 

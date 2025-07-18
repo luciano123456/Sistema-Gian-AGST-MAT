@@ -22,6 +22,12 @@ $(document).ready(() => {
 
     listaProveedores();
 
+
+    inicializarSonidoNotificacion();
+
+    document.addEventListener("touchstart", desbloquearAudio, { once: true });
+    document.addEventListener("click", desbloquearAudio, { once: true });
+
     $('#txtNombre').on('input', function () {
         validarCampos()
     });
@@ -511,3 +517,52 @@ async function guardarCambiosFila(rowData) {
         console.error('Error de red:', error);
     }
 }
+
+
+const connection = new signalR.HubConnectionBuilder()
+    .withUrl("/notificacionesHub")
+    .build();
+
+connection.on("ActualizarSignalR", function (data) {
+    var userSession = JSON.parse(localStorage.getItem('userSession'));
+
+
+    if (data.idUsuario !== userSession.Id) {
+
+        reproducirSonidoNotificacion();
+
+
+        listaProveedores().then(() => {
+            setTimeout(() => {
+                marcarFilaCambio(gridProveedores, data.id, tipo);
+            }, 500);
+        });
+
+
+        // Mostrar notificación según tipo
+        const tipo = data.tipo?.toLowerCase();
+
+        let mensaje = `#${data.usuarioModificado} ${data.tipo} por ${data.usuario}.`;
+
+        let opciones = {
+            timeOut: 5000,
+            positionClass: "toast-bottom-right",
+            progressBar: true,
+            toastClass: "toastr ancho-personalizado"
+        };
+
+        if (tipo === "eliminado") {
+            toastr.error(mensaje, "Proveedores", opciones);
+        } else if (tipo === "actualizado") {
+            toastr.warning(mensaje, "Proveedores", opciones);
+        } else {
+            toastr.success(mensaje, "Proveedores", opciones);
+        }
+    }
+});
+
+
+connection.start()
+    .then(() => console.log("✅ SignalR conectado"))
+    .catch(err => console.error(err.toString()));
+

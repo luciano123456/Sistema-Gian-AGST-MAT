@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
+using SistemaGian.Application.Hubs;
 using SistemaGian.Application.Models;
 using SistemaGian.Application.Models.ViewModels;
 using SistemaGian.BLL.Service;
@@ -12,11 +14,13 @@ namespace SistemaGian.Application.Controllers
     public class ProveedoresController : Controller
     {
         private readonly IProveedorService _ProveedorService;
-        private readonly IProvinciaService _provinciaService;
+        private readonly IHubContext<NotificacionesHub> _hubContext;
 
-        public ProveedoresController(IProveedorService ProveedorService)
+
+        public ProveedoresController(IProveedorService ProveedorService, IHubContext<NotificacionesHub> hubContext)
         {
             _ProveedorService = ProveedorService;
+            _hubContext = hubContext;
         }
 
         public async Task<IActionResult> Index()
@@ -69,6 +73,20 @@ namespace SistemaGian.Application.Controllers
 
             bool respuesta = await _ProveedorService.Insertar(Proveedor);
 
+            var userSession = await SessionHelper.GetUsuarioSesion(HttpContext);
+
+            if (respuesta)
+            {
+                await _hubContext.Clients.All.SendAsync("ActualizarSignalR", new
+                {
+                    Id = Proveedor.Id,
+                    UsuarioModificado = model.Nombre,
+                    Tipo = "Creado",
+                    Usuario = userSession.Nombre,
+                    IdUsuario = userSession.Id
+                });
+            }
+
             return Ok(new { valor = respuesta });
         }
 
@@ -86,13 +104,44 @@ namespace SistemaGian.Application.Controllers
 
             bool respuesta = await _ProveedorService.Actualizar(Proveedor);
 
+            var userSession = await SessionHelper.GetUsuarioSesion(HttpContext);
+
+            if (respuesta)
+            {
+                await _hubContext.Clients.All.SendAsync("ActualizarSignalR", new
+                {
+                    Id = model.Id,
+                    Tipo = "Actualizado",
+                    UsuarioModificado = model.Nombre,
+                    Usuario = userSession.Nombre,
+                    IdUsuario = userSession.Id
+                });
+            }
+
             return Ok(new { valor = respuesta });
         }
 
         [HttpDelete]
         public async Task<IActionResult> Eliminar(int id)
         {
+
+            Proveedor proveedor = await _ProveedorService.Obtener(id);
+
             bool respuesta = await _ProveedorService.Eliminar(id);
+
+            var userSession = await SessionHelper.GetUsuarioSesion(HttpContext);
+
+            if (respuesta)
+            {
+                await _hubContext.Clients.All.SendAsync("ActualizarSignalR", new
+                {
+                    Id = id,
+                    Tipo = "Eliminado",
+                    UsuarioModificado = proveedor.Nombre,
+                    Usuario = userSession.Nombre,
+                    IdUsuario = userSession.Id
+                });
+            }
 
             return StatusCode(StatusCodes.Status200OK, new { valor = respuesta });
         }

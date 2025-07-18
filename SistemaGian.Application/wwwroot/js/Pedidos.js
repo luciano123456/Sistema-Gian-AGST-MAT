@@ -33,13 +33,7 @@ $(document).ready(() => {
     document.addEventListener("click", desbloquearAudio, { once: true });
 
 
-    function desbloquearAudio() {
-        if (audioContext && audioContext.state === "suspended") {
-            audioContext.resume().then(() => {
-                console.log("🔊 AudioContext reanudado");
-            });
-        }
-    }
+  
 
 
     localStorage.removeItem('EditandoPedidoDesdeVenta'); //POR SI LAS DUDAS
@@ -479,13 +473,6 @@ const connection = new signalR.HubConnectionBuilder()
     .build();
 
 connection.on("PedidoActualizado", function (data) {
-    toastr.success(`Pedido #${data.idPedido} Modificado por ${data.usuario}.`, "Pedidos", {
-        timeOut: 5000,
-        positionClass: "toast-bottom-right",
-        progressBar: true,
-        toastClass: "toastr ancho-personalizado"
-    });
-
     if (data.idUsuario !== userSession.Id) {
 
         reproducirSonidoNotificacion();
@@ -493,9 +480,28 @@ connection.on("PedidoActualizado", function (data) {
         if (typeof aplicarFiltros === "function") {
             aplicarFiltros().then(() => {
                 setTimeout(() => {
-                    marcarFilaPedido(data.idPedido);
+                    marcarFilaCambio(gridpedidos, data.idPedido, tipo);
                 }, 500);
             });
+        }
+
+        // Mostrar notificación según tipo
+        const tipo = data.tipo?.toLowerCase();
+
+        let mensaje = `#${data.idPedido} ${data.tipo} por ${data.usuario}.`;
+        let opciones = {
+            timeOut: 5000,
+            positionClass: "toast-bottom-right",
+            progressBar: true,
+            toastClass: "toastr ancho-personalizado"
+        };
+
+        if (tipo === "eliminado") {
+            toastr.error(mensaje, "Pedidos", opciones);
+        } else if (tipo === "actualizado") {
+            toastr.warning(mensaje, "Pedidos", opciones);
+        } else {
+            toastr.success(mensaje, "Pedidos", opciones);
         }
     }
 });
@@ -506,7 +512,7 @@ connection.start()
     .catch(err => console.error(err.toString()));
 
 
-function marcarFilaPedido(idPedido) {
+function marcarFilaCambio(idPedido) {
  
     gridpedidos.rows({ page: 'current' }).every(function () {
         const data = this.data();
@@ -517,35 +523,8 @@ function marcarFilaPedido(idPedido) {
 
             setTimeout(() => {
                 $(rowNode).removeClass('zoom-green-highlight');
-            }, 2000);
+            }, 3000);
         }
     });
 }
 
-let audioContext = null;
-let audioBuffer = null;
-
-// Inicializar el contexto y cargar el sonido
-async function inicializarSonidoNotificacion() {
-    if (!audioContext) {
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    }
-
-    const response = await fetch('/sonidos/notificacion.mp3');
-    const arrayBuffer = await response.arrayBuffer();
-    audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-}
-
-// Reproducir el sonido (por encima de otros)
-function reproducirSonidoNotificacion() {
-    if (!audioBuffer || !audioContext) return;
-
-    const source = audioContext.createBufferSource();
-    source.buffer = audioBuffer;
-
-    const gainNode = audioContext.createGain();
-    gainNode.gain.value = 1.0; // Máximo volumen
-
-    source.connect(gainNode).connect(audioContext.destination);
-    source.start(0);
-}

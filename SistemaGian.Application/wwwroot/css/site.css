@@ -713,26 +713,53 @@ div.dt-button-collection {
 
 
 /* Efecto zoom y color verde en cada celda */
-.zoom-green-highlight td {
+/*table.dataTable > thead > tr > th .zoom-green-highlight td {
     animation: zoomGreenEffect 2s ease;
+}*/
+
+table.dataTable.display tbody tr.zoom-nuevo-highlight {
+    animation: zoomGreenEffect 3s ease-out forwards;
+    background: transparent; /* por si hay algo heredado */
 }
+
+    table.dataTable.display tbody tr.zoom-nuevo-highlight td {
+        background-color: transparent !important;
+    }
 
 @keyframes zoomGreenEffect {
     0% {
-        transform: scale(1);
-        color: inherit;
-        background-color: transparent;
+        background: linear-gradient(90deg, #a5d6a7, #66bb6a); /* Verde medio */
     }
 
-    50% {
-        transform: scale(1.1);
-        color: #4CAF50; /* Verde */
-        background-color: rgba(76, 175, 80, 0.1);
+    40% {
+        background: linear-gradient(90deg, #66bb6a, #388e3c); /* Verde intenso */
     }
 
     100% {
-        transform: scale(1);
-        color: inherit;
-        background-color: transparent;
+        background: linear-gradient(90deg, #a5d6a7, #66bb6a); /* Vuelve a verde medio */
+    }
+}
+
+
+table.dataTable.display tbody tr.zoom-actualizar-highlight {
+    animation: zoomWarningEffect 3s ease-out forwards;
+    background: transparent;
+}
+
+    table.dataTable.display tbody tr.zoom-actualizar-highlight td {
+        background-color: transparent !important;
+    }
+
+@keyframes zoomWarningEffect {
+    0% {
+        background: linear-gradient(90deg, #fceabb, #f0ad4e); /* Amarillo claro a naranja toastr */
+    }
+
+    40% {
+        background: linear-gradient(90deg, #f0ad4e, #ec971f); /* Naranja toastr a más oscuro */
+    }
+
+    100% {
+        background: linear-gradient(90deg, #fceabb, #f0ad4e);
     }
 }

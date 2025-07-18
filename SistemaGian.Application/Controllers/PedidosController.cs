@@ -276,13 +276,27 @@ namespace SistemaGian.Application.Controllers
 
             var userSession = await SessionHelper.GetUsuarioSesion(HttpContext);
 
+            if(model.Estado != pedido.Estado)
+            {
+
+                await _hubContext.Clients.All.SendAsync("PedidoActualizado", new
+                {
+                    IdPedido = pedido.Id,
+                    Cliente = pedido.IdClienteNavigation.Nombre,
+                    Tipo = "Actualizado",
+                    Fecha = pedido.Fecha,
+                    Usuario = userSession.Nombre,
+                    IdUsuario = userSession.Id
+                });
+            }
+
             if (respuesta)
             {
                 await _hubContext.Clients.All.SendAsync("PedidoActualizado", new
                 {
                     IdPedido = pedido.Id,
                     Cliente = pedido.IdClienteNavigation.Nombre,
-                    Tipo = "Modificado",
+                    Tipo = "Actualizado",
                     Fecha = pedido.Fecha,
                     Usuario = userSession.Nombre,
                     IdUsuario = userSession.Id
@@ -406,8 +420,8 @@ namespace SistemaGian.Application.Controllers
                 await _hubContext.Clients.All.SendAsync("PedidoActualizado", new
                 {
                     IdPedido = pedido.Id,
-                    Cliente = pedido.IdClienteNavigation.Nombre,
-                    Proveedor = pedido.IdProveedorNavigation.Nombre,
+                    Cliente = pedido.IdClienteNavigation != null ? pedido.IdClienteNavigation.Nombre : "",
+                    Proveedor = pedido.IdProveedorNavigation != null ? pedido.IdProveedorNavigation.Nombre : "",
                     Tipo = "Creado",
                     Fecha = pedido.Fecha,
                     Usuario = userSession.Nombre,
@@ -424,6 +438,19 @@ namespace SistemaGian.Application.Controllers
         public async Task<IActionResult> Eliminar(int id)
         {
             bool respuesta = await _pedidoservice.Eliminar(id);
+
+            var userSession = await SessionHelper.GetUsuarioSesion(HttpContext);
+
+            if (respuesta)
+            {
+                await _hubContext.Clients.All.SendAsync("PedidoActualizado", new
+                {
+                    IdPedido = id,
+                    Tipo = "Eliminado",
+                    Usuario = userSession.Nombre,
+                    IdUsuario = userSession.Id
+                });
+            }
 
             return StatusCode(StatusCodes.Status200OK, new { valor = respuesta });
         }

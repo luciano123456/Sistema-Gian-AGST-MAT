@@ -216,3 +216,58 @@ function formatearSinMiles(valor) {
     const num = parseFloat(limpio);
     return isNaN(num) ? 0 : num;
 }
+
+
+let audioContext = null;
+let audioBuffer = null;
+
+// Inicializar el contexto y cargar el sonido
+async function inicializarSonidoNotificacion() {
+    if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    }
+
+    const response = await fetch('/sonidos/notificacion.mp3');
+    const arrayBuffer = await response.arrayBuffer();
+    audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+}
+
+// Reproducir el sonido (por encima de otros)
+function reproducirSonidoNotificacion() {
+    if (!audioBuffer || !audioContext) return;
+
+    const source = audioContext.createBufferSource();
+    source.buffer = audioBuffer;
+
+    const gainNode = audioContext.createGain();
+    gainNode.gain.value = 1.0; // Máximo volumen
+
+    source.connect(gainNode).connect(audioContext.destination);
+    source.start(0);
+}
+
+
+function desbloquearAudio() {
+    if (audioContext && audioContext.state === "suspended") {
+        audioContext.resume().then(() => {
+            console.log("🔊 AudioContext reanudado");
+        });
+    }
+}
+
+function marcarFilaCambio(grid, id, tipo) {
+    grid.rows({ page: 'current' }).every(function () {
+        const data = this.data();
+        if (data && data.Id === id) {
+            const rowNode = this.node();
+
+            const claseAnimacion = tipo === "actualizada" || tipo === "actualizado" ? "zoom-actualizar-highlight" : "zoom-nuevo-highlight";
+
+            $(rowNode).addClass(claseAnimacion);
+
+            setTimeout(() => {
+                $(rowNode).removeClass(claseAnimacion);
+            }, 3000);
+        }
+    });
+}

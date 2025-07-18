@@ -23,6 +23,11 @@ $(document).ready(() => {
 
     listaUsuarios();
 
+    inicializarSonidoNotificacion();
+
+    document.addEventListener("touchstart", desbloquearAudio, { once: true });
+    document.addEventListener("click", desbloquearAudio, { once: true });
+
     document.querySelectorAll("#modalEdicion input, #modalEdicion select, #modalEdicion textarea").forEach(el => {
         el.setAttribute("autocomplete", "off");
         el.addEventListener("input", () => validarCampoIndividual(el));
@@ -533,3 +538,52 @@ function validarCampos() {
     document.getElementById("errorCampos").classList.toggle("d-none", valido);
     return valido;
 }
+
+
+const connection = new signalR.HubConnectionBuilder()
+    .withUrl("/notificacionesHub")
+    .build();
+
+connection.on("ActualizarSignalR", function (data) {
+    var userSession = JSON.parse(localStorage.getItem('userSession'));
+
+
+    if (data.idUsuario !== userSession.Id) {
+
+        reproducirSonidoNotificacion();
+
+        
+            listaUsuarios().then(() => {
+                setTimeout(() => {
+                    marcarFilaCambio(gridUsuarios, data.id, tipo);
+                }, 500);
+            });
+        
+
+        // Mostrar notificación según tipo
+        const tipo = data.tipo?.toLowerCase();
+
+        let mensaje = `#${data.usuarioModificado} ${data.tipo} por ${data.usuario}.`;
+
+        let opciones = {
+            timeOut: 5000,
+            positionClass: "toast-bottom-right",
+            progressBar: true,
+            toastClass: "toastr ancho-personalizado"
+        };
+
+        if (tipo === "eliminado") {
+            toastr.error(mensaje, "Usuarios", opciones);
+        } else if (tipo === "actualizado") {
+            toastr.warning(mensaje, "Usuarios", opciones);
+        } else {
+            toastr.success(mensaje, "Usuarios", opciones);
+        }
+    }
+});
+
+
+connection.start()
+    .then(() => console.log("✅ SignalR conectado"))
+    .catch(err => console.error(err.toString()));
+
