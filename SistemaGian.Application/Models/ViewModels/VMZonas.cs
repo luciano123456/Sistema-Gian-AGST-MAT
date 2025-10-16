@@ -7,7 +7,18 @@ namespace SistemaGian.Application.Models.ViewModels
         public int Id { get; set; }
         public int IdCliente { get; set; }
         public string Nombre { get; set; } = null!;
+        public string Cliente { get; set; } = null!;
         public decimal Precio { get; set; }
 
     }
+
+    public class ClienteZonaDto
+    {
+        public int IdCliente { get; set; }
+        public string NombreCliente { get; set; } = "";
+        public int IdZona { get; set; }
+        public string Zona { get; set; } = "";
+        public decimal Precio { get; set; }
+    }
+
 }

@@ -69,6 +69,8 @@ namespace SistemaGian.BLL.Service
             return resp;
         }
 
+        public async Task<IQueryable<ZonasCliente>> ObtenerClientesPorZona(int idZona)
+    => await _contactRepo.ObtenerClientesPorZona(idZona);
 
     }
 }

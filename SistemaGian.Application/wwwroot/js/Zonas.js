@@ -8,6 +8,7 @@ const columnConfig = [
     { index: 0, filterType: 'text' },
     { index: 1, filterType: 'text' },
     { index: 2, filterType: 'text' },
+    { index: 3, filterType: 'text' },
 ];
 
 const Modelo_base = {
@@ -154,6 +155,7 @@ function limpiarModal() {
 }
 
 async function listaZonas(idCliente) {
+    let paginaActual = gridZonas != null ? gridZonas.page() : 0;
     document.getElementById("btnAsignarCliente").setAttribute("hidden", "hidden");
 
     selectedZonas = [];
@@ -162,6 +164,8 @@ async function listaZonas(idCliente) {
     const response = await fetch(url);
     const data = await response.json();
     await configurarDataTable(data);
+
+    if (paginaActual > 0) gridZonas.page(paginaActual).draw('page');
 }
 
 const editarZona = id => {
@@ -213,11 +217,10 @@ async function eliminarZona(id) {
 async function configurarDataTable(data) {
     if (!gridZonas) {
         $('#grd_Zonas thead tr').clone(true).addClass('filters').appendTo('#grd_Zonas thead');
+
         gridZonas = $('#grd_Zonas').DataTable({
             data: data,
             language: {
-                sLengthMenu: "Mostrar MENU registros",
-                lengthMenu: "Anzeigen von _MENU_ Einträgen",
                 url: "//cdn.datatables.net/plug-ins/2.0.7/i18n/es-MX.json"
             },
             scrollX: "100px",
@@ -226,330 +229,117 @@ async function configurarDataTable(data) {
                 {
                     data: "Id",
                     title: '',
-                    width: "1%", // Ancho fijo para la columna
+                    width: "1%",
                     render: function (data) {
-                        const isChecked = false;
-
-                        const checkboxClass = isChecked ? 'fa-check-square-o' : 'fa-square-o';
                         return `
-                <div class="acciones-menu" data-id="${data}">
-                    <button class='btn btn-sm btnacciones' type='button' onclick='toggleAcciones(${data})' title='Acciones'>
-                        <i class='fa fa-ellipsis-v fa-lg text-white' aria-hidden='true'></i>
-                    </button>
-                    <div class="acciones-dropdown" style="display: none;">
-                        <button class='btn btn-sm btneditar' type='button' onclick='editarZona(${data})' title='Editar'>
-                            <i class='fa fa-pencil-square-o fa-lg text-success' aria-hidden='true'></i> Editar
-                        </button>
-                        <button class='btn btn-sm btneliminar' type='button' onclick='eliminarZona(${data})' title='Eliminar'>
-                            <i class='fa fa-trash-o fa-lg text-danger' aria-hidden='true'></i> Eliminar
-                        </button>
-                    </div>
-                    <span class="custom-checkbox" data-id='${data}'>
-                                    <i class="fa ${checkboxClass} checkbox"></i>
-                                </span>
-                </div>
-                `
-                            ;
+                        <div class="acciones-menu" data-id="${data}">
+                            <button class='btn btn-sm btnacciones' type='button' onclick='toggleAcciones(${data})' title='Acciones'>
+                                <i class='fa fa-ellipsis-v fa-lg text-white' aria-hidden='true'></i>
+                            </button>
+                            <div class="acciones-dropdown" style="display: none;">
+                                <button class='btn btn-sm btneditar' type='button' onclick='editarZona(${data})' title='Editar'>
+                                    <i class='fa fa-pencil-square-o fa-lg text-success' aria-hidden='true'></i> Editar
+                                </button>
+                                <button class='btn btn-sm btneliminar' type='button' onclick='eliminarZona(${data})' title='Eliminar'>
+                                    <i class='fa fa-trash-o fa-lg text-danger' aria-hidden='true'></i> Eliminar
+                                </button>
+                            </div>
+                            <span class="custom-checkbox" data-id='${data}'>
+                                <i class="fa fa-square-o checkbox"></i>
+                            </span>
+                        </div>`;
                     },
                     orderable: false,
                     searchable: false,
                 },
-                { data: 'Nombre', title: 'Nombre', },
+                { data: 'Nombre', title: 'Nombre' },
+                { data: 'Cliente', title: 'Cliente', defaultContent: '', visible: false }, // << NUEVA
                 {
                     data: 'Precio',
                     title: 'Precio',
-                    render: function (data) {
-                        return formatNumber(data);
-                    }
+                    render: function (data) { return formatNumber(data); },
+                    className: 'text-end'
                 },
             ],
             dom: 'Bfrtip',
             buttons: [
                 {
-                    extend: 'excelHtml5',
-                    text: 'Exportar Excel',
-                    filename: 'Reporte Zonas',
-                    title: '',
+                    extend: 'excelHtml5', text: 'Exportar Excel', filename: 'Reporte Zonas', title: '',
                     exportOptions: {
-                        columns: [0, 1, 2]
+                        columns: function (idx, data, node) {
+                            const colVisible = $(node).is(':visible');
+                            return colVisible && idx > 0; // evita la de acciones
+                        }
                     },
                     className: 'btn-exportar-excel',
                 },
                 {
-                    extend: 'pdfHtml5',
-                    text: 'Exportar PDF',
-                    filename: 'Reporte Zonas',
-                    title: '',
+                    extend: 'pdfHtml5', text: 'Exportar PDF', filename: 'Reporte Zonas', title: '',
                     exportOptions: {
-                        columns: [0, 1, 2]
+                        columns: function (idx, data, node) {
+                            const colVisible = $(node).is(':visible');
+                            return colVisible && idx > 0;
+                        }
                     },
                     className: 'btn-exportar-pdf',
                 },
                 {
-                    extend: 'print',
-                    text: 'Imprimir',
-                    title: '',
+                    extend: 'print', text: 'Imprimir', title: '',
                     exportOptions: {
-                        columns: [0, 1, 2]
+                        columns: function (idx, data, node) {
+                            const colVisible = $(node).is(':visible');
+                            return colVisible && idx > 0;
+                        }
                     },
                     className: 'btn-exportar-print'
                 },
                 'pageLength'
             ],
-            "columnDefs": [
-
-                {
-                    "render": function (data, type, row) {
-                        return formatNumber(data); // Formatear número en la columna
-                    },
-                    "targets": [2] // Columna Precio
-                }
-            ],
             orderCellsTop: true,
             fixedHeader: true,
             initComplete: async function () {
+                const api = this.api();
 
-                // Ahora que gridZonas está inicializado, configuramos las opciones de columnas
+                // Filtros por columna (como ya hacías)
+                const columnConfig = [
+                    { index: 1, filterType: 'text' }, // Nombre
+                    { index: 2, filterType: 'text' }, // Cliente (se creará solo si está visible)
+                    { index: 3, filterType: 'text' }, // Precio
+                ];
 
-                var api = this.api();
-
-                // Iterar sobre las columnas y aplicar la configuración de filtros
                 columnConfig.forEach(async (config) => {
-                    var cell = $('.filters th').eq(config.index);
-
-                    if (config.filterType === 'select') {
-                        var select = $('<select id="filter' + config.index + '"><option value="">Seleccionar</option></select>')
-                            .appendTo(cell.empty())
-                            .on('change', async function () {
-                                var val = $(this).val();
-                                var selectedText = $(this).find('option:selected').text(); // Obtener el texto del nombre visible
-                                await api.column(config.index).search(val ? '^' + selectedText + '$' : '', true, false).draw(); // Buscar el texto del nombre
-                            });
-
-                        var data = await config.fetchDataFunc(); // Llamada a la función para obtener los datos
-                        data.forEach(function (item) {
-                            select.append('<option value="' + item.Id + '">' + item.Nombre + '</option>');
-                        });
-
-                    } else if (config.filterType === 'text') {
-                        var input = $('<input type="text" placeholder="Buscar..." />')
-                            .appendTo(cell.empty())
-                            .off('keyup change') // Desactivar manejadores anteriores
+                    const cell = $('.filters th').eq(config.index);
+                    if (gridZonas.column(config.index).visible() === false) {
+                        cell.empty().hide();
+                        return;
+                    }
+                    cell.empty().show();
+                    if (config.filterType === 'text') {
+                        $('<input type="text" placeholder="Buscar..." />')
+                            .appendTo(cell)
                             .on('keyup change', function (e) {
                                 e.stopPropagation();
                                 var regexr = '({search})';
                                 var cursorPosition = this.selectionStart;
                                 api.column(config.index)
-                                    .search(this.value != '' ? regexr.replace('{search}', '(((' + this.value + ')))') : '', this.value != '', this.value == '')
+                                    .search(this.value != '' ? regexr.replace('{search}', '(((' + this.value + ')))') : '',
+                                        this.value != '', this.value == '')
                                     .draw();
                                 $(this).focus()[0].setSelectionRange(cursorPosition, cursorPosition);
                             });
                     }
                 });
 
+                // Ocultar filtro de la primera columna (acciones)
+                $('.filters th').eq(0).html('');
+
+                // Al iniciar, aseguramos la columna Cliente oculta
+                await actualizarVisibilidadCliente(false);
+
+                // Rebind de los checkboxes
                 $('#grd_Zonas').on('draw.dt', function () {
-                    $(document).off('click', '.custom-checkbox'); // Desvincular el evento anterior
-                    $(document).on('click', '.custom-checkbox', handleCheckboxClick); // Asignar el evento correctamente
-                });
-
-                $(document).on('click', '.custom-checkbox', function (event) {
-                    handleCheckboxClick(event);
-                });
-
-
-                var firstColIdx = 0;  // Índice de la primera columna
-                $('.filters th').eq(firstColIdx).html(''); // Limpiar la primera columna
-
-
-
-                setTimeout(function () {
-                    gridZonas.columns.adjust();
-                }, 10);
-
-                configurarOpcionesColumnas();
-
-                $('#grd_Zonas tbody').on('dblclick', 'td', async function () {
-                    var cell = gridZonas.cell(this);
-                    var originalData = cell.data();
-                    var colIndex = cell.index().column;
-                    var rowData = gridZonas.row($(this).closest('tr')).data();
-
-                    // Verificar si la columna es la de usuario 
-                    if (colIndex === 0) {
-                        return; // No permitir editar en la columna de usuario
-                    }
-
-                    var idCliente = document.getElementById("clientesfiltro").value;
-                    if (colIndex === 1 && idCliente > 0) {
-                        return;
-                    }
-
-
-                    if (isEditing == true) {
-                        return;
-                    } else {
-                        isEditing = true;
-                    }
-
-                    // Eliminar la clase 'blinking' si está presente
-                    if ($(this).hasClass('blinking')) {
-                        $(this).removeClass('blinking');
-                    }
-
-                    // Si ya hay un input o select, evitar duplicados
-                    if ($(this).find('input').length > 0 || $(this).find('select').length > 0) {
-                        return;
-                    }
-
-                    if (colIndex === 2) {
-                        var valueToDisplay = originalData ? originalData.toString().replace(/[^\d.-]/g, '') : '';
-
-                        var input = $('<input type="text" class="form-control" style="background-color: transparent; border: none; border-bottom: 2px solid green; color: green; text-align: center;" />')
-                            .val(formatoMoneda.format(valueToDisplay))
-                            .on('input', function () {
-                                var saveBtn = $(this).siblings('.fa-check'); // Botón de guardar
-
-                                if ($(this).val().trim() === "") {
-                                    $(this).css('border-bottom', '2px solid red'); // Borde rojo
-                                    saveBtn.css('opacity', '0.5'); // Desactivar botón de guardar visualmente
-                                    saveBtn.prop('disabled', true); // Desactivar funcionalidad del botón
-                                } else {
-                                    $(this).css('border-bottom', '2px solid green'); // Borde verde
-                                    saveBtn.css('opacity', '1'); // Habilitar botón de guardar visualmente
-                                    saveBtn.prop('disabled', false); // Habilitar funcionalidad del botón
-                                }
-                            })
-                        input.on('blur', function () {
-                            // Solo limpiar el campo si no se ha presionado "Aceptar"
-                            var rawValue = $(this).val().replace(/[^0-9,-]/g, ''); // Limpiar caracteres no numéricos
-                            $(this).val(formatoMoneda.format(parseDecimal(rawValue))); // Mantener el valor limpio
-                        })
-                            .on('keydown', function (e) {
-                                if (e.key === 'Enter') {
-                                    saveEdit(colIndex, gridZonas.row($(this).closest('tr')).data(), input.val(), input.val(), $(this).closest('tr'));
-                                } else if (e.key === 'Escape') {
-                                    cancelEdit();
-                                }
-                            });
-
-                        var saveButton = $('<i class="fa fa-check text-success"></i>').on('click', function () {
-                            if (!$(this).prop('disabled')) { // Solo guardar si el botón no está deshabilitado
-                                saveEdit(colIndex, gridZonas.row($(this).closest('tr')).data(), input.val(), input.val(), $(this).closest('tr'));
-                            }
-                        });
-
-                        var cancelButton = $('<i class="fa fa-times text-danger"></i>').on('click', cancelEdit);
-
-                        // Reemplazar el contenido de la celda
-                        $(this).empty().append(input).append(saveButton).append(cancelButton);
-
-                        input.focus();
-                    } else { // Para las demás columnas
-                        var valueToDisplay = originalData && originalData.trim() !== "" ? originalData.replace(/<[^>]+>/g, "") : originalData || "";
-
-                        var input = $('<input type="text" class="form-control" style="background-color: transparent; border: none; border-bottom: 2px solid green; color: green; text-align: center;" />')
-                            .val(valueToDisplay)
-                            .on('input', function () {
-                                var saveBtn = $(this).siblings('.fa-check'); // Botón de guardar
-
-                                if (colIndex === 0) { // Validar solo si es la columna 0
-                                    if ($(this).val().trim() === "") {
-                                        $(this).css('border-bottom', '2px solid red'); // Borde rojo
-                                        saveBtn.css('opacity', '0.5'); // Desactivar botón de guardar visualmente
-                                        saveBtn.prop('disabled', true); // Desactivar funcionalidad del botón
-                                    } else {
-                                        $(this).css('border-bottom', '2px solid green'); // Borde verde
-                                        saveBtn.css('opacity', '1'); // Habilitar botón de guardar visualmente
-                                        saveBtn.prop('disabled', false); // Habilitar funcionalidad del botón
-                                    }
-                                }
-                            })
-                            .on('keydown', function (e) {
-                                if (e.key === 'Enter') {
-                                    saveEdit(colIndex, gridZonas.row($(this).closest('tr')).data(), input.val(), input.val(), $(this).closest('tr'));
-                                } else if (e.key === 'Escape') {
-                                    cancelEdit();
-                                }
-                            });
-
-                        var saveButton = $('<i class="fa fa-check text-success"></i>').on('click', function () {
-                            if (!$(this).prop('disabled')) { // Solo guardar si el botón no está deshabilitado
-                                saveEdit(colIndex, gridZonas.row($(this).closest('tr')).data(), input.val(), input.val(), $(this).closest('tr'));
-                            }
-                        });
-
-                        var cancelButton = $('<i class="fa fa-times text-danger"></i>').on('click', cancelEdit);
-
-                        // Reemplazar el contenido de la celda
-                        $(this).empty().append(input).append(saveButton).append(cancelButton);
-
-                        input.focus();
-                    }
-
-                    // Función para guardar los cambios
-                    async function saveEdit(colIndex, rowData, newText, newValue, trElement) {
-                        // Obtener el nodo de la celda desde el índice
-                        var celda = $(trElement).find('td').eq(colIndex); // Obtener la celda correspondiente dentro de la fila
-                        // Obtener el valor original de la celda
-                        var originalText = gridZonas.cell(trElement, colIndex).data();
-
-                        // Verificar si el texto realmente ha cambiado
-                        if (originalText === newText) {
-                            cancelEdit();
-                            return; // Si no ha cambiado, no hacer nada
-                        }
-
-
-                        if (colIndex === 2) { // Precio
-                            rowData.Precio = parseFloat(convertirMonedaAFloat(newValue)); // Actualizar PrecioCosto
-                        } else {
-                            rowData[gridZonas.column(colIndex).header().textContent] = newText; // Usamos el nombre de la columna para guardarlo
-                        }
-
-
-
-
-
-                        // Enviar los datos al servidor
-                        var resp = await guardarCambiosFila(rowData);
-
-                        if (resp) {
-                            // Aplicar el parpadeo solo si el texto cambió
-                            if (originalText !== newText) {
-                                // Actualizar la fila en la tabla con los nuevos datos
-                                gridZonas.row(trElement).data(rowData).draw();
-                                celda.addClass('blinking'); // Aplicar la clase 'blinking' a la celda que fue editada
-                            }
-                        } else {
-                            cancelEdit();
-                        }
-
-                        // Desactivar el modo de edición
-                        isEditing = false;
-
-                        // Eliminar la clase 'blinking' después de 3 segundos (para hacer el efecto de parpadeo)
-                        setTimeout(function () {
-                            celda.removeClass('blinking');
-                        }, 3000); // Duración de la animación de parpadeo (3 segundos)
-                    }
-
-
-                    // Función para cancelar la edición
-                    function cancelEdit() {
-                        // Restaurar el valor original
-                        gridZonas.cell(cell.index()).data(originalData).draw();
-                        isEditing = false;
-                    }
-                });
-
-                // Agregar eventos al marcador
-                $('body').on('mouseenter', '#grd_Zonas .fa-map-marker', function () {
-                    $(this).css('cursor', 'pointer');
-                });
-                $('body').on('click', '#grd_Zonas .fa-map-marker', function () {
-                    var locationText = $(this).parent().text().trim().replace(' ', ' '); // Obtener el texto visible
-                    var url = 'https://www.google.com/maps?q=' + encodeURIComponent(locationText);
-                    window.open(url, '_blank');
+                    $(document).off('click', '.custom-checkbox');
+                    $(document).on('click', '.custom-checkbox', handleCheckboxClick);
                 });
             },
         });
@@ -671,12 +461,41 @@ async function listaZonasFiltro() {
 
 
 async function aplicarFiltros() {
-    const idCliente = document.getElementById("clientesfiltro").value;
+    const idCliente = parseInt(document.getElementById("clientesfiltro").value || "-1", 10);
+    const idZona = parseInt(document.getElementById("zonasfiltro").value || "-1", 10);
+
+    // ocultar acciones masivas por defecto
     document.getElementById("btnAumentarPrecios").setAttribute("hidden", "hidden");
     document.getElementById("btnBajarPrecios").setAttribute("hidden", "hidden");
-    listaZonas(idCliente);
-    listaZonasFiltro();
+
+    selectedZonas = [];
+
+    let url = "";
+
+    if (idCliente === -1 && idZona > 0) {
+        // Caso especial: mostrar columna Cliente y pedir data “clientes con esa zona”
+        await actualizarVisibilidadCliente(true);
+        url = `/Zonas/ListaFiltro?IdCliente=-1&IdZona=${idZona}`;
+    } else {
+        // Caso normal: ocultar columna Cliente y reusar listado actual por cliente
+        await actualizarVisibilidadCliente(false);
+        url = `/Zonas/Lista?IdCliente=${idCliente}`;
+        // Si querés que además filtre por zona en el backend común:
+        // url = `/Zonas/ListaFiltro?IdCliente=${idCliente}&IdZona=${idZona}`;
+    }
+
+    try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(response.statusText);
+        const dataJson = await response.json();
+        await configurarDataTable(dataJson);
+    } catch (err) {
+        console.error(err);
+    }
+
+    await listaZonasFiltro();
 }
+
 
 
 function actualizarBotonesAccion() {
@@ -1002,6 +821,34 @@ function bajarPrecios() {
 }
 
 
+async function actualizarVisibilidadCliente(visible) {
+    const columnIndex = 2; // índice de la columna Cliente (ver más abajo)
+    const column = gridZonas.column(columnIndex);
+
+    column.visible(visible);
+    $('.filters th').eq(columnIndex).toggle(visible);
+
+    if (visible) {
+        const cell = $('.filters th').eq(columnIndex);
+        cell.empty();
+
+        // filtro text simple (o select si querés)
+        const input = $('<input type="text" placeholder="Buscar..." />')
+            .appendTo(cell)
+            .on('keyup change', function (e) {
+                e.stopPropagation();
+                var regexr = '({search})';
+                var cursorPosition = this.selectionStart;
+                gridZonas.column(columnIndex)
+                    .search(this.value != '' ? regexr.replace('{search}', '(((' + this.value + ')))') : '',
+                        this.value != '', this.value == '')
+                    .draw();
+                $(this).focus()[0].setSelectionRange(cursorPosition, cursorPosition);
+            });
+    }
+
+    gridZonas.columns().adjust().draw();
+}
 
 
 
@@ -1009,32 +856,59 @@ const connection = new signalR.HubConnectionBuilder()
     .withUrl("/notificacionesHub")
     .build();
 
-connection.on("ActualizarSignalR", function (data) {
-    var userSession = JSON.parse(localStorage.getItem('userSession'));
-
+connection.on("ActualizarSignalR", async function (data) {
+    const userSession = JSON.parse(localStorage.getItem('userSession'));
 
     if (data.idUsuario !== userSession.Id) {
-
         reproducirSonidoNotificacion();
 
-        if (typeof aplicarFiltros === "function") {
-            aplicarFiltros().then(() => {
-                setTimeout(() => {
-                    marcarFilaCambio(gridZonas, data.id, tipo);
-                }, 500);
-            });
+        const filaEnEdicion = document.querySelector('#grd_zonas input, #grd_zonas select');
+        const tr = filaEnEdicion ? filaEnEdicion.closest('tr') : null;
+        const idEditando = tr ? gridZonas.row(tr).data()?.Id : null;
+
+        const estabaEditando = !!filaEnEdicion;
+
+        if (estabaEditando) {
+            // Cancelar edición
+            const cell = gridZonas.cell(filaEnEdicion.closest('td'));
+            const valorOriginal = cell.data();
+            cell.data(valorOriginal).draw(false);
         }
 
-        // Mostrar notificación según tipo
-        const tipo = data.tipo?.toLowerCase();
+        if (typeof aplicarFiltros === "function") {
+            await aplicarFiltros();
+        }
 
+        setTimeout(() => {
+            if (typeof marcarFilaCambio === "function") {
+                marcarFilaCambio(gridZonas, data.id, data.tipo?.toLowerCase());
+            }
+
+            if (estabaEditando && idEditando === data.id) {
+                const rowIdx = gridZonas.rows().indexes().toArray().find(idx => {
+                    const rowData = gridZonas.row(idx).data();
+                    return rowData?.Id === idEditando;
+                });
+
+                if (rowIdx !== undefined) {
+                    const rowNode = gridZonas.row(rowIdx).node();
+                    const firstEditableCell = rowNode.querySelector('td:not(:first-child)');
+                    if (firstEditableCell) {
+                        firstEditableCell.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+                    }
+                }
+            }
+        }, 500);
+
+        // Notificación
+        const tipo = data.tipo?.toLowerCase();
         let mensaje = `#${data.nombre} ${data.tipo} por ${data.usuario}.`;
 
-        if ((data.tipo == "Actualizada" || data.tipo == "Eliminada") && data.cliente != "") {
+        if ((tipo === "actualizada" || tipo === "eliminada") && data.cliente) {
             mensaje = `#${data.nombre} del cliente ${data.cliente} ${data.tipo} por ${data.usuario}.`;
-
         }
-        let opciones = {
+
+        const opciones = {
             timeOut: 5000,
             positionClass: "toast-bottom-right",
             progressBar: true,
@@ -1043,8 +917,8 @@ connection.on("ActualizarSignalR", function (data) {
 
         if (tipo === "eliminada") {
             toastr.error(mensaje, "Zonas", opciones);
-        }   else if (tipo === "actualizada") {
-                toastr.warning(mensaje, "Zonas", opciones);
+        } else if (tipo === "actualizada") {
+            toastr.warning(mensaje, "Zonas", opciones);
         } else {
             toastr.success(mensaje, "Zonas", opciones);
         }
@@ -1055,6 +929,7 @@ connection.on("ActualizarSignalR", function (data) {
 connection.start()
     .then(() => console.log("✅ SignalR conectado"))
     .catch(err => console.error(err.toString()));
+
 
 
 

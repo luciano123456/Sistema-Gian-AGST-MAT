@@ -126,10 +126,12 @@ async function mostrarModal(modelo) {
 }
 
 async function listaUsuarios() {
+    let paginaActual = gridUsuarios != null ? gridUsuarios.page() : 0;
     const url = `/Usuarios/Lista`;
     const response = await fetch(url);
     const data = await response.json();
     await configurarDataTable(data);
+    if (paginaActual > 0) gridUsuarios.page(paginaActual).draw('page');
 }
 
 const editarUsuario = id => {
@@ -545,27 +547,51 @@ const connection = new signalR.HubConnectionBuilder()
     .build();
 
 connection.on("ActualizarSignalR", function (data) {
-    var userSession = JSON.parse(localStorage.getItem('userSession'));
-
+    const userSession = JSON.parse(localStorage.getItem('userSession'));
 
     if (data.idUsuario !== userSession.Id) {
-
         reproducirSonidoNotificacion();
 
-        
-            listaUsuarios().then(() => {
-                setTimeout(() => {
-                    marcarFilaCambio(gridUsuarios, data.id, tipo);
-                }, 500);
-            });
-        
-
-        // Mostrar notificación según tipo
         const tipo = data.tipo?.toLowerCase();
+        const paginaActual = gridUsuarios.page();
 
+        // Guardar celda en edición si la hay
+        let idEditando = null;
+        let colEditando = null;
+
+        if (isEditing) {
+            const cell = gridUsuarios.cell('td:has(input), td:has(select)');
+            const rowData = gridUsuarios.row(cell.index().row).data();
+            idEditando = rowData?.Id;
+            colEditando = cell.index().column;
+
+            isEditing = false;
+            gridUsuarios.cell(cell.index()).data(cell.data()).draw();
+        }
+
+        listaUsuarios().then(() => {
+            setTimeout(() => {
+                gridUsuarios.page(paginaActual).draw('page');
+
+                if (idEditando !== null && colEditando !== null) {
+                    const rowIndex = gridUsuarios.rows().indexes().toArray().find(i => gridUsuarios.row(i).data().Id === idEditando);
+
+                    if (rowIndex !== undefined) {
+                        const cellNode = gridUsuarios.cell(rowIndex, colEditando).node();
+                        $(cellNode).trigger('dblclick');
+                    }
+                }
+
+                if (typeof marcarFilaCambio === "function") {
+                    const tipoAnimacion = tipo === "creado" ? "nueva" : "actualizada";
+                    marcarFilaCambio(gridUsuarios, data.id, tipoAnimacion);
+                }
+            }, 300);
+        });
+
+        // Notificación
         let mensaje = `#${data.usuarioModificado} ${data.tipo} por ${data.usuario}.`;
-
-        let opciones = {
+        const opciones = {
             timeOut: 5000,
             positionClass: "toast-bottom-right",
             progressBar: true,

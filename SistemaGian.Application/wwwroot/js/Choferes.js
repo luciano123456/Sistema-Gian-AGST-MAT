@@ -106,10 +106,12 @@ function limpiarModal() {
     $("#lblNombre, #txtNombre").css("color", "").css("border-color", "");
 }
 async function listaChoferes() {
+    let paginaActual = gridChoferes != null ? gridChoferes.page() : 0;
     const url = `/Choferes/Lista`;
     const response = await fetch(url);
     const data = await response.json();
     await configurarDataTable(data);
+    if (paginaActual > 0) gridChoferes.page(paginaActual).draw('page');
 }
 
 const editarChofer = id => {
@@ -528,27 +530,52 @@ const connection = new signalR.HubConnectionBuilder()
     .build();
 
 connection.on("ActualizarSignalR", function (data) {
-    var userSession = JSON.parse(localStorage.getItem('userSession'));
-
+    const userSession = JSON.parse(localStorage.getItem('userSession'));
 
     if (data.idUsuario !== userSession.Id) {
-
         reproducirSonidoNotificacion();
 
+        const tipo = data.tipo?.toLowerCase();
+        const paginaActual = gridChoferes.page();
+
+        // Si está editando, capturar ID, columna y cancelar edición
+        let idEditando = null;
+        let colEditando = null;
+
+        if (isEditing) {
+            const cell = gridChoferes.cell('td:has(input), td:has(select)');
+            const rowData = gridChoferes.row(cell.index().row).data();
+            idEditando = rowData?.Id;
+            colEditando = cell.index().column;
+
+            isEditing = false;
+            gridChoferes.cell(cell.index()).data(cell.data()).draw();
+        }
 
         listaChoferes().then(() => {
             setTimeout(() => {
-                marcarFilaCambio(gridChoferes, data.id, tipo);
-            }, 500);
+                gridChoferes.page(paginaActual).draw('page');
+
+                if (idEditando !== null && colEditando !== null) {
+                    const rowIndex = gridChoferes.rows().indexes().toArray().find(i => gridChoferes.row(i).data().Id === idEditando);
+
+                    if (rowIndex !== undefined) {
+                        const cellNode = gridChoferes.cell(rowIndex, colEditando).node();
+                        $(cellNode).trigger('dblclick');
+                    }
+                }
+
+                if (typeof marcarFilaCambio === "function") {
+                    const tipoAnimacion = tipo === "creado" ? "nueva" : "actualizada";
+                    marcarFilaCambio(gridChoferes, data.id, tipoAnimacion);
+                }
+            }, 300);
         });
 
-
-        // Mostrar notificación según tipo
-        const tipo = data.tipo?.toLowerCase();
-
+        // Toast
         let mensaje = `#${data.usuarioModificado} ${data.tipo} por ${data.usuario}.`;
 
-        let opciones = {
+        const opciones = {
             timeOut: 5000,
             positionClass: "toast-bottom-right",
             progressBar: true,

@@ -532,9 +532,15 @@ connection.on("ActualizarSignalR", function (data) {
         reproducirSonidoNotificacion();
 
 
+        const paginaActual = gridProveedores.page();
+
         listaProveedores().then(() => {
             setTimeout(() => {
-                marcarFilaCambio(gridProveedores, data.id, tipo);
+                gridProveedores.page(paginaActual).draw('page');
+
+                if (typeof marcarFilaCambio === "function") {
+                    marcarFilaCambio(gridProveedores, data.id, data.tipo?.toLowerCase() === "creado" ? "nueva" : "actualizada");
+                }
             }, 500);
         });
 

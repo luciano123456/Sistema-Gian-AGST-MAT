@@ -55,6 +55,43 @@ namespace SistemaGian.Application.Controllers
 
             return Ok(lista);
         }
+        [HttpGet]
+        public async Task<IActionResult> ListaFiltro(int IdCliente, int IdZona)
+        {
+            // Caso especial: sin cliente y con zona => filas por cliente que tenga la zona
+            if (IdCliente == -1 && IdZona > 0)
+            {
+                var q = await _ZonasService.ObtenerClientesPorZona(IdZona);
+
+                var lista = q.Select(zc => new VMZonas
+                {
+                    Id = zc.IdZona,                                  // Id de la Zona
+                    Nombre = zc.IdZonaNavigation.Nombre,             // Nombre de la Zona
+                    Precio = zc.Precio,                              // Precio cliente-zona
+                    Cliente = zc.IdClienteNavigation.Nombre,         // << NUEVO campo en VM
+                    IdCliente = zc.IdCliente                         // útil si necesitás algo más
+                }).ToList();
+
+                return Ok(lista);
+            }
+
+            // Resto de casos => comportamiento actual (reuso de tu Lista existente)
+            var zonas = await _ZonasService.ObtenerPorCliente(IdCliente);
+            var listaZonas = zonas.Select(c => new VMZonas
+            {
+                Id = c.Id,
+                Nombre = c.Nombre,
+                Precio = (decimal)c.Precio,
+                Cliente = null // u "" si preferís
+            }).ToList();
+
+            // Si querés, podés filtrar por IdZona cuando venga > 0 (opcional)
+            if (IdZona > 0)
+                listaZonas = listaZonas.Where(z => z.Id == IdZona).ToList();
+
+            return Ok(listaZonas);
+        }
+
 
 
         [HttpPost]

@@ -201,10 +201,32 @@ function formatearFechaParaVista(fecha) {
     return m.isValid() ? m.format('DD/MM/YYYY') : '';
 }
 
+
+function formatearMilesAR(valor) {
+    if (valor == null) return "";
+    // Normaliza: reemplaza decimales con coma y limpia todo lo que no sea dígito o coma
+    let v = String(valor).replace(/\./g, ",").replace(/[^0-9,]/g, "");
+    // Solo una coma decimal
+    const partes = v.split(",");
+    const enteros = partes[0].replace(/^0+(?=\d)/, ""); // quita ceros delante (deja 0 si corresponde)
+    const decimales = partes.length > 1 ? partes.slice(1).join("").slice(0, 6) : ""; // hasta 6 decimales (ajustá)
+    // Miles con punto
+    const enterosConMiles = enteros.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    return decimales ? `${enterosConMiles},${decimales}` : enterosConMiles;
+}
+
+function desformatearAR(valor) {
+    if (!valor) return 0;
+    const limpio = String(valor).replace(/\./g, "").replace(",", ".");
+    const num = parseFloat(limpio);
+    return isNaN(num) ? 0 : num;
+}
+
 function formatearMiles(valor) {
     let num = String(valor).replace(/\D/g, '');
     return num.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 }
+
 
 function formatearSinMiles(valor) {
     if (!valor) return 0;

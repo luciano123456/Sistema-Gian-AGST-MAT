@@ -17,6 +17,8 @@ namespace SistemaGian.BLL.Service
 
         Task<bool> AumentarPrecios(string zonas, int idCliente, decimal porcentaje);
         Task<bool> BajarPrecios(string zonas, int idCliente, decimal porcentaje);
+        Task<IQueryable<ZonasCliente>> ObtenerClientesPorZona(int idZona);
+
     }
 
 }

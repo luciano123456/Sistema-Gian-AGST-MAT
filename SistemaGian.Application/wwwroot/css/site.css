@@ -763,3 +763,12 @@ table.dataTable.display tbody tr.zoom-actualizar-highlight {
         background: linear-gradient(90deg, #fceabb, #f0ad4e);
     }
 }
+
+
+
+.paginate_button.current {
+    background-color: #007bff !important;
+    color: white !important;
+    border: 1px solid #007bff !important;
+    border-radius: 4px !important;
+}

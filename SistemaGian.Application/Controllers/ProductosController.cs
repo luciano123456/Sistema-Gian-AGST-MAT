@@ -47,17 +47,18 @@ namespace SistemaGian.Application.Controllers
         {
             try
             {
-                var result = await _productoprecioProveedorService.AsignarProveedor(modelo.productos, modelo.idProveedor);
-
+                // ✅ Pasamos productos (como string) y lista de IDs
+                var result = await _productoprecioProveedorService.AsignarProveedor(modelo.productos, modelo.idProveedores);
                 return Json(result);
             }
             catch (Exception ex)
             {
+                Console.WriteLine(ex.Message);
                 return Json(null);
             }
-
-
         }
+
+
 
         [HttpPost]
         public async Task<IActionResult> DuplicarProductos([FromBody] VMDuplicarProductos modelo)
@@ -273,11 +274,15 @@ namespace SistemaGian.Application.Controllers
 
 
         [HttpPost]
-        public async Task<IActionResult> AsignarCliente([FromBody] VMAumentoProductos modelo)
+        public async Task<IActionResult> AsignarCliente([FromBody] VMAsignarClientes modelo)
         {
             try
             {
-                var result = await _productoPrecioClienteService.AsignarCliente(modelo.productos, modelo.idCliente, modelo.idProveedor);
+                var result = await _productoPrecioClienteService.AsignarCliente(
+                    modelo.productos,
+                    modelo.idClientes,
+                    modelo.idProveedor
+                );
 
                 var userSession = await SessionHelper.GetUsuarioSesion(HttpContext);
 
@@ -285,9 +290,8 @@ namespace SistemaGian.Application.Controllers
                 {
                     await _hubContext.Clients.All.SendAsync("ActualizarSignalR", new
                     {
-
                         Tipo = "ActualizadoMasivo",
-                        Cliente = modelo.idCliente > 0 ? _clienteService.Obtener(modelo.idCliente).Result.Nombre : "",
+                        Cliente = "Varios clientes",
                         Cantidad = modelo.productos.Length,
                         Proveedor = modelo.idProveedor > 0 ? _proveedorService.Obtener(modelo.idProveedor).Result.Nombre : "",
                         Usuario = userSession.Nombre,
@@ -301,9 +305,8 @@ namespace SistemaGian.Application.Controllers
             {
                 return Json(null);
             }
-
-
         }
+
 
         [HttpGet]
         public async Task<IActionResult> Lista()
@@ -329,38 +332,27 @@ namespace SistemaGian.Application.Controllers
                 PVenta = c.PVenta,
                 PorcGanancia = c.PorcGanancia,
                 ProductoCantidad = c.ProductoCantidad,
-                Total = c.PVenta * (int)c.ProductoCantidad,
+                Total = c.PVenta * (decimal)c.ProductoCantidad,
                 Image = c.Image,
-                Activo = (int)c.Activo != null ? (int)c.Activo : 1,
+                Activo = c.Activo != null ? (int)c.Activo : 1,
                 Orden = c.Orden != null ? c.Orden : 0,
-                Peso = c.Peso != null ? (int)c.Peso : 0
+                Peso = c.Peso != null ? (decimal)c.Peso : 0
             }).ToList();
 
-            var conOrden = baseList.Where(p => p.Orden > 0).OrderBy(p => p.Orden).ToList();
-            var sinOrden = baseList.Where(p => p.Orden <= 0).ToList();
+                // 1) Con orden (>0), ordenados ascendente
+                var conOrden = baseList
+                    .Where(p => p.Orden > 0)
+                    .OrderBy(p => p.Orden);
 
-            var resultado = new List<VMProducto>();
+                // 2) Sin orden (<=0), enviados al final con Orden = 0
+                var sinOrden = baseList
+                    .Where(p => p.Orden <= 0)
+                    .Select(p => { p.Orden = 0; return p; });
 
-            int maxOrden = (int)(conOrden.Any() ? conOrden.Max(p => p.Orden) : 0);
-            int maxIndex = Math.Max(baseList.Count, (int)maxOrden); // Ensure maxOrden is cast to int
+                var resultado = conOrden.Concat(sinOrden).ToList();
 
-            for (int i = 1; i <= maxIndex; i++)
-            {
-                var prod = conOrden.FirstOrDefault(p => p.Orden == i);
-                if (prod != null)
-                {
-                    resultado.Add(prod);
-                }
-                else if (sinOrden.Any())
-                {
-                    resultado.Add(sinOrden[0]);
-                    sinOrden.RemoveAt(0);
-                }
-            }
+                return Ok(resultado);
 
-            resultado.AddRange(sinOrden);
-
-            return Ok(resultado);
             } catch (Exception ex)
             {
                 return BadRequest($"Error al obtener los productos: {ex.Message}");
@@ -393,38 +385,25 @@ namespace SistemaGian.Application.Controllers
                     PVenta = c.PVenta,
                     PorcGanancia = c.PorcGanancia,
                     ProductoCantidad = c.ProductoCantidad,
-                    Total = c.PVenta * (int)c.ProductoCantidad,
+                    Total = c.PVenta * (decimal)c.ProductoCantidad,
                     Image = c.Image,
                     Activo = (int)c.Activo,
                     Orden = c.Orden ?? 0 // 👈 Asegurate que c.Orden venga correctamente desde el servicio
                 }).ToList();
 
+                var conOrden = baseList
+                                 .Where(p => p.Orden > 0)
+                                 .OrderBy(p => p.Orden);
 
-                // Caso general: ordenar por Orden
-                var conOrden = baseList.Where(p => p.Orden > 0).OrderBy(p => p.Orden).ToList();
-                var sinOrden = baseList.Where(p => p.Orden <= 0).ToList();
+                // 2) Sin orden (<=0), enviados al final con Orden = 0
+                var sinOrden = baseList
+                    .Where(p => p.Orden <= 0)
+                    .Select(p => { p.Orden = 0; return p; });
 
-                var resultado = new List<VMProducto>();
-                int maxOrden = (int)(conOrden.Any() ? conOrden.Max(p => p.Orden) : 0);
-                int maxIndex = Math.Max(baseList.Count, maxOrden);
-
-                for (int i = 1; i <= maxIndex; i++)
-                {
-                    var prod = conOrden.FirstOrDefault(p => p.Orden == i);
-                    if (prod != null)
-                    {
-                        resultado.Add(prod);
-                    }
-                    else if (sinOrden.Any())
-                    {
-                        resultado.Add(sinOrden[0]);
-                        sinOrden.RemoveAt(0);
-                    }
-                }
-
-                resultado.AddRange(sinOrden);
+                var resultado = conOrden.Concat(sinOrden).ToList();
 
                 return Ok(resultado);
+
             }
             catch (Exception ex)
             {
@@ -459,7 +438,7 @@ namespace SistemaGian.Application.Controllers
                     PVenta = c.PVenta,
                     PorcGanancia = c.PorcGanancia,
                     ProductoCantidad = c.ProductoCantidad,
-                    Total = c.PVenta * (int)c.ProductoCantidad,
+                    Total = c.PVenta * (decimal)c.ProductoCantidad,
                     Image = c.Image,
                     Activo = (int)c.Activo,
                     Orden = c.Orden ?? 0 // 👈 Asegurate que c.Orden venga correctamente desde el servicio
@@ -471,29 +450,17 @@ namespace SistemaGian.Application.Controllers
                     return Ok(baseList);
                 }
 
-                // Caso general: ordenar por Orden
-                var conOrden = baseList.Where(p => p.Orden > 0).OrderBy(p => p.Orden).ToList();
-                var sinOrden = baseList.Where(p => p.Orden <= 0).ToList();
+                // 1) Con orden (>0), ordenados ascendente
+                var conOrden = baseList
+                    .Where(p => p.Orden > 0)
+                    .OrderBy(p => p.Orden);
 
-                var resultado = new List<VMProducto>();
-                int maxOrden = (int)(conOrden.Any() ? conOrden.Max(p => p.Orden) : 0);
-                int maxIndex = Math.Max(baseList.Count, maxOrden);
+                // 2) Sin orden (<=0), enviados al final con Orden = 0
+                var sinOrden = baseList
+                    .Where(p => p.Orden <= 0)
+                    .Select(p => { p.Orden = 0; return p; });
 
-                for (int i = 1; i <= maxIndex; i++)
-                {
-                    var prod = conOrden.FirstOrDefault(p => p.Orden == i);
-                    if (prod != null)
-                    {
-                        resultado.Add(prod);
-                    }
-                    else if (sinOrden.Any())
-                    {
-                        resultado.Add(sinOrden[0]);
-                        sinOrden.RemoveAt(0);
-                    }
-                }
-
-                resultado.AddRange(sinOrden);
+                var resultado = conOrden.Concat(sinOrden).ToList();
 
                 return Ok(resultado);
             }
@@ -721,7 +688,7 @@ namespace SistemaGian.Application.Controllers
                 PorcGanancia = model.PorcGanancia,
                 ProductoCantidad = model.ProductoCantidad != null ? model.ProductoCantidad : 1,
                 Image = model.Image,
-                Peso = (int)model.Peso,
+                Peso = (decimal)model.Peso,
                 Activo = model.Activo != null ? (int)model.Activo : 1
             };
 

@@ -49,7 +49,9 @@ $(document).ready(() => {
 })
 
 async function aplicarFiltros() {
-    listapedidos(document.getElementById("txtFechaDesde").value, document.getElementById("txtFechaHasta").value, document.getElementById("Proveedoresfiltro").value, document.getElementById("clientesfiltro").value);
+    let paginaActual = gridventas != null ? gridventas.page() : 0;
+    await listapedidos(document.getElementById("txtFechaDesde").value, document.getElementById("txtFechaHasta").value, document.getElementById("Proveedoresfiltro").value, document.getElementById("clientesfiltro").value);
+    if (paginaActual > 0) gridventas.page(paginaActual).draw('page');
 }
 
 
