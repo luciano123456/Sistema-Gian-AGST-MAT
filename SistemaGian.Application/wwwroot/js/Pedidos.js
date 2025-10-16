@@ -59,7 +59,9 @@ $(document).ready(() => {
 })
 
 async function aplicarFiltros() {
-    listapedidos(document.getElementById("txtFechaDesde").value, document.getElementById("txtFechaHasta").value, document.getElementById("Proveedoresfiltro").value, document.getElementById("clientesfiltro").value);
+    let paginaActual = gridpedidos != null ? gridpedidos.page() : 0;
+    await listapedidos(document.getElementById("txtFechaDesde").value, document.getElementById("txtFechaHasta").value, document.getElementById("Proveedoresfiltro").value, document.getElementById("clientesfiltro").value);
+    if (paginaActual > 0) gridpedidos.page(paginaActual).draw('page');
 }
 
 
@@ -473,23 +475,53 @@ const connection = new signalR.HubConnectionBuilder()
     .build();
 
 connection.on("PedidoActualizado", function (data) {
-    if (data.idUsuario !== userSession.Id) {
+    const userSession = JSON.parse(localStorage.getItem('userSession'));
 
+    if (data.idUsuario !== userSession.Id) {
         reproducirSonidoNotificacion();
+
+        const tipo = data.tipo?.toLowerCase();
+        const paginaActual = gridpedidos.page();
+
+        // Guardar celda en edición
+        let idEditando = null;
+        let colEditando = null;
+
+        if (isEditing) {
+            const cell = gridpedidos.cell('td:has(input), td:has(select)');
+            const rowData = gridpedidos.row(cell.index().row).data();
+            idEditando = rowData?.Id;
+            colEditando = cell.index().column;
+
+            isEditing = false;
+            gridpedidos.cell(cell.index()).data(cell.data()).draw();
+        }
 
         if (typeof aplicarFiltros === "function") {
             aplicarFiltros().then(() => {
                 setTimeout(() => {
-                    marcarFilaCambio(gridpedidos, data.idPedido, tipo);
-                }, 500);
+                    gridpedidos.page(paginaActual).draw('page');
+
+                    if (idEditando !== null && colEditando !== null) {
+                        const rowIndex = gridpedidos.rows().indexes().toArray().find(i => gridpedidos.row(i).data().Id === idEditando);
+
+                        if (rowIndex !== undefined) {
+                            const cellNode = gridpedidos.cell(rowIndex, colEditando).node();
+                            $(cellNode).trigger('dblclick');
+                        }
+                    }
+
+                    if (typeof marcarFilaCambio === "function") {
+                        const tipoAnimacion = tipo === "creado" ? "nueva" : "actualizada";
+                        marcarFilaCambio(gridpedidos, data.idPedido, tipoAnimacion);
+                    }
+                }, 300);
             });
         }
 
-        // Mostrar notificación según tipo
-        const tipo = data.tipo?.toLowerCase();
-
+        // Notificación
         let mensaje = `#${data.idPedido} ${data.tipo} por ${data.usuario}.`;
-        let opciones = {
+        const opciones = {
             timeOut: 5000,
             positionClass: "toast-bottom-right",
             progressBar: true,

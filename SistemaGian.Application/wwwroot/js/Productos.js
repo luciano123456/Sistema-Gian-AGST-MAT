@@ -313,9 +313,48 @@ async function listaClientesFiltro() {
     }
 }
 
+async function aplicarFiltrosSignalR() {
+    var validacionFiltros = validarFiltros();
+    if (!validacionFiltros) {
+       
+        const idCliente = document.getElementById("clientesfiltro").value;
+        const idProveedor = document.getElementById("Proveedoresfiltro").value;
+        const producto = document.getElementById("Productosfiltro").value;
+
+        idClienteFiltro = idCliente;
+        idProveedorFiltro = idProveedor;
+
+        const url = `Productos/ListaProductosFiltro?idCliente=${idCliente}&idProveedor=${idProveedor}&producto=${producto}`;
+
+        fetch(url, {
+            method: "GET",
+            headers: {
+                'Content-Type': 'application/json;charset=utf-8'
+            }
+        })
+        try {
+            const response = await fetch(url);
+
+            if (!response.ok) throw new Error(response.statusText);
+
+            const dataJson = await response.json();
+
+            await configurarDataTable(dataJson);
+
+        } catch (error) {
+            console.error('Error:', error);
+        }
+
+    } else {
+        errorModal(validacionFiltros)
+    }
+}
+
+
 async function aplicarFiltros() {
     var validacionFiltros = validarFiltros();
     if (!validacionFiltros) {
+      
         const idCliente = document.getElementById("clientesfiltro").value;
         const idProveedor = document.getElementById("Proveedoresfiltro").value;
         const producto = document.getElementById("Productosfiltro").value;
@@ -347,9 +386,6 @@ async function aplicarFiltros() {
             await actualizarVisibilidadProveedor(false);
         }
 
-
-
-
         selectedProductos = [];
 
         const url = `Productos/ListaProductosFiltro?idCliente=${idCliente}&idProveedor=${idProveedor}&producto=${producto}`;
@@ -360,16 +396,19 @@ async function aplicarFiltros() {
                 'Content-Type': 'application/json;charset=utf-8'
             }
         })
-            .then(response => {
-                if (!response.ok) throw new Error(response.statusText);
-                return response.json();
-            })
-            .then(dataJson => {
-                configurarDataTable(dataJson);
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
+        try {
+            const response = await fetch(url);
+
+            if (!response.ok) throw new Error(response.statusText);
+
+            const dataJson = await response.json();
+
+             configurarDataTable(dataJson);
+
+        } catch (error) {
+            console.error('Error:', error);
+        }
+
     } else {
         errorModal(validacionFiltros)
     }
@@ -449,45 +488,45 @@ function duplicarProductos() {
 }
 
 
-function asignarProveedor() {
+function asignarProveedores() {
+    // Obtener los proveedores seleccionados
+    const checkboxes = document.querySelectorAll('#contenedorProveedores input[type="checkbox"]:checked');
+    const idsProveedores = Array.from(checkboxes).map(cb => parseInt(cb.value));
+
+    if (idsProveedores.length === 0) {
+        errorModal("Debe seleccionar al menos un proveedor.");
+        return;
+    }
 
     const nuevoModelo = {
         productos: JSON.stringify(selectedProductos),
-        idProveedor: document.getElementById("Proveedores").value
-
+        idProveedores: idsProveedores // Enviamos lista
     };
 
-    const url = "Productos/AsignarProveedor";
-    const method = "POST";
-
-    fetch(url, {
-        method: method,
+    fetch("Productos/AsignarProveedor", {
+        method: "POST",
         headers: {
             'Content-Type': 'application/json;charset=utf-8'
         },
         body: JSON.stringify(nuevoModelo)
     })
-        .then(response => {
-            if (!response.ok) throw new Error(response.statusText);
-            return response.json();
-        })
-        .then(dataJson => {
-            if (dataJson != null) {
-                const mensaje = "Proveedor asignado correctamente";
-                exitoModal(mensaje);
-            } else {
-                const mensaje = "Ha ocurrido un error al asignar el proveedor";
-                errorModal(mensaje);
-            }
-            $("#modalProveedores").modal("hide");
+    .then(response => {
+        if (!response.ok) throw new Error(response.statusText);
+        return response.json();
+    })
+    .then(dataJson => {
+        if (dataJson != null) {
+            exitoModal("Proveedores asignados correctamente");
+        } else {
+            errorModal("Ha ocurrido un error al asignar los proveedores");
+        }
 
-            //desmarcarCheckboxes();
-            //listaProductos();
-
-        })
-        .catch(error => {
-            console.error('Error:', error);
-        });
+        $("#modalProveedores").modal("hide");
+        // listaProductos(); // Si querés refrescar
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
 }
 
 function aumentarPrecios() {
@@ -573,20 +612,23 @@ function bajarPrecios() {
 }
 
 
-function asignarCliente() {
+function asignarClientes() {
+    const checkboxes = document.querySelectorAll('#contenedorClientes input[type="checkbox"]:checked');
+    const idsClientes = Array.from(checkboxes).map(cb => parseInt(cb.value));
+
+    if (idsClientes.length === 0) {
+        errorModal("Debe seleccionar al menos un cliente.");
+        return;
+    }
 
     const nuevoModelo = {
         productos: JSON.stringify(selectedProductos),
         idProveedor: idProveedorFiltro,
-        idCliente: document.getElementById("Clientes").value
-
+        idClientes: idsClientes
     };
 
-    const url = "Productos/AsignarCliente";
-    const method = "POST";
-
-    fetch(url, {
-        method: method,
+    fetch("Productos/AsignarCliente", {
+        method: "POST",
         headers: {
             'Content-Type': 'application/json;charset=utf-8'
         },
@@ -597,10 +639,13 @@ function asignarCliente() {
             return response.json();
         })
         .then(dataJson => {
-            const mensaje = "Cliente asignado correctamente";
-            exitoModal(mensaje);
-            $("#modalClientes").modal("hide");
+            if (dataJson) {
+                exitoModal("Clientes asignados correctamente");
+            } else {
+                errorModal("Ocurrió un error al asignar los clientes");
+            }
 
+            $("#modalClientes").modal("hide");
         })
         .catch(error => {
             console.error('Error:', error);
@@ -860,6 +905,9 @@ function limpiarModal() {
 
 async function listaProductos() {
 
+
+    let paginaActual = gridProductos != null ? gridProductos.page() : 0;
+    
     if (idClienteFiltro > 0 || idProveedorFiltro > 0) {
         aplicarFiltros();
 
@@ -881,6 +929,8 @@ async function listaProductos() {
 
         await configurarDataTable(data);
     }
+    if (paginaActual > 0) gridProductos.page(paginaActual).draw('page');
+
 
 
 }
@@ -1682,26 +1732,58 @@ async function listaProveedoresFilter() {
 //);
 
 function abrirmodalProveedor() {
-    listaProveedores();
+    // Limpiar buscador antes de mostrar
+    document.getElementById("checkTodosProveedores").checked = false;
+    const buscador = document.getElementById("buscadorProveedores");
+    if (buscador) buscador.value = "";
+
+    $('#modalProveedores').on('show.bs.modal', cargarCheckboxesProveedores);
     $("#modalProveedores").modal("show");
 }
+
+
 async function listaProveedores() {
-    const url = `/Proveedores/Lista`;
-    const response = await fetch(url);
+    const response = await fetch('/Proveedores/Lista');
     const data = await response.json();
 
-    $('#Proveedores option').remove();
+    const selectProveedores = document.getElementById("Proveedores");
+    if (!selectProveedores) return; // Evitar error si el DOM aún no cargó
 
-    selectProveedores = document.getElementById("Proveedores");
+    selectProveedores.innerHTML = ""; // Limpia todas las opciones
 
-    for (i = 0; i < data.length; i++) {
-        option = document.createElement("option");
-        option.value = data[i].Id;
-        option.text = data[i].Nombre;
+    // Agrega la opción por defecto
+    const defaultOption = document.createElement("option");
+    defaultOption.value = "";
+    defaultOption.text = "Seleccione Proveedor";
+    selectProveedores.appendChild(defaultOption);
+
+    // Agrega las opciones dinámicamente
+    data.forEach(p => {
+        const option = document.createElement("option");
+        option.value = p.Id;
+        option.text = p.Nombre;
         selectProveedores.appendChild(option);
-
-    }
+    });
 }
+
+
+async function cargarCheckboxesProveedores() {
+    const response = await fetch('/Proveedores/Lista');
+    const data = await response.json();
+    const contenedor = document.getElementById('contenedorProveedores');
+    if (!contenedor) return;
+
+    contenedor.innerHTML = '';
+
+    data.forEach(p => {
+        contenedor.innerHTML += `
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="${p.Id}" id="prov_${p.Id}">
+                <label class="form-check-label" for="prov_${p.Id}">${p.Nombre}</label>
+            </div>`;
+    });
+}
+
 
 function abrirmodalAumentarPrecios() {
     $("#txtAumentoPrecioCosto").val("0");
@@ -1721,26 +1803,36 @@ function abrirmodalBajarPrecios() {
 }
 
 function abrirmodalCliente() {
-    listaClientes();
+    document.getElementById("checkTodosClientes").checked = false;
+    const buscador = document.getElementById("buscadorClientes");
+    if (buscador) buscador.value = "";
+
+    $('#modalClientes').on('show.bs.modal', cargarCheckboxesClientes);
     $("#modalClientes").modal("show");
+
+    // Mostrar todos los checkboxes por si alguno quedó oculto
+    const checks = document.querySelectorAll("#contenedorClientes .form-check");
+    checks.forEach(div => div.style.display = "block");
 }
-async function listaClientes() {
-    const url = `/Clientes/Lista`;
-    const response = await fetch(url);
+
+
+async function cargarCheckboxesClientes() {
+    const response = await fetch('/Clientes/Lista');
     const data = await response.json();
+    const contenedor = document.getElementById('contenedorClientes');
+    if (!contenedor) return;
 
-    $('#Clientes option').remove();
+    contenedor.innerHTML = '';
 
-    selectClientes = document.getElementById("Clientes");
-
-    for (i = 0; i < data.length; i++) {
-        option = document.createElement("option");
-        option.value = data[i].Id;
-        option.text = data[i].Nombre;
-        selectClientes.appendChild(option);
-
-    }
+    data.forEach(c => {
+        contenedor.innerHTML += `
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="${c.Id}" id="cli_${c.Id}">
+                <label class="form-check-label" for="cli_${c.Id}">${c.Nombre}</label>
+            </div>`;
+    });
 }
+
 
 function generarColumnConfig() {
     const config = [];
@@ -2171,26 +2263,70 @@ connection.on("ActualizarSignalR", function (data) {
 
     if (data.idUsuario !== userSession.Id) {
 
+
         if (typeof reproducirSonidoNotificacion === "function") {
             reproducirSonidoNotificacion();
         }
 
-        if (typeof aplicarFiltros === "function") {
+        if (typeof aplicarFiltrosSignalR === "function") {
+
             const paginaActual = gridProductos.page();
 
-            aplicarFiltros().then(() => {
-                setTimeout(() => {
-                    gridProductos.page(paginaActual).draw('page');
+            // ⚠️ Guardar celda en edición si la hay
+            let idEditando = null;
+            let colEditando = null;
 
-                    if (typeof marcarFilaCambio === "function" && typeof gridProductos !== "undefined") {
-                        const tipoAnimacion = data.tipo?.toLowerCase() === "creado" ? "nueva" : "actualizada";
+            if (isEditing) {
+                const cell = gridProductos.cell('td:has(input), td:has(select)');
+                const rowData = gridProductos.row(cell.index().row).data();
+                idEditando = rowData?.Id;
+                colEditando = cell.index().column;
+
+                isEditing = false;
+                gridProductos.cell(cell.index()).data(cell.data()).draw();
+            }
+
+            aplicarFiltrosSignalR().then(() => {
+                const tipo = data.tipo?.toLowerCase();
+                const tipoAnimacion = tipo === "creado" ? "nueva" : "actualizada";
+
+                const rowIndex = gridProductos.rows().indexes().toArray().find(index => {
+                    const rowData = gridProductos.row(index).data();
+                    return rowData?.Id === data.id;
+                });
+
+                if (rowIndex !== undefined && data.nuevosDatos) {
+                    // ✅ Actualiza solo la fila si hay nuevosDatos
+                    gridProductos.row(rowIndex).data(data.nuevosDatos).invalidate().draw(false);
+
+                    if (typeof marcarFilaCambio === "function") {
                         marcarFilaCambio(gridProductos, data.id, tipoAnimacion);
                     }
-                }, 500);
+                } else {
+                    // 🔁 Redibuja y vuelve a editar si corresponde
+                    
+
+                    setTimeout(() => {
+                        gridProductos.page(paginaActual).draw('page');
+
+                        if (typeof marcarFilaCambio === "function") {
+                            marcarFilaCambio(gridProductos, data.id, tipoAnimacion);
+                        }
+
+                        if (idEditando !== null && colEditando !== null) {
+                            const rowIdx = gridProductos.rows().indexes().toArray().find(i => gridProductos.row(i).data().Id === idEditando);
+
+                            if (rowIdx !== undefined) {
+                                const cellNode = gridProductos.cell(rowIdx, colEditando).node();
+                                $(cellNode).trigger('dblclick');
+                            }
+                        }
+                    }, 300);
+                }
             });
         }
 
-        // Notificación
+        // ✅ TOAST Notificación
         const tipo = data.tipo?.toLowerCase();
         const titulo = "Productos";
         let mensaje = "";
@@ -2200,13 +2336,12 @@ connection.on("ActualizarSignalR", function (data) {
             const cliente = data.cliente ? ` del cliente <span class="fw-bold text-primary">${data.cliente}</span>` : "";
             const proveedor = data.proveedor ? `${data.cliente ? " y" : " del"} proveedor <span class="fw-bold text-primary">${data.proveedor}</span>` : "";
             const usuario = `<span class="fw-bold text-primary">${data.usuario}</span>`;
-
             mensaje = `${cantidad}${cliente}${proveedor} actualizados por ${usuario}.`;
-        
-        
+
         } else if (tipo === "creadomasivo") {
             mensaje = `${data.cantidad} productos han sido creados por ${data.usuario}.`;
-        }  else {
+
+        } else {
             const producto = `<span class="fw-bold text-primary">#${data.producto}</span>`;
             const usuario = `<span class="fw-bold text-primary">${data.usuario}</span>`;
 
@@ -2216,11 +2351,9 @@ connection.on("ActualizarSignalR", function (data) {
                         ` y proveedor <span class="fw-bold text-primary">${data.proveedor}</span>` +
                         ` ${tipo} por ${usuario}.`;
                 } else if (data.cliente) {
-                    mensaje = `${producto} del cliente <span class="fw-bold text-primary">${data.cliente}</span>` +
-                        ` ${tipo} por ${usuario}.`;
+                    mensaje = `${producto} del cliente <span class="fw-bold text-primary">${data.cliente}</span> ${tipo} por ${usuario}.`;
                 } else if (data.proveedor) {
-                    mensaje = `${producto} del proveedor <span class="fw-bold text-primary">${data.proveedor}</span>` +
-                        ` ${tipo} por ${usuario}.`;
+                    mensaje = `${producto} del proveedor <span class="fw-bold text-primary">${data.proveedor}</span> ${tipo} por ${usuario}.`;
                 } else {
                     mensaje = `${producto} ${tipo} por ${usuario}.`;
                 }
@@ -2229,13 +2362,12 @@ connection.on("ActualizarSignalR", function (data) {
             }
         }
 
-
         const opciones = {
             timeOut: 5000,
             positionClass: "toast-bottom-right",
             progressBar: true,
             toastClass: "toastr ancho-personalizado",
-            allowHtml: true // ✅ Importante para que funcione el HTML
+            allowHtml: true
         };
 
         if (tipo === "eliminado") {
@@ -2248,6 +2380,7 @@ connection.on("ActualizarSignalR", function (data) {
     }
 });
 
+
 connection.start()
     .then(() => console.log("✅ SignalR conectado [productos.js]"))
     .catch(err => console.error("❌ Error SignalR:", err.toString()));
@@ -2255,3 +2388,35 @@ connection.start()
 connection.start()
     .then(() => console.log("✅ SignalR conectado [productos.js]"))
     .catch(err => console.error("❌ Error SignalR:", err.toString()));
+
+
+document.getElementById("buscadorProveedores").addEventListener("input", function () {
+    const filtro = this.value.toLowerCase();
+    const checks = document.querySelectorAll("#contenedorProveedores .form-check");
+
+    checks.forEach(div => {
+        const texto = div.textContent.toLowerCase();
+        div.style.display = texto.includes(filtro) ? "block" : "none";
+    });
+});
+
+document.getElementById("buscadorClientes").addEventListener("input", function () {
+    const filtro = this.value.toLowerCase();
+    const checks = document.querySelectorAll("#contenedorClientes .form-check");
+
+    checks.forEach(div => {
+        const texto = div.textContent.toLowerCase();
+        div.style.display = texto.includes(filtro) ? "block" : "none";
+    });
+});
+
+
+document.getElementById("checkTodosProveedores").addEventListener("change", function () {
+    const checkboxes = document.querySelectorAll("#contenedorProveedores .form-check-input");
+    checkboxes.forEach(cb => cb.checked = this.checked);
+});
+
+document.getElementById("checkTodosClientes").addEventListener("change", function () {
+    const checkboxes = document.querySelectorAll("#contenedorClientes .form-check-input");
+    checkboxes.forEach(cb => cb.checked = this.checked);
+});

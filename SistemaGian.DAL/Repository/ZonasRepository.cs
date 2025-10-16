@@ -37,11 +37,12 @@ namespace SistemaGian.DAL.Repository
             {
                 ZonasCliente zona = _dbcontext.ZonasClientes.First(c => c.IdZona == id && c.IdCliente == idCliente);
                 _dbcontext.ZonasClientes.Remove(zona);
-            } else
+            }
+            else
             {
                 Zona model = _dbcontext.Zonas.First(c => c.Id == id);
                 _dbcontext.Zonas.Remove(model);
-                
+
             }
 
             await _dbcontext.SaveChangesAsync();
@@ -93,7 +94,8 @@ namespace SistemaGian.DAL.Repository
                     model.Id = modelo.IdZona;
                     model.Nombre = modelo.IdZonaNavigation.Nombre;
                 }
-            } else
+            }
+            else
             {
                 Zona modelo = await _dbcontext.Zonas.Where(x => x.Id == id).FirstOrDefaultAsync();
 
@@ -105,7 +107,7 @@ namespace SistemaGian.DAL.Repository
                 }
             }
 
-                return model;
+            return model;
         }
         public async Task<IQueryable<Zona>> ObtenerTodos()
         {
@@ -124,7 +126,7 @@ namespace SistemaGian.DAL.Repository
             {
                 try
                 {
-                    foreach (var zona in listaZonas) 
+                    foreach (var zona in listaZonas)
                     {
                         // Buscar si la relación ya existe
                         ZonasCliente zonaClienteEncontrada = _dbcontext.ZonasClientes
@@ -165,6 +167,17 @@ namespace SistemaGian.DAL.Repository
                 }
             }
         }
+
+        public async Task<IQueryable<ZonasCliente>> ObtenerClientesPorZona(int idZona)
+        {
+            var query = _dbcontext.ZonasClientes
+                .Include(zc => zc.IdClienteNavigation)
+                .Include(zc => zc.IdZonaNavigation)
+                .Where(zc => zc.IdZona == idZona);
+
+            return await Task.FromResult(query);
+        }
+
 
 
         public async Task<IQueryable<Zona>> ObtenerPorCliente(int idCliente)

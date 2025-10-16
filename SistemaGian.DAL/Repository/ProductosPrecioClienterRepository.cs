@@ -31,13 +31,21 @@ namespace SistemaGian.DAL.Repository
 
         public async Task<bool> AsignarCliente(List<ProductosPreciosCliente> productos)
         {
-            foreach (ProductosPreciosCliente producto in productos)
+            foreach (var producto in productos)
             {
-                _dbcontext.ProductosPreciosClientes.Add(producto);
+                // Protección extra: verificar que no exista (por si alguien cambia la lógica antes de esta capa)
+                bool existe = await _dbcontext.ProductosPreciosClientes.AnyAsync(x =>
+                    x.IdProducto == producto.IdProducto &&
+                    x.IdCliente == producto.IdCliente &&
+                    x.IdProveedor == producto.IdProveedor);
+
+                if (!existe)
+                {
+                    _dbcontext.ProductosPreciosClientes.Add(producto);
+                }
             }
 
             await _dbcontext.SaveChangesAsync();
-
             return true;
         }
 

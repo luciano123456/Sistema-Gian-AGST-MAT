@@ -21,52 +21,52 @@ namespace SistemaGian.BLL.Service
 
         }
 
-      
 
-        public async Task<bool> AsignarCliente(string productos, int idCliente, int idProveedor)
+
+        public async Task<bool> AsignarCliente(string productos, List<int> idClientes, int idProveedor)
         {
             var lstProductos = JsonConvert.DeserializeObject<List<int>>(productos);
-
             List<ProductosPreciosCliente> productosList = new List<ProductosPreciosCliente>();
 
-            foreach (int producto in lstProductos)
+            foreach (int idCliente in idClientes)
             {
-                var existProd = await _productospreciorepo.ObtenerProductoCliente(idCliente, idProveedor, producto);
-
-                if (existProd == null) { 
-                var prod = await _productoprecioproveedorRepo.ObtenerProductoProveedor(idProveedor, producto);
-
-                var productoPrecio = new ProductosPreciosCliente
+                foreach (int producto in lstProductos)
                 {
-                    IdProducto = producto,
-                    IdCliente = idCliente,
-                    IdProveedor = idProveedor,
-                    FechaActualizacion = DateTime.Now,
-                    PorcGanancia = prod.PorcGanancia,
-                    PCosto = prod.PCosto,
-                    PVenta = prod.PVenta,
-                    Orden = prod.Orden
-                };
+                    var existProd = await _productospreciorepo.ObtenerProductoCliente(idCliente, idProveedor, producto);
 
-                productosList.Add(productoPrecio);
-                await _productospreciorepo.Actualizar(productoPrecio);
+                    if (existProd == null)
+                    {
+                        var prod = await _productoprecioproveedorRepo.ObtenerProductoProveedor(idProveedor, producto);
+
+                        var productoPrecio = new ProductosPreciosCliente
+                        {
+                            IdProducto = producto,
+                            IdCliente = idCliente,
+                            IdProveedor = idProveedor,
+                            FechaActualizacion = DateTime.Now,
+                            PorcGanancia = prod?.PorcGanancia ?? 0,
+                            PCosto = prod?.PCosto ?? 0,
+                            PVenta = prod?.PVenta ?? 0,
+                            Orden = prod?.Orden ?? 0
+                        };
+
+                        productosList.Add(productoPrecio);
+
+                        await _productospreciorepo.Actualizar(productoPrecio);
+                    }
                 }
-
-
-
             }
 
-            if(productosList.Count > 0)
+            if (productosList.Count > 0)
             {
-               
                 return await _productospreciorepo.AsignarCliente(productosList);
-            } else
+            }
+            else
             {
                 return false;
             }
-            
-
         }
+
 
         public async Task<bool> ActualizarProductoCliente(Producto model, int idCliente, int idProveedor)
         {

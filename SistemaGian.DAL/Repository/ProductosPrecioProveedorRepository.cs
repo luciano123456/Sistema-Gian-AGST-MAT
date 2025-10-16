@@ -19,44 +19,149 @@ namespace SistemaGian.DAL.Repository
         private readonly SistemaGianContext _dbcontext;
         private readonly IProductosPrecioHistorialRepository<ProductosPreciosHistorial> _productoshistorialrepo;
 
-        public ProductosPrecioProveedorRepository(SistemaGianContext context, IProductosPrecioHistorialRepository<ProductosPreciosHistorial> productoshistorialrepo)
+        private readonly IProductosPrecioClienteRepository<ProductosPreciosCliente> _productosPrecioClienteRepo;
+
+        public ProductosPrecioProveedorRepository(
+            SistemaGianContext context,
+            IProductosPrecioHistorialRepository<ProductosPreciosHistorial> productoshistorialrepo,
+            IProductosPrecioClienteRepository<ProductosPreciosCliente> productosPrecioClienteRepo)
         {
             _dbcontext = context;
             _productoshistorialrepo = productoshistorialrepo;
+            _productosPrecioClienteRepo = productosPrecioClienteRepo;
         }
 
 
 
-        public async Task<bool> AsignarProveedor(List<Models.ProductosPreciosProveedor> productos)
+        public async Task<bool> AsignarProveedor(List<ProductosPreciosProveedor> productos)
         {
             try
             {
-                foreach (Models.ProductosPreciosProveedor producto in productos)
+                // Agrupar por proveedor para evitar múltiples queries por cada producto
+                var proveedoresIds = productos.Select(p => p.IdProveedor).Distinct().ToList();
+
+                // Obtener todos los clientes por proveedor de una sola vez
+                var clientesPorProveedor = await _dbcontext.ProductosPreciosClientes
+                    .Where(x => proveedoresIds.Contains(x.IdProveedor))
+                    .GroupBy(x => x.IdProveedor)
+                    .ToDictionaryAsync(g => g.Key, g => g.Select(x => x.IdCliente).Distinct().ToList());
+
+                // Obtener todos los productosPreciosClientes existentes para evitar consultas individuales
+                var combinacionesExistentes = await _dbcontext.ProductosPreciosClientes
+                    .Select(x => new { x.IdProducto, x.IdProveedor, x.IdCliente })
+                    .ToListAsync();
+
+                foreach (var producto in productos)
                 {
                     _dbcontext.ProductosPreciosProveedores.Add(producto);
+
+                    if (clientesPorProveedor.TryGetValue(producto.IdProveedor, out var clientes))
+                    {
+                        foreach (var idCliente in clientes)
+                        {
+                            bool yaExiste = combinacionesExistentes.Any(x =>
+                                x.IdCliente == idCliente &&
+                                x.IdProveedor == producto.IdProveedor &&
+                                x.IdProducto == producto.IdProducto);
+
+                            if (!yaExiste)
+                            {
+                                var nuevo = new ProductosPreciosCliente
+                                {
+                                    IdCliente = idCliente,
+                                    IdProveedor = producto.IdProveedor,
+                                    IdProducto = producto.IdProducto,
+                                    PCosto = producto.PCosto,
+                                    PVenta = producto.PVenta,
+                                    PorcGanancia = producto.PorcGanancia,
+                                    FechaActualizacion = DateTime.Now
+                                };
+
+                                _dbcontext.ProductosPreciosClientes.Add(nuevo);
+                            }
+                        }
+                    }
                 }
 
                 await _dbcontext.SaveChangesAsync();
-
                 return true;
             }
             catch (Exception ex)
             {
+                Console.WriteLine(ex.Message);
                 return false;
             }
         }
 
+
         public async Task<bool> Actualizar(ProductosPreciosProveedor model)
         {
-            // Obtener el registro más reciente
             ProductosPreciosProveedor modelProveedor = await ObtenerUltimoRegistro(model.IdProducto, model.IdProveedor);
 
-            // Actualizar o insertar el historial de precios
             await ActualizarOInsertarHistorial(model, modelProveedor);
 
-            // Actualizar el registro del cliente
             _dbcontext.ProductosPreciosProveedores.Update(model);
             await _dbcontext.SaveChangesAsync();
+
+            // Obtener todos los clientes que tienen algún producto con este proveedor
+            var clientes = await _dbcontext.ProductosPreciosClientes
+                .Where(x => x.IdProveedor == model.IdProveedor)
+                .Select(x => x.IdCliente)
+                .Distinct()
+                .ToListAsync();
+
+            foreach (var idCliente in clientes)
+            {
+                var clienteModel = await _dbcontext.ProductosPreciosClientes
+                    .FirstOrDefaultAsync(x =>
+                        x.IdProducto == model.IdProducto &&
+                        x.IdProveedor == model.IdProveedor &&
+                        x.IdCliente == idCliente);
+
+                if (clienteModel != null)
+                {
+                    // Historial previo del cliente
+                    var anterior = new ProductosPreciosProveedor
+                    {
+                        IdProducto = clienteModel.IdProducto,
+                        IdProveedor = clienteModel.IdProveedor,
+                        PCosto = clienteModel.PCosto,
+                        PVenta = clienteModel.PVenta,
+                        PorcGanancia = clienteModel.PorcGanancia
+                    };
+
+                    await ActualizarOInsertarHistorial(model, anterior);
+
+                    // Actualizar si ya lo tiene
+                    clienteModel.PCosto = model.PCosto;
+                    clienteModel.PVenta = model.PVenta;
+                    clienteModel.PorcGanancia = model.PorcGanancia;
+
+                    await _productosPrecioClienteRepo.Actualizar(clienteModel);
+                }
+                else
+                {
+                    // Insertar si no lo tiene
+                    var nuevo = new ProductosPreciosCliente
+                    {
+                        IdCliente = idCliente,
+                        IdProveedor = model.IdProveedor,
+                        IdProducto = model.IdProducto,
+                        PCosto = model.PCosto,
+                        PVenta = model.PVenta,
+                        PorcGanancia = model.PorcGanancia,
+                        FechaActualizacion = DateTime.Now
+                    };
+
+                    _dbcontext.ProductosPreciosClientes.Add(nuevo);
+
+                    // Crear historial como si fuera desde 0
+                    await ActualizarOInsertarHistorial(model, null);
+                }
+            }
+
+            await _dbcontext.SaveChangesAsync();
+
             return true;
         }
 

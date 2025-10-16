@@ -6,7 +6,7 @@ namespace SistemaGian.Application.Models.ViewModels
     public class VMAsignarProveedores
     {
         public string productos { get; set; }
-        public int idProveedor { get; set; }
-
+        public List<int> idProveedores { get; set; }
     }
+
 }

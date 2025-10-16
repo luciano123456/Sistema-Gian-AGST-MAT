@@ -21,48 +21,52 @@ namespace SistemaGian.BLL.Service
             _productohistorialRepo = productohistorialRepo;
         }
 
-      
 
-        public async Task<bool> AsignarProveedor(string productos, int idProveedor)
+
+        public async Task<bool> AsignarProveedor(string productos, List<int> idProveedores)
         {
             var lstProductos = JsonConvert.DeserializeObject<List<int>>(productos);
-
             List<ProductosPreciosProveedor> productosList = new List<ProductosPreciosProveedor>();
 
-            foreach (int producto in lstProductos)
+            foreach (int idProveedor in idProveedores)
             {
-                var existProd = await _productospreciorepo.ObtenerProductoProveedor(idProveedor, producto);
-
-                if (existProd == null) { 
-                var prod = await _productosrepo.Obtener(producto);
-
-                var productoPrecio = new ProductosPreciosProveedor
+                foreach (int producto in lstProductos)
                 {
-                    IdProducto = producto,
-                    IdProveedor = idProveedor,
-                    FechaActualizacion = DateTime.Now,
-                    PorcGanancia = prod.PorcGanancia,
-                    PCosto = prod.PCosto,
-                    PVenta = prod.PVenta,
-                    ProductoCantidad = (decimal)prod.ProductoCantidad
-                };
+                    var existProd = await _productospreciorepo.ObtenerProductoProveedor(idProveedor, producto);
 
-                productosList.Add(productoPrecio);
-                await _productospreciorepo.Actualizar(productoPrecio);
+                    if (existProd == null)
+                    {
+                        var prod = await _productosrepo.Obtener(producto);
+
+                        var productoPrecio = new ProductosPreciosProveedor
+                        {
+                            IdProducto = producto,
+                            IdProveedor = idProveedor,
+                            FechaActualizacion = DateTime.Now,
+                            PorcGanancia = prod.PorcGanancia,
+                            PCosto = prod.PCosto,
+                            PVenta = prod.PVenta,
+                            ProductoCantidad = (decimal)prod.ProductoCantidad
+                        };
+
+                        productosList.Add(productoPrecio);
+
+                        // Actualizar o insertar 1x1
+                        await _productospreciorepo.Actualizar(productoPrecio);
+                    }
                 }
-
             }
 
-            if(productosList.Count > 0)
+            if (productosList.Count > 0)
             {
                 return await _productospreciorepo.AsignarProveedor(productosList);
-            } else
+            }
+            else
             {
                 return false;
             }
-            
-
         }
+
 
         public async Task<ProductosPreciosProveedor> ObtenerProductoProveedor(int idProducto, int idProveedor)
         {

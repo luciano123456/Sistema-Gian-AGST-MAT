@@ -905,7 +905,7 @@ async function calcularSaldoUsado() {
 async function guardarProducto() {
     const precioSelect = document.getElementById('precioSelect');
     const productoSelect = document.getElementById('productoSelect');
-    const cantidadInput = parseFloat(formatearSinMiles(document.getElementById('cantidadInput').value)) || 0;
+    const cantidadInput = parseFloat(desformatearAR(document.getElementById('cantidadInput').value)) || 0;
     const productoId = productoSelect.value;
     const productoNombre = productoSelect.options[productoSelect.selectedIndex]?.text || '';
     const primerOptionValue = precioSelect.options[0].value;
@@ -1265,13 +1265,13 @@ async function abrirModalProducto(isEdit = false, productoId = null) {
 
 async function calcularTotal() {
     const precioRaw = document.getElementById('precioInput').value;
-    const cantidad = parseFloat(formatearSinMiles(document.getElementById('cantidadInput').value)) || 0;
+    const cantidad = parseFloat(desformatearAR(document.getElementById('cantidadInput').value)) || 0;
     const cantidadProducto = parseFloat(document.getElementById('productoCantidad').value) || 0;
 
     // Extraer solo el número del campo precio
     const precio = parseFloat(convertirMonedaAFloat(precioRaw));
 
-    const cantidadVendida = parseFloat(formatearSinMiles(document.getElementById('cantidadInput').value)) || 0;
+    const cantidadVendida = parseFloat(desformatearAR(document.getElementById('cantidadInput').value)) || 0;
     const cantidadAcopio = parseFloat(document.getElementById('cantidadAcopioInput')?.value) || 0;
     const cantidadTotal = cantidadVendida + cantidadAcopio;
 
@@ -2051,21 +2051,60 @@ $('#Proveedores').on('change', async function () {
     cargarDatosProveedor(data);
 });
 
-document.querySelectorAll("#cantidadInput").forEach(input => {
-    input.addEventListener("input", function () {
-        const cursorPos = this.selectionStart;
-        const originalLength = this.value.length;
+// Formatea "12345,67" -> "12.345,67"
+function formatearMilesAR(valor) {
+  if (valor == null) return "";
+  // Normaliza: reemplaza decimales con coma y limpia todo lo que no sea dígito o coma
+  let v = String(valor).replace(/\./g, ",").replace(/[^0-9,]/g, "");
+  // Solo una coma decimal
+  const partes = v.split(",");
+  const enteros = partes[0].replace(/^0+(?=\d)/, ""); // quita ceros delante (deja 0 si corresponde)
+  const decimales = partes.length > 1 ? partes.slice(1).join("").slice(0, 6) : ""; // hasta 6 decimales (ajustá)
+  // Miles con punto
+  const enterosConMiles = enteros.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  return decimales ? `${enterosConMiles},${decimales}` : enterosConMiles;
+}
 
-        const formateado = formatearMiles(this.value);
-        this.value = formateado;
+function desformatearAR(valor) {
+  if (!valor) return 0;
+  const limpio = String(valor).replace(/\./g, "").replace(",", ".");
+  const num = parseFloat(limpio);
+  return isNaN(num) ? 0 : num;
+}
 
-        const newLength = formateado.length;
-        this.setSelectionRange(
-            cursorPos + (newLength - originalLength),
-            cursorPos + (newLength - originalLength)
-        );
-    });
+// Aplica a TODOS los inputs con clase .cantidadInput
+document.querySelectorAll(".cantidadInput").forEach(input => {
+  input.addEventListener("input", function () {
+    const pos = this.selectionStart;
+    const antes = this.value;
+    const despues = formatearMilesAR(antes);
+
+    // Si no cambió, no toques el cursor
+    if (despues === antes) return;
+
+    // Calcula desplazamiento aproximado del cursor
+    const diff = despues.length - antes.length;
+    this.value = despues;
+
+    // Recoloca el cursor intentando respetar la edición
+    const nuevaPos = Math.max(0, Math.min(despues.length, (pos ?? despues.length) + diff));
+    this.setSelectionRange(nuevaPos, nuevaPos);
+  });
+
+  // Opcional: al perder foco, normalizar (ej. “,” sola -> “0,”)
+  input.addEventListener("blur", function () {
+    let v = this.value.trim();
+    if (v === "") return;
+    if (v === "," || v === ".,") v = "0,";
+    this.value = formatearMilesAR(v);
+  });
 });
+
+// Ejemplo de uso para calcular sin miles:
+function obtenerCantidadNumerica(selector = ".cantidadInput") {
+  const el = document.querySelector(selector);
+  return desformatearAR(el?.value || "0"); // número JS (p.ej. 12345.67)
+}
 
 function calcularDetalleFacturaIVA(selectedProduct) {
     const detalleDiv = document.getElementById("detalleFacturaIVA");

@@ -140,33 +140,42 @@
 </div>
 
 
-
 <div class="modal fade" id="modalProveedores" tabindex="-1" aria-labelledby="modalProveedoresLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header colorEncabezado">
-                <h5 class="modal-title fw-bold" id="modalProveedoresLabel">Asignar Proveedor</h5>
+                <h5 class="modal-title fw-bold" id="modalProveedoresLabel">Asignar Proveedores</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
 
             <div class="modal-body">
                 <form id="formAsignarProveedor" class="row g-3">
                     <div class="col-md-12">
-                        <label for="Proveedores" class="form-label">Proveedor</label>
-                        <select id="Proveedores" name="select" class="form-control" required>
-                            <option value="" selected>Seleccione Proveedor</option>
-                        </select>
-                    </div>
+                        <label class="form-label">Seleccione proveedores</label>
 
-                    <div class="col-md-12">
-                        <p id="datos" class="text-center text-danger datos-error d-none mb-0"></p>
+                      
+
+                        <!-- 🔍 Buscador -->
+                        <input type="text" id="buscadorProveedores" class="form-control mb-2" placeholder="Buscar proveedor...">
+
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="checkTodosProveedores">
+                            <label class="form-check-label fw-bold" for="checkTodosProveedores">Seleccionar todos</label>
+                        </div>
+
+
+                        <!-- ✅ Lista con scroll -->
+                        <div id="contenedorProveedores" class="form-check-list border rounded p-2" style="max-height: 300px; overflow-y: auto;">
+                            <!-- Aquí se insertan los checkboxes dinámicamente -->
+                        </div>
                     </div>
+                    <p id="datos" class="text-center text-danger datos-error d-none mb-0"></p>
                 </form>
             </div>
 
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                <button id="btnRegistrarModificar" type="button" class="btn btn-primary" onclick="asignarProveedor()">Asignar</button>
+                <button id="btnRegistrarModificar" type="button" class="btn btn-primary" onclick="asignarProveedores()">Asignar</button>
             </div>
         </div>
     </div>
@@ -174,30 +183,44 @@
 
 
 
-
 <div class="modal fade" id="modalClientes" tabindex="-1" role="dialog" aria-labelledby="modalClientesLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header colorEncabezado">
-                <h5 class="modal-title fw-bold" id="modalClientesLabel">Asignar Cliente</h5>
+                <h5 class="modal-title fw-bold" id="modalClientesLabel">Asignar Clientes</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
 
             <div class="modal-body">
                 <form id="formAsignarCliente" class="row g-3">
                     <div class="col-md-12">
-                        <label for="Clientes" class="form-label">Cliente</label>
-                        <select id="Clientes" class="form-control">
-                            <option value="" selected>Seleccione Cliente</option>
-                        </select>
+                        <label class="form-label">Seleccione clientes</label>
+
+                     
+
+
+                        <!-- 🔍 Buscador -->
+                        <input type="text" id="buscadorClientes" class="form-control mb-2" placeholder="Buscar cliente...">
+
+                           <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="checkTodosClientes">
+                            <label class="form-check-label fw-bold" for="checkTodosClientes">Seleccionar todos</label>
+                        </div>
+
+                        <!-- 📋 Contenedor de checkboxes -->
+                        <div id="contenedorClientes" class="form-check-list border rounded p-2"
+                             style="max-height: 300px; overflow-y: auto;">
+                            <!-- Aquí se insertan los checkboxes dinámicamente -->
+                        </div>
                     </div>
+
                     <p id="datosCliente" class="mb-3 text-center text-danger datos-error d-none"></p>
                 </form>
             </div>
 
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                <button type="button" class="btn btn-primary" onclick="asignarCliente()">Asignar</button>
+                <button type="button" class="btn btn-primary" onclick="asignarClientes()">Asignar</button>
             </div>
         </div>
     </div>
@@ -403,6 +426,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/js/select2.min.js"></script>
 
-    <script src="~/js/Productos.js?v=1.8"></script>
+    <script src="~/js/Productos.js?v=1.9"></script>
    
 }
