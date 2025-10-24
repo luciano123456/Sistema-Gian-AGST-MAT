@@ -1,81 +1,105 @@
 ﻿@using Microsoft.Extensions.Configuration
-
 @inject IConfiguration Configuration
 
 @{
     var ambienteTest = Configuration.GetValue<int>("AmbienteTest");
-}
-
-@{
     ViewData["Title"] = "Home Page";
 }
 
-
-@*GOOGLEAR CARD BOOTSTRAP 5*@
-@section Estilos{
-
+@section Estilos {
+    <!-- DataTables -->
     <link href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css" rel="stylesheet" />
 
-    @*ESTILOS DE BOTONES*@
+    <!-- Estilos de botones -->
     <link href="https://cdn.datatables.net/buttons/2.2.2/css/buttons.dataTables.min.css" rel="stylesheet" />
 
-    @*filter columns*@
+    <!-- FixedHeader -->
     <link href="https://cdn.datatables.net/fixedheader/3.2.2/css/fixedHeader.dataTables.min.css" rel="stylesheet" />
 
+    <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
+    <!-- Mismo look & feel que Clientes -->
+    <link rel="stylesheet" href="~/css/usuarios.css" />
+    <link rel="stylesheet" href="~/css/redisenopantallas.css" />
     <link href="~/css/Proveedores.css" rel="stylesheet" />
+
+    <!-- Compatibilidad (igual que en Clientes) -->
+    <link href="~/css/RedisenoPantallas.css" rel="stylesheet" />
 }
 
-<div class="container-fluid mt-5">
-    <div class="row">
-        <partial name="~/Views/Shared/Partials/BotonMenu.cshtml" />
-        <div class="col-lg-10">
-            <div class="card" style="width: 88%; position: absolute; left: 7vw; border: none;">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <span>Proveedores</span>
+<partial name="~/Views/Shared/Partials/BotonMenu.cshtml" />
 
-                    <div class="dropdown">
-                        <button class="btn btn-secondary dropdown-toggle d-flex align-items-center" type="button" id="dropdownColumnas" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fa fa-cog me-2"></i> Config. Columnas
-                        </button>
-                        <ul class="dropdown-menu" aria-labelledby="dropdownColumnas" id="configColumnasMenu">
-                        </ul>
+<div class="container page-99" style="margin-top:100px">
+    <!-- Header estilo “glass” (mismo patrón que Clientes) -->
+    <div class="cc-header shadow-lg rounded-4 p-4 mb-4">
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+            <div class="d-flex align-items-center gap-3">
+                <span class="cc-badge"><i class="fa fa-industry"></i></span>
+                <div>
+                    <h2 class="m-0 fw-800">Proveedores</h2>
+                    <small class="text-muted-cc">Gestión y listado de proveedores</small>
+                </div>
+            </div>
+
+            <div class="ms-auto d-flex gap-3 flex-wrap align-items-center">
+                <div class="dropdown cc-dd">
+                    <button id="dropdownColumnas"
+                            type="button"
+                            class="btn btn-secondary dropdown-toggle d-flex align-items-center"
+                            data-bs-toggle="dropdown"
+                            data-bs-display="static"
+                            data-bs-auto-close="outside"
+                            aria-expanded="false">
+                        <i class="fa fa-cog me-2"></i>
+                        Config. Columnas
+                    </button>
+
+                    <ul class="dropdown-menu cc-dropdown-menu" aria-labelledby="dropdownColumnas" id="configColumnasMenu"></ul>
+                </div>
+
+
+                <a class="btn btn-success d-flex align-items-center px-3 py-2 btnnuevo" onclick="nuevoProveedor()">
+                    <i class="fa fa-plus-square me-2"></i> Nuevo
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tarjeta / Tabla estilo “glass” (sin cambiar columnas) -->
+    <div class="row g-4">
+        <div class="col-12">
+            <div class="card-glass p-3">
+                <div class="tabla-wrap position-relative">
+                    <div class="dt-dark-wrap">
+                        <table class="dt-dark display nowrap compact" id="grd_Proveedores" style="width:100%">
+                            <thead>
+                                <tr>
+                                    <th></th>
+                                    <th>Nombre</th>
+                                    <th>Apodo</th>
+                                    <th>Ubicacion</th>
+                                    <th>Telefono</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Aquí va el contenido de tu DataTable -->
+                            </tbody>
+                        </table>
                     </div>
                 </div>
-                <div class="card-body">
-                    <table class="display nowrap" id="grd_Proveedores" style="width:100%">
-                        <thead>
-                            <tr>
-                                <th></th>
-                                <th>Nombre</th>
-                                <th>Apodo</th>
-                                <th>Ubicacion</th>
-                                <th>Telefono</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Aquí va el contenido de tu datatable -->
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="d-flex justify-content-end mt-2 mb-4">
-                    <a class="btn btn-primary btnnuevo" onclick="nuevoProveedor()">Nuevo</a>
-                </div>
-
-            </div>
+            </div><!-- /card-glass -->
         </div>
     </div>
 </div>
 
-
+<!-- MODAL edición (mismos IDs/estructura, solo look & feel) -->
 <div class="modal fade" id="modalEdicion" tabindex="-1" role="dialog" aria-labelledby="modalEdicionLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-edicion" role="document">
-        <div class="modal-content">
+        <div class="modal-content cc-modal">
             <div class="modal-header colorEncabezado">
                 <h5 class="modal-title fw-bold" id="modalEdicionLabel">Editar proveedor</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                <button type="button" class="btn-close custom-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
 
             <div class="modal-body">
@@ -104,7 +128,7 @@
                 </form>
             </div>
 
-            <div class="modal-footer">
+            <div class="modal-footer modal-footer-cc">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                 <button type="button" id="btnGuardar" class="btn btn-primary" onclick="guardarCambios()">Registrar</button>
             </div>
@@ -112,35 +136,28 @@
     </div>
 </div>
 
-
-
-
 <partial name="~/Views/Utils/Modals.cshtml" />
 
-@section Scripts{
-
+@section Scripts {
     <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
 
-    @*SCRIPTS DE BOTONES*@
-    <script src="https://cdn.datatables.net/buttons/2.2.2/js/dataTables.buttons.min.js">
-        
-    </script><script src="~/js/site.js"></script>
+@* SCRIPTS DE BOTONES *@
+    <script src="https://cdn.datatables.net/buttons/2.2.2/js/dataTables.buttons.min.js"></script>
+    <script src="~/js/site.js"></script>
 
-    @*excel*@
+@* excel *@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.html5.min.js"></script>
 
-    @*pdf*@
+@* pdf *@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
 
-    @*imprimir*@
+@* imprimir *@
     <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.print.min.js"></script>
 
-    @*filter columns*@
+@* filter columns / fixed header *@
     <script src="https://cdn.datatables.net/fixedheader/3.2.2/js/dataTables.fixedHeader.min.js"></script>
 
-
     <script src="~/js/Proveedores.js?v=1.2"></script>
-   
 }
