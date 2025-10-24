@@ -51,12 +51,21 @@
                     <div class="value"><strong id="sumaProveedor">$0,00</strong></div>
                 </div>
 
-                <div class="dropdown">
-                    <button class="btn btn-secondary dropdown-toggle d-flex align-items-center" type="button" id="dropdownColumnas" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fa fa-cog me-2"></i> Config. Columnas
-                    </button>
-                    <ul class="dropdown-menu" aria-labelledby="dropdownColumnas" id="configColumnasMenu"></ul>
-                </div>
+               <div class="dropdown cc-dd">
+  <button
+    id="dropdownColumnas"
+    type="button"
+    class="btn btn-secondary dropdown-toggle d-flex align-items-center"
+    data-bs-toggle="dropdown"
+    data-bs-display="static"
+    data-bs-auto-close="outside"
+    aria-expanded="false">
+    <i class="fa fa-cog me-2"></i>
+    Config. Columnas
+  </button>
+
+  <ul class="dropdown-menu cc-dropdown-menu" aria-labelledby="dropdownColumnas" id="configColumnasMenu"></ul>
+</div>
 
                 <a class="btn btn-success d-flex align-items-center px-3 py-2 btnnuevo" onclick="nuevoCliente()">
                     <i class="fa fa-plus-square me-2"></i> Nuevo
