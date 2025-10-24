@@ -1,5 +1,39 @@
-﻿<link href="~/css/BotonMenu.css" rel="stylesheet" />
+﻿@* Botón flotante tipo FAB (Home) + dock opcional *@
+<link href="~/css/BotonMenu.css" rel="stylesheet" />
 
-<div class="col-lg-2 mb-5 divMenu align-self-start imagenMenu">
-    <img src="/Imagenes/Menu.png" class="img-fluid imageMenu" alt="Menu" title="Menu" onclick="window.location.href='@Url.Action("Index", "Home")'">
+<div class="fab-wrap" data-fab>
+    <!-- Botón principal (Home) -->
+    <a class="fab-main" href="@Url.Action("Index", "Home")" title="Inicio" data-bs-toggle="tooltip" data-bs-placement="right">
+        <i class="fa fa-home"></i>
+        <span class="fab-label d-none d-md-inline">Inicio</span>
+    </a>
+
 </div>
+
+<script>
+    // Tooltips BS5 (si no los tenés inicializados global)
+    document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
+      try { new bootstrap.Tooltip(el); } catch(_) {}
+    });
+
+    // Toggle en mobile: abrir/cerrar dock con tap
+    (function(){
+      const fab = document.querySelector('[data-fab]');
+      if(!fab) return;
+      const main = fab.querySelector('.fab-main');
+
+      main.addEventListener('click', function (e) {
+        // Si tiene dock con items, toggle; si está vacío que navegue a Home normal.
+        const hasItems = fab.querySelectorAll('.fab-dock .fab-item').length > 0;
+        if (window.matchMedia('(hover: none)').matches && hasItems) {
+          e.preventDefault();
+          fab.classList.toggle('open');
+        }
+      });
+
+      // Cerrar al clickear afuera
+      document.addEventListener('click', function(e){
+        if (!fab.contains(e.target)) fab.classList.remove('open');
+      });
+    })();
+</script>
