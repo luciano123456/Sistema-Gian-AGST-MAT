@@ -26,6 +26,7 @@ const columnConfig = [
     { index: 16, filterType: 'text' },
     { index: 17, filterType: 'text' },
     { index: 18, filterType: 'text' },
+    { index: 19, filterType: 'text' },
 ];
 
 const Modelo_base = {
@@ -38,19 +39,6 @@ const Modelo_base = {
 
 $(document).ready(() => {
 
-
-    // Eliminar tr de filtros previos
-    $('#grd_Productos thead tr.filters').remove();
-
-    // Crear el <tr> de filtros
-    var $filterRow = $('<tr class="filters"></tr>');
-    $('#grd_Productos thead tr').first().children().each(function () {
-        $('<th></th>').appendTo($filterRow);
-    });
-
-    // Agregarlo al <thead>
-    $('#grd_Productos thead').append($filterRow);
-
     inicializarSonidoNotificacion();
 
     document.addEventListener("touchstart", desbloquearAudio, { once: true });
@@ -61,6 +49,8 @@ $(document).ready(() => {
     listaProveedoresFiltro();
     listaClientesFiltro();
 
+
+    initToggleFiltrosPersistenteProductos();
 
     $("#Proveedoresfiltro, #clientesfiltro, #Productosfiltro").select2({
         placeholder: "Selecciona una opción",
@@ -376,14 +366,15 @@ async function aplicarFiltros() {
 
 
         if (producto > 0) {
-            await actualizarVisibilidadProveedor(true);
+            await actualizarVisibilidadProveedor(false);
             gridProductos.column(2).visible(true);
             gridProductos.column(0).visible(false);
 
         } else {
+            await actualizarVisibilidadProveedor(false);
             gridProductos.column(2).visible(false);
             gridProductos.column(0).visible(true);
-            await actualizarVisibilidadProveedor(false);
+            //await actualizarVisibilidadProveedor(false);
         }
 
         selectedProductos = [];
@@ -1107,22 +1098,99 @@ async function eliminarProducto(id) {
 
 async function configurarDataTable(data) {
     if (!gridProductos) {
-       
-
         gridProductos = $('#grd_Productos').DataTable({
-            data: data,
+            data,
             language: {
                 sLengthMenu: "Mostrar MENU registros",
-                lengthMenu: "Anzeigen von _MENU_ Einträgen",
                 url: "//cdn.datatables.net/plug-ins/2.0.7/i18n/es-MX.json"
             },
             scrollX: "100px",
             scrollCollapse: true,
-            pageLength: 100, // 👈 agregá esto
-            colReorder: true, // 👈 Habilita mover columnas
-            stateSave: false,  // 👈 Guarda el estado
-            columns: [
+            pageLength: 100,
+            colReorder: true,
+            stateSave: false,
+            dom: 'Bfrtip',
+            buttons: [
+                {
+                    extend: 'excelHtml5',
+                    text: 'Exportar Excel',
+                    filename: 'Reporte Productos',
+                    exportOptions: {
+                        columns: function (idx, data, node) {
+                            const columnasPermitidas = [1, 2, 3, 4, 5, 6, 7, 8];
+                            const visible = $(node).is(':visible');
+                            return columnasPermitidas.includes(idx) && visible;
+                        }
+                    },
+                    className: 'btn-exportar-excel'
+                },
+                {
+                    extend: 'pdfHtml5',
+                    text: 'Exportar PDF',
+                    filename: 'Reporte Productos',
+                    exportOptions: {
+                        columns: function (idx, data, node) {
+                            const columnasPermitidas = [1, 2, 3, 4, 5, 6, 7, 8];
+                            const visible = $(node).is(':visible');
+                            return columnasPermitidas.includes(idx) && visible;
+                        }
+                    },
+                    className: 'btn-exportar-pdf'
+                },
+                {
+                    extend: 'print',
+                    text: 'Imprimir',
+                    exportOptions: {
+                        columns: function (idx, data, node) {
+                            const columnasPermitidas = [1, 2, 3, 4, 5, 6, 7, 8];
+                            const visible = $(node).is(':visible');
+                            return columnasPermitidas.includes(idx) && visible;
+                        }
+                    },
+                    className: 'btn-exportar-print'
+                },
+                'pageLength'
+            ],
+            orderCellsTop: true,
+            fixedHeader: true,
 
+            columns: [
+                // 0) ACCIONES + seleccionar + drag + menú
+              //  {
+              //      data: "Id",
+              //      title: "",
+              //      orderable: false,
+              //      searchable: false,
+              //      width: "110px",
+              //      render: function (data, type, row) {
+              //          if (type !== 'display') return data;
+              //          return `
+              //<div class="d-flex align-items-center gap-1">
+              //  <button type="button" class="btn btn-sm chip-select btnacciones" data-id="${row.Id}" aria-pressed="false" title="Seleccionar">
+              //    <i class="fa fa-square-o"></i> <span>Elegir</span>
+              //  </button>
+
+              //  <i class="fa fa-bars draggable-icon" title="Arrastrar"></i>
+
+              //  <div class="acciones-menu d-inline-block position-relative">
+              //    <button type="button" class="btn btn-sm btnacciones" onclick="$(this).siblings('.acciones-dropdown').toggle();" title="Acciones">
+              //      <i class="fa fa-ellipsis-v"></i>
+              //    </button>
+              //    <div class="acciones-dropdown dropdown-menu show" style="display:none; position:absolute;">
+              //      <a class="dropdown-item" href="#" onclick="editarProducto(${row.Id}); return false;">
+              //        <i class="fa fa-pencil"></i> Editar
+              //      </a>
+              //      <a class="dropdown-item" href="#" onclick="duplicarProducto(${row.Id}); return false;">
+              //        <i class="fa fa-copy"></i> Duplicar
+              //      </a>
+              //      <a class="dropdown-item text-danger" href="#" onclick="eliminarProducto(${row.Id}); return false;">
+              //        <i class="fa fa-trash"></i> Eliminar
+              //      </a>
+              //    </div>
+              //  </div>
+              //</div>`;
+              //      }
+                //  },
                 {
                     data: "Id",
                     title: '',
@@ -1156,10 +1224,12 @@ async function configurarDataTable(data) {
                         </button>
                      
                     </div>
-                    <span class="custom-checkbox" data-id='${data}'>
-                                    <i class="fa ${checkboxClass} checkbox"></i>
-                                </span>
-                                ${botonApagado}
+                 
+
+                                <button type="button" class="btn btn-sm chip-select btnacciones" data-id="${data}" aria-pressed="false" title="Seleccionar">
+          <i class="fa fa-square-o"></i> <span>Elegir</span>
+        </button>
+
        <i class="fa fa-hand-rock-o draggable-icon" title="Mover fila"></i>
 
     </div>
@@ -1169,157 +1239,95 @@ async function configurarDataTable(data) {
                     orderable: false,
                     searchable: false,
                 },
-                { data: 'Descripcion' },
-                { data: 'Proveedor', visible: false },
 
+                // 1..10) datos
+                { data: "Descripcion", title: "Descripcion" },
+                { data: "Proveedor", title: "Proveedor", visible: false },
+                { data: "Marca", title: "Marca" },
+                { data: "Categoria", title: "Categoria" },
+                { data: "UnidadDeMedida", title: "Unidad de Medida" },
+                { data: "PCosto", title: "P. Costo" },
+                { data: "PVenta", title: "P. Venta" },
+                { data: "ProductoCantidad", title: "Cantidad" },
+                { data: "Total", title: "Total" },
+                { data: "PorcGanancia", title: "Porc. Ganancia" },
 
-                { data: 'Marca' },
-                { data: 'Categoria' },
-                { data: 'UnidadDeMedida' },
+                // 11) ACTIVO con botón power (para activar/desactivar)
+                {
+                    data: "Activo",
+                    title: "Activo",
+                    render: function (data, type, row) {
+                        // para sort/filter devolvemos 1/0
+                        if (type === 'filter' || type === 'sort') {
+                            return (data === 1 || data === true) ? '1' : '0';
+                        }
+                        const on = (data === 1 || data === true);
+                        const color = on ? 'text-success' : 'text-danger';
+                        const next = on ? 0 : 1;
+                        return `
+              <button type="button" class="btn btn-sm btnacciones btn-toggle-activo"
+                      title="${on ? 'Desactivar' : 'Activar'}"
+                      data-id="${row.Id}" data-next="${next}">
+                <i class="fa fa-power-off fa-lg ${color}"></i>
+              </button>`;
+                    }
+                },
 
-                //{ data: 'Moneda' },
-                { data: 'PCosto' },
-                { data: 'PVenta' },
-                { data: 'ProductoCantidad' },
-                { data: 'Total' },
-
-                { data: 'PorcGanancia' },
-                { data: 'IdMoneda', visible: false },
-                { data: 'IdMarca', visible: false },
-                { data: 'IdCategoria', visible: false },
-                { data: 'IdUnidadDeMedida', visible: false },
-
-
+                // 12..15) IDs ocultos
+                { data: "IdMoneda", visible: false },
+                { data: "IdMarca", visible: false },
+                { data: "IdCategoria", visible: false },
+                { data: "IdUnidadDeMedida", visible: false },
             ],
-            dom: 'Bfrtip',
-            buttons: [
-                {
-                    extend: 'excelHtml5',
-                    text: 'Exportar Excel',
-                    filename: 'Reporte Productos',
-                    exportOptions: {
-                        columns: function (idx, data, node) {
-                            const columnasPermitidas = [1, 2, 3, 4, 5, 6, 7, 8];
-                            const colVisible = $(node).is(':visible');
-                            return columnasPermitidas.includes(idx) && colVisible;
-                        }
-                    },
-                    className: 'btn-exportar-excel'
-                },
-                {
-                    extend: 'pdfHtml5',
-                    text: 'Exportar PDF',
-                    filename: 'Reporte Productos',
-                    exportOptions: {
-                        columns: function (idx, data, node) {
-                            const columnasPermitidas = [1, 2, 3, 4, 5, 6, 7, 8];
-                            const colVisible = $(node).is(':visible');
-                            return columnasPermitidas.includes(idx) && colVisible;
-                        }
-                    },
-                    className: 'btn-exportar-pdf'
-                },
-                {
-                    extend: 'print',
-                    text: 'Imprimir',
-                    exportOptions: {
-                        columns: function (idx, data, node) {
-                            const columnasPermitidas = [1, 2, 3, 4, 5, 6, 7, 8];
-                            const colVisible = $(node).is(':visible');
-                            return columnasPermitidas.includes(idx) && colVisible;
-                        }
-                    },
-                    className: 'btn-exportar-print'
-                },
-                'pageLength'
-            ],
-            orderCellsTop: true,
-            fixedHeader: true,
+
             columnDefs: [
-                { "render": function (data) { return formatNumber(data); }, "targets": [6, 7, 9] }
+                // formato números
+                {
+                    targets: [6, 7, 9], // PCosto, PVenta, Total
+                    render: function (d, t) {
+                        if (t !== 'display') return d;
+                        return formatNumber(d);
+                    }
+                }
             ],
-            createdRow: function (row, data, dataIndex) {
-                $(row).attr('data-id', data.Id);
 
-                if (data.Descripcion.toLowerCase().includes('copia')) {
+            createdRow: function (row, r) {
+                $(row).attr('data-id', r.Id);
+                if ((r.Descripcion || '').toLowerCase().includes('copia')) {
                     $(row).addClass('productocopia');
                 }
             },
 
-
-
-
             initComplete: async function () {
                 const api = this.api();
-                const columnConfig = generarColumnConfig();
-                console.log("columnConfig:", columnConfig); // 👈 DEBUG
 
-                columnConfig.forEach(async (config) => {
-                    const cell = $('.filters th').eq(config.index);
-                    if (!cell.length) return;
+                const rebuildDebounced = debounce(() => rebuildFiltersProductos(api), 0);
 
-                    if (gridProductos.column(config.index).visible() === false) {
-                        cell.empty().hide(); // 👈 Esconder también la celda si no está visible
-                        return; // ⚠️ Saltar generación de filtro
-                    }
+                // Cuando cambia visibilidad/orden/scroll, reconstruir filtros sincronizados
+                api.off('.syncfilters')
+                    .on('column-visibility.dt.syncfilters', rebuildDebounced)
+                    .on('column-reorder.dt.syncfilters', rebuildDebounced)
+                    .on('responsive-resize.dt.syncfilters', rebuildDebounced);
 
-                    cell.empty().show(); // Asegurarse que sí está visible
+                // 1) Aplicar visibilidad inicial (persistencia) ANTES de crear filtros
+                if (typeof configurarOpcionesColumnas === 'function') {
+                    try { configurarOpcionesColumnas(api); } catch { /* noop */ }
+                }
 
-                    if (config.filterType === 'select') {
-                        const select = $('<select><option value="">Seleccionar</option></select>')
-                            .appendTo(cell)
-                            .on('change', function () {
-                                const val = $(this).val();
-                                api.column(config.index)
-                                    .search(val ? '^' + val + '$' : '', true, false)
-                                    .draw();
-                            });
-
-                        const data = await config.fetchDataFunc();
-                        data.forEach(item => {
-                            select.append(`<option value="${item.Nombre}">${item.Nombre}</option>`);
-                        });
-
-
-
-                    } else if (config.filterType === 'text') {
-                        var input = $('<input type="text" placeholder="Buscar..." />')
-                            .appendTo(cell.empty())
-                            .off('keyup change') // Desactivar manejadores anteriores
-                            .on('keyup change', function (e) {
-                                e.stopPropagation();
-                                var regexr = '({search})';
-                                var cursorPosition = this.selectionStart;
-                                api.column(config.index)
-                                    .search(this.value != '' ? regexr.replace('{search}', '(((' + this.value + ')))') : '', this.value != '', this.value == '')
-                                    .draw();
-                                $(this).focus()[0].setSelectionRange(cursorPosition, cursorPosition);
-                            });
-                    }
-                });
-
-                $('#grd_Productos').on('draw.dt', function () {
-                    $(document).off('click', '.custom-checkbox'); // Desvincular el evento para evitar duplicaciones
-                    $(document).on('click', '.custom-checkbox', handleCheckboxClick);
-                });
-
-                $(document).on('click', '.custom-checkbox', function (event) {
-                    handleCheckboxClick();
-                });
-
-
-
-
-                $('.filters th').eq(0).html('');
-
-
-
-                configurarOpcionesColumnas();
-
+                // 2) Proveedor oculto por defecto
                 await actualizarVisibilidadProveedor(false);
 
+                // 3) (Re)construir la fila de filtros + controles en base a columnas visibles
+                await buildFiltersProductos(api);
 
-                $('#grd_Productos tbody').on('dblclick', 'td', async function () {
+                // 4) Ajustar anchos ya con todo “armado”
+                setTimeout(() => api.columns.adjust().draw(false), 0);
+
+                // 5) KPI inicial
+                $('#kpiCantProductos').text(gridProductos.rows({ search: 'applied' }).count());
+
+                // 6) Doble click edición (tu lógica original intacta)
+                $('#grd_Productos tbody').off('dblclick.edicion').on('dblclick.edicion', 'td', async function () {
                     var cell = gridProductos.cell(this);
                     var originalData = cell.data();
                     var colIndex = cell.index().column;
@@ -1327,116 +1335,66 @@ async function configurarDataTable(data) {
 
                     if (colIndex == 0) return;
 
-
                     const idCliente = document.getElementById("clientesfiltro").value;
                     const idProveedor = document.getElementById("Proveedoresfiltro").value;
 
                     if (idCliente > 0 || idProveedor > 0) {
-                        if (colIndex != 6 && colIndex != 7 && colIndex != 8 && colIndex != 10) {
-                            return false;
-                        }
+                        if (![6, 7, 8, 10].includes(colIndex)) return false;
                     } else {
-                        if (colIndex != 1 && colIndex != 3 && colIndex != 4 && colIndex != 5 && colIndex != 6 && colIndex != 7 && colIndex != 8 && colIndex != 10) {
-                            return false;
-                        }
+                        if (![1, 3, 4, 5, 6, 7, 8, 10].includes(colIndex)) return false;
                     }
 
+                    if (isEditing) return; else isEditing = true;
 
+                    if ($(this).hasClass('blinking')) $(this).removeClass('blinking');
+                    if ($(this).find('input,select').length > 0) return;
 
-
-                    if (isEditing == true) {
-                        return;
-                    } else {
-                        isEditing = true;
-                    }
-
-                    // Eliminar la clase 'blinking' si está presente
-                    if ($(this).hasClass('blinking')) {
-                        $(this).removeClass('blinking');
-                    }
-
-
-                    // Si ya hay un input o select, evitar duplicados
-                    if ($(this).find('input').length > 0 || $(this).find('select').length > 0) {
-                        return;
-                    }
-
-                    // Si la columna es la de la provincia (por ejemplo, columna 3)
-                    if (colIndex === 3 || colIndex === 4 || colIndex === 5) {
+                    // === Selects de catálogo ===
+                    if ([3, 4, 5].includes(colIndex)) {
                         var select = $('<select class="form-control" style="background-color: transparent; border: none; border-bottom: 2px solid green; color: green; text-align: center;" />')
-                            .appendTo($(this).empty())
-                            .on('change', function () {
-                                // No hacer nada en el change, lo controlamos con el botón de aceptar
-                            });
-
-                        // Estilo para las opciones del select
-                        select.find('option').css('color', 'white'); // Cambiar el color del texto de las opciones a blanco
-                        select.find('option').css('background-color', 'black'); // Cambiar el fondo de las opciones a negro
-
-                        // Obtener las provincias disponibles
-
+                            .appendTo($(this).empty());
                         var result = null;
 
-
-                        if (colIndex == 3) {
-                            result = await listaMarcasFilter();
-                        } else if (colIndex == 4) {
-                            result = await listaCategoriasFilter();
-                        } else if (colIndex == 5) {
-                            result = await listaUnidadesDeMedidaFilter();
-                        }
+                        if (colIndex == 3) result = await listaMarcasFilter();
+                        else if (colIndex == 4) result = await listaCategoriasFilter();
+                        else if (colIndex == 5) result = await listaUnidadesDeMedidaFilter();
 
                         result.forEach(function (res) {
                             select.append('<option value="' + res.Id + '">' + res.Nombre + '</option>');
                         });
 
-                        if (colIndex == 3) {
-                            select.val(rowData.IdMarca);
-                        } else if (colIndex == 4) {
-                            select.val(rowData.IdCategoria);
-                        } else if (colIndex == 5) {
-                            select.val(rowData.IdUnidadDeMedida);
+                        if (colIndex == 3) select.val(rowData.IdMarca);
+                        else if (colIndex == 4) select.val(rowData.IdCategoria);
+                        else if (colIndex == 5) select.val(rowData.IdUnidadDeMedida);
 
-                        }
-
-
-                        // Crear los botones de guardar y cancelar
-                        var saveButton = $('<i class="fa fa-check text-success"></i>').on('click', function () {
-                            var selectedValue = select.val();
-                            var selectedText = select.find('option:selected').text();
-                            saveEdit(colIndex, gridProductos.row($(this).closest('tr')).data(), selectedText, selectedValue, $(this).closest('tr'));
-                        });
-
-                        var cancelButton = $('<i class="fa fa-times text-danger"></i>').on('click', cancelEdit);
-
-                        // Agregar los botones de guardar y cancelar en la celda
+                        var saveButton = $('<i class="fa fa-check text-success" style="margin-left:.5rem; cursor:pointer;"></i>')
+                            .on('click', function () {
+                                var selectedValue = select.val();
+                                var selectedText = select.find('option:selected').text();
+                                saveEdit(colIndex, gridProductos.row($(this).closest('tr')).data(), selectedText, selectedValue, $(this).closest('tr'));
+                            });
+                        var cancelButton = $('<i class="fa fa-times text-danger" style="margin-left:.25rem; cursor:pointer;"></i>').on('click', cancelEdit);
                         $(this).append(saveButton).append(cancelButton);
-
-                        // Enfocar el select
                         select.focus();
-                    } else if (colIndex === 6 || colIndex == 7) {
-                        var valueToDisplay = originalData ? originalData.toString().replace(/[^\d.-]/g, '') : '';
 
+                    } else if ([6, 7].includes(colIndex)) {
+                        var valueToDisplay = originalData ? originalData.toString().replace(/[^\d.-]/g, '') : '';
                         var input = $('<input type="text" class="form-control" style="background-color: transparent; border: none; border-bottom: 2px solid green; color: green; text-align: center;" />')
                             .val(formatoMoneda.format(valueToDisplay))
                             .on('input', function () {
-                                var saveBtn = $(this).siblings('.fa-check'); // Botón de guardar
-
+                                var saveBtn = $(this).siblings('.fa-check');
                                 if ($(this).val().trim() === "") {
-                                    $(this).css('border-bottom', '2px solid red'); // Borde rojo
-                                    saveBtn.css('opacity', '0.5'); // Desactivar botón de guardar visualmente
-                                    saveBtn.prop('disabled', true); // Desactivar funcionalidad del botón
+                                    $(this).css('border-bottom', '2px solid red');
+                                    saveBtn.css('opacity', '0.5').prop('disabled', true);
                                 } else {
-                                    $(this).css('border-bottom', '2px solid green'); // Borde verde
-                                    saveBtn.css('opacity', '1'); // Habilitar botón de guardar visualmente
-                                    saveBtn.prop('disabled', false); // Habilitar funcionalidad del botón
+                                    $(this).css('border-bottom', '2px solid green');
+                                    saveBtn.css('opacity', '1').prop('disabled', false);
                                 }
                             })
-                        input.on('blur', function () {
-                            // Solo limpiar el campo si no se ha presionado "Aceptar"
-                            var rawValue = $(this).val().replace(/[^0-9,-]/g, ''); // Limpiar caracteres no numéricos
-                            $(this).val(formatoMoneda.format(parseDecimal(rawValue))); // Mantener el valor limpio
-                        })
+                            .on('blur', function () {
+                                var rawValue = $(this).val().replace(/[^0-9,-]/g, '');
+                                $(this).val(formatoMoneda.format(parseDecimal(rawValue)));
+                            })
                             .on('keydown', function (e) {
                                 if (e.key === 'Enter') {
                                     saveEdit(colIndex, gridProductos.row($(this).closest('tr')).data(), input.val(), input.val(), $(this).closest('tr'));
@@ -1445,18 +1403,15 @@ async function configurarDataTable(data) {
                                 }
                             });
 
-                        var saveButton = $('<i class="fa fa-check text-success"></i>').on('click', function () {
-                            if (!$(this).prop('disabled')) { // Solo guardar si el botón no está deshabilitado
+                        var saveButton = $('<i class="fa fa-check text-success" style="margin-left:.5rem; cursor:pointer;"></i>').on('click', function () {
+                            if (!$(this).prop('disabled')) {
                                 saveEdit(colIndex, gridProductos.row($(this).closest('tr')).data(), input.val(), input.val(), $(this).closest('tr'));
                             }
                         });
-
-                        var cancelButton = $('<i class="fa fa-times text-danger"></i>').on('click', cancelEdit);
-
-                        // Reemplazar el contenido de la celda
+                        var cancelButton = $('<i class="fa fa-times text-danger" style="margin-left:.25rem; cursor:pointer;"></i>').on('click', cancelEdit);
                         $(this).empty().append(input).append(saveButton).append(cancelButton);
-
                         input.focus();
+
                     } else {
                         var valueToDisplay = (originalData && originalData.toString().trim() !== "")
                             ? originalData.toString().replace(/<[^>]+>/g, "")
@@ -1465,17 +1420,14 @@ async function configurarDataTable(data) {
                         var input = $('<input type="text" class="form-control" style="background-color: transparent; border: none; border-bottom: 2px solid green; color: green; text-align: center;" />')
                             .val(valueToDisplay)
                             .on('input', function () {
-                                var saveBtn = $(this).siblings('.fa-check'); // Botón de guardar
-
-                                if (colIndex === 1 || colIndex === 8) { // Validar solo si es la columna 0
+                                var saveBtn = $(this).siblings('.fa-check');
+                                if ([1, 8].includes(colIndex)) {
                                     if ($(this).val().trim() === "") {
-                                        $(this).css('border-bottom', '2px solid red'); // Borde rojo
-                                        saveBtn.css('opacity', '0.5'); // Desactivar botón de guardar visualmente
-                                        saveBtn.prop('disabled', true); // Desactivar funcionalidad del botón
+                                        $(this).css('border-bottom', '2px solid red');
+                                        saveBtn.css('opacity', '0.5').prop('disabled', true);
                                     } else {
-                                        $(this).css('border-bottom', '2px solid green'); // Borde verde
-                                        saveBtn.css('opacity', '1'); // Habilitar botón de guardar visualmente
-                                        saveBtn.prop('disabled', false); // Habilitar funcionalidad del botón
+                                        $(this).css('border-bottom', '2px solid green');
+                                        saveBtn.css('opacity', '1').prop('disabled', false);
                                     }
                                 }
                             })
@@ -1487,144 +1439,112 @@ async function configurarDataTable(data) {
                                 }
                             });
 
-                        var saveButton = $('<i class="fa fa-check text-success"></i>').on('click', function () {
-                            if (!$(this).prop('disabled')) { // Solo guardar si el botón no está deshabilitado
+                        var saveButton = $('<i class="fa fa-check text-success" style="margin-left:.5rem; cursor:pointer;"></i>').on('click', function () {
+                            if (!$(this).prop('disabled')) {
                                 saveEdit(colIndex, gridProductos.row($(this).closest('tr')).data(), input.val(), input.val(), $(this).closest('tr'));
                             }
                         });
-
-                        var cancelButton = $('<i class="fa fa-times text-danger"></i>').on('click', cancelEdit);
-
-                        // Reemplazar el contenido de la celda
+                        var cancelButton = $('<i class="fa fa-times text-danger" style="margin-left:.25rem; cursor:pointer;"></i>').on('click', cancelEdit);
                         $(this).empty().append(input).append(saveButton).append(cancelButton);
-
                         input.focus();
                     }
 
-
-                    // Función para guardar los cambios
                     function saveEdit(colIndex, rowData, newText, newValue, trElement) {
-
-                        // Convertir el índice de columna (data index) al índice visible
                         var visibleIndex = gridProductos.column(colIndex).index('visible');
-
-                        // Obtener la celda visible y aplicar la clase blinking
                         var celda = $(trElement).find('td').eq(visibleIndex);
-
-                        // Obtener el valor original de la celda
                         var originalText = gridProductos.cell(trElement, celda).data();
 
-                        // Actualizar el valor de la fila según la columna editada
-                        if (colIndex === 3) {
-                            rowData.IdMarca = newValue;
-                            rowData.Marca = newText;
-                        } else if (colIndex === 4) {
-                            rowData.IdCategoria = newValue;
-                            rowData.Categoria = newText;
-                        } else if (colIndex === 5) {
-                            rowData.IdUnidadDeMedida = newValue;
-                            rowData.UnidadDeMedida = newText;
-                        } else if (colIndex === 8) {
+                        if (colIndex === 3) { rowData.IdMarca = newValue; rowData.Marca = newText; }
+                        else if (colIndex === 4) { rowData.IdCategoria = newValue; rowData.Categoria = newText; }
+                        else if (colIndex === 5) { rowData.IdUnidadDeMedida = newValue; rowData.UnidadDeMedida = newText; }
+                        else if (colIndex === 8) {
                             rowData.ProductoCantidad = newText;
-                            rowData.Total = rowData.PVenta * parseInt(newValue)
-                            var visibleIndex7 = gridProductos.column(9).index('visible');
-                            $(trElement).find('td').eq(visibleIndex7).addClass('blinking');
-                        } else if (colIndex === 6) { // PrecioCosto
-                            rowData.PCosto = parseFloat(convertirMonedaAFloat(newValue)); // Actualizar PrecioCosto
-
-                            var precioVentaCalculado = (parseFloat(rowData.PCosto) + (parseFloat(rowData.PCosto) * (rowData.PorcGanancia / 100)));
-                            precioVentaCalculado = parseFloat(precioVentaCalculado.toFixed(2));
-
-                            rowData.PVenta = precioVentaCalculado;
-
-                            // Actualizar el porcentaje de ganancia basado en el PrecioCosto
+                            rowData.Total = rowData.PVenta * parseInt(newValue);
+                            var vi7 = gridProductos.column(9).index('visible');
+                            $(trElement).find('td').eq(vi7).addClass('blinking');
+                        } else if (colIndex === 6) {
+                            rowData.PCosto = parseFloat(convertirMonedaAFloat(newValue));
+                            var pvCalc = (parseFloat(rowData.PCosto) + (parseFloat(rowData.PCosto) * (rowData.PorcGanancia / 100)));
+                            rowData.PVenta = parseFloat(pvCalc.toFixed(2));
                             rowData.PorcGanancia = parseFloat(((rowData.PVenta - rowData.PCosto) / rowData.PCosto) * 100).toFixed(2);
-
-                            // Obtener el índice visible para las columnas correspondientes
-                            var visibleIndex7 = gridProductos.column(6).index('visible');
-                            var visibleIndex9 = gridProductos.column(7).index('visible');
-
-                            // Aplicar el efecto de parpadeo a las celdas de PrecioCosto y PrecioVenta
-                            $(trElement).find('td').eq(visibleIndex7).addClass('blinking');
-                            $(trElement).find('td').eq(visibleIndex9).addClass('blinking');
-                        } else if (colIndex === 7) { // PrecioVenta
-                            rowData.PVenta = parseFloat(convertirMonedaAFloat(newValue))
+                            var vi6 = gridProductos.column(6).index('visible');
+                            var vi9 = gridProductos.column(7).index('visible');
+                            $(trElement).find('td').eq(vi6).addClass('blinking');
+                            $(trElement).find('td').eq(vi9).addClass('blinking');
+                        } else if (colIndex === 7) {
+                            rowData.PVenta = parseFloat(convertirMonedaAFloat(newValue));
                             rowData.PorcGanancia = parseFloat(((convertirMonedaAFloat(newValue) - rowData.PCosto) / rowData.PCosto) * 100).toFixed(2);
-
-                            // Obtener el índice visible para la columna 7 (PrecioCosto) o la correspondiente
-                            var visibleIndex8 = gridProductos.column(10).index('visible');
-                            $(trElement).find('td').eq(visibleIndex8).addClass('blinking');
-                        } else if (colIndex === 10) { // PorcentajeGanancia
-                            rowData.PorcGanancia = parseDecimal(newValue); // Actualizar PorcentajeGanancia
-
-                            // Calcular PrecioVenta basado en PrecioCosto y PorcentajeGanancia
+                            var vi8 = gridProductos.column(10).index('visible');
+                            $(trElement).find('td').eq(vi8).addClass('blinking');
+                        } else if (colIndex === 10) {
+                            rowData.PorcGanancia = parseDecimal(newValue);
                             rowData.PVenta = rowData.PCosto + (rowData.PCosto * (rowData.PorcGanancia / 100));
-
-                            // Obtener el índice visible para las columnas correspondientes
-                            var visibleIndex8 = gridProductos.column(10).index('visible');
-                            var visibleIndex9 = gridProductos.column(7).index('visible');
-
-                            // Aplicar el efecto de parpadeo a las celdas de PorcentajeGanancia y PrecioVenta
-                            $(trElement).find('td').eq(visibleIndex8).addClass('blinking');
-                            $(trElement).find('td').eq(visibleIndex9).addClass('blinking');
+                            var vi10 = gridProductos.column(10).index('visible');
+                            var vi7b = gridProductos.column(7).index('visible');
+                            $(trElement).find('td').eq(vi10).addClass('blinking');
+                            $(trElement).find('td').eq(vi7b).addClass('blinking');
                         } else {
-                            rowData[gridProductos.column(colIndex).header().textContent] = newText; // Usamos el nombre de la columna para guardarlo
+                            rowData[gridProductos.column(colIndex).header().textContent] = newText;
                         }
 
-                        // Actualizar la fila en la tabla con los nuevos datos
                         gridProductos.row(trElement).data(rowData).draw();
-
-                        // Aplicar el parpadeo solo si el texto cambió
-                        if (originalText !== newText) {
-                            celda.addClass('blinking'); // Aplicar la clase 'blinking' a la celda que fue editada
-                        }
-
-                        // Enviar los datos al servidor
+                        if (originalText !== newText) celda.addClass('blinking');
                         guardarCambiosFila(rowData);
-
-
-                        // Desactivar el modo de edición
                         isEditing = false;
 
-                        // Eliminar la clase 'blinking' después de 3 segundos (para hacer el efecto de parpadeo)
-                        setTimeout(function () {
-                            $(trElement).find('td').removeClass('blinking');
-                        }, 3000);
+                        setTimeout(function () { $(trElement).find('td').removeClass('blinking'); }, 3000);
                     }
 
-
-                    // Función para cancelar la edición
                     function cancelEdit() {
-                        // Restaurar el valor original
                         gridProductos.cell(cell.index()).data(originalData).draw();
                         isEditing = false;
                     }
                 });
 
-
-                // Condicional para ocultar columnas si ModoVendedor == 1
+                // 7) Modo vendedor: ocultar columnas sensibles
                 if (userSession.ModoVendedor == 1) {
-                    gridProductos.column(6).visible(false); // Ocultar la columna Precio Costo
-                    gridProductos.column(10).visible(false); // Ocultar la columna TotalGanancia
+                    gridProductos.column(6).visible(false);  // PCosto
+                    gridProductos.column(10).visible(false); // PorcGanancia
                 }
 
-                // Redibujar la tabla después de aplicar filtros y cambios de visibilidad
-                api.columns().every(function () {
-                    var column = this;
-                    var input = $('.filters th').eq(column.index()).find('input');
-                    var select = $('.filters th').eq(column.index()).find('select');
-
-                    // Aplicar los filtros de texto
-                    if (input.length > 0) {
-                        input.val('');
-                    }
-
-                    // Aplicar los filtros de selección
-                    if (select.length > 0) {
-                        select.val('');
-                    }
+                // 8) Delegaciones globales necesarias
+                $(document).off('click', '.chip-select').on('click', '.chip-select', function (e) {
+                    e.preventDefault();
+                    handleChipSelectClick(this);
                 });
-            },
+
+                $('#grd_Productos').off('click.toggleActivo').on('click.toggleActivo', '.btn-toggle-activo', function (e) {
+                    e.preventDefault(); e.stopPropagation();
+                    const id = Number($(this).data('id'));
+                    const next = Number($(this).data('next'));
+                    cambiarEstadoProducto(id, next);
+                });
+
+                $('#grd_Productos').off('draw.dt.kpi').on('draw.dt.kpi', function () {
+                    $('#kpiCantProductos').text(gridProductos.rows({ search: 'applied' }).count());
+                });
+            } // fin initComplete
+        });
+
+        // “Seleccionar todos” (chips)
+        $('#selectAllCheckbox').off('change.selAll').on('change.selAll', function () {
+            const checkAll = $(this).is(':checked');
+            selectedProductos = [];
+            $('.chip-select').each(function () {
+                const $btn = $(this);
+                const id = Number($btn.data('id')) || 0;
+                if (checkAll) {
+                    $btn.addClass('is-selected').attr('aria-pressed', true);
+                    $btn.find('.fa').removeClass('fa-square-o').addClass('fa-check-square');
+                    $btn.find('span').text('Seleccionado');
+                    if (!selectedProductos.includes(id)) selectedProductos.push(id);
+                } else {
+                    $btn.removeClass('is-selected').attr('aria-pressed', false);
+                    $btn.find('.fa').removeClass('fa-check-square').addClass('fa-square-o');
+                    $btn.find('span').text('Elegir');
+                }
+            });
+            actualizarBotonesAccion();
         });
 
     } else {
@@ -1646,36 +1566,13 @@ $('#grd_Productos').on('row-reorder', function (e, diff, edit) {
 });
 
 async function actualizarVisibilidadProveedor(visible) {
-    const columnIndex = 2; // Índice de columna Proveedor
-    const column = gridProductos.column(columnIndex);
+    const api = gridProductos;          // DataTable ya instanciado
+    const col = 2;                      // índice REAL de 'Proveedor' en tu columns:[]
+    api.column(col).visible(visible, false); // sin redraw todavía
 
-    column.visible(visible);
-    $('.filters th').eq(columnIndex).toggle(visible);
-
-    if (visible) {
-        // ⚠️ Regenerar el filtro solo si está visible
-        const cell = $('.filters th').eq(columnIndex);
-        cell.empty();
-
-        const select = $('<select><option value="">Seleccionar</option></select>')
-            .appendTo(cell)
-            .on('change', function () {
-                const val = $(this).val();
-                gridProductos.column(columnIndex)
-                    .search(val ? '^' + val + '$' : '', true, false)
-                    .draw();
-            });
-
-        const data = await listaProveedoresFilter();
-        data.forEach(item => {
-            select.append(`<option value="${item.Nombre}">${item.Nombre}</option>`);
-        });
-    }
-
-    // 👇 Esto evita el desajuste visual
-    gridProductos.columns.adjust().draw();
+    // Rehacer filtros acorde a columnas visibles y ajustar
+    await rebuildFiltersProductos(api);
 }
-
 
 async function listaProveedoresFilter() {
     const url = `/Proveedores/Lista`;
@@ -1843,9 +1740,10 @@ function generarColumnConfig() {
 
         let colName = gridProductos.column(realIndex).dataSrc();
         if (!colName) return;
-        colName = colName.toLowerCase(); // Normalizar
+        colName = colName.toLowerCase();
 
-        console.log("Columna detectada:", colName, "Index:", realIndex);
+        // 👇 Saltar Activo: lo maneja el tri-chip
+        if (colName === 'activo') return;
 
         if (colName === "descripcion") {
             config.push({ index: realIndex, filterType: 'text' });
@@ -1871,47 +1769,121 @@ function generarColumnConfig() {
 }
 
 
-function configurarOpcionesColumnas() {
-    const grid = $('#grd_Productos').DataTable();
-    const columnas = grid.settings().init().columns;
-    const container = $('#configColumnasMenu');
-    const storageKey = `Productos_Columnas`;
+// ---- MENU DE COLUMNAS con persistencia por dataSrc + rebuild de filtros ----
+function configurarOpcionesColumnas(api) {
+    const grid = api;                         // usar la api que te pasan
+    const $container = $('#configColumnasMenu');
+    const STORAGE_KEY = 'Productos_Columnas_v2'; // (nuevo key para evitar residuos viejos)
 
-    const savedConfig = JSON.parse(localStorage.getItem(storageKey)) || {};
-    container.empty();
+    // estado guardado por "nombre" de columna (dataSrc)
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
 
-    columnas.forEach((col, index) => {
-        if (!col.data) return;
+    $container.empty();
 
-        // Filtrar columnas no configurables
-        if (col.data.includes("Id")) return;
+    // construir menú leyendo el estado ACTUAL de la grilla
+    grid.columns().every(function () {
+        const i = this.index();
+        const dataSrc = this.dataSrc();              // clave estable
+        const title = $(this.header()).text().trim();
 
-        // Si el usuario es vendedor, ocultar opciones para PrecioCosto y PorcGanancia
-        if (userSession.ModoVendedor == 1 && (col.data === "PCosto" || col.data === "PorcGanancia")) return;
+        // columnas sin dataSrc o técnicas
+        if (!dataSrc) return;
+        if (/^id/i.test(dataSrc)) return;            // Id, IdMarca, etc.
+        // ocultar del menú si sos vendedor y es sensible
+        if (userSession.ModoVendedor == 1 && (dataSrc === 'PCosto' || dataSrc === 'PorcGanancia') || dataSrc === 'Proveedor') return;
 
-        const isChecked = savedConfig[`col_${index}`] !== undefined ? savedConfig[`col_${index}`] : true;
+        // estado visible: lo que está guardado, o el actual
+        const visible = (saved[dataSrc] !== undefined) ? !!saved[dataSrc] : this.visible();
 
-        grid.column(index).visible(isChecked);
+        // asegurá el estado
+        this.visible(visible, false);
 
-        container.append(`
-            <li>
-                <label class="dropdown-item">
-                    <input type="checkbox" class="toggle-column" data-column="${index}" ${isChecked ? 'checked' : ''}>
-                    ${col.data}
-                </label>
-            </li>
-        `);
+        // item del menú
+        const idChk = `colchk_${dataSrc}`;
+        $container.append(`
+      <li>
+        <label class="dropdown-item" for="${idChk}">
+          <input type="checkbox" id="${idChk}" class="toggle-column"
+                 data-dsrc="${dataSrc}" ${visible ? 'checked' : ''}>
+          ${title || dataSrc}
+        </label>
+      </li>
+    `);
     });
 
-    $('.toggle-column').on('change', function () {
-        const columnIdx = parseInt($(this).data('column'), 10);
-        const isChecked = $(this).is(':checked');
-        savedConfig[`col_${columnIdx}`] = isChecked;
-        localStorage.setItem(storageKey, JSON.stringify(savedConfig));
-        grid.column(columnIdx).visible(isChecked);
+    // aplicar y persistir cambios
+    $container.off('change.cfgCols').on('change.cfgCols', '.toggle-column', function () {
+        const dataSrc = $(this).data('dsrc');
+        const checked = $(this).is(':checked');
+
+        // 1) localizar índice ACTUAL de esa columna
+        const curIdx = findColIndexByDataSrc(grid, dataSrc);
+        if (curIdx === null) return;
+
+        // 2) mostrar/ocultar
+        grid.column(curIdx).visible(checked, false);
+
+        // 3) persistir por dataSrc
+        saved[dataSrc] = checked;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
+
+        // 4) reconstruir FILA DE FILTROS para que coincida con el thead visible
+        const $filters = ensureFiltersRow(grid);     // tu helper
+        // limpiar todas las celdas de filtro y volver a generarlas
+        $filters.find('th').each(function () { $(this).empty().show(); });
+
+        // volver a dibujar antes de reinyectar inputs/chips
+        grid.columns.adjust().draw(false);
+
+        // 5) regenerar filtros por columna (usando tu generador que respeta visibilidad)
+        const cfgs = generarColumnConfig();          // usa api internamente
+        cfgs.forEach(async (cfg) => {
+            const $cell = getFilterCell(grid, cfg.index);
+            if (!$cell.length) return;
+
+            if (grid.column(cfg.index).visible() === false) {
+                $cell.empty().hide();
+                return;
+            }
+
+            $cell.empty().show();
+
+            if (cfg.filterType === 'select') {
+                const $sel = $('<select><option value="">Seleccionar</option></select>')
+                    .appendTo($cell)
+                    .on('change', function () {
+                        const val = $(this).val();
+                        grid.column(cfg.index).search(val ? '^' + val + '$' : '', true, false).draw();
+                    });
+                const data = await cfg.fetchDataFunc();
+                data.forEach(item => $sel.append(`<option value="${item.Nombre}">${item.Nombre}</option>`));
+            } else if (cfg.filterType === 'text') {
+                $('<input type="text" placeholder="Buscar..." />')
+                    .appendTo($cell)
+                    .on('keyup change', function (e) {
+                        e.stopPropagation();
+                        const rx = this.value ? '(((' + this.value + ')))' : '';
+                        const cur = this.selectionStart || 0;
+                        grid.column(cfg.index).search(rx, !!this.value, !this.value).draw();
+                        $(this).focus()[0].setSelectionRange(cur, cur);
+                    });
+            }
+        });
+
+        // 6) sin filtro en la col de acciones (si existiera)
+        const idxAcciones = findColIndexByDataSrc(grid, 'Id'); // tu col 0 de acciones no tiene dataSrc; si querés vaciar la 0:
+        $('.filters th').eq(0).empty();
+
+        // 7) volver a poner el TRI-CHIP en "Activo" por dataSrc (no por índice viejo)
+        const idxActivo = findColIndexByDataSrc(grid, 'Activo');
+        if (idxActivo !== null) {
+            addTriChipsActivoProductos(grid, idxActivo);
+        }
     });
+
+    // ajuste final de columnas (sin redraw pesado)
+    grid.columns.adjust().draw(false);
 }
-
 
 $(document).on('click', function (e) {
     // Verificar si el clic está fuera de cualquier dropdown
@@ -2027,31 +1999,66 @@ const cambiarEstadoProducto = async (id, estado) => {
     }
 }
 
-
 $('#selectAllCheckbox').on('change', function () {
-    const checked = $(this).is(':checked');
-
-    // Limpiar selección actual
+    const checkAll = $(this).is(':checked');
     selectedProductos = [];
 
-    $('.custom-checkbox').each(function () {
-        const icon = $(this).find('.fa');
-        const id = $(this).data('id');
+    $('.chip-select').each(function () {
+        const $btn = $(this);
+        const id = Number($btn.data('id')) || 0;
 
-        if (checked) {
-            if (!icon.hasClass('checked')) {
-                icon.addClass('checked fa-check-square').removeClass('fa-square-o');
-            }
-            if (!selectedProductos.includes(id)) {
-                selectedProductos.push(id);
-            }
+        if (checkAll) {
+            $btn.addClass('is-selected').attr('aria-pressed', true);
+            $btn.find('.fa').removeClass('fa-square-o').addClass('fa-check-square');
+            $btn.find('span').text('Seleccionado');
+            if (!selectedProductos.includes(id)) selectedProductos.push(id);
         } else {
-            icon.removeClass('checked fa-check-square').addClass('fa-square-o');
+            $btn.removeClass('is-selected').attr('aria-pressed', false);
+            $btn.find('.fa').removeClass('fa-check-square').addClass('fa-square-o');
+            $btn.find('span').text('Elegir');
         }
     });
 
     actualizarBotonesAccion();
 });
+
+function handleChipSelectClick(btn) {
+    const $btn = $(btn);
+    const id = Number($btn.data('id')) || 0;
+
+    // toggle visual
+    const selected = !$btn.hasClass('is-selected');
+    $btn.toggleClass('is-selected', selected)
+        .attr('aria-pressed', selected);
+
+    // toggle icono + label
+    const $icon = $btn.find('.fa');
+    const $txt = $btn.find('span');
+    if (selected) {
+        $icon.removeClass('fa-square-o').addClass('fa-check-square');
+        $txt.text('Seleccionado');
+        if (!selectedProductos.includes(id)) selectedProductos.push(id);
+    } else {
+        $icon.removeClass('fa-check-square').addClass('fa-square-o');
+        $txt.text('Elegir');
+        const ix = selectedProductos.indexOf(id);
+        if (ix > -1) selectedProductos.splice(ix, 1);
+    }
+
+    actualizarBotonesAccion(); // la tuya
+    // console.log(selectedProductos);
+}
+
+function desmarcarChipSelects() {
+    selectedProductos = [];
+    $('.chip-select').removeClass('is-selected').attr('aria-pressed', false)
+        .each(function () {
+            $(this).find('.fa').removeClass('fa-check-square').addClass('fa-square-o');
+            $(this).find('span').text('Elegir');
+        });
+    $('#selectAllCheckbox').prop('checked', false);
+    actualizarBotonesAccion();
+}
 
 
 function actualizarBotonesAccion() {
@@ -2420,3 +2427,260 @@ document.getElementById("checkTodosClientes").addEventListener("change", functio
     const checkboxes = document.querySelectorAll("#contenedorClientes .form-check-input");
     checkboxes.forEach(cb => cb.checked = this.checked);
 });
+
+
+function initToggleFiltrosPersistenteProductos() {
+    const btn = document.getElementById('btnToggleFiltros');
+    const icon = document.getElementById('iconFiltros');
+    const panel = document.getElementById('formFiltrosProductos');
+    const STORAGE_KEY = 'Productos_FiltrosVisibles';
+
+    if (!btn || !icon || !panel) return;
+
+    // Restaurar estado
+    const saved = localStorage.getItem(STORAGE_KEY);
+    const visible = (saved === null) ? true : (saved === 'true');
+
+    panel.classList.toggle('d-none', !visible);
+    icon.classList.toggle('fa-arrow-down', !visible);
+    icon.classList.toggle('fa-arrow-up', visible);
+
+    // Toggle con persistencia
+    btn.addEventListener('click', () => {
+        const hide = panel.classList.toggle('d-none');
+        const nowVisible = !hide;
+        icon.classList.toggle('fa-arrow-down', hide);
+        icon.classList.toggle('fa-arrow-up', nowVisible);
+        localStorage.setItem(STORAGE_KEY, String(nowVisible));
+    });
+}
+
+
+function resetFiltrosProductos() {
+    // Detecta qué valor “vacío” usás en tus selects: '' o -1
+    const empty = $('#Proveedoresfiltro option[value="-1"]').length ? '-1' : '';
+
+    ['Proveedoresfiltro', 'clientesfiltro', 'Productosfiltro'].forEach(id => {
+        const $el = $('#' + id);
+        if ($el.data('select2')) {
+            $el.val(empty).trigger('change');      // ← clave para Select2
+        } else {
+            $el.val(empty);
+        }
+    });
+
+    // Si llevás estos estados en variables globales, resetealos
+    idProveedorFiltro = -1;
+    idClienteFiltro = -1;
+
+    validarProductosFiltro(); // por si habilitás/deshabilitás Producto según proveedor/cliente
+    aplicarFiltros();         // recarga la grilla con filtros limpios
+}
+
+
+// --- Filtro Activo (persistente) ---
+let filtroActivoProductos = (localStorage.getItem('Productos_FiltroActivo') ?? 'all'); // 'all' | '1' | '0'
+
+
+function getFilterCell(api, colIndex) {
+    const $container = $(api.table().container());
+    const $thead = $container.find('.dataTables_scrollHead thead').length
+        ? $container.find('.dataTables_scrollHead thead')
+        : $(api.table().header());
+
+    const $filters = $thead.find('tr.filters');
+    const visIdx = api.column(colIndex).index('visible'); // índice visible actual
+    if (visIdx === undefined || visIdx === null || visIdx < 0) return $(); // oculta
+    return $filters.find('th').eq(visIdx);
+}
+
+function ensureFiltersRow(api) {
+    const $container = $(api.table().container());
+    const $thead = $container.find('.dataTables_scrollHead thead').length
+        ? $container.find('.dataTables_scrollHead thead')
+        : $(api.table().header());
+
+    let $filters = $thead.find('tr.filters');
+    if (!$filters.length) {
+        // Usar SOLO los th visibles del header clonado
+        const visibleCount = $thead.find('tr').first().children('th:visible').length;
+        const ths = Array.from({ length: visibleCount }, () => '<th></th>').join('');
+        $filters = $(`<tr class="filters">${ths}</tr>`);
+        $thead.append($filters);
+    }
+    return $filters;
+}
+async function buildFiltersProductos(api) {
+    const $filters = ensureFiltersRow(api);
+    $filters.find('th').each(function () { $(this).empty().show(); });
+
+    // sin filtro en la columna de ACCIONES (la de tu botón/checkboxes)
+    const visIdxAcc = api.column(0).index('visible');
+    if (visIdxAcc >= 0) $filters.find('th').eq(visIdxAcc).empty();
+
+    // genera entradas según columnas visibles (tu función existente)
+    const cfgs = generarColumnConfig();
+    for (const cfg of cfgs) {
+        const $cell = getFilterCell(api, cfg.index);
+        if (!$cell.length) continue;
+
+        if (api.column(cfg.index).visible() === false) {
+            $cell.empty().hide();
+            continue;
+        }
+        $cell.empty().show();
+
+        if (cfg.filterType === 'select') {
+            const $sel = $('<select><option value="">Seleccionar</option></select>')
+                .appendTo($cell)
+                .on('change', function () {
+                    const val = $(this).val();
+                    api.column(cfg.index).search(val ? '^' + val + '$' : '', true, false).draw();
+                });
+            const data = await cfg.fetchDataFunc();
+            data.forEach(it => $sel.append(`<option value="${it.Nombre}">${it.Nombre}</option>`));
+        } else {
+            $('<input type="text" placeholder="Buscar..." />')
+                .appendTo($cell)
+                .on('keyup change', function (e) {
+                    e.stopPropagation();
+                    const rx = this.value ? '(((' + this.value + ')))' : '';
+                    const cur = this.selectionStart || 0;
+                    api.column(cfg.index).search(rx, !!this.value, !this.value).draw();
+                    $(this).focus()[0].setSelectionRange(cur, cur);
+                });
+        }
+    }
+
+    // Tri-chips para Activo (por dataSrc, no por índice “fijo”)
+    const idxActivo = api.columns().indexes().toArray()
+        .find(i => api.column(i).dataSrc() === 'Activo');
+    if (idxActivo !== undefined) addTriChipsActivoProductos(api, idxActivo);
+}
+
+// chip “Activo”
+function addTriChipsActivoProductos(api, colIndex) {
+    const $cell = getFilterCell(api, colIndex);
+    if (!$cell.length) return;
+    $cell.empty().addClass('tri-filter');
+
+    const $wrap = $(`
+    <div class="tri-chips" role="group" aria-label="Activo">
+      <button type="button" class="chip" data-val="all" title="Mostrar todos">Todos</button>
+      <button type="button" class="chip" data-val="1"   title="Solo activos">Sí</button>
+      <button type="button" class="chip" data-val="0"   title="Solo inactivos">No</button>
+    </div>`).appendTo($cell);
+
+    const KEY = 'Productos_FiltroActivo';
+    const saved = localStorage.getItem(KEY) ?? '1';
+
+    const apply = (val) => {
+        const s = String(val);
+        if (s === '1') api.column(colIndex).search('^1$', true, false).draw();
+        else if (s === '0') api.column(colIndex).search('^0$', true, false).draw();
+        else api.column(colIndex).search('', false, false).draw(); // vacío SIN regex
+
+        $wrap.find('.chip').removeClass('active');
+        $wrap.find(`.chip[data-val="${s}"]`).addClass('active');
+        localStorage.setItem(KEY, s);
+    };
+
+    $wrap.on('click', '.chip', function (e) { e.preventDefault(); e.stopPropagation(); apply($(this).data('val')); });
+    $wrap.on('keydown', '.chip', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); $(this).trigger('click'); } });
+    apply(saved);
+}
+
+// localizar índice por dataSrc, estable con colReorder
+function findColIndexByDataSrc(api, dataSrc) {
+    const idx = api.columns().indexes().toArray()
+        .find(i => api.column(i).dataSrc() === dataSrc);
+    return (idx === undefined ? null : idx);
+}
+
+
+
+
+function findColIndexByDataSrc(api, dataSrc) {
+    const idx = api.columns().indexes().toArray()
+        .find(i => api.column(i).dataSrc() === dataSrc);
+    return (idx === undefined ? null : idx);
+}
+
+$(document).off('click', '.btn-toggle-activo').on('click', '.btn-toggle-activo', function () {
+    const id = Number($(this).data('id'));
+    const next = Number($(this).data('next'));
+    cambiarEstadoProducto(id, next);
+});
+
+function debounce(fn, wait = 0) {
+    let t;
+    return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), wait); };
+}
+
+function getFilterThead(api) {
+    const $c = $(api.table().container());
+    return $c.find('.dataTables_scrollHead thead').length
+        ? $c.find('.dataTables_scrollHead thead')
+        : $(api.table().header());
+}
+
+async function rebuildFiltersProductos(api) {
+    const $thead = getFilterThead(api);
+
+    // limpiar cualquier fila de filtros previa (en scrollHead y en header normal)
+    $thead.find('tr.filters').remove();
+    $(api.table().header()).find('tr.filters').remove();
+
+    // cantidad de columnas visibles en el orden actual
+    const visIdxs = api.columns(':visible').indexes().toArray();
+    const ths = visIdxs.map(() => '<th></th>').join('');
+    const $filters = $(`<tr class="filters">${ths}</tr>`);
+
+    // insertar la fila de filtros en el thead visible
+    $thead.append($filters);
+
+    // no poner filtro en la primera columna (acciones/checkbox/drag)
+    if (visIdxs.length) $filters.find('th').eq(0).empty();
+
+    // generar inputs/selects por columna visible (usando tu generador)
+    const cfgs = generarColumnConfig();  // devuelve índices reales de la grilla
+    for (const cfg of cfgs) {
+        // si la columna no está visible, skip
+        if (api.column(cfg.index).visible() === false) continue;
+
+        // índice visible de esa columna
+        const v = api.column(cfg.index).index('visible');
+        if (v == null || v < 0) continue;
+
+        const $cell = $filters.find('th').eq(v).empty().show();
+
+        if (cfg.filterType === 'select') {
+            const $sel = $('<select><option value="">Seleccionar</option></select>')
+                .appendTo($cell)
+                .on('change', function () {
+                    const val = $(this).val();
+                    api.column(cfg.index).search(val ? '^' + val + '$' : '', true, false).draw();
+                });
+            const data = await cfg.fetchDataFunc();
+            data.forEach(it => $sel.append(`<option value="${it.Nombre}">${it.Nombre}</option>`));
+        } else {
+            $('<input type="text" placeholder="Buscar..." />')
+                .appendTo($cell)
+                .on('keyup change', function (e) {
+                    e.stopPropagation();
+                    const rx = this.value ? '(((' + this.value + ')))' : '';
+                    const cur = this.selectionStart || 0;
+                    api.column(cfg.index).search(rx, !!this.value, !this.value).draw();
+                    $(this).focus()[0].setSelectionRange(cur, cur);
+                });
+        }
+    }
+
+    // Tri-chips “Activo” por dataSrc (nunca por índice fijo)
+    const idxActivo = api.columns().indexes().toArray()
+        .find(i => api.column(i).dataSrc() === 'Activo');
+    if (idxActivo !== undefined) addTriChipsActivoProductos(api, idxActivo);
+
+    // ajustar anchos una vez armado todo
+    api.columns.adjust().draw(false);
+}

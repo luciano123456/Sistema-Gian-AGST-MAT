@@ -1,145 +1,203 @@
 ﻿@using Microsoft.Extensions.Configuration
-
 @inject IConfiguration Configuration
 
 @{
     var ambienteTest = Configuration.GetValue<int>("AmbienteTest");
-}
-
-@{
     ViewData["Title"] = "Home Page";
 }
 
+@section Estilos {
+    <!-- DataTables -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.2.2/css/buttons.dataTables.min.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/fixedheader/3.2.2/css/fixedHeader.dataTables.min.css" />
 
-@*GOOGLEAR CARD BOOTSTRAP 5*@
-@section Estilos{
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
 
-    <link href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css" rel="stylesheet" />
+    <!-- Estilos base del proyecto -->
+    @* <link rel="stylesheet" href="~/css/usuarios.css" /> *@
 
-    @*ESTILOS DE BOTONES*@
-    <link href="https://cdn.datatables.net/buttons/2.2.2/css/buttons.dataTables.min.css" rel="stylesheet" />
-
-    @*filter columns*@
-    <link href="https://cdn.datatables.net/fixedheader/3.2.2/css/fixedHeader.dataTables.min.css" rel="stylesheet" />
-
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+      <!-- Vista productos -->
     <link href="~/css/productos.css" rel="stylesheet" />
 
-    <!-- CSS para ColReorder -->
-    <link rel="stylesheet" href="https://cdn.datatables.net/colreorder/1.6.2/css/colReorder.dataTables.min.css">
+    <link rel="stylesheet" href="~/css/redisenopantallas.css" />
 
-            <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
+  
 
+    <!-- ColReorder -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/colreorder/1.6.2/css/colReorder.dataTables.min.css" />
 
+    <!-- Select2 (mantenemos tu versión) -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
 }
 
+<partial name="~/Views/Shared/Partials/BotonMenu.cshtml" />
 
-<div class="row mt-4 table-bordered table-borderless">
-
-    <div id="Filtros" class="divFiltros">
-
-        <label class="lblfiltro">Proveedor</label>
-        <select id="Proveedoresfiltro" name="select" class="input-nuevo">
-            <option value="" selected>Proveedor</option>
-        </select>
-
-        <label class="lblfiltro">Cliente</label>
-        <select id="clientesfiltro" name="select" class="input-nuevo">
-            <option value="" selected>Cliente</option>
-        </select>
-
-        <label class="lblfiltro">Producto</label>
-        <select id="Productosfiltro" name="select" class="input-nuevo">
-            <option value="" selected>Producto</option>
-        </select>
-
-       @*      <label for="txtNombreFiltro" class="lblfiltro">Producto</label>
-            <input type="text" class="input-nuevo" id="txtProductoFiltro"> *@
-
-        <div class="vw-75 d-flex float-lg-end mt-2">
-            <a class="btn btn-success" id="aplicarFiltros" onclick="aplicarFiltros()">Aplicar</a>
-        </div>
-
-    </div>
-</div>
-    
-
-<div class="container-fluid mt-5">
-    <div class="row">
-        <partial name="~/Views/Shared/Partials/BotonMenu.cshtml" />
-        <div class="col-lg-10">
-            <div class="card" style="width: 88%; position: absolute; left: 7vw; border: none;">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <span>Productos</span>
-
-                    <div class="dropdown">
-                        <button class="btn btn-secondary dropdown-toggle d-flex align-items-center" type="button" id="dropdownColumnas" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fa fa-cog me-2"></i> Config. Columnas
-                        </button>
-                        <ul class="dropdown-menu" aria-labelledby="dropdownColumnas" id="configColumnasMenu">
-                        </ul>
-                    </div>
+<div class="container page-99" style="margin-top:100px">
+    <!-- Header KPI estilo “glass” -->
+    <div class="cc-header shadow-lg rounded-4 p-4 mb-4">
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+            <div class="d-flex align-items-center gap-3">
+                <span class="cc-badge"><i class="fa fa-cubes"></i></span>
+                <div>
+                    <h2 class="m-0 fw-800">Productos</h2>
+                    <small class="text-muted-cc">Listado y acciones</small>
                 </div>
+            </div>
 
+            <div class="ms-auto d-flex gap-3 flex-wrap">
+                <!-- KPI: cantidad de productos filtrados -->
+                <div class="cc-stat">
+                    <div class="label">Productos</div>
+                    <div class="value" id="kpiCantProductos">0</div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-                <div class="card-body">
-                    <th class="text-center">
-                        <p>Seleccionar Todos <input type="checkbox" id="selectAllCheckbox"></p>
-                    </th>
-                    <table class="display nowrap" id="grd_Productos" style="width:100%">
+    <!-- Tabla + Filtros -->
+    <div class="row g-4">
+        <div class="col-12">
+            <div class="card-glass p-3">
+                <div class="tabla-wrap position-relative">
+                    <!-- Controles superiores (como Pedidos) -->
+                    <div class="tabla-controls-top d-flex gap-2 flex-wrap align-items-center mb-2">
+                        <a class="btn btn-success d-flex align-items-center px-3 py-2 btnnuevo" id="btnNuevo" onclick="nuevoProducto()">
+                            <i class="fa fa-plus-square me-2"></i> Nuevo
+                        </a>
 
+                        <button class="btn btn-outline-primary d-flex align-items-center" type="button" id="btnToggleFiltros">
+                            <i class="fa fa-arrow-up me-2" id="iconFiltros"></i> Filtros
+                        </button>
+
+                        <div class="dropdown cc-dd">
+                            <button id="dropdownColumnas"
+                                    type="button"
+                                    class="btn btn-secondary dropdown-toggle d-flex align-items-center"
+                                    data-bs-toggle="dropdown"
+                                    data-bs-display="static"
+                                    data-bs-auto-close="outside"
+                                    aria-expanded="false">
+                                <i class="fa fa-cog me-2"></i> Config. Columnas
+                            </button>
+                            <ul class="dropdown-menu cc-dropdown-menu" aria-labelledby="dropdownColumnas" id="configColumnasMenu"></ul>
+                        </div>
+                    </div>
+
+                    <!-- Barra de filtros plegable (mismos IDs que ya usás) -->
+                    <form id="formFiltrosProductos" class="filter-bar shadow-sm rounded-3 mb-3 p-3 d-none">
+                        <div class="row g-2 align-items-end">
+                            <div class="col-12 col-md-3">
+                                <label class="form-label">Proveedor</label>
+                                <select id="Proveedoresfiltro" name="select" class="form-select input-nuevo">
+                                    <option value="" selected>Proveedor</option>
+                                </select>
+                            </div>
+
+                            <div class="col-12 col-md-3">
+                                <label class="form-label">Cliente</label>
+                                <select id="clientesfiltro" name="select" class="form-select input-nuevo">
+                                    <option value="" selected>Cliente</option>
+                                </select>
+                            </div>
+
+                            <div class="col-12 col-md-3">
+                                <label class="form-label">Producto</label>
+                                <select id="Productosfiltro" name="select" class="form-select input-nuevo">
+                                    <option value="" selected>Producto</option>
+                                </select>
+                            </div>
+
+                            <div class="col-3 d-flex gap-2 mt-2">
+                                <a class="btn btn-primary flex-fill" id="aplicarFiltros" onclick="aplicarFiltros()">
+                                    <i class="fa fa-search me-1"></i> Aplicar
+                                </a>
+                                <button type="button" class="btn btn-outline-secondary" onclick="resetFiltrosProductos()">
+                                    <i class="fa fa-eraser me-1"></i> Limpiar
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <!-- Tabla -->
+                    <div class="dt-dark-wrap">
+                        <div class="selectall-bar d-flex align-items-center gap-2 mb-2">
+                            <label class="form-check-label d-flex align-items-center gap-2 m-0" for="selectAllCheckbox">
+                                <span class="sa-toggle">
+                                    <input class="form-check-input sa-input" type="checkbox" id="selectAllCheckbox" aria-label="Seleccionar todos">
+                                    <span class="sa-slider"></span>
+                                </span>
+                                <span class="sa-text">Seleccionar todos</span>
+                            </label>
+                        </div>
+                        <!-- … la tabla … -->
+                    </div>
+
+                    <table class="dt-dark display nowrap" id="grd_Productos" style="width:100%">
                         <thead>
-
                             <tr>
-                                @* <th>Imagen</th> *@
                                 <th></th>
                                 <th>Descripcion</th>
                                 <th class="th-proveedor">Proveedor</th>
                                 <th>Marca</th>
                                 <th>Categoria</th>
                                 <th>Unidad de Medida</th>
-                                
-                                @* <th>Moneda</th> *@
                                 <th>P. Costo</th>
                                 <th>P. Venta</th>
                                 <th>Cantidad</th>
                                 <th>Total</th>
                                 <th>Porc. Ganancia</th>
-                                <th hidden>IdMoneda</th>
-                                <th hidden>IdMarca</th>
-                                <th hidden>IdCategoria</th>
-                                <th hidden>IdUnidadMedida</th>
-                               
+                                <th>Activo</th>
+                                <th>IdMoneda</th>
+                                <th>IdMarca</th>
+                                <th>IdCategoria</th>
+                                <th>IdUnidadMedida</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <!-- Aquí va el contenido de tu datatable -->
-                        </tbody>
+                        <tbody></tbody>
                     </table>
+
+                    </div>
+                <!-- FAB BAR horizontal (flotante) -->
+                <div class="fab-bar">
+                    <a id="btnDuplicar" class="btn btn-fab btn-fab-danger"
+                       onclick="duplicarProductos()" hidden>
+                        <i class="fa fa-clone"></i>
+                        <span>Duplicar</span>
+                    </a>
+
+                    <a id="btnAumentarPrecios" class="btn btn-fab btn-fab-success"
+                       onclick="abrirmodalAumentarPrecios()" hidden>
+                        <i class="fa fa-arrow-up"></i>
+                        <span>Aumentar precios</span>
+                    </a>
+
+                    <a id="btnBajarPrecios" class="btn btn-fab btn-fab-gray"
+                       onclick="abrirmodalBajarPrecios()" hidden>
+                        <i class="fa fa-arrow-down"></i>
+                        <span>Bajar precios</span>
+                    </a>
+
+                    <a id="btnAsignarProveedor" class="btn btn-fab btn-fab-green"
+                       onclick="abrirmodalProveedor()" hidden>
+                        <i class="fa fa-truck"></i>
+                        <span>Asignar proveedor</span>
+                    </a>
+
+                    <a id="btnAsignarCliente" class="btn btn-fab btn-fab-green"
+                       onclick="abrirmodalCliente()" hidden>
+                        <i class="fa fa-user"></i>
+                        <span>Asignar cliente</span>
+                    </a>
                 </div>
 
-                <div class="d-flex justify-content-end mt-2 mb-4">
-                    <a id="btnDuplicar" class="btn btnnuevo me-2" style="background-color: #e51414; color: white" onclick="duplicarProductos()" hidden>
-                        <i class="fa fa-clone" style="color: white"></i> Duplicar
-                    </a>
-                    <a id="btnAumentarPrecios" class="btn btn-secondary btnnuevo me-2" onclick="abrirmodalAumentarPrecios()" hidden>
-                        <i class="fa fa-arrow-up text-success"></i> Aumentar Precios
-                    </a>
-                    <a id="btnBajarPrecios" class="btn btn-secondary btnnuevo me-2" onclick="abrirmodalBajarPrecios()" hidden>
-                        <i class="fa fa-arrow-down text-danger"></i> Bajar Precios
-                    </a>
-                   
-                    <a id="btnAsignarProveedor" class="btn btn-success btnnuevo me-2" onclick="abrirmodalProveedor()" hidden>Asignar Proveedor</a>
-                    <a id="btnAsignarCliente" class="btn btn-success btnnuevo me-2" onclick="abrirmodalCliente()" hidden>Asignar Cliente</a>
-
-                    <a class="btn btn-primary btnnuevo" id="btnNuevo" onclick="nuevoProducto()">Nuevo</a>
-                </div>
-            </div>
+            </div><!-- /card-glass -->
         </div>
     </div>
 </div>
 
-
+<!-- MODALES (sin cambios de IDs ni estructura) -->
 <div class="modal fade" id="modalProveedores" tabindex="-1" aria-labelledby="modalProveedoresLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
@@ -147,32 +205,20 @@
                 <h5 class="modal-title fw-bold" id="modalProveedoresLabel">Asignar Proveedores</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
-
             <div class="modal-body">
                 <form id="formAsignarProveedor" class="row g-3">
                     <div class="col-md-12">
                         <label class="form-label">Seleccione proveedores</label>
-
-                      
-
-                        <!-- 🔍 Buscador -->
                         <input type="text" id="buscadorProveedores" class="form-control mb-2" placeholder="Buscar proveedor...">
-
                         <div class="form-check mb-2">
                             <input class="form-check-input" type="checkbox" id="checkTodosProveedores">
                             <label class="form-check-label fw-bold" for="checkTodosProveedores">Seleccionar todos</label>
                         </div>
-
-
-                        <!-- ✅ Lista con scroll -->
-                        <div id="contenedorProveedores" class="form-check-list border rounded p-2" style="max-height: 300px; overflow-y: auto;">
-                            <!-- Aquí se insertan los checkboxes dinámicamente -->
-                        </div>
+                        <div id="contenedorProveedores" class="form-check-list border rounded p-2" style="max-height: 300px; overflow-y: auto;"></div>
                     </div>
                     <p id="datos" class="text-center text-danger datos-error d-none mb-0"></p>
                 </form>
             </div>
-
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                 <button id="btnRegistrarModificar" type="button" class="btn btn-primary" onclick="asignarProveedores()">Asignar</button>
@@ -181,8 +227,6 @@
     </div>
 </div>
 
-
-
 <div class="modal fade" id="modalClientes" tabindex="-1" role="dialog" aria-labelledby="modalClientesLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
@@ -190,34 +234,20 @@
                 <h5 class="modal-title fw-bold" id="modalClientesLabel">Asignar Clientes</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
-
             <div class="modal-body">
                 <form id="formAsignarCliente" class="row g-3">
                     <div class="col-md-12">
                         <label class="form-label">Seleccione clientes</label>
-
-                     
-
-
-                        <!-- 🔍 Buscador -->
                         <input type="text" id="buscadorClientes" class="form-control mb-2" placeholder="Buscar cliente...">
-
-                           <div class="form-check mb-2">
+                        <div class="form-check mb-2">
                             <input class="form-check-input" type="checkbox" id="checkTodosClientes">
                             <label class="form-check-label fw-bold" for="checkTodosClientes">Seleccionar todos</label>
                         </div>
-
-                        <!-- 📋 Contenedor de checkboxes -->
-                        <div id="contenedorClientes" class="form-check-list border rounded p-2"
-                             style="max-height: 300px; overflow-y: auto;">
-                            <!-- Aquí se insertan los checkboxes dinámicamente -->
-                        </div>
+                        <div id="contenedorClientes" class="form-check-list border rounded p-2" style="max-height: 300px; overflow-y: auto;"></div>
                     </div>
-
                     <p id="datosCliente" class="mb-3 text-center text-danger datos-error d-none"></p>
                 </form>
             </div>
-
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                 <button type="button" class="btn btn-primary" onclick="asignarClientes()">Asignar</button>
@@ -233,27 +263,21 @@
                 <h5 class="modal-title fw-bold" id="modalBajarLabel">Bajar Precios</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
-
             <div class="modal-body">
                 <form id="formBajar" class="row g-3">
-
                     <div class="col-md-6">
                         <label for="txtBajaPrecioCosto" class="form-label">Porc. Precio Costo (*)</label>
                         <input type="text" class="form-control" id="txtBajaPrecioCosto" required>
                     </div>
-
                     <div class="col-md-6">
                         <label for="txtBajaPrecioVenta" class="form-label">Porc. Precio Venta (*)</label>
                         <input type="text" class="form-control" id="txtBajaPrecioVenta" required>
                     </div>
-
                     <div class="col-md-12">
                         <p id="datosBajar" class="text-center text-danger datos-error d-none mb-0"></p>
                     </div>
-
                 </form>
             </div>
-
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                 <button type="button" class="btn btn-primary" onclick="bajarPrecios()">Bajar</button>
@@ -262,7 +286,6 @@
     </div>
 </div>
 
-
 <div class="modal fade" id="modalAumentar" tabindex="-1" role="dialog" aria-labelledby="modalAumentarLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
@@ -270,7 +293,6 @@
                 <h5 class="modal-title fw-bold" id="modalAumentarLabel">Aumentar Precios</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
-
             <div class="modal-body">
                 <form id="formAumentar" class="row g-3">
                     <div class="col-md-6">
@@ -284,7 +306,6 @@
                     <p id="datosAumentar" class="mb-3 text-center text-danger datos-error d-none"></p>
                 </form>
             </div>
-
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                 <button type="button" class="btn btn-primary" onclick="aumentarPrecios()">Aumentar</button>
@@ -300,10 +321,8 @@
                 <h5 class="modal-title fw-bold" id="modalEdicionLabel">Editar Producto</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
-
             <div class="modal-body">
                 <form id="formEdicionProducto" class="row g-3">
-
                     <input type="text" id="txtId" hidden readonly>
                     <input type="text" id="txtActivo" hidden readonly>
 
@@ -343,8 +362,6 @@
                         <input type="number" class="form-control" id="txtProductoCantidad" required>
                     </div>
 
-
-
                     <div class="col-md-3">
                         <label for="txtMoneda" class="form-label">Moneda (*)</label>
                         <select id="Monedas" name="select" class="form-control">
@@ -371,15 +388,6 @@
                         <label id="lblTotal" for="txtTotal" class="form-label">Total</label>
                         <input type="number" class="form-control" id="txtTotal" step="0.01" value="0" readonly>
                     </div>
-
-                    @* 
-                    <div class="form-group divImagen">
-                        <label for="txtImagen" class="form-label">Imagen</label>
-                        <img id="imgProducto" class="mb-3" style="width: 150px; height: 80px;" src="" />
-                        <p id="imgProd" class="" hidden></p>
-                    </div>
-                    <input id="Imagen" class="form-control" type="file" placeholder="Imagen" name="adjunto" accept=".pdf,.jpg,.png" />
-                    *@
                 </form>
             </div>
 
@@ -391,41 +399,31 @@
     </div>
 </div>
 
-
-
-
 <partial name="~/Views/Utils/Modals.cshtml" />
 
-@section Scripts{
+@section Scripts {
+    <!-- jQuery (por si tu layout no lo incluye) -->
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 
+    <!-- DataTables + extensiones -->
     <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
-
-    @*SCRIPTS DE BOTONES*@
-    <script src="https://cdn.datatables.net/buttons/2.2.2/js/dataTables.buttons.min.js">
-        
-    </script><script src="~/js/site.js"></script>
-
-    @*excel*@
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.2.2/js/dataTables.buttons.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.html5.min.js"></script>
-
-    @*pdf*@
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
-
-    @*imprimir*@
     <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.print.min.js"></script>
-
-    @*filter columns*@
     <script src="https://cdn.datatables.net/fixedheader/3.2.2/js/dataTables.fixedHeader.min.js"></script>
 
+    <!-- Export deps -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
 
-    <!-- JS para ColReorder -->
+    <!-- ColReorder -->
     <script src="https://cdn.datatables.net/colreorder/1.6.2/js/dataTables.colReorder.min.js"></script>
 
-
+    <!-- Select2 (mantenemos tu versión) -->
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/js/select2.min.js"></script>
 
-    <script src="~/js/Productos.js?v=1.9"></script>
-   
+    <!-- Utilidades -->
+    <script src="~/js/site.js"></script>
+
+    <!-- Lógica de la vista -->
+    <script src="~/js/Productos.js?v=2.0"></script>
 }
