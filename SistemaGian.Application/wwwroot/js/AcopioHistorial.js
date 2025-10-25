@@ -6,7 +6,7 @@ $(document).ready(() => {
     cargarStock();
 
     $("#selectProductoMovimiento, #selectProveedorMovimiento").select2({
-        dropdownParent: $("#modalMovimiento"),
+        dropdownParent: $("#modalEdicion"),
         width: "100%",
         placeholder: "Selecciona una opción",
         allowClear: false
@@ -134,6 +134,8 @@ async function configurarTablaStock(data) {
                     gridAcopio.columns.adjust();
                 }, 10);
 
+                actualizarKpis(data)
+
                 // Hover cursor
                 $('#grd_acopio tbody').on('mouseenter', 'tr', function () {
                     $(this).css('cursor', 'pointer');
@@ -142,6 +144,7 @@ async function configurarTablaStock(data) {
         });
     } else {
         gridAcopio.clear().rows.add(data).draw();
+        actualizarKpis(data)
     }
 }
 
@@ -269,7 +272,7 @@ async function nuevoMovimiento(idProducto, idProveedor) {
         await listaProveedoresEnModal();
     }
 
-    $("#modalMovimiento").modal("show");
+    $("#modalEdicion").modal("show");
 }
 
 
@@ -342,7 +345,7 @@ async function guardarMovimiento() {
         });
 
         if (response.ok) {
-            $("#modalMovimiento").modal("hide");
+            $("#modalEdicion").modal("hide");
             exitoModal("Movimiento registrado correctamente.");
             cargarStock();
         } else {
@@ -457,4 +460,10 @@ function toggleAcciones(id) {
         $('.acciones-dropdown').hide();
         $dropdown.show();
     }
+}
+
+function actualizarKpis(data) {
+    const cant = Array.isArray(data) ? data.length : 0;
+    const el = document.getElementById('kpiCantAcopio');
+    if (el) el.textContent = cant;
 }

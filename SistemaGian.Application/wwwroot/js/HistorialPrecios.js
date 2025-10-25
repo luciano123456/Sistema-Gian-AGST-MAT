@@ -24,6 +24,8 @@ $(document).ready(() => {
         document.getElementById("txtFechaHasta").value = moment().format('YYYY-MM-DD');
 
         await listaProveedoresFiltro();
+
+        initToggleFiltrosPersistente();
      
         configurarDataTable(null);
         
@@ -285,6 +287,8 @@ async function configurarDataTable(data) {
                     gridHistorial.columns.adjust();
                 }, 10);
 
+                actualizarKpis(data);
+
                 $('.filters th').eq(4).html('');
 
                 configurarOpcionesColumnas();
@@ -309,6 +313,7 @@ async function configurarDataTable(data) {
 
     } else {
         gridHistorial.clear().rows.add(data).draw();
+        actualizarKpis(data);
     }
 }
 
@@ -489,4 +494,36 @@ async function eliminarHistorial(id) {
             errorModal("Ha ocurrido un error al eliminar el registro");
         }
     }
+}
+
+// -------- Persistencia de Filtros (mostrar/ocultar) --------
+function initToggleFiltrosPersistente() {
+    const btn = document.getElementById('btnToggleFiltros');
+    const icon = document.getElementById('iconFiltros');
+    const panel = document.getElementById('formFiltrosHistorial');
+    const STORAGE_KEY = 'Historial_FiltrosVisibles';
+
+    if (!btn || !icon || !panel) return;
+
+    const saved = localStorage.getItem(STORAGE_KEY);
+    const visible = (saved === null) ? true : (saved === 'true');
+
+    panel.classList.toggle('d-none', !visible);
+    icon.classList.toggle('fa-arrow-down', !visible);
+    icon.classList.toggle('fa-arrow-up', visible);
+
+    btn.addEventListener('click', () => {
+        const hide = panel.classList.toggle('d-none');
+        const nowVisible = !hide;
+        icon.classList.toggle('fa-arrow-down', hide);
+        icon.classList.toggle('fa-arrow-up', nowVisible);
+        localStorage.setItem(STORAGE_KEY, String(nowVisible));
+    });
+}
+
+
+function actualizarKpis(data) {
+    const cant = Array.isArray(data) ? data.length : 0;
+    const el = document.getElementById('kpiCantRegistros');
+    if (el) el.textContent = cant;
 }
