@@ -1,3 +1,44 @@
+
+:root {
+    --muted: #9aa8c5;
+    --text: #e7ecff;
+    --border: rgba(255,255,255,.08);
+    /* DataTables / superficies oscuras */
+    --dt-body: #0b1320;
+    --dt-head: #1d2633;
+    --dt-head-b: #2b3647;
+    --dt-row: #0f1722;
+    --dt-row-zebra: #363659;
+    --dt-row-zebra2: #525285;
+    --dt-row-hover: #152037;
+    --dt-text: #e5e7eb;
+    --dt-input: #111827;
+    --dt-input-b: #2b3647;
+    --dt-pag-bg: #0f192b;
+    --dt-pag-active: #3d6af2;
+    --chip-in: #18c37e;
+    --chip-out: #ff7a66;
+    --chip-stock: #7cc2ff;
+    --color-general: #05225E;
+    --bg: #0a111f;
+    --panel: #141c2b;
+    --panel2: #101726;
+    --soft: rgba(255,255,255,.06);
+    --b1: rgba(255,255,255,.12);
+    --head: #1b2740;
+    --primary: #4c8dff;
+    --accent: #7b5cff;
+    --ok: #1ecf93;
+    --warn: #ffb200;
+    --danger: #ff5a6a;
+    --txt: #eaf1ff;
+    --muted: #9db1d2;
+    --dt-row-hover: #152037;
+    --dt-row-hover: rgba(17, 22, 44, .78);
+    --dt-row-zebra: rgba(24, 28, 52, .9);
+    --dt-row-zebra2: rgba(17, 22, 44, .78);
+}
+
 .menuUsuario {
     position: relative;
     left: 10px !important;
@@ -17,23 +58,165 @@
     width: auto !important;
     height: calc(1.7vh + 1.7vw);
     padding-top: 5px;
-
 }
 
     .nav-user:hover {
         opacity: 1 !important;
     }
 
+
+.btnConfiguraciones {
+    display: flex;
+    align-items: center;
+    justify-content: center; /* Centra el contenido horizontalmente */
+    font-size: 30px;
+    color: white;
+    width: 100%;
+    outline: none;
+    border: none;
+    background-color: gray;
+    border-radius: 10px;
+    padding: 10px; /* Agrega algo de padding para un mejor aspecto */
+    cursor: pointer;
+    margin-bottom: 10px; /* Espacio entre los botones */
+}
+
+.list-item {
+    color: red;
+    background-color: gray;
+    margin-bottom: 5px;
+    text-align: center;
+    width: 95%;
+    height: 30px;
+    position: relative;
+    left: 2%;
+    border-radius: 3px;
+}
+
+    .list-item:hover {
+        background-color: dimgray;
+    }
+
+.btnModificarConfiguracion {
+    border: none;
+    background-color: blue;
+    color: white;
+    width: 35%;
+    margin-left: 2px;
+    height: 50px;
+    font-size: 30px;
+    text-align: center;
+    border-radius: 12px;
+    padding: 0px 5px 5px 5px;
+}
+
+
+
+    .btnModificarConfiguracion:hover {
+        background-color: darkblue;
+    }
+
+
+.btnCancelarConfiguracion {
+    border: none;
+    background-color: brown;
+    color: white;
+    width: 35%;
+    margin-left: 2px;
+    height: 50px;
+    font-size: 30px;
+    text-align: center;
+    border-radius: 12px;
+    padding: 0px 5px 5px 5px;
+}
+
+
+    .btnCancelarConfiguracion:hover {
+        background-color: darkred;
+    }
+
+.btnModificarConfiguracion-container {
+    display: flex;
+    justify-content: center; /* Centra el botón horizontalmente */
+    align-items: center; /* Centra el botón verticalmente (si es necesario) */
+    width: 100%; /* Asegúrate de que el contenedor tome el ancho completo del modal */
+    margin-bottom: 10px;
+}
+
+.btnAgregarConfiguracion-container {
+    display: flex;
+    justify-content: right; /* Centra el botón horizontalmente */
+    align-items: center; /* Centra el botón verticalmente (si es necesario) */
+    width: 100%; /* Asegúrate de que el contenedor tome el ancho completo del modal */
+    margin-bottom: 10px;
+    margin-top: 30px;
+}
+
+.btnAgregarConfiguracion {
+    border: none;
+    background-color: green;
+    color: white;
+    width: 30%;
+    margin-left: 2px;
+    height: 50px;
+    font-size: 30px;
+    text-align: center;
+    border-radius: 12px;
+    margin-right: 30px;
+}
+
+
+.edit-icon {
+    font-size: 20px;
+    color: white;
+    position: absolute;
+    bottom: 5px;
+    left: 10px;
+    cursor: pointer;
+}
+
+
+.eliminar-icon {
+    font-size: 20px;
+    color: white;
+    position: absolute;
+    bottom: 5px;
+    right: 20px;
+    cursor: pointer;
+}
+
+
+.list-container {
+    margin-top: 10px;
+    max-height: 300px;
+    overflow-y: auto; /* Habilita el desplazamiento vertical */
+}
+
+.btnConfiguraciones:hover {
+    background-color: dimgray;
+}
+
+.btnConfiguraciones img {
+    margin-right: 10px; /* Espacio entre la imagen y el texto */
+    width: 60px;
+    height: 60px;
+}
+
+.btnConfiguraciones span {
+    flex-grow: 1; /* Permite que el texto ocupe el espacio restante */
+    text-align: center; /* Centra el texto */
+}
+
 @media (max-width: 900px) {
     .nav-user {
         font-size: 2vw !important;
     }
 }
+
 @media (max-width: 700px) {
     .nav-user {
         font-size: 3vw !important;
     }
-
 }
 
 @media (max-width: 400px) {
@@ -42,90 +225,542 @@
     }
 }
 
-/* Estilo para el texto "Modo Vendedor" */
-.nav-user .custom-label {
-    font-size: 1rem;
-    white-space: nowrap; /* Evita que el texto pase a otra línea */
-}
-
-/* Estilo del switch */
-.switch {
+#ModalEdicionConfiguraciones .modal-body {
     position: relative;
-    display: inline-block;
-    width: 50px;
-    height: 25px;
+    flex: 1 1 auto;
+    padding: 1rem;
+    max-height: 500px;
+    overflow-y: scroll;
 }
 
-    .switch input {
-        opacity: 0;
-        width: 0;
-        height: 0;
+/* ===========================
+   Modal Config Pro (Dark)
+   Paletas: theme-indigo / theme-cyan / theme-emerald
+   =========================== */
+
+/* Contenedor y header */
+.modal-config {
+    background: var(--surface);
+    color: var(--text-strong);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+    .modal-config .modal-header {
+        background: linear-gradient(135deg, var(--hdr-a), var(--hdr-b));
+        color: #fff;
+        border: 0;
     }
 
-.slider {
-    position: absolute;
+    .modal-config .modal-title {
+        font-weight: 700;
+        letter-spacing: .2px;
+    }
+
+    .modal-config .btn-close {
+        filter: invert(1) grayscale(1) brightness(200%);
+        opacity: .9;
+    }
+
+    .modal-config .modal-body {
+        background: var(--surface);
+    }
+
+#ModalEdicionConfiguraciones .modal-footer {
+    background: linear-gradient(90deg, var(--dt-row-zebra), var(--dt-row-zebra2));
+    border-top: 1px solid var(--border);
+}
+
+/* Cards */
+.config-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .45rem;
+    padding: 1rem .9rem;
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    box-shadow: 0 8px 24px var(--shadow);
+    text-align: center;
     cursor: pointer;
-    top: 0;
+    transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease, background .2s ease;
+}
+
+    .config-card:hover,
+    .config-card:focus {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 30px var(--shadow-strong);
+        border-color: var(--card-border-hover);
+    }
+
+    .config-card:active {
+        transform: translateY(0);
+    }
+
+.config-card__img {
+    width: 52px;
+    height: 52px;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 6px rgba(0,0,0,.25));
+    user-select: none;
+    pointer-events: none;
+}
+
+.config-card__title {
+    font-weight: 700;
+    font-size: .98rem;
+    line-height: 1.2;
+    color: var(--text-strong);
+}
+
+.config-card__subtitle {
+    font-size: .835rem;
+    color: var(--text-muted);
+}
+
+/* Botón Aceptar con acento del tema */
+#ModalEdicionConfiguraciones .btn-success {
+    --bs-btn-bg: var(--accent);
+    --bs-btn-border-color: var(--accent);
+    --bs-btn-hover-bg: var(--accent-600);
+    --bs-btn-hover-border-color: var(--accent-600);
+    --bs-btn-active-bg: var(--accent-700);
+    --bs-btn-active-border-color: var(--accent-700);
+}
+
+/* Focus ring accesible */
+.config-card:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    box-shadow: 0 0 0 6px color-mix(in oklab, var(--accent) 25%, transparent);
+}
+
+/* Scrollbar sutil si hay overflow */
+.modal-config .modal-body {
+    max-height: 70vh;
+    overflow: auto;
+    padding-top: .5rem;
+}
+
+    .modal-config .modal-body::-webkit-scrollbar {
+        height: 10px;
+        width: 10px;
+    }
+
+    .modal-config .modal-body::-webkit-scrollbar-thumb {
+        background: color-mix(in oklab, var(--accent) 30%, #64748b);
+        border-radius: 999px;
+    }
+
+/* ===========================
+   Tokens comunes (neutrales)
+   =========================== */
+.theme-indigo,
+.theme-cyan,
+.theme-emerald {
+    --surface: #0f172a; /* slate muy oscuro */
+    --card: rgba(17, 24, 39, 0.75); /* glass suave */
+    --card-border: rgba(148, 163, 184, .10);
+    --card-border-hover: rgba(148, 163, 184, .22);
+    --border: rgba(148, 163, 184, .12);
+    --shadow: rgba(2, 6, 23, .35);
+    --shadow-strong: rgba(2, 6, 23, .5);
+    --text-strong: #e5e7eb;
+    --text-muted: #9ca3af;
+}
+
+/* ===========================
+   Paleta 1: Indigo (Default)
+   =========================== */
+.theme-indigo {
+    --accent: #6366f1; /* indigo-500 */
+    --accent-600: #5457ee;
+    --accent-700: #4649ea;
+    --hdr-a: #4f46e5; /* indigo-600 */
+    --hdr-b: #22d3ee; /* cyan-400 para contraste */
+}
+
+/* ===========================
+   Paleta 2: Cyan (Tech)
+   =========================== */
+.theme-cyan {
+    --accent: #06b6d4; /* cyan-500 */
+    --accent-600: #0891b2;
+    --accent-700: #0e7490;
+    --hdr-a: #0891b2; /* cyan-600 */
+    --hdr-b: #a78bfa; /* violet-400 */
+}
+
+/* ===========================
+   Paleta 3: Emerald (Fintech)
+   =========================== */
+.theme-emerald {
+    --accent: #10b981; /* emerald-500 */
+    --accent-600: #059669;
+    --accent-700: #047857;
+    --hdr-a: #059669; /* emerald-600 */
+    --hdr-b: #60a5fa; /* blue-400 */
+}
+
+
+/* ========= tus estilos previos relevantes, conservados ========= */
+.menuUsuario {
+    position: relative;
+    left: 10px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.nav-user {
+    opacity: .7 !important;
+    background: #2E4053;
+    text-align: center;
+    font-weight: bold;
+    color: rgb(107,120,205,1) !important;
+    font-size: 1.7vw;
+    border-radius: 20px;
+    width: auto !important;
+    height: calc(1.7vh + 1.7vw);
+    padding-top: 5px;
+}
+
+    .nav-user:hover {
+        opacity: 1 !important;
+    }
+
+@media (max-width:900px) {
+    .nav-user {
+        font-size: 2vw !important;
+    }
+}
+
+@media (max-width:700px) {
+    .nav-user {
+        font-size: 3vw !important;
+    }
+}
+
+@media (max-width:400px) {
+    .nav-user {
+        font-size: 4vw !important;
+    }
+}
+
+#ModalEdicionConfiguraciones .modal-body {
+    position: relative;
+    flex: 1 1 auto;
+    padding: 1rem;
+    max-height: 500px;
+    overflow-y: scroll;
+}
+
+/* ========= NUEVO LOOK UNIFICADO CON EL OTRO MODAL ========= */
+
+/* Contenedor + header */
+.modal-config {
+    background: var(--surface);
+    color: var(--text-strong);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+    .modal-config .modal-header {
+        background: linear-gradient(90deg, var(--dt-row-zebra), var(--dt-row-zebra2));
+        color: #fff;
+        border: 0;
+    }
+
+    .modal-config .modal-title {
+        font-weight: 700;
+        letter-spacing: .2px;
+        color: #fff;
+    }
+
+    .modal-config .btn-close {
+        filter: invert(1) grayscale(1) brightness(200%);
+        opacity: .9;
+    }
+
+    .modal-config .modal-body,
+    #modalConfiguracion .modal-footer {
+        background: var(--surface);
+        border-top: 1px solid var(--border);
+    }
+
+/* Chips de tema */
+.btn-theme {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,.9);
+    padding: 0;
+}
+
+.theme-indigo-chip {
+    background: #6366f1;
+}
+
+.theme-cyan-chip {
+    background: #06b6d4;
+}
+
+.theme-emerald-chip {
+    background: #10b981;
+}
+
+/* Contenedor lista */
+.list-container {
+    background: var(--card);
+    border: 1px solid var(--card-border) !important;
+    box-shadow: 0 8px 24px var(--shadow);
+    max-height: 320px;
+    overflow: auto;
+    border-radius: 12px;
+}
+
+/* Lista / items — soporta .config-item y tu vieja .list-item */
+.config-list {
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+}
+
+/* Base común para ítems */
+.config-item, .list-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .75rem;
+    padding: .70rem .9rem;
+    background: linear-gradient(180deg, color-mix(in oklab, var(--surface) 86%, transparent), color-mix(in oklab, var(--surface) 80%, transparent) );
+    border: 1px solid var(--card-border);
+    border-radius: .75rem;
+    color: var(--text-strong);
+    text-align: left;
+    width: 100%;
+    height: auto;
+    position: relative;
+    left: 0; /* neutraliza tu 2% anterior */
+    transition: background .15s ease, border-color .15s ease, transform .12s ease, box-shadow .12s ease;
+}
+
+/* Quita el gris plano anterior */
+.list-item {
+    background-color: transparent;
+}
+
+/* Contenido principal (si lo usás) */
+.config-item__main {
+    display: grid;
+    gap: 2px;
+}
+
+.config-item__title {
+    font-weight: 600;
+    color: var(--text-strong);
+    letter-spacing: .2px;
+}
+
+.config-item__sub {
+    color: var(--text-muted);
+}
+
+/* Hover/active vivos con acento */
+.config-item:hover, .list-item:hover {
+    background: color-mix(in oklab, var(--accent) 10%, var(--surface));
+    border-color: color-mix(in oklab, var(--accent) 40%, var(--card-border));
+    transform: translateY(-1px);
+    box-shadow: 0 10px 26px rgba(0,0,0,.35);
+}
+
+.config-item:active, .list-item:active {
+    transform: translateY(0);
+}
+
+/* Acciones a la derecha (si las usás) */
+.config-item__actions {
+    display: flex;
+    gap: .4rem;
+}
+
+/* Botoneras con paleta */
+#modalConfiguracion .btn-primary,
+#modalConfiguracion .btn-success {
+    --bs-btn-bg: var(--accent);
+    --bs-btn-border-color: var(--accent);
+    --bs-btn-hover-bg: var(--accent-600);
+    --bs-btn-hover-border-color: var(--accent-600);
+    --bs-btn-active-bg: var(--accent-700);
+    --bs-btn-active-border-color: var(--accent-700);
+    color: #fff;
+}
+
+#modalConfiguracion .btn-outline-secondary {
+    --bs-btn-color: var(--text-strong);
+    --bs-btn-border-color: var(--card-border);
+    --bs-btn-hover-bg: color-mix(in oklab, var(--accent) 10%, transparent);
+    --bs-btn-hover-border-color: var(--accent);
+    --bs-btn-hover-color: var(--text-strong);
+}
+
+/* Inputs en dark */
+#modalConfiguracion .form-control, #modalConfiguracion .form-select {
+    background: color-mix(in oklab, var(--surface) 85%, #000);
+    color: var(--text-strong);
+    border: 1px solid var(--card-border);
+}
+
+    #modalConfiguracion .form-control:focus, #modalConfiguracion .form-select:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 .2rem color-mix(in oklab, var(--accent) 25%, transparent);
+    }
+
+/* Scrollbar sutil */
+.list-container::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+.list-container::-webkit-scrollbar-thumb {
+    background: color-mix(in oklab, var(--accent) 30%, #64748b);
+    border-radius: 999px;
+}
+
+/* ===== Modo compacto ===== */
+.list-container.compact {
+    max-height: 280px;
+}
+
+.config-item.compact, .list-item.compact {
+    padding: .45rem .7rem;
+    border-radius: .6rem;
+}
+
+/* ========= Tokens (Paletas) ========= */
+.theme-indigo, .theme-cyan, .theme-emerald {
+    --surface: #0f172a;
+    --card: rgba(17,24,39,.75);
+    --card-border: rgba(148,163,184,.10);
+    --border: rgba(148,163,184,.12);
+    --text-strong: #e5e7eb;
+    --text-muted: #9ca3af;
+    --shadow: rgba(2,6,23,.35);
+    --hdr-a: #4f46e5;
+    --hdr-b: #22d3ee; /* defaults, se sobreescriben */
+    --accent: #6366f1;
+    --accent-600: #5457ee;
+    --accent-700: #4649ea;
+}
+
+/* Indigo (default) */
+.theme-indigo {
+    --accent: #6366f1;
+    --accent-600: #5457ee;
+    --accent-700: #4649ea;
+    --hdr-a: #4f46e5;
+    --hdr-b: #22d3ee;
+}
+/* Cyan */
+.theme-cyan {
+    --accent: #06b6d4;
+    --accent-600: #0891b2;
+    --accent-700: #0e7490;
+    --hdr-a: #0891b2;
+    --hdr-b: #a78bfa;
+}
+/* Emerald */
+.theme-emerald {
+    --accent: #10b981;
+    --accent-600: #059669;
+    --accent-700: #047857;
+    --hdr-a: #059669;
+    --hdr-b: #60a5fa;
+}
+
+
+/* ===== Layout moderno para los items de la lista ===== */
+.list-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* texto a la izquierda, acciones a la derecha */
+    gap: .75rem;
+    padding: .70rem .9rem;
+    background: linear-gradient( 180deg, color-mix(in oklab, var(--surface) 86%, transparent), color-mix(in oklab, var(--surface) 80%, transparent) );
+    border: 1px solid var(--card-border);
+    border-radius: .75rem;
+    color: var(--text-strong);
+    width: 100%;
+    height: auto;
+    position: static; /* <-- importante: anulamos absolute heredado */
     left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #ccc;
-    transition: 0.4s;
-    border-radius: 25px;
+    transition: background .15s ease, border-color .15s ease, transform .12s ease, box-shadow .12s ease;
 }
 
-    .slider:before {
-        position: absolute;
-        content: "";
-        height: 19px;
-        width: 19px;
-        left: 3px;
-        bottom: 3px;
-        background-color: white;
-        transition: 0.4s;
-        border-radius: 50%;
+    .list-item:hover {
+        background: color-mix(in oklab, var(--accent) 10%, var(--surface));
+        border-color: color-mix(in oklab, var(--accent) 40%, var(--card-border));
+        transform: translateY(-1px);
+        box-shadow: 0 10px 26px rgba(0,0,0,.35);
     }
 
-input:checked + .slider {
-    background-color: #4CAF50; /* Verde al activarse */
+.list-item__text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
-    input:checked + .slider:before {
-        transform: translateX(24px);
-    }
-
-/* Responsividad */
-@media (max-width: 768px) {
-    .nav-user .custom-label {
-        font-size: 0.875rem; /* Reduce tamaño del texto en pantallas pequeñas */
-    }
-
-    .switch {
-        width: 40px; /* Reduce el tamaño del switch */
-        height: 20px;
-    }
-
-    .slider:before {
-        width: 15px; /* Reduce el tamaño del círculo del switch */
-        height: 15px;
-    }
+/* Contenedor de iconos a la derecha */
+.item-actions {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
 }
 
-
-
-.modal-edicion {
-    max-width: 60%; /* o lo que necesites */
+/* Botones de icono (sin background) */
+.icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .25rem;
+    padding: .25rem .45rem;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--text-strong);
+    border-radius: .5rem;
+    cursor: pointer;
+    transition: color .12s ease, background .12s ease, border-color .12s ease, transform .05s ease;
 }
 
-
-@media (max-width: 1300px) {
-    .modal-edicion {
-        max-width: 80%; /* o lo que necesites */
+    .icon-btn:hover {
+        background: color-mix(in oklab, var(--accent) 10%, transparent);
+        border-color: color-mix(in oklab, var(--accent) 40%, var(--card-border));
+        transform: translateY(-1px);
     }
-}
 
-@media (max-width: 900px) {
-    .modal-edicion {
-        max-width: 98%; /* o lo que necesites */
+    /* Colores específicos */
+    .icon-btn.edit:hover {
+        color: var(--accent);
     }
+
+    .icon-btn.delete {
+        color: #ef4444;
+    }
+
+        .icon-btn.delete:hover {
+            color: #f87171;
+        }
+
+/* ANULA estilos viejos que posicionaban los íconos */
+.edit-icon,
+.eliminar-icon {
+    position: static !important;
+    left: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    color: inherit !important;
+    font-size: inherit !important;
 }
