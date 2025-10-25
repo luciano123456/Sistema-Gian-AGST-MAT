@@ -1,153 +1,158 @@
 ﻿@using Microsoft.Extensions.Configuration
-
 @inject IConfiguration Configuration
 
 @{
     var ambienteTest = Configuration.GetValue<int>("AmbienteTest");
-}
-
-
-@{
     ViewData["Title"] = "Home Page";
 }
 
-
-@*GOOGLEAR CARD BOOTSTRAP 5*@
 @section Estilos {
-
-    <link href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css" rel="stylesheet" />
-
-    @*ESTILOS DE BOTONES*@
-    <link href="https://cdn.datatables.net/buttons/2.2.2/css/buttons.dataTables.min.css" rel="stylesheet" />
-
-    @*filter columns*@
-    <link href="https://cdn.datatables.net/fixedheader/3.2.2/css/fixedHeader.dataTables.min.css" rel="stylesheet" />
-
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <!-- DataTables -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.2.2/css/buttons.dataTables.min.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/fixedheader/3.2.2/css/fixedHeader.dataTables.min.css" />
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <!-- Select2 -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
-
+    <!-- Look & Feel como Productos -->
+    <link rel="stylesheet" href="~/css/redisenopantallas.css" />
+    <link rel="stylesheet" href="~/css/productos.css" />
 }
 
-<div class="container-fluid mt-5">
+<partial name="~/Views/Shared/Partials/BotonMenu.cshtml" />
 
-    <div class="container-fluid mt-5">
-
-
-        <div class="row mt-4 table-bordered table-borderless">
-
-            <div id="Filtros" class="divFiltros">
-
-                <label for="txtFechaDesde" class="lblfiltro">Fecha Desde</label>
-                <input type="date" class="input-nuevo" id="txtFechaDesde">
-
-                <label for="txtFechaHasta" class="lblfiltro">Fecha Hasta</label>
-                <input type="date" class="input-nuevo" id="txtFechaHasta">
-
-                <br />
-
-                <label class="lblfiltro">Proveedor</label>
-                <select id="Proveedoresfiltro" name="select" class="input-nuevo">
-                    <option value="" selected>Proveedor</option>
-                </select>
-
-                <label class="lblfiltro">Cliente</label>
-                <select id="clientesfiltro" name="select" class="input-nuevo">
-                    <option value="" selected>Cliente</option>
-                </select>
-
-
-
-                <div class="vw-75 d-flex float-lg-end mt-2">
-                    <a class="btn btn-success" id="aplicarFiltros" onclick="aplicarFiltros()">Aplicar</a>
+<div class="container page-99" style="margin-top:100px">
+    <!-- Header KPI estilo “glass” -->
+    <div class="cc-header shadow-lg rounded-4 p-4 mb-4">
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+            <div class="d-flex align-items-center gap-3">
+                <span class="cc-badge"><i class="fa fa-shopping-bag"></i></span>
+                <div>
+                    <h2 class="m-0 fw-800">Ventas</h2>
+                    <small class="text-muted-cc">Listado y acciones</small>
                 </div>
+            </div>
 
+            <!-- KPIs (mismos IDs que ya usás) -->
+            <div class="ms-auto d-flex gap-3 flex-wrap align-items-center" id="sumaTotales">
+                <div class="cc-stat">
+                    <div class="label">Deuda cliente</div>
+                    <div class="value"><strong id="sumaCliente">$0,00</strong></div>
+                </div>
+                <div class="cc-stat">
+                    <div class="label">Deuda proveedor</div>
+                    <div class="value"><strong id="sumaProveedor">$0,00</strong></div>
+                </div>
             </div>
         </div>
+    </div>
 
-        <div class="container-fluid mt-5">
-            <div class="row">
-                <partial name="~/Views/Shared/Partials/BotonMenu.cshtml" />
-                <div class="col-lg-10">
-                    <div class="card" style="width: 88%; position: absolute; left: 7vw; border: none;">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <span>Ventas</span>
-                            <div id="sumaTotales" class="ms-4 d-flex align-items-center gap-3">
-                                <div>Deuda cliente: <strong id="sumaCliente">$0,00</strong></div>
-                                <div>Deuda a proveedor: <strong id="sumaProveedor">$0,00</strong></div>
+    <!-- Tabla + Filtros -->
+    <div class="row g-4">
+        <div class="col-12">
+            <div class="card-glass p-3">
+                <div class="tabla-wrap position-relative">
+                    <!-- Controles superiores -->
+                    <div class="tabla-controls-top d-flex gap-2 flex-wrap align-items-center mb-2">
+
+                        <button class="btn btn-outline-primary d-flex align-items-center" type="button" id="btnToggleFiltros">
+                            <i class="fa fa-arrow-up me-2" id="iconFiltros"></i> Filtros
+                        </button>
+
+                        <div class="dropdown cc-dd">
+                            <button id="dropdownColumnas"
+                                    type="button"
+                                    class="btn btn-secondary dropdown-toggle d-flex align-items-center"
+                                    data-bs-toggle="dropdown"
+                                    data-bs-display="static"
+                                    data-bs-auto-close="outside"
+                                    aria-expanded="false">
+                                <i class="fa fa-cog me-2"></i> Config. Columnas
+                            </button>
+                            <ul class="dropdown-menu cc-dropdown-menu" aria-labelledby="dropdownColumnas" id="configColumnasMenu"></ul>
+                        </div>
+                    </div>
+
+                    <!-- Barra de filtros plegable (IDs originales conservados) -->
+                    <form id="formFiltrosVentas" class="filter-bar shadow-sm rounded-3 mb-3 p-3 d-none">
+                        <div class="row g-2 align-items-end">
+                            <div class="col-6 col-md-2">
+                                <label class="form-label">Desde</label>
+                                <input type="date" id="txtFechaDesde" class="form-control" />
                             </div>
-                            <div class="dropdown">
-                                <button class="btn btn-secondary dropdown-toggle d-flex align-items-center" type="button" id="dropdownColumnas" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="fa fa-cog me-2"></i> Config. Columnas
+                            <div class="col-6 col-md-2">
+                                <label class="form-label">Hasta</label>
+                                <input type="date" id="txtFechaHasta" class="form-control" />
+                            </div>
+                            <div class="col-12 col-md-3">
+                                <label class="form-label">Proveedor</label>
+                                <select id="Proveedoresfiltro" name="select" class="form-select input-nuevo">
+                                    <option value="" selected>Proveedor</option>
+                                </select>
+                            </div>
+                            <div class="col-12 col-md-3">
+                                <label class="form-label">Cliente</label>
+                                <select id="clientesfiltro" name="select" class="form-select input-nuevo">
+                                    <option value="" selected>Cliente</option>
+                                </select>
+                            </div>
+                            <div class="col-12 col-md-2 d-flex gap-2 mt-2">
+                                <a class="btn btn-primary flex-fill" id="aplicarFiltros" onclick="aplicarFiltros()">
+                                    <i class="fa fa-search me-1"></i> Aplicar
+                                </a>
+                                <button type="button" class="btn btn-outline-secondary" onclick="limpiarFiltrosVentas?.()">
+                                    <i class="fa fa-eraser me-1"></i> Limpiar
                                 </button>
-                                <ul class="dropdown-menu" aria-labelledby="dropdownColumnas" id="configColumnasMenu">
-                                </ul>
                             </div>
                         </div>
-                <div class="card-body">
-                    <table class="display nowrap" id="grd_ventas" style="width:100%">
-                        <thead>
-                            <tr>
-                                <th></th>
-                                <th>Fecha</th>
-                                <th>Fecha Entrega</th>
-                                <th>Cliente</th>
-                                <th>Proveedor</th>
-                                <th>Total Cliente</th>
-                                <th>Restante Cliente</th>
-                                <th>Total Proveedor</th>
-                                <th>Restante Proveedor</th>
-                                <th>Total Ganancia</th>
-                                <th>Porc. Ganancia</th>
-                                <th>Estado</th>
-                                <th>Observacion</th>
-                               
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Aquí va el contenido de tu datatable -->
-                        </tbody>
-                    </table>
+                    </form>
+
+                    <!-- Tabla -->
+                    <div class="dt-dark-wrap">
+                        <table class="dt-dark display nowrap" id="grd_ventas" style="width:100%">
+                            <thead>
+                                <tr>
+                                    <th></th>
+                                    <th>Fecha</th>
+                                    <th>Fecha Entrega</th>
+                                    <th>Cliente</th>
+                                    <th>Proveedor</th>
+                                    <th>Total Cliente</th>
+                                    <th>Restante Cliente</th>
+                                    <th>Total Proveedor</th>
+                                    <th>Restante Proveedor</th>
+                                    <th>Total Ganancia</th>
+                                    <th>Porc. Ganancia</th>
+                                    <th>Estado</th>
+                                    <th>Observacion</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+
                 </div>
-
-                @* <div class="d-flex justify-content-end mt-2 mb-4">
-                    <a class="btn btn-primary btnnuevo" onclick="nuevoPedido()">Nuevo</a>
-                </div> *@
-
-            </div>
+            </div><!-- /card-glass -->
         </div>
     </div>
 </div>
 
-
-
 <partial name="~/Views/Utils/Modals.cshtml" />
 
 @section Scripts {
-
     <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
-            <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/js/select2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/js/select2.min.js"></script>
 
-    @*SCRIPTS DE BOTONES*@
-    <script src="https://cdn.datatables.net/buttons/2.2.2/js/dataTables.buttons.min.js">
-
-    </script><script src="~/js/site.js"></script>
-
-    @*excel*@
+    <!-- Botones / export -->
+    <script src="https://cdn.datatables.net/buttons/2.2.2/js/dataTables.buttons.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.html5.min.js"></script>
-
-    @*pdf*@
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
-
-    @*imprimir*@
     <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.print.min.js"></script>
 
-    @*filter columns*@
+    <!-- FixedHeader -->
     <script src="https://cdn.datatables.net/fixedheader/3.2.2/js/dataTables.fixedHeader.min.js"></script>
 
-
     <script src="~/js/utils/moment.js"></script>
-    <script src="~/js/Ventas.js?v=1.3"></script>
-
+    <script src="~/js/Ventas.js?v=1.4"></script>
 }

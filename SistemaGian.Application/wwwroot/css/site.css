@@ -672,7 +672,7 @@ div.dt-button-collection {
 }
 
 .card {
-    background-color: #1B2631 !important;
+    background: radial-gradient(1200px 700px at -5% -10%,#1a1f42 0%,#0e1224 40%,#0e1224 100%) fixed;
     border-radius: 50px;
 }
 
