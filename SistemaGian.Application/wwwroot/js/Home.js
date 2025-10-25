@@ -700,6 +700,7 @@ function abrirConfiguraciones() {
     $("#modalEdicionLabel").text("Configuraciones");
 }
 
+
 async function listaMarcas() {
     const url = `/Productos/ListaMarcas`;
     const response = await fetch(url);
@@ -717,11 +718,13 @@ async function listaConfiguracion() {
     const response = await fetch(url);
     const data = await response.json();
 
+    if (!response.ok) throw new Error('Error al cargar configuraciones');
+
     return data.map(configuracion => ({
         Id: configuracion.Id,
-        Nombre: configuracion.Nombre
+        Nombre: configuracion.Nombre,
+        NombreCombo: configuracion.NombreCombo
     }));
-
 }
 
 $('#txtDescripcionProducto, #txtPorcentajeGananciaProducto').on('input', function () {
@@ -810,69 +813,116 @@ function validarCamposProducto() {
 }
 
 
-async function abrirConfiguracion(_nombreConfiguracion, _controllerConfiguracion) {
-    $('#ModalEdicionConfiguraciones').modal('hide');
-    $('#modalConfiguracion').modal('show');
+async function abrirConfiguracion(_nombreConfiguracion, _controllerConfiguracion, _comboNombre = null, _comboController = null, _lblComboNombre) {
 
-    cancelarModificarConfiguracion();
+    try {
 
-    $('#txtNombreConfiguracion').on('input', function () {
-        validarCamposConfiguracion()
-    });
+        nombreConfiguracion = _nombreConfiguracion;
+        controllerConfiguracion = _controllerConfiguracion,
+            comboNombre = _comboNombre,
+            comboController = _comboController,
+            lblComboNombre = _lblComboNombre;
 
-    nombreConfiguracion = _nombreConfiguracion;
-    controllerConfiguracion = _controllerConfiguracion
-    llenarConfiguraciones()
+        var result = await llenarConfiguraciones()
+
+        if (!result) {
+            await errorModal("Ha ocurrido un error al cargar la lista")
+            return;
+        }
+
+        $('#ModalEdicionConfiguraciones').modal('hide');
+        $('#modalConfiguracion').modal('show');
+
+        cancelarModificarConfiguracion();
+
+        $('#txtNombreConfiguracion').on('input', function () {
+            validarCamposConfiguracion()
+        });
 
 
-    document.getElementById("modalConfiguracionLabel").innerText = "Configuracion de " + nombreConfiguracion;
+        $('#cmbConfiguracion').on('change', function () {
+            validarCamposConfiguracion()
+        });
+
+
+        document.getElementById("modalConfiguracionLabel").innerText = "Configuracion de " + nombreConfiguracion;
+    } catch (ex) {
+        errorModal("Ha ocurrido un error al cargar la lista")
+    }
 
 }
 
 async function llenarConfiguraciones() {
-    let configuraciones = await listaConfiguracion();
+    try {
+        let configuraciones = await listaConfiguracion();
 
-    document.getElementById("lblListaVacia").innerText = "";
-    document.getElementById("lblListaVacia").setAttribute("hidden", "hidden");
+        if (comboNombre != null) {
+            llenarComboConfiguracion();
+            document.getElementById("divConfiguracionCombo").removeAttribute("hidden", "");
+        } else {
+            document.getElementById("divConfiguracionCombo").setAttribute("hidden", "hidden");
+        }
 
-    $("#configuracion-list").empty();
+        const lblVacia = document.getElementById("lblListaVacia");
+        $("#configuracion-list").empty();
+        lblVacia.innerText = "";
+        lblVacia.hidden = true;
 
-    if (configuraciones.length == 0) {
-        document.getElementById("lblListaVacia").innerText = `La lista de ${nombreConfiguracion} esta vacia.`;
-
-        document.getElementById("lblListaVacia").style.color = 'red';
-        document.getElementById("lblListaVacia").removeAttribute("hidden");
-        listaVacia = true;
-
-    } else {
+        if (!configuraciones || configuraciones.length === 0) {
+            lblVacia.innerText = `La lista de ${nombreConfiguracion} está vacía.`;
+            lblVacia.style.color = "red";
+            lblVacia.hidden = false;
+            listaVacia = true;
+            return true;
+        }
 
         listaVacia = false;
+
         configuraciones.forEach((configuracion, index) => {
-            var indexado = configuracion.Id
+            let nombreConfig = configuracion.Nombre || "";
+            if (configuracion.NombreCombo) nombreConfig += " - " + configuracion.NombreCombo;
+
+            const id = configuracion.Id;
+
             $("#configuracion-list").append(`
-                         <div class="list-item" data-id="${configuracion.Id}">
-                    <span>${configuracion.Nombre}</span>
-                    
-                    <i class="fa fa-pencil-square-o edit-icon text-white" data-index="${indexado}" onclick="editarConfiguracion(${indexado})" style="float: right;"></i>
-                    <i class="fa fa-trash eliminar-icon text-danger" data-index="${indexado}" onclick="eliminarConfiguracion(${indexado})"></i>
-                </div>
-                    `);
+        <div class="list-item" data-id="${id}" data-busqueda="${(nombreConfig || '').toLowerCase()}">
+          <span class="list-item__text">${nombreConfig}</span>
+          <div class="item-actions">
+            <button type="button" class="icon-btn edit" title="Editar" onclick="editarConfiguracion(${id})">
+              <i class="fa fa-pencil-square-o"></i>
+            </button>
+            <button type="button" class="icon-btn delete" title="Eliminar" onclick="eliminarConfiguracion(${id})">
+              <i class="fa fa-trash"></i>
+            </button>
+          </div>
+        </div>
+      `);
         });
+
+        return true;
+    } catch (ex) {
+        return false;
     }
 }
 
 
 async function eliminarConfiguracion(id) {
-    let resultado = window.confirm("¿Desea eliminar la " + nombreConfiguracion + "?");
+
+
+    let resultado = await confirmarModal("¿Desea eliminar el/la" + nombreConfiguracion + "?");
+    if (!resultado) return;
 
     if (resultado) {
         try {
             const response = await fetch(controllerConfiguracion + "/Eliminar?id=" + id, {
-                method: "DELETE"
+                method: "DELETE",
+                headers: {
+                    'Content-Type': 'application/json'
+                }
             });
 
             if (!response.ok) {
-                throw new Error("Error al eliminar la " + nombreConfiguracion);
+                throw new Error("Error al eliminar " + nombreConfiguracion);
             }
 
             const dataJson = await response.json();
@@ -889,19 +939,46 @@ async function eliminarConfiguracion(id) {
 }
 
 
-const editarConfiguracion = id => {
-    fetch(controllerConfiguracion + "/EditarInfo?id=" + id)
+async function llenarComboConfiguracion() {
+    const res = await fetch(`${comboController}/Lista`, {
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    });
+    if (!res.ok) throw new Error('Error al cargar combo');
+
+    const data = await res.json();
+    llenarSelect("cmbConfiguracion", data);
+}
+
+
+async function editarConfiguracion(id) {
+    fetch(controllerConfiguracion + "/EditarInfo?id=" + id, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+        }
+    })
         .then(response => {
             if (!response.ok) throw new Error("Ha ocurrido un error.");
             return response.json();
         })
         .then(dataJson => {
             if (dataJson !== null) {
+
                 document.getElementById("btnRegistrarModificarConfiguracion").textContent = "Modificar";
                 document.getElementById("agregarConfiguracion").setAttribute("hidden", "hidden");
                 document.getElementById("txtNombreConfiguracion").value = dataJson.Nombre;
                 document.getElementById("txtIdConfiguracion").value = dataJson.Id;
+
                 document.getElementById("contenedorNombreConfiguracion").removeAttribute("hidden");
+
+                if (comboNombre != null) {
+                    document.getElementById("lblConfiguracionCombo").innerText = lblComboNombre;
+                    document.getElementById("cmbConfiguracion").value = dataJson.IdCombo;
+                }
+
+                validarCamposConfiguracion();
             } else {
                 throw new Error("Ha ocurrido un error.");
             }
@@ -914,19 +991,32 @@ const editarConfiguracion = id => {
 
 function validarCamposConfiguracion() {
     const nombre = $("#txtNombreConfiguracion").val();
-    const camposValidos = nombre !== "";
+    const combo = $("#cmbConfiguracion").val();
 
+    const camposValidos = nombre !== "";
+    const selectValido = combo !== "";
+
+    // estilos
     $("#lblNombreConfiguracion").css("color", camposValidos ? "" : "red");
     $("#txtNombreConfiguracion").css("border-color", camposValidos ? "" : "red");
+    $("#cmbConfiguracion").css("border-color", selectValido ? "" : "red");
 
-    return camposValidos;
+    // lógica de validación
+    if (comboNombre != null) {
+        return camposValidos && selectValido;
+    } else {
+        return camposValidos;
+    }
 }
+
 
 function guardarCambiosConfiguracion() {
     if (validarCamposConfiguracion()) {
         const idConfiguracion = $("#txtIdConfiguracion").val();
+        const idCombo = $("#cmbConfiguracion").val();
         const nuevoModelo = {
             "Id": idConfiguracion !== "" ? idConfiguracion : 0,
+            "IdCombo": comboNombre !== "" ? idCombo : 0,
             "Nombre": $("#txtNombreConfiguracion").val(),
         };
 
@@ -936,7 +1026,7 @@ function guardarCambiosConfiguracion() {
         fetch(url, {
             method: method,
             headers: {
-                'Content-Type': 'application/json;charset=utf-8'
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify(nuevoModelo)
         })
@@ -945,7 +1035,7 @@ function guardarCambiosConfiguracion() {
                 return response.json();
             })
             .then(dataJson => {
-                const mensaje = idConfiguracion === "" ? nombreConfiguracion + " registrada correctamente" : nombreConfiguracion + " modificada correctamente";
+                const mensaje = idConfiguracion === "" ? nombreConfiguracion + " registrado/a correctamente" : nombreConfiguracion + " modificado/a correctamente";
                 llenarConfiguraciones()
                 cancelarModificarConfiguracion();
                 exitoModal(mensaje)
@@ -972,6 +1062,7 @@ function cancelarModificarConfiguracion() {
     }
 }
 
+
 function agregarConfiguracion() {
     document.getElementById("txtNombreConfiguracion").value = "";
     document.getElementById("txtIdConfiguracion").value = "";
@@ -983,7 +1074,33 @@ function agregarConfiguracion() {
 
     $('#lblNombreConfiguracion').css('color', 'red');
     $('#txtNombreConfiguracion').css('border-color', 'red');
-} 
+
+    if (comboNombre != null) {
+        document.getElementById("lblConfiguracionCombo").innerText = lblComboNombre;
+        document.getElementById("cmbConfiguracion").value = "";
+        $('#cmbConfiguracion').css('border-color', 'red');
+    }
+
+}
+
+
+function filtrarConfiguracionesLocal(texto) {
+    const q = (texto || '').toString().trim().toLowerCase();
+    const list = document.getElementById('configuracion-list');
+    const vacio = document.getElementById('lblListaVacia');
+    if (!list) return;
+
+    let visibles = 0;
+    const items = list.querySelectorAll('.config-item, .list-item');
+    items.forEach(it => {
+        const txt = it.textContent ? it.textContent.toLowerCase() : '';
+        const match = !q || txt.includes(q);
+        it.style.display = match ? '' : 'none';
+        if (match) visibles++;
+    });
+
+    if (vacio) vacio.hidden = visibles !== 0;
+}
 
 
 precioZonaInput.addEventListener('blur', function () {
