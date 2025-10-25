@@ -2,77 +2,92 @@
     ViewData["Title"] = "Home Page";
 }
 
-
-@*GOOGLEAR CARD BOOTSTRAP 5*@
 @section Estilos {
-
+    <!-- DataTables -->
     <link href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css" rel="stylesheet" />
-
-@*ESTILOS DE BOTONES*@
     <link href="https://cdn.datatables.net/buttons/2.2.2/css/buttons.dataTables.min.css" rel="stylesheet" />
-
-@*filter columns*@
     <link href="https://cdn.datatables.net/fixedheader/3.2.2/css/fixedHeader.dataTables.min.css" rel="stylesheet" />
 
+    <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
+    <!-- Estilos base -->
     <link href="~/css/usuarios.css" rel="stylesheet" />
-
+    <link href="~/css/redisenopantallas.css" rel="stylesheet" />
 }
 
 <div class="container-fluid mt-5">
     <partial name="~/Views/Shared/Partials/BotonMenu.cshtml" />
-    <div class="row">
-        <div class="col-lg-10">
-            <div class="card" style="width: 88%; position: absolute; left: 7vw; border: none;">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <span>Usuarios</span>
 
-                    <div class="dropdown">
-                        <button class="btn btn-secondary dropdown-toggle d-flex align-items-center" type="button" id="dropdownColumnas" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fa fa-cog me-2"></i> Config. Columnas
-                        </button>
-                        <ul class="dropdown-menu" aria-labelledby="dropdownColumnas" id="configColumnasMenu">
-                        </ul>
+    <!-- Header KPI estilo “glass” -->
+    <div class="container page-99" style="margin-top:40px">
+        <div class="cc-header shadow-lg rounded-4 p-4 mb-4">
+            <div class="d-flex align-items-center gap-3 flex-wrap">
+                <div class="d-flex align-items-center gap-3">
+                    <span class="cc-badge"><i class="fa fa-user-circle"></i></span>
+                    <div>
+                        <h2 class="m-0 fw-800">Usuarios</h2>
+                        <small class="text-muted-cc">Gestión y listado de usuarios</small>
                     </div>
                 </div>
-                <div class="card-body">
-                    <table class="display nowrap" id="grd_Usuarios" style="width:100%">
-                        <thead>
-                            <tr>
-                                <th></th>
-                                <th>Usuario</th>
-                                <th>Nombre</th>
-                                <th>Apellido</th>
-                                <th>Dni</th>
-                                <th>Telefono</th>
-                                <th>Direccion</th>
-                                <th>Rol</th>
-                                <th>Estado</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Aquí va el contenido de tu datatable -->
-                        </tbody>
-                    </table>
-                </div>
 
-                <div class="d-flex justify-content-end mt-2 mb-4">
-                    <a class="btn btn-primary btnnuevo" onclick="nuevoUsuario()">Nuevo</a>
-                </div>
+                <div class="ms-auto d-flex gap-4 flex-wrap align-items-center">
+                    <!-- KPI Cantidad (filtrados) -->
+                    <div class="cc-stat">
+                        <div class="label">Usuarios</div>
+                        <div class="value"><strong id="kpiCantUsuarios">0</strong></div>
+                    </div>
 
+                    <div class="dropdown cc-dd">
+                        <button class="btn btn-secondary dropdown-toggle d-flex align-items-center" type="button" id="dropdownColumnas" data-bs-toggle="dropdown" aria-expanded="false" data-bs-display="static" data-bs-auto-close="outside">
+                            <i class="fa fa-cog me-2"></i> Config. Columnas
+                        </button>
+                        <ul class="dropdown-menu cc-dropdown-menu" aria-labelledby="dropdownColumnas" id="configColumnasMenu"></ul>
+                    </div>
+
+                    <a class="btn btn-success d-flex align-items-center px-3 py-2 btnnuevo" onclick="nuevoUsuario()">
+                        <i class="fa fa-plus-square me-2"></i> Nuevo
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tarjeta / Tabla estilo “glass” -->
+        <div class="row g-4">
+            <div class="col-12">
+                <div class="card-glass p-3">
+                    <div class="tabla-wrap position-relative">
+                        <div class="dt-dark-wrap">
+                            <table class="dt-dark display nowrap compact" id="grd_Usuarios" style="width:100%">
+                                <thead>
+                                    <tr>
+                                        <th></th>
+                                        <th>Usuario</th>
+                                        <th>Nombre</th>
+                                        <th>Apellido</th>
+                                        <th>Dni</th>
+                                        <th>Telefono</th>
+                                        <th>Direccion</th>
+                                        <th>Rol</th>
+                                        <th>Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Aquí va el contenido de tu datatable -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div><!-- /tabla-wrap -->
+                </div><!-- /card-glass -->
             </div>
         </div>
     </div>
 </div>
 
-
-
-
+<!-- MODAL (lo dejo igual que lo tenías para no romper nada) -->
 <div class="modal fade" id="modalEdicion" tabindex="-1" role="dialog" aria-labelledby="modalEdicionLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-edicion" role="document">
         <div class="modal-content">
-
             <div class="modal-header colorEncabezado">
                 <h5 class="modal-title fw-bold" id="modalEdicionLabel">Nuevo Proveedor</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
@@ -80,10 +95,8 @@
 
             <div class="modal-body">
                 <form id="formProveedor" class="row g-3">
-
                     <input type="text" class="input-nuevomodif" id="txtId" readonly hidden>
 
-                    <!-- Fila 1 -->
                     <div class="col-md-4">
                         <label id="lblUsuario" for="txtUsuario" class="form-label">Usuario</label>
                         <input type="text" class="form-control" id="txtUsuario" required>
@@ -103,19 +116,17 @@
 
                     <div class="col-md-4">
                         <label id="lblDni" for="txtDni" class="form-label">DNI</label>
-                        <input type="text" class="form-control" id="txtDni" >
+                        <input type="text" class="form-control" id="txtDni">
                     </div>
-
 
                     <div class="col-md-4">
                         <label id="lblDescripcion" for="txtTelefono" class="form-label">Telefono</label>
-                        <input type="text" class="form-control" id="txtTelefono" >
+                        <input type="text" class="form-control" id="txtTelefono">
                     </div>
-
 
                     <div class="col-md-4">
                         <label id="lblDireccion" for="txtDireccion" class="form-label">Direcion</label>
-                        <input type="text" class="form-control" id="txtDireccion" >
+                        <input type="text" class="form-control" id="txtDireccion">
                     </div>
 
                     <div class="col-md-4">
@@ -143,7 +154,6 @@
                         <input type="text" class="form-control" id="txtContrasenaNueva">
                     </div>
 
-                    <!-- Validación -->
                     <div id="errorCampos" class="alert alert-danger d-none">
                         Debes completar los campos obligatorios.
                     </div>
@@ -158,7 +168,6 @@
                     <i class="fa fa-check"></i> Registrar
                 </button>
             </div>
-
         </div>
     </div>
 </div>
@@ -166,29 +175,28 @@
 <partial name="~/Views/Utils/Modals.cshtml" />
 
 @section Scripts {
-
     <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
 
-@*SCRIPTS DE BOTONES*@
-    <script src="https://cdn.datatables.net/buttons/2.2.2/js/dataTables.buttons.min.js">
+    <!-- SCRIPTS DE BOTONES -->
+    <script src="https://cdn.datatables.net/buttons/2.2.2/js/dataTables.buttons.min.js"></script>
+    <script src="~/js/site.js"></script>
 
-    </script><script src="~/js/site.js"></script>
-
-@*excel*@
+    <!-- excel -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.html5.min.js"></script>
 
-@*pdf*@
+    <!-- pdf -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
 
-@*imprimir*@
+    <!-- imprimir -->
     <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.print.min.js"></script>
 
-@*filter columns*@
+    <!-- filter columns -->
     <script src="https://cdn.datatables.net/fixedheader/3.2.2/js/dataTables.fixedHeader.min.js"></script>
 
+    <!-- Tu JS de la pantalla -->
+    <script src="~/js/Usuarios.js?v=1.3"></script>
 
-    <script src="~/js/Usuarios.js?v=1.2"></script>
-
+  
 }

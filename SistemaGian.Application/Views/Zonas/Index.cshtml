@@ -1,111 +1,156 @@
 ﻿@using Microsoft.Extensions.Configuration
-
 @inject IConfiguration Configuration
 
 @{
     var ambienteTest = Configuration.GetValue<int>("AmbienteTest");
-}
-
-
-@{
     ViewData["Title"] = "Home Page";
 }
 
+@section Estilos {
+    <!-- DataTables -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.2.2/css/buttons.dataTables.min.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/fixedheader/3.2.2/css/fixedHeader.dataTables.min.css" />
 
-@*GOOGLEAR CARD BOOTSTRAP 5*@
-@section Estilos{
-
-    <link href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css" rel="stylesheet" />
-
-    @*ESTILOS DE BOTONES*@
-    <link href="https://cdn.datatables.net/buttons/2.2.2/css/buttons.dataTables.min.css" rel="stylesheet" />
-
-    @*filter columns*@
-    <link href="https://cdn.datatables.net/fixedheader/3.2.2/css/fixedHeader.dataTables.min.css" rel="stylesheet" />
-
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <!-- Icons + Select2 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
 
+    <!-- Tus estilos -->
     <link href="~/css/site.css" rel="stylesheet" />
     <link href="~/css/Zonas.css" rel="stylesheet" />
+    <link href="~/css/productos.css" rel="stylesheet" />
+    <!-- Si tenés el mismo CSS de rediseño que usás en Productos, incluilo también -->
+    <link rel="stylesheet" href="~/css/redisenopantallas.css" />
 }
 
-<div class="row mt-4 table-bordered table-borderless">
+<partial name="~/Views/Shared/Partials/BotonMenu.cshtml" />
 
-    <div id="Filtros" class="divFiltros">
+<div class="container page-99" style="margin-top:100px">
+    <!-- Header KPI estilo “glass” (idéntico patrón a Productos) -->
+    <div class="cc-header shadow-lg rounded-4 p-4 mb-4">
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+            <div class="d-flex align-items-center gap-3">
+                <span class="cc-badge"><i class="fa fa-map-o"></i></span>
+                <div>
+                    <h2 class="m-0 fw-800">Zonas</h2>
+                    <small class="text-muted-cc">Listado y acciones</small>
+                </div>
+            </div>
 
-
-        <label class="lblfiltro">Cliente</label>
-        <select id="clientesfiltro" name="select" class="input-nuevo">
-            <option value="" selected>-</option>
-        </select>
-
-        <label class="lblfiltro">Zona</label>
-        <select id="zonasfiltro" name="select" class="input-nuevo">
-            <option value="" selected>-</option>
-        </select>
-
-        <div class="vw-75 d-flex float-lg-end mt-2">
-            <a class="btn btn-success" id="aplicarFiltros" onclick="aplicarFiltros()">Aplicar</a>
-        </div>
-
-    </div>
-</div>
-
-<div class="container-fluid mt-5">
-    <div class="row">
-        <partial name="~/Views/Shared/Partials/BotonMenu.cshtml" />
-        <div class="col-lg-10">
-            <div class="card" style="width: 88%; position: absolute; left: 7vw; border: none;">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <span>Zonas</span>
-
-                    <div class="dropdown">
-                        <button class="btn btn-secondary dropdown-toggle d-flex align-items-center" type="button" id="dropdownColumnas" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fa fa-cog me-2"></i> Config. Columnas
-                        </button>
-                        <ul class="dropdown-menu" aria-labelledby="dropdownColumnas" id="configColumnasMenu">
-                           
-                        </ul>
-                    </div>
+            <div class="ms-auto d-flex gap-3 flex-wrap align-items-center">
+                <!-- KPI: cantidad de zonas filtradas -->
+                <div class="cc-stat">
+                    <div class="label">Zonas</div>
+                    <div class="value" id="kpiCantZonas">0</div>
                 </div>
 
-                <div class="card-body">
-                    <th class="text-center">
-                        <p>Seleccionar Todos <input type="checkbox" id="selectAllCheckbox"></p>
-                    </th>
-                    <table class="display nowrap" id="grd_Zonas" style="width:100%">
-                        <thead>
-                            <tr>
-                                <th></th>
-                                <th>Nombre</th>
-                                <th>Cliente</th>
-                                <th>Precio</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Aquí va el contenido de tu datatable -->
-                        </tbody>
-                    </table>
+                <!-- Toggle filtros (persistente) -->
+                <button class="btn btn-outline-primary d-flex align-items-center" type="button" id="btnToggleFiltros">
+                    <i class="fa fa-arrow-up me-2" id="iconFiltros"></i> Filtros
+                </button>
+
+                <!-- Config Columnas -->
+                <div class="dropdown cc-dd">
+                    <button class="btn btn-secondary dropdown-toggle d-flex align-items-center"
+                            type="button" id="dropdownColumnas" data-bs-toggle="dropdown"
+                            data-bs-display="static" data-bs-auto-close="outside" aria-expanded="false">
+                        <i class="fa fa-cog me-2"></i> Config. Columnas
+                    </button>
+                    <ul class="dropdown-menu cc-dropdown-menu" aria-labelledby="dropdownColumnas" id="configColumnasMenu"></ul>
                 </div>
 
-                <div class="d-flex justify-content-end mt-2 mb-4">
-                    <a id="btnAumentarPrecios" class="btn btn-secondary btnnuevo me-2" onclick="abrirmodalAumentarPrecios()" hidden>
-                        <i class="fa fa-arrow-up text-success"></i> Aumentar Precios
-                    </a>
-                    <a id="btnBajarPrecios" class="btn btn-secondary btnnuevo me-2" onclick="abrirmodalBajarPrecios()" hidden>
-                        <i class="fa fa-arrow-down text-danger"></i> Bajar Precios
-                    </a>
-                    <a id="btnAsignarCliente" class="btn btn-success btnnuevo me-2" onclick="abrirmodalClientes()" hidden>Asignar Cliente</a>
-                    <a class="btn btn-primary btnnuevo" onclick="nuevaZona()">Nuevo</a>
-                </div>
+                <!-- Nuevo -->
+                <a class="btn btn-success d-flex align-items-center px-3 py-2 btnnuevo" onclick="nuevaZona()">
+                    <i class="fa fa-plus-square me-2"></i> Nuevo
+                </a>
             </div>
         </div>
     </div>
+
+    <!-- Contenido principal -->
+    <div class="row g-4">
+        <div class="col-12">
+            <div class="card-glass p-3">
+                <div class="tabla-wrap position-relative">
+
+                    <!-- Barra de filtros plegable (mismos IDs que ya usás) -->
+                    <form id="formFiltrosZonas" class="filter-bar shadow-sm rounded-3 mb-3 p-3 d-none">
+                        <div class="row g-2 align-items-end">
+                            <div class="col-12 col-md-3">
+                                <label class="form-label">Cliente</label>
+                                <select id="clientesfiltro" name="select" class="form-select input-nuevo">
+                                    <option value="" selected>-</option>
+                                </select>
+                            </div>
+
+                            <div class="col-12 col-md-3">
+                                <label class="form-label">Zona</label>
+                                <select id="zonasfiltro" name="select" class="form-select input-nuevo">
+                                    <option value="" selected>-</option>
+                                </select>
+                            </div>
+
+                            <div class="col-12 col-md-3 d-flex gap-2 mt-2">
+                                <a class="btn btn-primary flex-fill" id="aplicarFiltros" onclick="aplicarFiltros()">
+                                    <i class="fa fa-search me-1"></i> Aplicar
+                                </a>
+                                <button type="button" class="btn btn-outline-secondary" onclick="resetFiltrosZonas()">
+                                    <i class="fa fa-eraser me-1"></i> Limpiar
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <!-- Select all -->
+                    <div class="dt-dark-wrap">
+                        <div class="selectall-bar d-flex align-items-center gap-2 mb-2">
+                            <label class="form-check-label d-flex align-items-center gap-2 m-0" for="selectAllCheckbox">
+                                <span class="sa-toggle">
+                                    <input class="form-check-input sa-input" type="checkbox" id="selectAllCheckbox" aria-label="Seleccionar todos">
+                                    <span class="sa-slider"></span>
+                                </span>
+                                <span class="sa-text">Seleccionar todos</span>
+                            </label>
+                        </div>
+
+                        <!-- Tabla -->
+                        <table class="dt-dark display nowrap" id="grd_Zonas" style="width:100%">
+                            <thead>
+                                <tr>
+                                    <th></th>
+                                    <th>Nombre</th>
+                                    <th>Cliente</th>
+                                    <th>Precio</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+
+                    <!-- FAB BAR horizontal (como productos: acciones masivas) -->
+                    <div class="fab-bar">
+                        <a id="btnAumentarPrecios" class="btn btn-fab btn-fab-success" onclick="abrirmodalAumentarPrecios()" hidden>
+                            <i class="fa fa-arrow-up"></i>
+                            <span>Aumentar precios</span>
+                        </a>
+                        <a id="btnBajarPrecios" class="btn btn-fab btn-fab-gray" onclick="abrirmodalBajarPrecios()" hidden>
+                            <i class="fa fa-arrow-down"></i>
+                            <span>Bajar precios</span>
+                        </a>
+                        <a id="btnAsignarCliente" class="btn btn-fab btn-fab-green" onclick="abrirmodalClientes()" hidden>
+                            <i class="fa fa-user"></i>
+                            <span>Asignar cliente</span>
+                        </a>
+                    </div>
+
+                </div><!-- /tabla-wrap -->
+            </div><!-- /card-glass -->
+        </div>
+    </div>
 </div>
 
-
-
+<!-- ====== MODALES (sin tocar IDs/estructura) ====== -->
 <div class="modal fade" id="modalEdicion" tabindex="-1" role="dialog" aria-labelledby="modalEdicionLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-edicion" role="document">
         <div class="modal-content">
@@ -113,25 +158,19 @@
                 <h5 class="modal-title fw-bold" id="modalEdicionLabel">Editar Zona</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
-
             <div class="modal-body">
                 <form id="formEditarZona" class="row g-3">
-
                     <input type="text" id="txtId" hidden readonly>
-
                     <div class="col-md-6">
-                        <label for="txtNombre" class="form-label">Nombre (*)</label>
+                        <label id="lblNombre" for="txtNombre" class="form-label">Nombre (*)</label>
                         <input type="text" class="form-control" id="txtNombre" required>
                     </div>
-
                     <div class="col-md-6">
-                        <label for="txtPrecio" class="form-label">Precio</label>
+                        <label id="lblPrecio" for="txtPrecio" class="form-label">Precio</label>
                         <input type="text" class="form-control" id="txtPrecio">
                     </div>
-
                 </form>
             </div>
-
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                 <button type="button" id="btnGuardar" class="btn btn-primary" onclick="guardarCambios()">Registrar</button>
@@ -140,8 +179,7 @@
     </div>
 </div>
 
-
-<!-- Modal -->
+<!-- Modal gestión de precios -->
 <div class="modal fade" id="modalPrecios" tabindex="-1" aria-labelledby="modalPreciosLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -169,6 +207,7 @@
     </div>
 </div>
 
+<!-- Asignar cliente -->
 <div class="modal fade" id="modalClientes" tabindex="-1" aria-labelledby="modalClientesLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-edicion" role="document">
         <div class="modal-content">
@@ -176,7 +215,6 @@
                 <h5 class="modal-title fw-bold" id="modalClientesLabel">Asignar Cliente</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
-
             <div class="modal-body">
                 <form id="formAsignarCliente" class="row g-3">
                     <div class="col-md-12">
@@ -184,15 +222,12 @@
                         <select id="Clientes" name="select" class="form-control" required>
                             <option value="" selected>Seleccione Cliente</option>
                         </select>
-
                     </div>
-
                     <div class="col-md-12">
                         <p id="datos" class="text-center text-danger datos-error d-none mb-0"></p>
                     </div>
                 </form>
             </div>
-
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                 <button id="btnRegistrarModificar" type="button" class="btn btn-primary" onclick="asignarCliente()">Asignar</button>
@@ -201,7 +236,7 @@
     </div>
 </div>
 
-<!-- MODAL AUMENTAR -->
+<!-- Aumentar -->
 <div class="modal fade" id="modalAumentar" tabindex="-1" role="dialog" aria-labelledby="modalAumentarLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
@@ -209,18 +244,16 @@
                 <h5 class="modal-title fw-bold" id="modalAumentarLabel">Aumentar Precios</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
-
             <div class="modal-body">
                 <form id="formAumentar" class="row g-3">
                     <div class="col-md-12">
-                        <label for="txtAumentoPrecio" class="form-label">Porc. Precio</label>
+                        <label id="lblAumentoPrecio" for="txtAumentoPrecio" class="form-label">Porc. Precio</label>
                         <input type="text" class="form-control" id="txtAumentoPrecio" value="0" required>
                         <div class="invalid-feedback">Campo obligatorio</div>
                     </div>
                     <p id="datosAumento" class="mb-3 text-center text-danger datos-error d-none"></p>
                 </form>
             </div>
-
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                     <i class="fa fa-arrow-left"></i> Cerrar
@@ -233,8 +266,7 @@
     </div>
 </div>
 
-
-<!-- MODAL BAJAR -->
+<!-- Bajar -->
 <div class="modal fade" id="modalBajar" tabindex="-1" role="dialog" aria-labelledby="modalBajarLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content ">
@@ -242,11 +274,10 @@
                 <h5 class="modal-title fw-bold" id="modalBajarLabel">Bajar Precios</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
-
             <div class="modal-body ">
                 <form id="formBajar" class="row g-3">
                     <div class="col-md-12">
-                        <label for="txtBajaPrecio" class="form-label">Porc. Precio</label>
+                        <label id="lblBajaPrecio" for="txtBajaPrecio" class="form-label">Porc. Precio</label>
                         <input type="text" class="form-control" id="txtBajaPrecio" value="0" required>
                         <div class="invalid-feedback">Campo obligatorio</div>
                     </div>
@@ -266,35 +297,30 @@
     </div>
 </div>
 
-
 <partial name="~/Views/Utils/Modals.cshtml" />
 
-@section Scripts{
+@section Scripts {
+    <!-- jQuery si tu layout no lo incluye -->
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 
+    <!-- Select2 -->
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/js/select2.min.js"></script>
 
+    <!-- DataTables + extensiones -->
     <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
-
-    @*SCRIPTS DE BOTONES*@
-    <script src="https://cdn.datatables.net/buttons/2.2.2/js/dataTables.buttons.min.js">
-        
-    </script><script src="~/js/site.js"></script>
-
-    @*excel*@
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.2.2/js/dataTables.buttons.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.print.min.js"></script>
+    <script src="https://cdn.datatables.net/fixedheader/3.2.2/js/dataTables.fixedHeader.min.js"></script>
 
-    @*pdf*@
+    <!-- Export deps -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
 
-    @*imprimir*@
-    <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.print.min.js"></script>
+    <!-- Utilidades -->
+    <script src="~/js/site.js"></script>
 
-    @*filter columns*@
-    <script src="https://cdn.datatables.net/fixedheader/3.2.2/js/dataTables.fixedHeader.min.js"></script>
-
-
-    <script src="~/js/Zonas.js?v=1.7"></script>
-   
+    <!-- Lógica Zonas -->
+    <script src="~/js/Zonas.js?v=2.0"></script>
 }

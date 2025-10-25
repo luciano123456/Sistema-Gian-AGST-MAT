@@ -298,6 +298,8 @@ async function configurarDataTable(data) {
 
                 configurarOpcionesColumnas()
 
+                actualizarKpis(data);
+
                 setTimeout(function () {
                     gridChoferes.columns.adjust();
                 }, 10);
@@ -309,7 +311,7 @@ async function configurarDataTable(data) {
                 });
 
 
-
+              
                 $('body').on('click', '#grd_Choferes .fa-map-marker', function () {
                     var locationText = $(this).parent().text().trim().replace(' ', ' '); // Obtener el texto visible
                     var url = 'https://www.google.com/maps?q=' + encodeURIComponent(locationText);
@@ -437,7 +439,10 @@ async function configurarDataTable(data) {
             },
 });
     } else {
-    gridChoferes.clear().rows.add(data).draw();
+        gridChoferes.clear().rows.add(data).draw();
+
+        actualizarKpis(data);
+
 }
 }
 
@@ -597,3 +602,10 @@ connection.start()
     .then(() => console.log("✅ SignalR conectado"))
     .catch(err => console.error(err.toString()));
 
+
+
+function actualizarKpis(data) {
+    const cant = Array.isArray(data) ? data.length : 0;
+    const el = document.getElementById('kpiChoferes');
+    if (el) el.textContent = cant;
+}
