@@ -33,7 +33,7 @@ $(document).ready(() => {
     document.addEventListener("click", desbloquearAudio, { once: true });
 
 
-  
+    initToggleFiltrosPersistentePedidos();
 
 
     localStorage.removeItem('EditandoPedidoDesdeVenta'); //POR SI LAS DUDAS
@@ -560,3 +560,71 @@ function marcarFilaCambio(idPedido) {
     });
 }
 
+
+function initToggleFiltrosPersistentePedidos() {
+    const btn = document.getElementById('btnToggleFiltros');
+    const icon = document.getElementById('iconFiltros');
+    // Prioriza el nuevo form; si no existe, usa el legacy #Filtros
+    const panel = document.getElementById('formFiltrosPedidos') || document.getElementById('Filtros');
+    const STORAGE_KEY = 'Pedidos_FiltrosVisibles';
+
+    if (!btn || !icon || !panel) return;
+
+    // Evita múltiples binds si re-llaman init
+    if (btn.dataset.boundToggle === 'true') return;
+
+    const saved = localStorage.getItem(STORAGE_KEY);
+    const visible = (saved === null) ? true : (saved === 'true');
+
+    panel.classList.toggle('d-none', !visible);
+    icon.classList.toggle('fa-arrow-down', !visible);
+    icon.classList.toggle('fa-arrow-up', visible);
+    btn.setAttribute('aria-expanded', String(visible));
+
+    btn.addEventListener('click', () => {
+        const hide = panel.classList.toggle('d-none');
+        const nowVisible = !hide;
+
+        icon.classList.toggle('fa-arrow-down', hide);
+        icon.classList.toggle('fa-arrow-up', nowVisible);
+        btn.setAttribute('aria-expanded', String(nowVisible));
+
+        localStorage.setItem(STORAGE_KEY, String(nowVisible));
+    });
+
+    btn.dataset.boundToggle = 'true';
+}
+
+function limpiarFiltrosPedidos () {
+    // Obtener la fecha de 4 días atrás
+    const fechaDesde = moment().add(-4, 'days').format('YYYY-MM-DD');
+
+    // Establecer las fechas en los campos correspondientes
+    document.getElementById("txtFechaDesde").value = fechaDesde; // Fecha 4 días atrás
+
+    document.getElementById("txtFechaHasta").value = moment().format('YYYY-MM-DD');
+    // Selects (con soporte Select2 si está aplicado)
+    const selects = ['Proveedoresfiltro', 'clientesfiltro', 'Productosfiltro'];
+    selects.forEach(id => {
+        const $el = $('#' + id);
+        if (!$el.length) return;
+
+        // Preferí -1 si existe esa opción; si no, dejá vacío
+        const hasMinusOne = $el.find('option[value="-1"]').length > 0;
+        const resetVal = hasMinusOne ? '-1' : '';
+
+        if ($el.data('select2')) {
+            $el.val(resetVal).trigger('change.select2');
+        } else {
+            $el.val(resetVal).trigger('change');
+        }
+    });
+
+    // Si tenés otros inputs de texto en la barra de filtros, limpiarlos aquí
+    // $('#OtroInput').val('');
+
+    // Volver a cargar con filtros limpios
+    if (typeof aplicarFiltros === 'function') {
+        aplicarFiltros();
+    }
+}

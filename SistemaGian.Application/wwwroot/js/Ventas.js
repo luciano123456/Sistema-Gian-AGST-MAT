@@ -23,6 +23,8 @@ $(document).ready(() => {
     // Usando Moment.js para obtener la fecha actual
     const hoy = moment();
 
+    initToggleFiltrosPersistenteVentas()
+
     // Obtener la fecha de 4 días atrás
     const fechaDesde = moment().add(-15, 'days').format('YYYY-MM-DD');
 
@@ -493,3 +495,47 @@ connection.start()
     .then(() => console.log("✅ SignalR conectado"))
     .catch(err => console.error(err.toString()));
 
+
+
+function initToggleFiltrosPersistenteVentas() {
+    const btn = document.getElementById('btnToggleFiltros');
+    const icon = document.getElementById('iconFiltros');
+    const panel = document.getElementById('formFiltrosVentas');
+    const STORAGE_KEY = 'Ventas_FiltrosVisibles';
+    if (!btn || !icon || !panel) return;
+
+    const saved = localStorage.getItem(STORAGE_KEY);
+    const visible = (saved === null) ? true : (saved === 'true');
+
+    panel.classList.toggle('d-none', !visible);
+    icon.classList.toggle('fa-arrow-down', !visible);
+    icon.classList.toggle('fa-arrow-up', visible);
+
+    btn.addEventListener('click', () => {
+        const hide = panel.classList.toggle('d-none');
+        const nowVisible = !hide;
+        icon.classList.toggle('fa-arrow-down', hide);
+        icon.classList.toggle('fa-arrow-up', nowVisible);
+        localStorage.setItem(STORAGE_KEY, String(nowVisible));
+    });
+}
+
+function limpiarFiltrosVentas() {
+    // Rango por defecto
+    const desde = document.getElementById('txtFechaDesde');
+    const hasta = document.getElementById('txtFechaHasta');
+    if (desde) desde.value = moment().add(-30, 'days').format('YYYY-MM-DD');
+    if (hasta) hasta.value = moment().format('YYYY-MM-DD');
+
+    // Selects
+    ['Proveedoresfiltro', 'clientesfiltro'].forEach(id => {
+        const $el = $('#' + id);
+        if (!$el.length) return;
+        const hasMinusOne = $el.find('option[value="-1"]').length > 0;
+        const resetVal = hasMinusOne ? '-1' : '';
+        if ($el.data('select2')) $el.val(resetVal).trigger('change.select2');
+        else $el.val(resetVal).trigger('change');
+    });
+
+    if (typeof aplicarFiltros === 'function') aplicarFiltros();
+}
