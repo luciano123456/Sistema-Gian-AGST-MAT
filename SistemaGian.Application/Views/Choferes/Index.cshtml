@@ -1,32 +1,28 @@
 ﻿@using Microsoft.Extensions.Configuration
-
 @inject IConfiguration Configuration
 
 @{
     var ambienteTest = Configuration.GetValue<int>("AmbienteTest");
-}
-
-
-
-@{
     ViewData["Title"] = "Home Page";
 }
 
-
-@*GOOGLEAR CARD BOOTSTRAP 5*@
-@section Estilos{
-
+@section Estilos {
+    <!-- DataTables base -->
     <link href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css" rel="stylesheet" />
-
-    @*ESTILOS DE BOTONES*@
     <link href="https://cdn.datatables.net/buttons/2.2.2/css/buttons.dataTables.min.css" rel="stylesheet" />
-
-    @*filter columns*@
     <link href="https://cdn.datatables.net/fixedheader/3.2.2/css/fixedHeader.dataTables.min.css" rel="stylesheet" />
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
 
+    <!-- Estilos base proyecto (alineados con Clientes) -->
+    <link rel="stylesheet" href="~/css/usuarios.css" />
+    <link rel="stylesheet" href="~/css/redisenopantallas.css" />
+    <link rel="stylesheet" href="~/css/Choferes.css?v=1.0" />
 
+    <!-- (Compatibilidad) -->
+    <link href="~/css/clientes.css" rel="stylesheet" />
+    <link href="~/css/RedisenoPantallas.css" rel="stylesheet" />
 }
 
 @if (TempData["ErrorMessage"] != null)
@@ -36,144 +32,166 @@
     </div>
 }
 
-<div class="container-fluid mt-5">
-    <div class="row">
-        <partial name="~/Views/Shared/Partials/BotonMenu.cshtml" />
-        <div class="col-lg-10">
-            <div class="card" style="width: 88%; position: absolute; left: 7vw; border: none;">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <span>Choferes</span>
+<partial name="~/Views/Shared/Partials/BotonMenu.cshtml" />
 
-                    <div class="dropdown">
-                        <button class="btn btn-secondary dropdown-toggle d-flex align-items-center" type="button" id="dropdownColumnas" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fa fa-cog me-2"></i> Config. Columnas
-                        </button>
-                        <ul class="dropdown-menu" aria-labelledby="dropdownColumnas" id="configColumnasMenu">
-                        </ul>
-                    </div>
-                </div>
+<div class="container page-99" style="margin-top:100px">
 
-                <div class="card-body">
-                    <table class="display nowrap" id="grd_Choferes" style="width:100%">
-                        <thead>
-                            <tr>
-                                <th></th>
-                                <th>Nombre</th>
-                                <th>Telefono</th>
-                                <th>Direccion</th>
-                               
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Aquí va el contenido de tu datatable -->
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="d-flex justify-content-end mt-2 mb-4">
-                    <a class="btn btn-primary btnnuevo" onclick="nuevoChofer()">Nuevo</a>
+    <!-- Header KPI estilo “glass” -->
+    <div class="cc-header shadow-lg rounded-4 p-4 mb-4">
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+            <div class="d-flex align-items-center gap-3">
+                <span class="cc-badge"><i class="fa fa-truck"></i></span>
+                <div>
+                    <h2 class="m-0 fw-800">Choferes</h2>
+                    <small class="text-muted-cc">Gestión y listado de choferes</small>
                 </div>
             </div>
+
+            <div class="ms-auto d-flex gap-4 flex-wrap align-items-center" id="wrapKpisChoferes">
+                <!-- Único KPI: Zonas -->
+                <div class="cc-stat">
+                    <div class="label">Choferes</div>
+                    <div class="value"><strong id="kpiChoferes">0</strong></div>
+                </div>
+
+                <div class="dropdown cc-dd">
+                    <button id="dropdownColumnas"
+                            type="button"
+                            class="btn btn-secondary dropdown-toggle d-flex align-items-center"
+                            data-bs-toggle="dropdown"
+                            data-bs-display="static"
+                            data-bs-auto-close="outside"
+                            aria-expanded="false">
+                        <i class="fa fa-cog me-2"></i>
+                        Config. Columnas
+                    </button>
+                    <ul class="dropdown-menu cc-dropdown-menu" aria-labelledby="dropdownColumnas" id="configColumnasMenu"></ul>
+                </div>
+
+                <a class="btn btn-success d-flex align-items-center px-3 py-2 btnnuevo" onclick="nuevoChofer()">
+                    <i class="fa fa-plus-square me-2"></i> Nuevo
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tarjeta / Tabla -->
+    <div class="row g-4">
+        <div class="col-12">
+            <div class="card-glass p-3">
+                <div class="tabla-wrap position-relative">
+                    <div class="dt-dark-wrap">
+                        <table class="dt-dark display nowrap compact" id="grd_Choferes" style="width:100%">
+                            <thead>
+                                <tr>
+                                    <th></th>
+                                    <th>Nombre</th>
+                                    <th>Telefono</th>
+                                    <th>Direccion</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- contenido DataTable -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div><!-- /tabla-wrap -->
+            </div><!-- /card-glass -->
         </div>
     </div>
 </div>
 
-
-
+<!-- MODALES -->
 <div class="modal fade" id="modalEdicion" tabindex="-1" role="dialog" aria-labelledby="modalEdicionLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-edicion" role="document">
-        <div class="modal-content">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-edicion" role="document">
+        <div class="modal-content cc-modal">
             <div class="modal-header colorEncabezado">
                 <h5 class="modal-title fw-bold" id="modalEdicionLabel">Editar Chofer</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                <button type="button" class="btn-close custom-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
 
             <div class="modal-body">
                 <form id="formEditarChofer" class="row g-3">
-                    <input type="text" id="txtId" hidden readonly>
+                    <input type="text" id="txtId" hidden readonly />
 
                     <div class="col-md-6">
                         <label for="txtNombre" class="form-label">Nombre (*)</label>
-                        <input type="text" class="form-control" id="txtNombre" required>
+                        <input type="text" class="form-control" id="txtNombre" required />
                     </div>
 
                     <div class="col-md-6">
                         <label for="txtTelefono" class="form-label">Teléfono</label>
-                        <input type="text" class="form-control" id="txtTelefono">
+                        <input type="text" class="form-control" id="txtTelefono" />
                     </div>
 
                     <div class="col-md-12">
                         <label for="txtDireccion" class="form-label">Dirección</label>
-                        <input type="text" class="form-control" id="txtDireccion">
+                        <input type="text" class="form-control" id="txtDireccion" />
                     </div>
                 </form>
             </div>
 
-            <div class="modal-footer">
+            <div class="modal-footer modal-footer-cc">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                <button type="button" id="btnGuardar" class="btn btn-primary" onclick="guardarCambios()">Registrar</button>
+                <button type="button" id="btnGuardar" class="btn btn-success" onclick="guardarCambios()">Registrar</button>
             </div>
         </div>
     </div>
 </div>
 
-
-<!-- Modal -->
+<!-- Modal Precios (Zonas x Chofer) -->
 <div class="modal fade" id="modalPrecios" tabindex="-1" aria-labelledby="modalPreciosLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content cc-modal">
+            <div class="modal-header colorEncabezado">
                 <h5 class="modal-title" id="modalPreciosLabel">Gestión de Precios</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close custom-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <table id="tablaPrecios" class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>Chofer</th>
-                            <th>Zona</th>
-                            <th>Precio</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
+                <div class="table-responsive">
+                    <table id="tablaPrecios" class="table table-striped table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Chofer</th>
+                                <th>Zona</th>
+                                <th>Precio</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
             </div>
-            <div class="modal-footer">
+            <div class="modal-footer modal-footer-cc">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                <button type="button" class="btn btn-primary" onclick="guardarPrecio()">Guardar Cambios</button>
+                <button type="button" class="btn btn-success" onclick="guardarPrecio()">Guardar Cambios</button>
             </div>
         </div>
     </div>
 </div>
-
 
 <partial name="~/Views/Utils/Modals.cshtml" />
 
-@section Scripts{
-
+@section Scripts {
     <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
 
-    @*SCRIPTS DE BOTONES*@
-    <script src="https://cdn.datatables.net/buttons/2.2.2/js/dataTables.buttons.min.js">
-        
-    </script><script src="~/js/site.js"></script>
+    <!-- Botones DT -->
+    <script src="https://cdn.datatables.net/buttons/2.2.2/js/dataTables.buttons.min.js"></script>
+    <script src="~/js/site.js"></script>
 
-    @*excel*@
+    <!-- Export -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.html5.min.js"></script>
-
-    @*pdf*@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
-
-    @*imprimir*@
     <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.print.min.js"></script>
 
-    @*filter columns*@
+    <!-- FixedHeader -->
     <script src="https://cdn.datatables.net/fixedheader/3.2.2/js/dataTables.fixedHeader.min.js"></script>
 
+    <!-- Utilidades/negocio -->
+    <script src="~/js/utils/moment.js"></script>
+    <script src="~/js/Choferes.js?v=1.4"></script>
 
-    <script src="~/js/Choferes.js?v=1.3"></script>
-   
+
 }
