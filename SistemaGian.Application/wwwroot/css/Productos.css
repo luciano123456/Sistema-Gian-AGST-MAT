@@ -1,156 +1,405 @@
-.custom-modal-width {
-    min-width:40%; /* Ajusta el porcentaje según sea necesario */
+/* Chip de selección (checkbox lindo) */
+.chip-select {
+    --chip-fg: #9aa1a7;
+    --chip-bg: rgba(255,255,255,.06);
+    --chip-bd: rgba(255,255,255,.2);
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    padding: .25rem .6rem;
+    border-radius: 999px;
+    background: var(--chip-bg);
+    color: var(--chip-fg);
+    border: 1px solid var(--chip-bd);
+    font-size: .85rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: .18s ease-in-out;
+    user-select: none;
 }
 
-.input-nuevomodif {
-    display: flex;
-    border: none;
-    border-bottom: 10px;
-    border-bottom: solid blue;
-    width: 100% !important;
-    display: block;
+    .chip-select:hover {
+        filter: brightness(1.08);
+        transform: translateY(-1px);
+    }
+
+    .chip-select:active {
+        transform: translateY(0);
+    }
+
+    .chip-select .fa {
+        font-size: .95rem;
+    }
+
+    /* Estado seleccionado = verde copado */
+    .chip-select.is-selected {
+        --chip-fg: #198754;
+        --chip-bg: rgba(25,135,84,.12);
+        --chip-bd: #19875455;
+        color: var(--chip-fg);
+        background: var(--chip-bg);
+        border-color: var(--chip-bd);
+        box-shadow: 0 0 0 2px rgba(25,135,84,.12) inset;
+    }
+
+    /* Estado deseleccionado más “alerta” (opcional, rojo suave) */
+    .chip-select.is-dim {
+        --chip-fg: #dc3545;
+        --chip-bg: rgba(220,53,69,.10);
+        --chip-bd: #dc354555;
+        color: var(--chip-fg);
+        background: var(--chip-bg);
+        border-color: var(--chip-bd);
+    }
+
+
+/* barra de select-all alineada a la izquierda */
+.selectall-bar {
+    justify-content: flex-start;
+    padding: .35rem .75rem;
+    border-radius: 12px;
+    backdrop-filter: blur(6px);
+    background: rgba(255,255,255,.04);
+    border: 1px solid rgba(255,255,255,.08);
+}
+
+/* Toggle estilo switch (conserva #selectAllCheckbox para tu JS) */
+.sa-toggle {
     position: relative;
-    left: 0%;
-    font-size: 30px;
-    margin-bottom: 10px;
-    color: black;
-    text-align: center;
-    font-size: 1.5vw;
-    max-width: 500px !important;
-    color: black !important;
+    width: 46px;
+    height: 26px;
+    display: inline-block;
 }
 
-.input-nuevomodifporc {
+.sa-input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    position: absolute;
+}
+
+.sa-slider {
+    position: absolute;
+    inset: 0;
+    border-radius: 9999px;
+    background: rgba(255,255,255,.18);
+    border: 1px solid rgba(255,255,255,.15);
+    transition: all .25s ease;
+    box-shadow: inset 0 0 0 2px rgba(0,0,0,.15);
+}
+
+    .sa-slider:before {
+        content: "";
+        position: absolute;
+        height: 20px;
+        width: 20px;
+        left: 3px;
+        top: 50%;
+        transform: translateY(-50%);
+        border-radius: 50%;
+        background: #b94d4d; /* rojo cuando está off */
+        transition: all .25s ease;
+        box-shadow: 0 2px 6px rgba(0,0,0,.35);
+    }
+
+/* checked -> verde */
+.sa-input:checked + .sa-slider {
+    background: rgba(25,135,84,.18);
+    border-color: rgba(25,135,84,.35);
+    box-shadow: inset 0 0 0 2px rgba(25,135,84,.15);
+}
+
+    .sa-input:checked + .sa-slider:before {
+        transform: translate(20px,-50%);
+        background: #198754; /* Bootstrap success */
+    }
+
+/* accesibilidad focus */
+.sa-input:focus + .sa-slider {
+    outline: 2px solid rgba(13,110,253,.35);
+    outline-offset: 2px;
+}
+
+/* texto */
+.sa-text {
+    font-weight: 600;
+    letter-spacing: .2px;
+    opacity: .9;
+}
+
+
+/* ===== Botones flotantes de acciones ===== */
+.floating-actions{
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: .6rem;
+  z-index: 1065;           /* por encima de DataTables/Dropdowns */
+}
+
+.fab-action{
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .55rem .9rem;
+  border-radius: 999px;
+  color: #fff;
+  text-decoration: none;
+  background: #6c757d;     /* fallback */
+  box-shadow: 0 10px 20px rgba(0,0,0,.35);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255,255,255,.08);
+  transition: transform .15s ease, filter .15s ease, box-shadow .15s ease;
+  will-change: transform, filter;
+}
+.fab-action i{ font-size: 1rem; }
+.fab-action:hover{
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px rgba(0,0,0,.42);
+}
+.fab-action:active{ transform: translateY(0); }
+
+.fab-red   { background: #e51414; }
+.fab-green { background: #198754; }
+.fab-gray  { background: #6c757d; }
+
+/* Compacto en móvil */
+@media (max-width: 576px){
+  .floating-actions{
+    right: 12px;
+    bottom: 12px;
+    gap: .5rem;
+  }
+  .fab-action span{ display:none; }   /* sólo icono en pantallas chicas */
+  .fab-action{ padding: .6rem; border-radius: 14px; }
+}
+
+
+/* ==== Dock flotante de acciones (FAB stack) ==== */
+.fab-stack {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
     display: flex;
-    border: none;
-    border-bottom: 10px;
-    border-bottom: solid blue;
-    width: 65%;
-    display: block;
-    position: relative;
-    left: 17%;
-    font-size: 30px;
-    margin-bottom: 10px;
-    color: black;
-    text-align: center;
-    font-size: 1.5vw;
-    max-width: 500px !important;
-    color: black !important;
+    flex-direction: column;
+    gap: .6rem;
+    z-index: 1065; /* por encima de dropdowns/DataTables */
 }
 
-/* Estilo para la fila con "copia" en la descripción */
-table.dataTable.display tbody tr.productocopia,
-table.dataTable.display tbody tr.productocopia td {
-    background-color: #ff8c13 !important; /* Naranja */
-    color: white !important;
-    font-weight: bold !important; /* Texto en negrita */
+.fab-item {
+    display: inline-flex;
+    align-items: center;
+    gap: .55rem;
+    padding: .6rem .85rem;
+    border-radius: 999px;
+    color: #fff;
+    text-decoration: none;
+    font-weight: 600;
+    letter-spacing: .2px;
+    box-shadow: 0 10px 24px rgba(0,0,0,.35);
+    backdrop-filter: blur(2px);
+    transition: transform .15s ease, filter .15s ease, box-shadow .15s ease;
 }
 
-
-/* 1. Mostrar cursor "move" al pasar sobre el encabezado */
-table.dataTable th {
-    cursor: move !important;
-}
-
-/* 2. Opcional: darle feedback visual a la columna arrastrada */
-div.DTCR_clonedTable {
-    background-color: rgba(255, 255, 255, 0.9);
-    box-shadow: 0px 0px 15px rgba(0,0,0,0.2);
-    border-radius: 5px;
-    overflow: hidden;
-}
-
-/* 3. Suavizar el movimiento */
-div.DTCR_pointer {
-    transition: all 0.2s ease;
-}
-
-table.dataTable thead th {
-    cursor: grab !important;
-}
-
-    table.dataTable thead th:active {
-        cursor: grabbing !important;
+    .fab-item i {
+        font-size: 1rem;
     }
 
-.draggable-icon {
-    margin-left: 8px;
-    cursor: move;
-    color: white;
-    transition: transform 0.2s ease;
-}
-
-    .draggable-icon:hover {
-        transform: scale(1.2);
-        color: #00d1b2;
+    .fab-item:hover {
+        filter: brightness(1.08);
+        transform: translateY(-1px);
     }
 
-#grd_Productos tbody tr.draggable-row {
-    cursor: move !important;
-    background-color: #f0f0f0;
-}
-
-
-.fila-caida {
-    animation: caidaConRebote 0.5s ease-out;
-}
-
-@keyframes caidaConRebote {
-    0% {
-        transform: translateY(-20px);
-        opacity: 0.5;
+    .fab-item:active {
+        transform: translateY(0);
     }
 
-    50% {
-        transform: translateY(5px);
-        opacity: 1;
+    .fab-item[hidden] {
+        display: none !important;
     }
 
-    100% {
-        transform: translateY(0px);
+.fab-danger {
+    background: #e51414;
+}
+
+.fab-success {
+    background: #198754;
+}
+
+.fab-secondary {
+    background: #6c757d;
+}
+
+/* Responsive: en móvil se vuelve barra inferior */
+@media (max-width: 576px) {
+    .fab-stack {
+        left: 12px;
+        right: 12px;
+        bottom: 12px;
+        flex-direction: row;
+        justify-content: space-between;
+    }
+
+    .fab-item {
+        flex: 1 1 auto;
+        justify-content: center;
     }
 }
 
 
-
-@keyframes filaResaltadaShadow {
-    0% {
-        box-shadow: inset 0 0 10px #f77522;
-        color: #b94d08;
-        transform: scale(1);
-    }
-
-    50% {
-        box-shadow: inset 0 0 10px #ee6a15;
-        color: #b94d08;
-        transform: scale(1.1);
-    }
-
-    100% {
-        box-shadow: inset 0 0 10px #b94d08;
-        color: #b94d08;
-        transform: scale(1);
-    }
+/* =========================
+   FAB BAR — barra flotante
+   ========================= */
+.fab-bar {
+    position: fixed;
+    bottom: 16px;
+    left: 16px;
+    right: 16px; /* ancho fluido, permite scroll horizontal si hace falta */
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end; /* alineada a la derecha (cambiá a center si preferís) */
+    align-items: center;
+    z-index: 1060; /* por encima de paginación/modales ligeros */
+    pointer-events: none; /* solo los botones reciben click */
+    overflow-x: auto; /* mantiene una sola fila en pantallas chicas */
+    padding-bottom: env(safe-area-inset-bottom, 0);
 }
 
-.fila-resaltada {
-    animation: filaResaltadaShadow 3s ease-out; /* Duración de 3 segundos, se repite infinitamente */
-}
-
-
-.modal-edicion {
-    max-width: 60%; /* o lo que necesites */
-}
-
-
-@media (max-width: 1300px) {
-    .modal-edicion {
-        max-width: 80%; /* o lo que necesites */
+    .fab-bar::-webkit-scrollbar {
+        height: 6px;
     }
+
+    .fab-bar::-webkit-scrollbar-thumb {
+        background: #2b3b56;
+        border-radius: 10px;
+    }
+
+/* =========================
+   Botón FAB tipo “chip”
+   ========================= */
+.btn-fab {
+    pointer-events: auto; /* habilita click */
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-radius: 999px;
+    border: none !important;
+    color: #fff !important;
+    white-space: nowrap;
+    font-weight: 600;
+    box-shadow: 0 8px 24px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.06);
+    backdrop-filter: blur(6px);
+    transition: transform .08s ease, box-shadow .2s ease, filter .2s ease;
 }
 
-@media (max-width: 900px) {
-    .modal-edicion {
-        max-width: 98%; /* o lo que necesites */
+    .btn-fab i {
+        font-size: 16px;
+        line-height: 1;
     }
+
+    .btn-fab:active {
+        transform: translateY(1px);
+    }
+
+    .btn-fab:hover {
+        filter: brightness(1.05);
+        box-shadow: 0 10px 28px rgba(0,0,0,.45);
+    }
+
+    .btn-fab:focus {
+        outline: 2px solid rgba(255,255,255,.25);
+        outline-offset: 2px;
+    }
+
+    .btn-fab[hidden] {
+        display: none !important;
+    }
+/* respeta la lógica JS */
+
+/* Paletas (match UI oscura) */
+.btn-fab-danger {
+    background: #e51414;
 }
+/* Duplicar */
+.btn-fab-success {
+    background: #15803d;
+}
+/* Aumentar */
+.btn-fab-gray {
+    background: #6b7280;
+}
+/* Bajar */
+.btn-fab-green {
+    background: #16a34a;
+}
+/* Asignar proveedor/cliente */
+
+/* =========================
+   Versión “solo icono” en teléfono
+   — siempre en fila, sin texto
+   ========================= */
+@media (max-width: 768px) {
+    .fab-bar {
+        justify-content: center; /* centrada en mobile; cambiá a flex-end si preferís */
+        gap: 10px;
+    }
+
+    .btn-fab {
+        width: 48px;
+        height: 48px;
+        padding: 0;
+        border-radius: 999px;
+        justify-content: center;
+    }
+
+        .btn-fab span {
+            display: none;
+        }
+        /* oculta el texto */
+        .btn-fab i {
+            font-size: 18px;
+        }
+}
+
+/* (Opcional) Si la barra llega a tapar la paginación en listas muy largas,
+   podés agregar esta clase a un contenedor principal para dejar espacio: */
+.with-fab-padding {
+    padding-bottom: 84px;
+}
+
+
+.tri-filter {
+    min-width: 140px;
+}
+
+.tri-chips {
+    display: inline-flex;
+    gap: .25rem;
+    background: rgba(255,255,255,.06);
+    padding: .25rem;
+    border-radius: 999px;
+}
+
+    .tri-chips .chip {
+        border: 0;
+        border-radius: 999px;
+        padding: .35rem .65rem;
+        font-size: .8rem;
+        color: #cfe7ff;
+        background: transparent;
+    }
+
+        .tri-chips .chip.active {
+            background: #0d6efd1a;
+            color: #66b3ff;
+            outline: 1px solid #0d6efd55;
+        }
+
+        .tri-chips .chip:hover {
+            background: #ffffff14;
+            color: #fff;
+        }
