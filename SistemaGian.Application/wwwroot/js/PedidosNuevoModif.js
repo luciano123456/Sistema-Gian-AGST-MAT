@@ -1070,14 +1070,14 @@ async function calcularDatosPedido() {
     if (restanteproveedor < 0) {
         inputRestanteProveedor.style.setProperty("color", "red", "important");
     } else {
-        inputRestanteProveedor.style.setProperty("color", "black", "important");
+        inputRestanteProveedor.style.setProperty("color", "white", "important");
     }
 
     inputRestanteCliente.value = formatoMoneda.format(restantecliente);
     if (restantecliente < 0) {
         inputRestanteCliente.style.setProperty("color", "red", "important");
     } else {
-        inputRestanteCliente.style.setProperty("color", "black", "important");
+        inputRestanteCliente.style.setProperty("color", "white", "important");
     }
 }
 

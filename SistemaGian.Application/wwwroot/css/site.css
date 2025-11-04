@@ -26,7 +26,7 @@ body {
     padding-bottom: 10px;
     background-attachment: fixed;
     background-position: center center;
-    background-color: #1B2631;
+    background: radial-gradient(1200px 700px at -5% -10%, #1a1f42 0%, #0e1224 40%, #0e1224 100%) fixed;
     background-repeat: no-repeat no-repeat;
     background-size: cover;
     width: 99%;
@@ -240,11 +240,6 @@ label {
     background: #E5E7E9 !important;
 }
 
-.card-body,
-.card-header {
-    background: #323844 !important;
-    color: white;
-}
 
 
 .card {
@@ -667,7 +662,7 @@ div.dt-button-collection {
 
 .card-body,
 .card-header {
-    background: #323844 !important;
+    background: radial-gradient(1200px 700px at -5% -10%, #1a1f42 0%, #0e1224 40%, #0e1224 100%) fixed;
     color: white;
 }
 

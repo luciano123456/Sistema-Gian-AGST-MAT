@@ -2846,3 +2846,41 @@ table.dataTable tbody tr.selected {
     filter: invert(1) grayscale(100%);
     opacity: .85;
 }
+
+
+/* ===== Date input – icono SIEMPRE blanco ===== */
+
+/* 1) WebKit (Chrome / Edge / Opera) */
+#fechaPedido::-webkit-calendar-picker-indicator {
+    filter: invert(1) brightness(1.25) contrast(1.1); /* vuelve el ícono blanco */
+    opacity: 1;
+}
+
+/* 2) Fallback universal (incluye Firefox):
+      - ocultamos la “pinta” nativa del icono y ponemos uno SVG blanco como fondo.
+      - el picker sigue funcionando al hacer click en el campo.
+*/
+#fechaPedido {
+    -webkit-appearance: none;
+    appearance: none; /* reduce interferencias del icono nativo */
+    background-repeat: no-repeat;
+    background-position: right .8rem center;
+    background-size: 1.05rem 1.05rem;
+    /* SVG blanco como icono (compacto y sin dependencias) */
+    background-image: url("data:image/svg+xml;utf8,\
+  <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ffffff'>\
+    <path d='M7 2a1 1 0 0 0-1 1v1H5a3 3 0 0 0-3 3v11a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3h-1V3a1 1 0 1 0-2 0v1H8V3a1 1 0 0 0-1-1Zm12 8H5v8a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-8ZM19 7a1 1 0 0 1 1 1v1H4V8a1 1 0 0 1 1-1h1v1a1 1 0 1 0 2 0V7h8v1a1 1 0 1 0 2 0V7h1Z'/>\
+  </svg>");
+}
+
+/* Si usás inputs de fecha en más lados, podés generalizar:
+input[type="date"]{ ... mismas reglas ... }
+input[type="date"]::-webkit-calendar-picker-indicator{ filter: invert(1) ... }
+*/
+
+/* (Opcional) Forzar esquema oscuro para que el control combine mejor */
+#fechaPedido {
+    color-scheme: white;
+}
+
+
