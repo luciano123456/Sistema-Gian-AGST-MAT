@@ -57,7 +57,22 @@ namespace SistemaGian.Application.Controllers
             return Ok(lista);
         }
 
+        [HttpGet]
+        public async Task<IActionResult> ListaPorCliente(int idcliente)
+        {
+            var Proveedores = await _ProveedorService.ObtenerTodosCliente(idcliente);
 
+            var lista = Proveedores.Select(c => new VMProveedor
+            {
+                Id = c.Id,
+                Nombre = c.Nombre,
+                Apodo = c.Apodo,
+                Ubicacion = c.Ubicacion,
+                Telefono = c.Telefono,
+            }).ToList();
+
+            return Ok(lista);
+        }
 
         [HttpPost]
         public async Task<IActionResult> Insertar([FromBody] VMProveedor model)

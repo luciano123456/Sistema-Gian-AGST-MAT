@@ -1,55 +1,51 @@
 ﻿using SistemaGian.DAL.Repository;
 using SistemaGian.Models;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace SistemaGian.BLL.Service
 {
     public class ClienteService : IClienteService
     {
+        private readonly IClienteRepository<Cliente> _repo;
 
-        private readonly IClienteRepository<Cliente> _contactRepo;
-
-        public ClienteService(IClienteRepository<Cliente> contactRepo)
+        public ClienteService(IClienteRepository<Cliente> repo)
         {
-            _contactRepo = contactRepo;
-        }
-        public async Task<bool> Actualizar(Cliente model)
-        {
-            return await _contactRepo.Actualizar(model);
+            _repo = repo;
         }
 
-        public async Task<bool> Eliminar(int id)
-        {
-            return await _contactRepo.Eliminar(id);
-        }
+        // ===== CRUD Cliente =====
+        public Task<bool> Insertar(Cliente model) => _repo.Insertar(model);
 
-        public async Task<bool> Insertar(Cliente model)
-        {
-            return await _contactRepo.Insertar(model);
-        }
+        public Task<bool> Actualizar(Cliente model) => _repo.Actualizar(model);
 
-        public async Task<Cliente> Obtener(int id)
-        {
-            return await _contactRepo.Obtener(id);
-        }
+        public Task<bool> Eliminar(int id) => _repo.Eliminar(id);
 
-        public async Task<IQueryable<ClientesHistorialSaldo>> ObtenerHistorialCrediticio(int idCliente)
-        {
-            return await _contactRepo.ObtenerHistorialCrediticio(idCliente);
-        }
+        public Task<Cliente> Obtener(int id) => _repo.Obtener(id);
 
-        public async Task<IQueryable<Cliente>> ObtenerTodos()
-        {
-            return await _contactRepo.ObtenerTodos();
-        }
+        public Task<IQueryable<Cliente>> ObtenerTodos() => _repo.ObtenerTodos();
 
-        public async Task<bool> RestarSaldo(int idCliente, decimal Saldo, string observaciones)
-        {
-            return await _contactRepo.RestarSaldo(idCliente, Saldo, observaciones);
-        }
+        // ===== Saldos (atajos existentes) =====
+        public Task<bool> SumarSaldo(int idCliente, decimal Saldo, string observaciones)
+            => _repo.SumarSaldo(idCliente, Saldo, observaciones);
 
-        public async Task<bool> SumarSaldo(int idCliente, decimal Saldo, string observaciones)
-        {
-            return await _contactRepo.SumarSaldo(idCliente, Saldo, observaciones);
-        }
+        public Task<bool> RestarSaldo(int idCliente, decimal Saldo, string observaciones)
+            => _repo.RestarSaldo(idCliente, Saldo, observaciones);
+
+        // ===== Historial / Movimientos =====
+        public Task<IQueryable<ClientesHistorialSaldo>> ObtenerHistorialCrediticio(int idCliente)
+            => _repo.ObtenerHistorialCrediticio(idCliente);
+
+        public Task<ClientesHistorialSaldo> ObtenerMovimientoSaldo(int idMovimiento)
+            => _repo.ObtenerMovimientoSaldo(idMovimiento);
+
+        public Task<bool> CrearMovimientoSaldo(int idCliente, decimal monto, string tipo, string observaciones, System.DateTime? fecha = null)
+            => _repo.CrearMovimientoSaldo(idCliente, monto, tipo, observaciones, fecha);
+
+        public Task<bool> ActualizarMovimientoSaldo(int idMovimiento, decimal monto, string tipo, string observaciones, System.DateTime? fecha = null)
+            => _repo.ActualizarMovimientoSaldo(idMovimiento, monto, tipo, observaciones, fecha);
+
+        public Task<bool> EliminarMovimientoSaldo(int idMovimiento)
+            => _repo.EliminarMovimientoSaldo(idMovimiento);
     }
 }

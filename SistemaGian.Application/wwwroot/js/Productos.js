@@ -45,8 +45,8 @@ $(document).ready(() => {
     document.addEventListener("click", desbloquearAudio, { once: true });
 
     listaProductos();
+    listaProveedoresFiltro(-1);
     listaProductosFiltro();
-    listaProveedoresFiltro();
     listaClientesFiltro();
 
 
@@ -79,7 +79,7 @@ $(document).ready(() => {
 
     $('#txtPrecioCosto').on('input', function () {
         validarCampos()
-        sumarPorcentaje()
+        //sumarPorcentaje()
     });
 
     $('#txtProductoCantidad').on('input', function () {
@@ -257,8 +257,15 @@ async function listaProductosFiltro() {
 }
 
 
-async function listaProveedoresFiltro() {
-    const url = `/Proveedores/Lista`;
+$('#clientesfiltro').on('change', async function () {
+    let idCliente = this.value;
+
+    listaProveedoresFiltro(idCliente);
+});
+
+
+async function listaProveedoresFiltro(idCliente) {
+    const url = `/Proveedores/ListaPorCliente?IdCliente=${idCliente}`;
     const response = await fetch(url);
     const data = await response.json();
 
@@ -1482,12 +1489,12 @@ async function configurarDataTable(data) {
                         } else if (colIndex === 6) {
                             rowData.PCosto = parseFloat(convertirMonedaAFloat(newValue));
                             var pvCalc = (parseFloat(rowData.PCosto) + (parseFloat(rowData.PCosto) * (rowData.PorcGanancia / 100)));
-                            rowData.PVenta = parseFloat(pvCalc.toFixed(2));
+                            //rowData.PVenta = parseFloat(pvCalc.toFixed(2));
                             rowData.PorcGanancia = parseFloat(((rowData.PVenta - rowData.PCosto) / rowData.PCosto) * 100).toFixed(2);
                             var vi6 = gridProductos.column(6).index('visible');
                             var vi9 = gridProductos.column(7).index('visible');
                             $(trElement).find('td').eq(vi6).addClass('blinking');
-                            $(trElement).find('td').eq(vi9).addClass('blinking');
+                            //$(trElement).find('td').eq(vi9).addClass('blinking');
                         } else if (colIndex === 7) {
                             rowData.PVenta = parseFloat(convertirMonedaAFloat(newValue));
                             rowData.PorcGanancia = parseFloat(((convertirMonedaAFloat(newValue) - rowData.PCosto) / rowData.PCosto) * 100).toFixed(2);

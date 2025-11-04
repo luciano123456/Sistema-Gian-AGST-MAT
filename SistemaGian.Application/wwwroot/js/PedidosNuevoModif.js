@@ -17,13 +17,22 @@ const costoFleteInput = document.getElementById('costoFlete');
 const checkSaldoFavor = document.getElementById('usarSaldoFavor');
 var userSession = JSON.parse(localStorage.getItem('userSession'));
 
+const TZ_AR = "America/Argentina/Buenos_Aires";
+const fmtISO = d => moment.tz(d, TZ_AR).format("YYYY-MM-DD");
+
+// Setear fecha en el input del pago de cliente
+function setFechaPagoCliente(iso) {
+    const inp = document.getElementById("fechapagoCliente");
+    if (inp) inp.value = iso;
+}
+
 
 let idPedido = document.getElementById('IdPedido').value;
 let productos = [];
 
 $(document).ready(async function () {
     listaClientes();
-    listaProveedores();
+    //listaProveedores();
     listaChoferes ();
 
     inicializarSonidoNotificacion();
@@ -101,8 +110,8 @@ $(document).ready(async function () {
 });
 
 
-async function listaProveedores() {
-    const url = `/Proveedores/Lista`;
+async function listaProveedores(idcliente) {
+    const url = `/Proveedores/ListaPorCliente?IdCliente=${idcliente}`;
     const response = await fetch(url);
     const data = await response.json();
 
@@ -228,6 +237,7 @@ async function cargarDatosPedido() {
 async function insertarDatosPedido(datosPedido) {
 
     document.getElementById("divDatosPedido").removeAttribute("hidden");
+    document.getElementById("divDatosProveedor").removeAttribute("hidden");
     document.getElementById("IdPedido").value = datosPedido.Id;
 
     document.getElementById("titulopedido").innerText = "Editar Pedido";
@@ -936,7 +946,7 @@ async function guardarProducto() {
     // Factor sin IVA es la cantidad de productos
     const factorSinIVA = selectedProduct.ProductoCantidad;
 
-    let importeVentaUnitario = precioVenta;
+    let importeVentaUnitario = convertirMonedaAFloat(document.getElementById("precioInput").value);
     let importeCostoUnitario = precioCosto;
     let totalVenta = 0;
 
@@ -1532,6 +1542,7 @@ async function editarPago(tipo, id) {
         if (row.SaldoUsado == 0 && saldoFavor > 0 && tipo == "Cliente") {
             $("#divSaldoFavor").removeAttr("hidden");
             checkSaldoFavor.checked = false;
+            
         }
 
 
@@ -1762,7 +1773,20 @@ async function anadirPago(tipo) {
 
         });
 
-
+        const idCli = parseInt(document.getElementById("idCliente")?.value || "0");
+        let ultimaFechaSaldoCliente = null;
+        if (idCli > 0) {
+            ultimaFechaSaldoCliente = await _fetchUltimaFechaSaldoCliente(idCli);
+        }
+        // Guardamos en data- para usarlo en el change del checkbox
+        const chkSF = document.getElementById("usarSaldoFavor");
+        if (chkSF) {
+            if (ultimaFechaSaldoCliente) {
+                chkSF.dataset.ultimaFechaSaldo = ultimaFechaSaldoCliente;   // "YYYY-MM-DD"
+            } else {
+                delete chkSF.dataset.ultimaFechaSaldo;
+            }
+        }
 
     } else {
         console.warn('No se pudieron cargar las monedas.');
@@ -2011,26 +2035,28 @@ function isValidPedido() {
 }
 
 
-checkSaldoFavor.addEventListener("change", function () {
-    const cantidadPagoCliente = document.getElementById("cantidadPagoCliente");
+checkSaldoFavor.addEventListener("change", async function () {
+    const inpCantidad = document.getElementById("cantidadPagoCliente");
+    const inpTotalArs = document.getElementById("totalARSPagoCliente");
     const restanteCliente = parseFloat(convertirMonedaAFloat(document.getElementById("restanteCliente").value));
-    const totalArs = parseFloat(convertirMonedaAFloat(document.getElementById("totalARSPagoCliente").value));
+    const saldoUsado = await calcularSaldoUsado();
+    const saldoDisponible = (saldoClienteFavorInicial || 0) - (saldoUsado || 0);
 
-    if (checkSaldoFavor.checked) {
-        cantidadPagoCliente.setAttribute("disabled", "disabled");
+    if (this.checked) {
+        // Monto: usa el mínimo entre saldo disponible y restante
+        const usar = Math.max(0, Math.min(saldoDisponible, restanteCliente));
+        inpCantidad.setAttribute("disabled", "disabled");
+        inpCantidad.value = usar;
 
-        if (saldoClienteFavor > restanteCliente) {
-            cantidadPagoCliente.value = restanteCliente;
-        } else {
-            cantidadPagoCliente.value = saldoClienteFavor;
-        }
-
+        _renderUltimaFechaHistorialUI_Cliente()
     } else {
-        cantidadPagoCliente.removeAttribute("disabled");
-        cantidadPagoCliente.value = 1;
+        // Vuelve a editable y valor por defecto
+        inpCantidad.removeAttribute("disabled");
+        document.getElementById("lastDateWrapCliente").setAttribute("hidden", "hidden");
+        inpCantidad.value = 1;
     }
 
-    totalArs.value = formatNumber(parseFloat(cantidadPagoCliente.value))
+    inpTotalArs.value = formatNumber(parseFloat(cantidadPagoCliente.value))
 });
 
 
@@ -2040,7 +2066,9 @@ $('#Clientes').on('change', async function () {
 
     cargarDatosCliente(dataCliente);
     listaZonas();
+    listaProveedores(idCliente);
     document.getElementById("divDatosPedido").removeAttribute("hidden");
+    document.getElementById("divDatosProveedor").removeAttribute("hidden");
 });
 
 
@@ -2554,3 +2582,78 @@ function mostrarTooltipNotificacion(texto) {
     });
 }
 
+
+
+// === ULTIMA FECHA DESDE HISTORIAL DE SALDOS (CLIENTE) =====================
+
+// Trae del backend el historial y devuelve la fecha más reciente en 'YYYY-MM-DD' o null
+async function _fetchUltimaFechaSaldoCliente(idCliente) {
+    try {
+        if (!idCliente || isNaN(idCliente)) return null;
+        const r = await fetch(`/Clientes/ObtenerHistorial?idCliente=${idCliente}`);
+        if (!r.ok) return null;
+        const lista = await r.json();               // VMClienteHistorialSaldo[]
+        if (!Array.isArray(lista) || lista.length === 0) return null;
+
+        // Busco el max de las fechas (lista[i].Fecha puede venir como ISO/Date/string)
+        let maxIso = null;
+        for (const it of lista) {
+            if (!it?.Fecha) continue;
+            const m = moment(it.Fecha, [
+                'YYYY-MM-DD',
+                'YYYY-MM-DDTHH:mm:ss',
+                moment.ISO_8601
+            ], true);
+            if (m.isValid()) {
+                const iso = m.format('YYYY-MM-DD');
+                if (!maxIso || iso > maxIso) maxIso = iso;
+            }
+        }
+        return maxIso;
+    } catch { return null; }
+}
+
+// Crea (si no existe) y muestra el check debajo de #fechapagoCliente
+// Si tildás, copia esa fecha al input y oculta el aviso
+async function _renderUltimaFechaHistorialUI_Cliente() {
+    const inp = document.getElementById('fechapagoCliente');
+    if (!inp) return;
+
+    // contenedor (lo creo si no existe)
+    let wrap = document.getElementById('lastDateWrapCliente');
+    if (!wrap) {
+        wrap = document.createElement('div');
+        wrap.id = 'lastDateWrapCliente';
+        wrap.className = 'form-check mt-2 small';
+        wrap.hidden = true;
+        wrap.innerHTML = `
+      <input class="form-check-input" type="checkbox" id="usarUltimaFechaCliente">
+      <label class="form-check-label" for="usarUltimaFechaCliente">
+        Usar última fecha de historial: <b id="lblUltimaFechaCliente"></b>
+      </label>`;
+        // lo inserto justo después del input de fecha
+        inp.parentElement.appendChild(wrap);
+    }
+
+    const idCliente = parseInt(document.getElementById('idCliente')?.value || $('#idCliente').val());
+    const ultima = await _fetchUltimaFechaSaldoCliente(idCliente);
+
+    const lbl = document.getElementById('lblUltimaFechaCliente');
+    const chk = document.getElementById('usarUltimaFechaCliente');
+
+    if (ultima) {
+        lbl.textContent = moment(ultima, 'YYYY-MM-DD').format('DD/MM/YYYY');
+        wrap.hidden = false;
+        chk.checked = false;
+        chk.onchange = () => {
+            if (chk.checked) {
+                // Copio la fecha al input (formato date 'YYYY-MM-DD'), oculto el aviso
+                document.getElementById('fechapagoCliente').value = ultima;
+                wrap.hidden = true;
+                chk.checked = false;
+            }
+        };
+    } else {
+        wrap.hidden = true;  // No hay historial
+    }
+}
