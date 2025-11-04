@@ -11,7 +11,7 @@ using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace SistemaGian.DAL.Repository
 {
-    public class ProveedorRepository : IGenericRepository<Models.Proveedor>
+    public class ProveedorRepository : IProveedoresRepository<Models.Proveedor>
     {
 
         private readonly SistemaGianContext _dbcontext;
@@ -54,8 +54,18 @@ namespace SistemaGian.DAL.Repository
             return await Task.FromResult(query);
         }
 
+        public Task<IQueryable<Proveedor>> ObtenerTodosCliente(int idcliente)
+        {
+            var query =
+                (from p in _dbcontext.Proveedores.AsNoTracking()
+                 join ppc in _dbcontext.ProductosPreciosClientes.AsNoTracking()
+                     on p.Id equals ppc.IdProveedor
+                 where ppc.IdCliente == idcliente || idcliente == -1
+                 select p)
+                .Distinct();
 
-
+            return Task.FromResult(query);
+        }
 
     }
 }

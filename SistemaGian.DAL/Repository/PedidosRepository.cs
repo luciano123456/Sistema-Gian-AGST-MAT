@@ -48,8 +48,8 @@ namespace SistemaGian.DAL.Repository
                     decimal devolucionPagos = 0;
 
                     // Obtener el pedido
-                    var pedido = _dbcontext.Pedidos.FirstOrDefault(c => c.Id == idPedido);
-                    if (pedido == null)
+                    var pedidoModel = _dbcontext.Pedidos.FirstOrDefault(c => c.Id == idPedido);
+                    if (pedidoModel == null)
                         return false;
 
                     // Obtener los pagos de cliente asociados
@@ -65,8 +65,8 @@ namespace SistemaGian.DAL.Repository
 
                     if (devolucionPagos > 0)
                     {
-                        await _clienteRepository.SumarSaldoInterno((int)pedido.IdCliente, devolucionPagos,
-                            $"Devolución por eliminación del pedido N° {pedido.Id}");
+                        await _clienteRepository.SumarSaldoInterno((int)pedidoModel.IdCliente, devolucionPagos,
+                            $"Devolución por eliminación del pedido N° {(pedidoModel.NroRemito != null ? pedidoModel.NroRemito : pedidoModel.Id)}");
                     }
 
                     // Eliminar los pagos de cliente
@@ -99,11 +99,11 @@ namespace SistemaGian.DAL.Repository
                                 _dbcontext.AcopioHistorial.Add(new AcopioHistorial
                                 {
                                     IdProducto = (int)producto.IdProducto,
-                                    IdProveedor = (int)pedido.IdProveedor,
+                                    IdProveedor = (int)pedidoModel.IdProveedor,
                                     Fecha = DateTime.Now,
                                     Ingreso = producto.CantidadUsadaAcopio,
                                     Egreso = null,
-                                    Observaciones = $"Devolución de acopio por eliminación del pedido N° {idPedido}"
+                                    Observaciones = $"Devolución de acopio por eliminación del pedido N° {(pedidoModel.NroRemito != null ? pedidoModel.NroRemito : pedidoModel.Id)}"
                                 });
                             }
                         }
@@ -113,7 +113,7 @@ namespace SistemaGian.DAL.Repository
                     _dbcontext.PedidosProductos.RemoveRange(productos);
 
                     // Eliminar el pedido
-                    _dbcontext.Pedidos.Remove(pedido);
+                    _dbcontext.Pedidos.Remove(pedidoModel);
 
                     await _dbcontext.SaveChangesAsync();
                     await transaction.CommitAsync();
@@ -130,123 +130,97 @@ namespace SistemaGian.DAL.Repository
 
 
 
-        public async Task<bool> Actualizar(Pedido pedido, List<PagosPedidosCliente> pagosCliente, List<PagosPedidosProveedor> pagosProveedores, List<PedidosProducto> productos)
+        public async Task<bool> Actualizar(Pedido pedidoModal, List<PagosPedidosCliente> pagosCliente, List<PagosPedidosProveedor> pagosProveedores, List<PedidosProducto> productos)
         {
-            // Inicia la transacción
-            using (var transaction = await _dbcontext.Database.BeginTransactionAsync())
+            using var tx = await _dbcontext.Database.BeginTransactionAsync();
+            try
             {
-                try
-                {
+                // Actualizar solo los campos básicos del pedido
+                _dbcontext.Attach(pedidoModal);
+                _dbcontext.Entry(pedidoModal).State = EntityState.Modified;
 
-                    // Insertar pagos de clientes
-                    bool pagosClienteResult = await InsertarPagosCliente(pedido.Id, pagosCliente).ConfigureAwait(false);
-                    if (!pagosClienteResult)
-                    {
-                        await transaction.RollbackAsync();
-                        return false; // Si hubo un error en los pagos de clientes, rollback y retorno falso
-                    }
+                // === PAGOS CLIENTE ===
+                if (!await InsertarPagosCliente(pedidoModal.Id, pagosCliente))
+                    throw new Exception("Error al actualizar pagos cliente");
 
-                    // Insertar pagos de proveedores
-                    bool pagosProveedorResult = await InsertarPagosProveedor(pedido.Id,pagosProveedores).ConfigureAwait(false);
-                    if (!pagosProveedorResult)
-                    {
-                        await transaction.RollbackAsync();
-                        return false; // Si hubo un error en los pagos de proveedores, rollback y retorno falso
-                    }
+                // === PAGOS PROVEEDOR ===
+                if (!await InsertarPagosProveedor(pedidoModal.Id, pagosProveedores))
+                    throw new Exception("Error al actualizar pagos proveedor");
 
-                    // Insertar productos
-                    bool productosResult = await InsertarProductos(productos, (int)pedido.IdProveedor).ConfigureAwait(false);
-                    if (!productosResult)
-                    {
-                        await transaction.RollbackAsync();
-                        return false; // Si hubo un error en los productos, rollback y retorno falso
-                    }
+                // === PRODUCTOS ===
+                if (!await InsertarProductos(productos, (int)pedidoModal.IdProveedor))
+                    throw new Exception("Error al actualizar productos");
 
-                    // Si todo fue exitoso, confirmar la transacción
-                    await transaction.CommitAsync();
-                    return true;
-                }
-                catch (Exception ex)
-                {
-                    // Si ocurre cualquier error, hacer rollback de la transacción
-                    await transaction.RollbackAsync();
-                    Console.WriteLine(ex); // Opcional: loguear el error
-                    return false;
-                }
+                await _dbcontext.SaveChangesAsync();
+                await tx.CommitAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                await tx.RollbackAsync();
+                Console.WriteLine("❌ Actualizar pedido falló: " + (ex.InnerException?.Message ?? ex.Message));
+                return false;
             }
         }
 
         public async Task<bool> Insertar(Pedido pedido, List<PagosPedidosCliente> pagosCliente, List<PagosPedidosProveedor> pagosProveedores, List<PedidosProducto> productos)
         {
-            // Inicia la transacción
-            using (var transaction = await _dbcontext.Database.BeginTransactionAsync())
+            using var tx = await _dbcontext.Database.BeginTransactionAsync();
+            try
             {
-                try
+                // Crear pedido
+                _dbcontext.Pedidos.Add(pedido);
+                await _dbcontext.SaveChangesAsync();
+
+                int idPedido = pedido.Id;
+
+                // === PAGOS CLIENTE ===
+                foreach (var pc in pagosCliente)
                 {
-                    // Insertar el nuevo pedido y obtener el Id
-                    bool pedidoResult = await NuevoPedido(pedido).ConfigureAwait(false);
-                    if (!pedidoResult)
-                    {
-                        await transaction.RollbackAsync();
-                        return false; // Si hubo un error en la inserción del pedido, rollback y retorno falso
-                    }
-
-                    // Obtener el Id del pedido recién insertado
-                    int idPedido = pedido.Id;
-
-                    // Asociar el Id del pedido a los pagos de clientes
-                    foreach (var pagoCliente in pagosCliente)
-                    {
-                        pagoCliente.IdPedido = idPedido;
-                    }
-
-                    // Insertar pagos de clientes
-                    bool pagosClienteResult = await InsertarPagosCliente(pedido.Id, pagosCliente).ConfigureAwait(false);
-                    if (!pagosClienteResult)
-                    {
-                        await transaction.RollbackAsync();
-                        return false; // Si hubo un error en los pagos de clientes, rollback y retorno falso
-                    }
-
-                    // Asociar el Id del pedido a los pagos de proveedores
-                    foreach (var pagoProveedor in pagosProveedores)
-                    {
-                        pagoProveedor.IdPedido = idPedido;
-                    }
-
-                    // Insertar pagos de proveedores
-                    bool pagosProveedorResult = await InsertarPagosProveedor(pedido.Id, pagosProveedores).ConfigureAwait(false);
-                    if (!pagosProveedorResult)
-                    {
-                        await transaction.RollbackAsync();
-                        return false; // Si hubo un error en los pagos de proveedores, rollback y retorno falso
-                    }
-
-                    // Asociar el Id del pedido a los productos
-                    foreach (var producto in productos)
-                    {
-                        producto.IdPedido = idPedido;
-                    }
-
-                    // Insertar productos
-                    bool productosResult = await InsertarProductos(productos, (int)pedido.IdProveedor).ConfigureAwait(false);
-                    if (!productosResult)
-                    {
-                        await transaction.RollbackAsync();
-                        return false; // Si hubo un error en los productos, rollback y retorno falso
-                    }
-
-                    // Si todo fue exitoso, confirmar la transacción
-                    await transaction.CommitAsync();
-                    return true;
+                    pc.IdPedido = idPedido;
+                    pc.IdPedidoNavigation = null;
                 }
-                catch (Exception ex)
+
+                if (!await InsertarPagosCliente(idPedido, pagosCliente)) throw new Exception("Error al insertar pagos cliente");
+
+                // === PAGOS PROVEEDOR ===
+                foreach (var pp in pagosProveedores)
                 {
-                    // Si ocurre cualquier error, hacer rollback de la transacción
-                    await transaction.RollbackAsync();
-                    Console.WriteLine(ex); // Opcional: loguear el error
-                    return false;
+                    pp.IdPedido = idPedido;
+                    pp.IdPedidoNavigation = null;
                 }
+
+                if (!await InsertarPagosProveedor(idPedido, pagosProveedores)) throw new Exception("Error al insertar pagos proveedor");
+
+                // === PRODUCTOS ===
+                foreach (var prod in productos)
+                {
+                    prod.IdPedido = idPedido;
+                    prod.IdPedidoNavigation = null;
+                    prod.IdProductoNavigation = null;
+                }
+
+                if (!await InsertarProductos(productos, (int)pedido.IdProveedor)) throw new Exception("Error al insertar productos");
+
+                await tx.CommitAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                await tx.RollbackAsync();
+                Console.WriteLine("❌ Insertar pedido falló: " + (ex.InnerException?.Message ?? ex.Message));
+                return false;
+            }
+        }
+        // Helper: evita que SaveChanges toque la tabla Pedidos desde este método
+        private void NeutralizarPedidoEnTracker(int idPedido)
+        {
+            // Si por cualquier motivo hay un Pedido con ese Id en Modified/Added/Deleted,
+            // lo pasamos a Unchanged para que NO se persista nada de Pedidos.
+            foreach (var e in _dbcontext.ChangeTracker.Entries<Pedido>().ToList())
+            {
+                if (e.Entity?.Id == idPedido && e.State != EntityState.Unchanged)
+                    e.State = EntityState.Unchanged;
             }
         }
 
@@ -254,24 +228,23 @@ namespace SistemaGian.DAL.Repository
         {
             try
             {
+                // Traemos el pedido SIN trackear (no queremos que EF lo meta al ChangeTracker)
                 var pedido = await _dbcontext.Pedidos
-                                             .AsNoTracking()
-                                             .FirstOrDefaultAsync(p => p.Id == idPedido);
-
-                if (pedido == null)
-                    return false;
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(p => p.Id == idPedido);
+                if (pedido == null) return false;
 
                 var cliente = await _dbcontext.Clientes
-                                              .FirstOrDefaultAsync(c => c.Id == pedido.IdCliente);
+                    .FirstOrDefaultAsync(c => c.Id == pedido.IdCliente);
+                if (cliente == null) return false;
 
-                if (cliente == null)
-                    return false;
+                cliente.SaldoAfavor ??= 0m;
 
                 var pagosExistentes = await _dbcontext.PagosPedidosClientes
-                                                      .Where(x => x.IdPedido == idPedido)
-                                                      .ToListAsync();
+                    .Where(x => x.IdPedido == idPedido)
+                    .ToListAsync();
 
-                // 🔍 Identificar pagos a eliminar
+                // Eliminar los que ya no están
                 var pagosAEliminar = pagosExistentes
                     .Where(pe => !pagos.Any(p => p.Id == pe.Id))
                     .ToList();
@@ -286,37 +259,38 @@ namespace SistemaGian.DAL.Repository
                         IdCliente = cliente.Id,
                         Ingreso = pe.SaldoUsado,
                         Egreso = 0,
-                        Observaciones = $"Devolución de saldo por eliminación de pago del pedido N° {idPedido}"
+                        Observaciones = $"Devolución de saldo por eliminación de pago del pedido N° {(pedido.NroRemito ?? pedido.Id.ToString())}"
                     });
                 }
 
                 _dbcontext.PagosPedidosClientes.RemoveRange(pagosAEliminar);
 
-                // 🔁 Insertar nuevos o modificar existentes
+                // Upsert de los pagos que quedan
                 foreach (var p in pagos)
                 {
-                    var existente = pagosExistentes.FirstOrDefault(x => x.Id == p.Id);
+                    p.IdPedido = idPedido;
+                    p.IdPedidoNavigation = null; // IMPORTANTÍSIMO: no subir el grafo
 
+                    var existente = pagosExistentes.FirstOrDefault(x => x.Id == p.Id);
                     if (existente != null)
                     {
-                        // 🔁 Modificación
-                        decimal diferencia = p.SaldoUsado - existente.SaldoUsado;
-
-                        if (diferencia != 0)
+                        var diff = p.SaldoUsado - existente.SaldoUsado;
+                        if (diff != 0)
                         {
-                            cliente.SaldoAfavor -= diferencia;
+                            cliente.SaldoAfavor -= diff;
 
                             _dbcontext.ClientesHistorialSaldos.Add(new ClientesHistorialSaldo
                             {
                                 Fecha = DateTime.Now,
                                 IdCliente = cliente.Id,
-                                Ingreso = diferencia < 0 ? Math.Abs(diferencia) : 0,
-                                Egreso = diferencia > 0 ? diferencia : 0,
-                                Observaciones = $"Ajuste de saldo por modificación de pago del pedido N° {idPedido}"
+                                Ingreso = diff < 0 ? Math.Abs(diff) : 0,
+                                Egreso = diff > 0 ? diff : 0,
+                                Observaciones = $"Ajuste de saldo por modificación de pago del pedido N° {(pedido.NroRemito ?? pedido.Id.ToString())}"
                             });
                         }
 
                         existente.Fecha = p.Fecha;
+                        existente.IdMoneda = p.IdMoneda;
                         existente.Cotizacion = p.Cotizacion;
                         existente.Total = p.Total;
                         existente.TotalArs = p.TotalArs;
@@ -325,8 +299,6 @@ namespace SistemaGian.DAL.Repository
                     }
                     else
                     {
-                        // ➕ Nuevo
-                        p.IdPedido = idPedido;
                         cliente.SaldoAfavor -= p.SaldoUsado;
 
                         if (p.SaldoUsado > 0)
@@ -337,7 +309,7 @@ namespace SistemaGian.DAL.Repository
                                 IdCliente = cliente.Id,
                                 Ingreso = 0,
                                 Egreso = p.SaldoUsado,
-                                Observaciones = $"Uso de saldo por nuevo pago del pedido N° {idPedido}"
+                                Observaciones = $"Uso de saldo por nuevo pago del pedido N° {(pedido.NroRemito ?? pedido.Id.ToString())}"
                             });
                         }
 
@@ -345,56 +317,49 @@ namespace SistemaGian.DAL.Repository
                     }
                 }
 
+                // Aseguramos que EF persista el cambio del saldo del cliente
+                _dbcontext.Entry(cliente).Property(c => c.SaldoAfavor).IsModified = true;
+
+                // 🔒 CLAVE: evitamos que se actualice "Pedidos" colateralmente
+                NeutralizarPedidoEnTracker(idPedido);
+
                 await _dbcontext.SaveChangesAsync();
                 return true;
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                Console.WriteLine("❌ Error en InsertarPagosCliente: " + (ex.InnerException?.Message ?? ex.Message));
                 return false;
             }
         }
-
-
-
-
-
 
         public async Task<bool> InsertarPagosProveedor(int idPedido, List<PagosPedidosProveedor> pagos)
         {
             try
             {
                 var pagosExistentes = await _dbcontext.PagosPedidosProveedores
-                                                      .Where(x => x.IdPedido == idPedido)
-                                                      .ToListAsync();
+                    .Where(x => x.IdPedido == idPedido)
+                    .ToListAsync();
 
-                // ✅ Si no hay pagos nuevos, eliminar todos los existentes
-                if (pagos.Count == 0)
-                {
-                    _dbcontext.PagosPedidosProveedores.RemoveRange(pagosExistentes);
-
-                    await _dbcontext.SaveChangesAsync();
-                }
-
-                // ✅ Si hay pagos nuevos, actualizar lo necesario
                 var pagosAEliminar = pagosExistentes
-                                     .Where(pe => !pagos.Any(p => p.Id == pe.Id))
-                                     .ToList();
+                    .Where(pe => !pagos.Any(p => p.Id == pe.Id))
+                    .ToList();
 
                 _dbcontext.PagosPedidosProveedores.RemoveRange(pagosAEliminar);
 
-                foreach (PagosPedidosProveedor p in pagos)
+                foreach (var p in pagos)
                 {
-                    var pagoExistente = pagosExistentes
-                                        .FirstOrDefault(x => x.Id == p.Id);
+                    p.IdPedido = idPedido;
+                    p.IdPedidoNavigation = null;
 
-                    if (pagoExistente != null)
+                    var existente = pagosExistentes.FirstOrDefault(x => x.Id == p.Id);
+                    if (existente != null)
                     {
-                        pagoExistente.Fecha = p.Fecha;
-                        pagoExistente.Cotizacion = p.Cotizacion;
-                        pagoExistente.Total = p.Total;
-                        pagoExistente.TotalArs = p.TotalArs;
-                        pagoExistente.Observacion = p.Observacion;
+                        existente.Fecha = p.Fecha;
+                        existente.Cotizacion = p.Cotizacion;
+                        existente.Total = p.Total;
+                        existente.TotalArs = p.TotalArs;
+                        existente.Observacion = p.Observacion;
                     }
                     else
                     {
@@ -407,12 +372,10 @@ namespace SistemaGian.DAL.Repository
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                Console.WriteLine("❌ Error en InsertarPagosProveedor: " + (ex.InnerException?.Message ?? ex.Message));
                 return false;
             }
         }
-
-
 
         public async Task<bool> InsertarProductos(List<PedidosProducto> productos, int idProveedor)
         {
@@ -422,112 +385,32 @@ namespace SistemaGian.DAL.Repository
 
                 foreach (var idPedido in idPedidos)
                 {
-                    var productosExistentes = await _dbcontext.PedidosProductos
+                    var existentes = await _dbcontext.PedidosProductos
                         .Where(x => x.IdPedido == idPedido)
                         .ToListAsync();
 
-                    var productosAEliminar = productosExistentes
+                    var aEliminar = existentes
                         .Where(pe => !productos.Any(p => p.IdPedido == pe.IdPedido && p.IdProducto == pe.IdProducto))
                         .ToList();
 
-                    foreach (var eliminado in productosAEliminar)
+                    _dbcontext.PedidosProductos.RemoveRange(aEliminar);
+
+                    foreach (var p in productos.Where(x => x.IdPedido == idPedido))
                     {
-                        if (eliminado.CantidadUsadaAcopio > 0)
+                        p.IdPedidoNavigation = null;
+                        p.IdProductoNavigation = null;
+
+                        var existente = existentes.FirstOrDefault(x => x.IdProducto == p.IdProducto);
+                        if (existente != null)
                         {
-                            var stock = await _dbcontext.AcopioStockActual
-                                .FirstOrDefaultAsync(x => x.IdProducto == eliminado.IdProducto);
-                            if (stock != null)
-                            {
-                                stock.CantidadActual += eliminado.CantidadUsadaAcopio;
-
-                                _dbcontext.AcopioHistorial.Add(new AcopioHistorial
-                                {
-                                    IdProducto = (int)eliminado.IdProducto,
-                                    IdProveedor = idProveedor,
-                                    Fecha = DateTime.Now,
-                                    Ingreso = eliminado.CantidadUsadaAcopio,
-                                    Egreso = 0,
-                                    Observaciones = $"Devolución por eliminación del producto en pedido N° {idPedido}"
-                                });
-                            }
-                        }
-                    }
-
-                    _dbcontext.PedidosProductos.RemoveRange(productosAEliminar);
-
-                    foreach (var p in productos)
-                    {
-                        var productoExistente = productosExistentes
-                            .FirstOrDefault(x => x.IdPedido == p.IdPedido && x.IdProducto == p.IdProducto);
-
-                        var stock = await _dbcontext.AcopioStockActual
-                            .FirstOrDefaultAsync(x => x.IdProducto == p.IdProducto);
-
-                        if (productoExistente != null)
-                        {
-                            var diferencia = p.CantidadUsadaAcopio - productoExistente.CantidadUsadaAcopio;
-
-                            if (diferencia != 0 && stock != null)
-                            {
-                                if (diferencia > 0)
-                                {
-                                    if (stock.CantidadActual < diferencia)
-                                        throw new InvalidOperationException("Stock de acopio insuficiente.");
-
-                                    stock.CantidadActual -= diferencia;
-
-                                    _dbcontext.AcopioHistorial.Add(new AcopioHistorial
-                                    {
-                                        IdProducto = (int)p.IdProducto,
-                                        IdProveedor = idProveedor,
-                                        Fecha = DateTime.Now,
-                                        Ingreso = 0,
-                                        Egreso = diferencia,
-                                        Observaciones = $"Uso adicional por modificación de producto en pedido N° {idPedido}"
-                                    });
-                                }
-                                else
-                                {
-                                    stock.CantidadActual += Math.Abs(diferencia);
-
-                                    _dbcontext.AcopioHistorial.Add(new AcopioHistorial
-                                    {
-                                        IdProducto = (int)p.IdProducto,
-                                        IdProveedor = idProveedor,
-                                        Fecha = DateTime.Now,
-                                        Ingreso = Math.Abs(diferencia),
-                                        Egreso = 0,
-                                        Observaciones = $"Devolución por modificación de producto en pedido N° {idPedido}"
-                                    });
-                                }
-                            }
-
-                            productoExistente.PrecioCosto = p.PrecioCosto;
-                            productoExistente.PrecioVenta = p.PrecioVenta;
-                            productoExistente.Cantidad = p.Cantidad;
-                            productoExistente.ProductoCantidad = p.ProductoCantidad;
-                            productoExistente.CantidadUsadaAcopio = p.CantidadUsadaAcopio;
+                            existente.Cantidad = p.Cantidad;
+                            existente.PrecioCosto = p.PrecioCosto;
+                            existente.PrecioVenta = p.PrecioVenta;
+                            existente.ProductoCantidad = p.ProductoCantidad;
+                            existente.CantidadUsadaAcopio = p.CantidadUsadaAcopio;
                         }
                         else
                         {
-                            if (p.CantidadUsadaAcopio > 0 && stock != null)
-                            {
-                                if (stock.CantidadActual < p.CantidadUsadaAcopio)
-                                    throw new InvalidOperationException("Stock de acopio insuficiente.");
-
-                                stock.CantidadActual -= p.CantidadUsadaAcopio;
-
-                                _dbcontext.AcopioHistorial.Add(new AcopioHistorial
-                                {
-                                    IdProducto = (int)p.IdProducto,
-                                    IdProveedor = idProveedor,
-                                    Fecha = DateTime.Now,
-                                    Ingreso = 0,
-                                    Egreso = p.CantidadUsadaAcopio,
-                                    Observaciones = $"Uso de acopio por alta de producto en pedido N° {idPedido}"
-                                });
-                            }
-
                             _dbcontext.PedidosProductos.Add(p);
                         }
                     }
@@ -538,8 +421,25 @@ namespace SistemaGian.DAL.Repository
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                Console.WriteLine("❌ Error en InsertarProductos: " + (ex.InnerException?.Message ?? ex.Message));
                 return false;
+            }
+        }
+
+
+
+        private void CleanChangeTracker(SistemaGianContext ctx)
+        {
+            // Evitar inserts o updates en entidades relacionadas
+            foreach (var entry in ctx.ChangeTracker.Entries())
+            {
+                if (entry.Entity is Pedido or Cliente or Proveedor)
+                {
+                    if (entry.State == EntityState.Added)
+                        entry.State = EntityState.Detached;
+                    else if (entry.State == EntityState.Modified)
+                        entry.State = EntityState.Unchanged;
+                }
             }
         }
 

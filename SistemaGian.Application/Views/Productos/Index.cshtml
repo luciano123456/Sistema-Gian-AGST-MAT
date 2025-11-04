@@ -88,6 +88,14 @@
                     <!-- Barra de filtros plegable (mismos IDs que ya usás) -->
                     <form id="formFiltrosProductos" class="filter-bar shadow-sm rounded-3 mb-3 p-3 d-none">
                         <div class="row g-2 align-items-end">
+
+                             <div class="col-12 col-md-3">
+                                <label class="form-label">Cliente</label>
+                                <select id="clientesfiltro" name="select" class="form-select input-nuevo">
+                                    <option value="" selected>Cliente</option>
+                                </select>
+                            </div>
+
                             <div class="col-12 col-md-3">
                                 <label class="form-label">Proveedor</label>
                                 <select id="Proveedoresfiltro" name="select" class="form-select input-nuevo">
@@ -95,12 +103,7 @@
                                 </select>
                             </div>
 
-                            <div class="col-12 col-md-3">
-                                <label class="form-label">Cliente</label>
-                                <select id="clientesfiltro" name="select" class="form-select input-nuevo">
-                                    <option value="" selected>Cliente</option>
-                                </select>
-                            </div>
+                           
 
                             <div class="col-12 col-md-3">
                                 <label class="form-label">Producto</label>
@@ -425,5 +428,5 @@
     <script src="~/js/site.js"></script>
 
     <!-- Lógica de la vista -->
-    <script src="~/js/Productos.js?v=2.2"></script>
+    <script src="~/js/Productos.js?v=2.3"></script>
 }

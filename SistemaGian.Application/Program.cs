@@ -36,7 +36,7 @@ builder.Services.AddScoped<IClienteRepository<Cliente>, ClienteRepository>();
 builder.Services.AddScoped<IClienteService, ClienteService>();
 builder.Services.AddScoped<IProvinciaRepository<Provincia>, ProvinciaRepository>();
 builder.Services.AddScoped<IProvinciaService, ProvinciaService>();
-builder.Services.AddScoped<IGenericRepository<SistemaGian.Models.Proveedor>, ProveedorRepository>();
+builder.Services.AddScoped<IProveedoresRepository<Proveedor>, ProveedorRepository>();
 builder.Services.AddScoped<IProveedorService, ProveedorService>();
 builder.Services.AddScoped<IGenericRepository<Moneda>, MonedaRepository>();
 builder.Services.AddScoped<IMonedaService, Monedaservice>();

@@ -2884,3 +2884,80 @@ input[type="date"]::-webkit-calendar-picker-indicator{ filter: invert(1) ... }
 }
 
 
+
+
+/* Layout en columna */
+.date-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; /* alinea a la izquierda */
+    gap: .5rem;
+}
+
+/* Pildorita del hint */
+.last-date-hint {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    margin: .25rem 0 0;
+    padding: .4rem .75rem;
+    border-radius: 999px;
+    background: rgba(255,255,255,.05);
+    border: 1px dashed rgba(255,255,255,.15);
+    color: #cfd6e5;
+    cursor: pointer;
+}
+
+    .last-date-hint b {
+        color: #fff;
+    }
+
+    .last-date-hint .form-check-input {
+        margin-top: 0;
+    }
+
+/* (opcional) estilos del input-group “fachero” */
+.fancy-date {
+    background: linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.02));
+    border: 1px solid rgba(255,255,255,.15);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 6px 18px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.06);
+}
+
+.fancy-ico {
+    background: transparent;
+    border: 0;
+    color: #a5b0c2;
+}
+
+.fancy-date-input {
+    background: transparent;
+    border: 0 !important;
+    color: #e9edf6;
+}
+
+.fancy-date:focus-within {
+    box-shadow: 0 0 0 3px rgba(90,173,255,.35),0 8px 24px rgba(0,0,0,.35);
+    border-color: rgba(90,173,255,.45);
+}
+
+.fancy-hoy {
+    border: 0;
+    background: rgba(255,255,255,.06);
+    color: #e9edf6;
+}
+
+    .fancy-hoy:hover {
+        background: rgba(255,255,255,.12);
+    }
+
+/* icono del date en dark */
+input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1) opacity(.9);
+}
+
+
+select.form-control option {
+    color: white;
+}

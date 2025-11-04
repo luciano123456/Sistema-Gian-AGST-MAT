@@ -10,5 +10,6 @@ namespace SistemaGian.BLL.Service
         Task<bool> Eliminar(int id);
         Task<Models.Proveedor> Obtener(int id);
         Task<IQueryable<Models.Proveedor>> ObtenerTodos();
+        Task<IQueryable<Models.Proveedor>> ObtenerTodosCliente(int idcliente);
     }
 }

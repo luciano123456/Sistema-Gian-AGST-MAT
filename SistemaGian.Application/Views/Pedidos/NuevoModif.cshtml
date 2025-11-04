@@ -44,7 +44,7 @@
             <a class="nav-link active" id="cliente-tab" data-bs-toggle="tab" href="#cliente" role="tab"
                aria-controls="cliente" aria-selected="true">Datos del Cliente</a>
         </li>
-        <li class="nav-item" role="presentation" id="divDatosProveedor">
+        <li class="nav-item" role="presentation" id="divDatosProveedor" hidden>
             <a class="nav-link" id="proveedor-tab" data-bs-toggle="tab" href="#proveedor" role="tab"
                aria-controls="proveedor" aria-selected="true">Datos del Proveedor</a>
         </li>
@@ -502,11 +502,6 @@
                             </div>
 
                             <div class="cc-field">
-                                <label class="form-label">Color</label>
-                                <select id="Colores" class="form-select"></select>
-                            </div>
-
-                            <div class="cc-field">
                                 <label for="totalInput" class="form-label">Cantidad Total</label>
                                 <input type="text" id="totalInput" class="form-control" disabled>
                             </div>
@@ -583,10 +578,18 @@
 
             <div class="modal-body">
                 <form class="cc-form-grid cc-form-2col">
+                    <!-- Campo fecha + hint en columna -->
                     <div class="cc-field">
-                        <label class="form-label">Fecha del pago</label>
-                        <input type="date" id="fechapagoCliente" class="form-control">
+                        <label class="form-label mb-2">Fecha del pago</label>
+                                <input type="date" id="fechapagoCliente" class="form-control form-control-lg fancy-date-input" />
+
+                            <!-- HINT: debajo, a la izquierda -->
+                            <label id="lastDateWrapCliente" class="last-date-hint" hidden>
+                                <input class="form-check-input me-2" type="checkbox" id="usarUltimaFechaCliente">
+                                <span><i class="fa fa-history"></i> Usar última fecha: <b id="lblUltimaFechaCliente"></b></span>
+                            </label>
                     </div>
+
 
                     <div class="cc-field">
                         <label class="form-label">Moneda</label>
@@ -695,7 +698,7 @@
     <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
     <script src="~/js/utils/moment.js"></script>
-    <script src="~/js/pedidosnuevomodif.js?v=3.9"></script>
+    <script src="~/js/pedidosnuevomodif.js?v=4.0"></script>
     <script src="~/js/site.js"></script>
 }
 

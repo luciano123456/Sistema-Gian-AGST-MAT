@@ -6,10 +6,10 @@ namespace SistemaGian.BLL.Service
     public class ProveedorService : IProveedorService
     {
 
-        private readonly IGenericRepository<Proveedor> _contactRepo;
+        private readonly IProveedoresRepository<Proveedor> _contactRepo;
         private readonly Provincia _provinciaRepo;
 
-        public ProveedorService(IGenericRepository<Proveedor> contactRepo)
+        public ProveedorService(IProveedoresRepository<Proveedor> contactRepo)
         {
             _contactRepo = contactRepo;
         }
@@ -32,21 +32,15 @@ namespace SistemaGian.BLL.Service
         {
             return await _contactRepo.Obtener(id);
         }
-
-        //public async Task<Proveedor> ObtenerPorNombre(string nombre)
-        //{
-        //    IQueryable<Proveedor> queryProveedorSQL = await _contactRepo.ObtenerTodos();
-
-        //    Proveedor Proveedor = queryProveedorSQL.Where(c => c.Nombre == nombre).FirstOrDefault();
-
-        //    return Proveedor;
-        //}
-
         public async Task<IQueryable<Proveedor>> ObtenerTodos()
         {
             return await _contactRepo.ObtenerTodos();
         }
 
+        public async Task<IQueryable<Proveedor>> ObtenerTodosCliente(int idcliente)
+        {
+            return await _contactRepo.ObtenerTodosCliente(idcliente);
+        }
 
 
     }

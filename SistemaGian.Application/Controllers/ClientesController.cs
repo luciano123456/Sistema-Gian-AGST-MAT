@@ -238,6 +238,102 @@ namespace SistemaGian.Application.Controllers
                 return StatusCode(StatusCodes.Status404NotFound);
             }
         }
+
+        // ======== SALDOS: CRUD de movimientos con ajuste automático ========
+
+        [HttpGet]
+        public async Task<IActionResult> ObtenerMovimientoSaldo(int idMovimiento)
+        {
+            var mov = await _clienteService.ObtenerMovimientoSaldo(idMovimiento);
+            if (mov == null) return NotFound(new { mensaje = "Movimiento no encontrado" });
+            return Ok(mov);
+        }
+
+        public class MovimientoSaldoDTO
+        {
+            public int IdMovimiento { get; set; }          // para actualizar/eliminar
+            public int IdCliente { get; set; }             // para crear
+            public decimal Monto { get; set; }
+            public string Tipo { get; set; }               // "Ingreso" | "Egreso"
+            public string Observaciones { get; set; }
+            public DateTime? Fecha { get; set; }           // opcional
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CrearMovimientoSaldo([FromBody] MovimientoSaldoDTO dto)
+        {
+            if (dto == null || dto.IdCliente <= 0 || dto.Monto <= 0 || string.IsNullOrWhiteSpace(dto.Tipo))
+                return BadRequest(new { mensaje = "Datos inválidos" });
+
+            var ok = await _clienteService.CrearMovimientoSaldo(dto.IdCliente, dto.Monto, dto.Tipo, dto.Observaciones, dto.Fecha);
+
+            var userSession = await SessionHelper.GetUsuarioSesion(HttpContext);
+            if (ok)
+            {
+                await _hubContext.Clients.All.SendAsync("ActualizarSignalR", new
+                {
+                    Id = dto.IdCliente,
+                    Tipo = "Saldo - Creado",
+                    UsuarioModificado = $"Movimiento {dto.Tipo} ${dto.Monto}",
+                    Usuario = userSession?.Nombre,
+                    IdUsuario = userSession?.Id
+                });
+            }
+
+            return Ok(new { valor = ok });
+        }
+
+        [HttpPut]
+        public async Task<IActionResult> ActualizarMovimientoSaldo([FromBody] MovimientoSaldoDTO dto)
+        {
+            if (dto == null || dto.IdMovimiento <= 0 || dto.Monto <= 0 || string.IsNullOrWhiteSpace(dto.Tipo))
+                return BadRequest(new { mensaje = "Datos inválidos" });
+
+            var ok = await _clienteService.ActualizarMovimientoSaldo(dto.IdMovimiento, dto.Monto, dto.Tipo, dto.Observaciones, dto.Fecha);
+
+            var userSession = await SessionHelper.GetUsuarioSesion(HttpContext);
+            if (ok)
+            {
+                await _hubContext.Clients.All.SendAsync("ActualizarSignalR", new
+                {
+                    Id = dto.IdMovimiento,
+                    Tipo = "Saldo - Actualizado",
+                    UsuarioModificado = $"Movimiento {dto.Tipo} ${dto.Monto}",
+                    Usuario = userSession?.Nombre,
+                    IdUsuario = userSession?.Id
+                });
+            }
+
+            return Ok(new { valor = ok });
+        }
+
+        [HttpDelete]
+        public async Task<IActionResult> EliminarMovimientoSaldo(int idMovimiento)
+        {
+            if (idMovimiento <= 0)
+                return BadRequest(new { mensaje = "Id inválido" });
+
+            // Para log bonito en SignalR obtenemos antes
+            var mov = await _clienteService.ObtenerMovimientoSaldo(idMovimiento);
+            var ok = await _clienteService.EliminarMovimientoSaldo(idMovimiento);
+
+            var userSession = await SessionHelper.GetUsuarioSesion(HttpContext);
+            if (ok)
+            {
+                await _hubContext.Clients.All.SendAsync("ActualizarSignalR", new
+                {
+                    Id = mov?.IdCliente,
+                    Tipo = "Saldo - Eliminado",
+                    UsuarioModificado = mov == null ? "Movimiento eliminado" : $"Movimiento {(mov.Ingreso > 0 ? "Ingreso" : "Egreso")} ${(mov.Ingreso) + (mov.Egreso)}",
+                    Usuario = userSession?.Nombre,
+                    IdUsuario = userSession?.Id
+                });
+            }
+
+            return Ok(new { valor = ok });
+        }
+
+
         public IActionResult Privacy()
         {
             return View();
