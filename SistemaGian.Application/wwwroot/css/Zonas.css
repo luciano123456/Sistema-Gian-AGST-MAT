@@ -10,3 +10,14 @@
     color: #212529 !important;
     text-align: left !important;
 }
+
+
+/* ===== Selección de filas (verde) ===== */
+#grd_Zonas tbody tr.row-selected td {
+    background-color: #00731A !important; /* verde suave */
+    transition: background-color .25s ease, box-shadow .25s ease;
+}
+
+#grd_Zonas tbody tr.row-selected {
+    box-shadow: inset 3px 0 0 0 #2ea043; /* borde verde a la izquierda */
+}

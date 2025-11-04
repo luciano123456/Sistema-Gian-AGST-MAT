@@ -219,7 +219,7 @@ async function configurarDataTable(data) {
 
         <!-- CHIP como en Productos -->
         <button type="button" class="btn btn-sm chip-select btnacciones" data-id="${data}" aria-pressed="false" title="Seleccionar">
-            <i class="fa fa-square-o"></i> <span>Elegir</span>
+            <i class="fa fa-square-o"></i> <span></span>
         </button>
     </div>`;
                     }
@@ -227,13 +227,29 @@ async function configurarDataTable(data) {
                 { data: 'Nombre', title: 'Nombre' },
                 { data: 'Cliente', title: 'Cliente', defaultContent: '', visible: false }, // visible ON solo cuando corresponde
                 {
-                    data: 'Precio', title: 'Precio', className: 'text-end',
+                    data: 'Precio', title: 'Precio', className: 'text-center',
                     render: (d, t) => (t === 'display' ? formatNumber(d) : d)
                 }
             ],
 
             initComplete: async function () {
                 const api = this.api();
+
+                $('#grd_Zonas').off('draw.dt.recolor').on('draw.dt.recolor', function () {
+                    if (!gridZonas) return;
+                    gridZonas.rows({ page: 'current' }).every(function () {
+                        const data = this.data();
+                        const $row = $(this.node());
+                        const selected = selectedZonas.includes(Number(data.Id));
+                        $row.toggleClass('row-selected', selected);
+                        const $btn = $row.find('.chip-select');
+                        $btn.toggleClass('is-selected', selected).attr('aria-pressed', selected);
+                        const $icon = $btn.find('.fa');
+                        if (selected) $icon.removeClass('fa-square-o').addClass('fa-check-square');
+                        else $icon.removeClass('fa-check-square').addClass('fa-square-o');
+                    });
+                });
+
 
                 // construir filtros sincronizados al header visible
                 await rebuildFiltersZonas(api);
@@ -744,26 +760,24 @@ connection.on("ActualizarSignalR", async function (data) {
 
 connection.start().then(() => console.log("✅ SignalR conectado [zonas.js]")).catch(err => console.error("❌ Error SignalR:", err.toString()));
 
-
 function handleChipSelectClick(btn) {
     const $btn = $(btn);
     const id = Number($btn.data('id')) || 0;
+    const $row = $btn.closest('tr');
 
     const selected = !$btn.hasClass('is-selected');
     $btn.toggleClass('is-selected', selected).attr('aria-pressed', selected);
 
     const $icon = $btn.find('.fa');
-    const $txt = $btn.find('span');
-
     if (selected) {
         $icon.removeClass('fa-square-o').addClass('fa-check-square');
-        $txt.text('Seleccionado');
         if (!selectedZonas.includes(id)) selectedZonas.push(id);
+        $row.addClass('row-selected');                 // <<< pinta de verde
     } else {
         $icon.removeClass('fa-check-square').addClass('fa-square-o');
-        $txt.text('Elegir');
         const ix = selectedZonas.indexOf(id);
         if (ix > -1) selectedZonas.splice(ix, 1);
+        $row.removeClass('row-selected');              // <<< quita el verde
     }
 
     actualizarBotonesAccion();
@@ -774,11 +788,12 @@ function desmarcarChipSelects() {
     $('.chip-select').removeClass('is-selected').attr('aria-pressed', false)
         .each(function () {
             $(this).find('.fa').removeClass('fa-check-square').addClass('fa-square-o');
-            $(this).find('span').text('Elegir');
+            $(this).closest('tr').removeClass('row-selected');  // <<< limpia verde
         });
     $('#selectAllCheckbox').prop('checked', false);
     actualizarBotonesAccion();
 }
+
 
 
 $('#selectAllCheckbox').off('change.selAll').on('change.selAll', function () {
@@ -788,16 +803,17 @@ $('#selectAllCheckbox').off('change.selAll').on('change.selAll', function () {
     $('.chip-select').each(function () {
         const $btn = $(this);
         const id = Number($btn.data('id')) || 0;
+        const $row = $btn.closest('tr');
 
         if (checkAll) {
             $btn.addClass('is-selected').attr('aria-pressed', true);
             $btn.find('.fa').removeClass('fa-square-o').addClass('fa-check-square');
-            $btn.find('span').text('Seleccionado');
             if (!selectedZonas.includes(id)) selectedZonas.push(id);
+            $row.addClass('row-selected');             // <<< verde
         } else {
             $btn.removeClass('is-selected').attr('aria-pressed', false);
             $btn.find('.fa').removeClass('fa-check-square').addClass('fa-square-o');
-            $btn.find('span').text('Elegir');
+            $row.removeClass('row-selected');          // <<< sin verde
         }
     });
 

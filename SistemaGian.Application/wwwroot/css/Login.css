@@ -1,6 +1,6 @@
 ﻿/* Fondo azul oscuro */
 body {
-    background-color: #212f3c;
+    background: radial-gradient(1200px 700px at -5% -10%, #1a1f42 0%, #0e1224 40%, #0e1224 100%) fixed;
     font-family: Arial, sans-serif;
     margin: 0;
     height: 100vh;
@@ -20,7 +20,7 @@ body {
 
 /* Parte izquierda (azul oscuro) */
 .left-side {
-    background-color: #1B2631;
+    background: radial-gradient(1200px 700px at -5% -10%, #1a1f42 0%, #0e1224 40%, #02061b 100%) fixed;
     width: 75%;
     display: flex;
     justify-content: center;

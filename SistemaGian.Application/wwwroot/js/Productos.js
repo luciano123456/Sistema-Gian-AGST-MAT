@@ -1227,7 +1227,7 @@ async function configurarDataTable(data) {
                  
 
                                 <button type="button" class="btn btn-sm chip-select btnacciones" data-id="${data}" aria-pressed="false" title="Seleccionar">
-          <i class="fa fa-square-o"></i> <span>Elegir</span>
+          <i class="fa fa-square-o"></i> <span></span>
         </button>
 
        <i class="fa fa-hand-rock-o draggable-icon" title="Mover fila"></i>
@@ -1325,6 +1325,23 @@ async function configurarDataTable(data) {
 
                 // 5) KPI inicial
                 $('#kpiCantProductos').text(gridProductos.rows({ search: 'applied' }).count());
+
+                $('#grd_Productos').off('draw.dt.recolor').on('draw.dt.recolor', function () {
+                    // Pintar de verde las filas cuyos IDs estén en selectedProductos
+                    gridProductos.rows({ page: 'current' }).every(function () {
+                        const data = this.data();
+                        const $row = $(this.node());
+                        if (selectedProductos.includes(Number(data.Id))) {
+                            $row.addClass('row-selected');
+                            $row.find('.chip-select').addClass('is-selected').attr('aria-pressed', true)
+                                .find('.fa').removeClass('fa-square-o').addClass('fa-check-square');
+                        } else {
+                            $row.removeClass('row-selected');
+                            $row.find('.chip-select').removeClass('is-selected').attr('aria-pressed', false)
+                                .find('.fa').removeClass('fa-check-square').addClass('fa-square-o');
+                        }
+                    });
+                });
 
                 // 6) Doble click edición (tu lógica original intacta)
                 $('#grd_Productos tbody').off('dblclick.edicion').on('dblclick.edicion', 'td', async function () {
@@ -1530,22 +1547,27 @@ async function configurarDataTable(data) {
         $('#selectAllCheckbox').off('change.selAll').on('change.selAll', function () {
             const checkAll = $(this).is(':checked');
             selectedProductos = [];
+
             $('.chip-select').each(function () {
                 const $btn = $(this);
                 const id = Number($btn.data('id')) || 0;
+                const $row = $btn.closest('tr');
+
                 if (checkAll) {
                     $btn.addClass('is-selected').attr('aria-pressed', true);
                     $btn.find('.fa').removeClass('fa-square-o').addClass('fa-check-square');
-                    $btn.find('span').text('Seleccionado');
                     if (!selectedProductos.includes(id)) selectedProductos.push(id);
+                    $row.addClass('row-selected');         // <<< verde
                 } else {
                     $btn.removeClass('is-selected').attr('aria-pressed', false);
                     $btn.find('.fa').removeClass('fa-check-square').addClass('fa-square-o');
-                    $btn.find('span').text('Elegir');
+                    $row.removeClass('row-selected');      // <<< sin verde
                 }
             });
+
             actualizarBotonesAccion();
         });
+
 
     } else {
         gridProductos.clear().rows.add(data).draw();
@@ -2015,7 +2037,7 @@ $('#selectAllCheckbox').on('change', function () {
         } else {
             $btn.removeClass('is-selected').attr('aria-pressed', false);
             $btn.find('.fa').removeClass('fa-check-square').addClass('fa-square-o');
-            $btn.find('span').text('Elegir');
+            $btn.find('span').text('');
         }
     });
 
@@ -2025,36 +2047,33 @@ $('#selectAllCheckbox').on('change', function () {
 function handleChipSelectClick(btn) {
     const $btn = $(btn);
     const id = Number($btn.data('id')) || 0;
+    const $row = $btn.closest('tr');
 
-    // toggle visual
     const selected = !$btn.hasClass('is-selected');
-    $btn.toggleClass('is-selected', selected)
-        .attr('aria-pressed', selected);
+    $btn.toggleClass('is-selected', selected).attr('aria-pressed', selected);
 
-    // toggle icono + label
     const $icon = $btn.find('.fa');
-    const $txt = $btn.find('span');
     if (selected) {
         $icon.removeClass('fa-square-o').addClass('fa-check-square');
-        $txt.text('Seleccionado');
         if (!selectedProductos.includes(id)) selectedProductos.push(id);
+        $row.addClass('row-selected');          // <<< pinta toda la fila
     } else {
         $icon.removeClass('fa-check-square').addClass('fa-square-o');
-        $txt.text('Elegir');
         const ix = selectedProductos.indexOf(id);
         if (ix > -1) selectedProductos.splice(ix, 1);
+        $row.removeClass('row-selected');       // <<< quita el verde
     }
 
-    actualizarBotonesAccion(); // la tuya
-    // console.log(selectedProductos);
+    actualizarBotonesAccion();
 }
+
 
 function desmarcarChipSelects() {
     selectedProductos = [];
     $('.chip-select').removeClass('is-selected').attr('aria-pressed', false)
         .each(function () {
             $(this).find('.fa').removeClass('fa-check-square').addClass('fa-square-o');
-            $(this).find('span').text('Elegir');
+            $(this).closest('tr').removeClass('row-selected');  // <<< limpia verde
         });
     $('#selectAllCheckbox').prop('checked', false);
     actualizarBotonesAccion();

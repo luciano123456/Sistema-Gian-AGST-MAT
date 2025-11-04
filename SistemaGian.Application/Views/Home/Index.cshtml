@@ -23,8 +23,8 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link href="~/css/site.css" rel="stylesheet" />
     <link href="~/css/home.css" rel="stylesheet" />
-    <link href="~/css/redisenopantallas.css" rel="stylesheet" />
-    <link href="~/css/navbarLogin.css" rel="stylesheet" />
+    <link href="~/css/redisenopantallas.css?v=1.0" rel="stylesheet" />
+    <link href="~/css/navbarLogin.css?v=1.1" rel="stylesheet" />
 
 
 
@@ -106,9 +106,17 @@
                             <div class="col">
                                 <div class="d-flex flex-column align-items-center">
                                     <img src="~/Imagenes/Menu Principal/Productos.png" class="img-fluid max-img-size" alt="Nuevo Producto" title="Nuevo Producto">
+                                    <button type="button" class="btn mt-2 btnMenu" onclick="errorModal('Opcion deshabilitada momentaneamente, crearlo desde el listado de productos')">Nuevo Producto</button>
+                                </div>
+                            </div>
+
+                        @*      <div class="col">
+                                <div class="d-flex flex-column align-items-center">
+                                    <img src="~/Imagenes/Menu Principal/Productos.png" class="img-fluid max-img-size" alt="Nuevo Producto" title="Nuevo Producto">
                                     <button type="button" class="btn mt-2 btnMenu" onclick="nuevoProducto()">Nuevo Producto</button>
                                 </div>
                             </div>
+ *@
 
                             <div class="col">
                                 <div class="d-flex flex-column align-items-center">
@@ -676,7 +684,7 @@
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/home.js?v=1.2"></script>
+    <script src="~/js/home.js?v=1.3"></script>
     <script src="~/js/site.js"></script>
 
 </body>
