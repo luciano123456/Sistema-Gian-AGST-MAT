@@ -21,5 +21,8 @@ namespace SistemaGian.DAL.Repository
         Task<bool> BajarPrecio(string productos, int idProveedor, decimal porcentajeCosto, decimal porcentajeVenta);
         Task<bool> GuardarOrden(int idProducto, int idProveedor, int Orden);
 
+        Task<bool> EditarActivo(int idProducto, int idProveedor, int activo);
+
+
     }
 }

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using SistemaGian.Models;
 
 namespace SistemaGian.DAL.DataContext;
@@ -17,18 +16,6 @@ public partial class SistemaGianContext : DbContext
     {
     }
 
-    private readonly IConfiguration _configuration;
-
-
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
-        if (!optionsBuilder.IsConfigured)
-        {
-            var connectionString = _configuration.GetConnectionString("SistemaDB");
-            optionsBuilder.UseSqlServer(connectionString);
-        }
-    }
-
     public virtual DbSet<AcopioHistorial> AcopioHistorial { get; set; }
 
     public virtual DbSet<AcopioStockActual> AcopioStockActual { get; set; }
@@ -40,6 +27,10 @@ public partial class SistemaGianContext : DbContext
     public virtual DbSet<ClientesHistorialSaldo> ClientesHistorialSaldos { get; set; }
 
     public virtual DbSet<EstadosUsuario> EstadosUsuarios { get; set; }
+
+    public virtual DbSet<Gasto> Gastos { get; set; }
+
+    public virtual DbSet<GastosTipo> GastosTipos { get; set; }
 
     public virtual DbSet<Moneda> Monedas { get; set; }
 
@@ -75,7 +66,12 @@ public partial class SistemaGianContext : DbContext
 
     public virtual DbSet<Zona> Zonas { get; set; }
 
+
     public virtual DbSet<ZonasCliente> ZonasClientes { get; set; }
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
+        => optionsBuilder.UseSqlServer("Server=DESKTOP-3MT5F5F; Database=Sistema_Gian; Integrated Security=true; Trusted_Connection=True; Encrypt=False");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -186,6 +182,39 @@ public partial class SistemaGianContext : DbContext
         {
             entity.Property(e => e.Nombre)
                 .HasMaxLength(100)
+                .IsUnicode(false);
+        });
+
+        modelBuilder.Entity<Gasto>(entity =>
+        {
+            entity.Property(e => e.Concepto)
+                .HasMaxLength(255)
+                .IsUnicode(false);
+            entity.Property(e => e.Fecha).HasColumnType("datetime");
+            entity.Property(e => e.Importe).HasColumnType("decimal(20, 2)");
+            entity.Property(e => e.ImporteArs)
+                .HasColumnType("decimal(20, 2)")
+                .HasColumnName("ImporteARS");
+
+            entity.HasOne(d => d.IdMonedaNavigation).WithMany(p => p.Gastos)
+                .HasForeignKey(d => d.IdMoneda)
+                .HasConstraintName("FK_Gastos_Monedas");
+
+            entity.HasOne(d => d.IdTipoNavigation).WithMany(p => p.Gastos)
+                .HasForeignKey(d => d.IdTipo)
+                .HasConstraintName("FK_Gastos_Gastos_Tipos");
+
+            entity.HasOne(d => d.IdUsuarioNavigation).WithMany(p => p.Gastos)
+                .HasForeignKey(d => d.IdUsuario)
+                .HasConstraintName("FK_Gastos_Usuarios");
+        });
+
+        modelBuilder.Entity<GastosTipo>(entity =>
+        {
+            entity.ToTable("Gastos_Tipos");
+
+            entity.Property(e => e.Nombre)
+                .HasMaxLength(250)
                 .IsUnicode(false);
         });
 

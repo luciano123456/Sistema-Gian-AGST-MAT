@@ -53,4 +53,12 @@ namespace SistemaGian.Application.Models.ViewModels
         public virtual ICollection<ProductosPreciosProveedor> ProductosPreciosProveedor { get; set; } = new List<ProductosPreciosProveedor>();
 
     }
+
+    public class VMEstadoProductosProveedor
+    {
+        public int Id { get; set; }
+        public int activo { get; set; }
+        public int IdProveedor { get; set; }
+    }
+
 }

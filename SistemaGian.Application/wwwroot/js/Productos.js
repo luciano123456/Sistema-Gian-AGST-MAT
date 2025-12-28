@@ -1995,38 +1995,36 @@ async function guardarCambiosFila(rowData) {
 
 const cambiarEstadoProducto = async (id, estado) => {
     try {
-        const value = {
+        const idProveedor = Number(document.getElementById("Proveedoresfiltro").value);
+
+        const payload = {
             Id: id,
-            activo: estado
+            activo: estado,
+            IdProveedor: idProveedor
         };
 
-        const url = "/Productos/EditarActivo";
-        const method = "POST";
+        const url = idProveedor > 0
+            ? "/Productos/EditarActivoProveedor"
+            : "/Productos/EditarActivo";
 
-        fetch(url, {
-            method: method,
-            headers: {
-                'Content-Type': 'application/json;charset=utf-8'
-            },
-            body: JSON.stringify(value) // Aquí ya no es necesario envolverlo en JSON.stringify nuevamente
-        })
-            .then(response => {
-                if (!response.ok) throw new Error(response.statusText);
-                return response.json();
-            })
-            .then(dataJson => {
-                const mensaje = "Cambio de estado correctamente";
-                exitoModal(mensaje);
-                listaProductos();
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
-    } catch (error) {
-        $('.datos-error').text('Ha ocurrido un error.')
-        $('.datos-error').removeClass('d-none')
+        const response = await fetch(url, {
+            method: "POST",
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+
+        if (data?.Status) {
+            exitoModal("Estado actualizado correctamente");
+            listaProductos();
+        } else {
+            errorModal("Error al cambiar el estado");
+        }
+    } catch {
+        errorModal("Error de conexión");
     }
-}
+};
 
 $('#selectAllCheckbox').on('change', function () {
     const checkAll = $(this).is(':checked');

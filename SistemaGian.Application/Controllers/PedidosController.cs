@@ -176,7 +176,7 @@ namespace SistemaGian.Application.Controllers
                 PorcGanancia = p.PorcGanancia,
                 Estado = p.Estado,
                 Observacion = p.Observacion,
-            }).Where(x => x.Estado == "Entregado" && x.Fecha >= FechaDesde && x.Fecha <= FechaHasta && (x.IdCliente == IdCliente || IdCliente == -1) && (x.IdProveedor == IdProveedor || IdProveedor == -1)).ToList();
+            }).Where(x => x.Estado == "Entregado" && x.FechaEntrega >= FechaDesde && x.FechaEntrega <= FechaHasta && (x.IdCliente == IdCliente || IdCliente == -1) && (x.IdProveedor == IdProveedor || IdProveedor == -1)).ToList();
 
             return Ok(lista);
         }

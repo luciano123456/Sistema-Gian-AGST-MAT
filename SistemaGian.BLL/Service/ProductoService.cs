@@ -212,6 +212,7 @@ namespace SistemaGian.BLL.Service
                             producto.PorcGanancia = precioProveedor.PorcGanancia;
                             producto.ProductoCantidad = precioProveedor.ProductoCantidad;
                             producto.Orden = precioProveedor.Orden;
+                            producto.Activo = precioProveedor.Activo;
                         }
                         else if (preciosClienteDict.TryGetValue(producto.Id, out var precioCliente))
                         {
