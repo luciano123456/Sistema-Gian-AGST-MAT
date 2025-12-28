@@ -66,7 +66,6 @@ public partial class SistemaGianContext : DbContext
 
     public virtual DbSet<Zona> Zonas { get; set; }
 
-
     public virtual DbSet<ZonasCliente> ZonasClientes { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -190,6 +189,7 @@ public partial class SistemaGianContext : DbContext
             entity.Property(e => e.Concepto)
                 .HasMaxLength(255)
                 .IsUnicode(false);
+            entity.Property(e => e.Cotizacion).HasColumnType("decimal(20, 2)");
             entity.Property(e => e.Fecha).HasColumnType("datetime");
             entity.Property(e => e.Importe).HasColumnType("decimal(20, 2)");
             entity.Property(e => e.ImporteArs)
@@ -198,10 +198,12 @@ public partial class SistemaGianContext : DbContext
 
             entity.HasOne(d => d.IdMonedaNavigation).WithMany(p => p.Gastos)
                 .HasForeignKey(d => d.IdMoneda)
+                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Gastos_Monedas");
 
             entity.HasOne(d => d.IdTipoNavigation).WithMany(p => p.Gastos)
                 .HasForeignKey(d => d.IdTipo)
+                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Gastos_Gastos_Tipos");
 
             entity.HasOne(d => d.IdUsuarioNavigation).WithMany(p => p.Gastos)
@@ -545,6 +547,7 @@ public partial class SistemaGianContext : DbContext
                 .IsUnicode(false);
             entity.Property(e => e.Precio).HasColumnType("decimal(20, 2)");
         });
+
 
         modelBuilder.Entity<ZonasCliente>(entity =>
         {

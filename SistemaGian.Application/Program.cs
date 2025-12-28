@@ -86,6 +86,13 @@ builder.Services.AddScoped<IAcopioStockActualRepository, AcopioStockActualReposi
 builder.Services.AddScoped<IAcopioHistorialService, AcopioHistorialService>();
 builder.Services.AddScoped<IAcopioStockActualService, AcopioStockActualService>();
 
+builder.Services.AddScoped<IGastosTiposRepository<GastosTipo>, GastosTiposRepository>();
+builder.Services.AddScoped<IGastosTiposService, GastosTiposService>();
+
+
+builder.Services.AddScoped<IGastosRepository<Gasto>, GastosRepository>();
+builder.Services.AddScoped<IGastosService, GastosService>();
+
 
 builder.Services.AddControllersWithViews()
     .AddJsonOptions(o =>
