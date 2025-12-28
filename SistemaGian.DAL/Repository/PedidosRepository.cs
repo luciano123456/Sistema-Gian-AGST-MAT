@@ -93,7 +93,7 @@ namespace SistemaGian.DAL.Repository
                             if (stock != null)
                             {
                                 // Sumar la cantidad devuelta al stock
-                                stock.CantidadActual += producto.CantidadUsadaAcopio;
+                                stock.CantidadActual += (decimal)producto.CantidadUsadaAcopio;
 
                                 // Registrar historial
                                 _dbcontext.AcopioHistorial.Add(new AcopioHistorial
@@ -410,107 +410,38 @@ namespace SistemaGian.DAL.Repository
                         .Where(x => x.IdPedido == idPedido)
                         .ToListAsync();
 
-                    // === ELIMINADOS ===
                     var aEliminar = existentes
-                        .Where(pe => !productos.Any(p => p.IdPedido == pe.IdPedido && p.IdProducto == pe.IdProducto))
+                        .Where(pe => !productos.Any(p => p.IdProducto == pe.IdProducto))
                         .ToList();
-
-                    foreach (var pe in aEliminar)
-                    {
-                        // 🔁 DEVOLVER ACOPIO
-                        if (pe.CantidadUsadaAcopio > 0)
-                        {
-                            var stock = await _dbcontext.AcopioStockActual
-                                .FirstOrDefaultAsync(x => x.IdProducto == pe.IdProducto);
-
-                            if (stock != null)
-                                stock.CantidadActual += pe.CantidadUsadaAcopio;
-
-                            _dbcontext.AcopioHistorial.Add(new AcopioHistorial
-                            {
-                                IdProducto = (int)pe.IdProducto,
-                                IdProveedor = idProveedor,
-                                Fecha = DateTime.Now,
-                                Ingreso = pe.CantidadUsadaAcopio,
-                                Egreso = null,
-                                Observaciones = $"Devolución de acopio por modificación del pedido N° {await RefNroPartida((int)idPedido)}"
-                            });
-                        }
-                    }
 
                     _dbcontext.PedidosProductos.RemoveRange(aEliminar);
 
-                    // === UPSERT ===
                     foreach (var p in productos.Where(x => x.IdPedido == idPedido))
                     {
                         p.IdPedidoNavigation = null;
                         p.IdProductoNavigation = null;
+                        p.IdMonedaNavigation = null;
 
                         var existente = existentes.FirstOrDefault(x => x.IdProducto == p.IdProducto);
 
                         if (existente != null)
                         {
-                            // 🔁 AJUSTE ACOPIO
-                            decimal diff = p.CantidadUsadaAcopio - existente.CantidadUsadaAcopio;
-
-                            if (diff != 0)
-                            {
-                                var stock = await _dbcontext.AcopioStockActual
-                                    .FirstOrDefaultAsync(x => x.IdProducto == p.IdProducto);
-
-                                if (stock == null)
-                                    throw new Exception($"No existe stock de acopio para producto {p.IdProducto}");
-
-                                if (diff > 0 && stock.CantidadActual < diff)
-                                    throw new Exception($"Stock insuficiente en acopio para producto {p.IdProducto}");
-
-                                stock.CantidadActual -= diff;
-
-                                _dbcontext.AcopioHistorial.Add(new AcopioHistorial
-                                {
-                                    IdProducto = (int)p.IdProducto,
-                                    IdProveedor = idProveedor,
-                                    Fecha = DateTime.Now,
-                                    Ingreso = diff < 0 ? Math.Abs(diff) : null,
-                                    Egreso = diff > 0 ? diff : null,
-                                    Observaciones = $"Ajuste de acopio por modificación del pedido N° {await RefNroPartida((int)idPedido)}"
-                                });
-                            }
-
                             existente.Cantidad = p.Cantidad;
+                            existente.ProductoCantidad = p.ProductoCantidad;
                             existente.PrecioCosto = p.PrecioCosto;
                             existente.PrecioVenta = p.PrecioVenta;
-                            existente.ProductoCantidad = p.ProductoCantidad;
                             existente.CantidadUsadaAcopio = p.CantidadUsadaAcopio;
+
+                            // 🔥 MONEDA
+                            existente.IdMoneda = p.IdMoneda;
+                            existente.Cotizacion = p.Cotizacion;
+                            existente.PrecioCostoArs = p.PrecioCostoArs;
+                            existente.PrecioVentaArs = p.PrecioVentaArs;
+                            existente.TotalArs = p.TotalArs;
                         }
                         else
                         {
-                            // ➕ NUEVO PRODUCTO
                             _dbcontext.PedidosProductos.Add(p);
-
-                            if (p.CantidadUsadaAcopio > 0)
-                            {
-                                var stock = await _dbcontext.AcopioStockActual
-                                    .FirstOrDefaultAsync(x => x.IdProducto == p.IdProducto);
-
-                                if (stock == null)
-                                    throw new Exception($"No existe stock de acopio para producto {p.IdProducto}");
-
-                                if (stock.CantidadActual < p.CantidadUsadaAcopio)
-                                    throw new Exception($"Stock insuficiente en acopio para producto {p.IdProducto}");
-
-                                stock.CantidadActual -= p.CantidadUsadaAcopio;
-
-                                _dbcontext.AcopioHistorial.Add(new AcopioHistorial
-                                {
-                                    IdProducto = (int)p.IdProducto,
-                                    IdProveedor = idProveedor,
-                                    Fecha = DateTime.Now,
-                                    Ingreso = null,
-                                    Egreso = p.CantidadUsadaAcopio,
-                                    Observaciones = $"Uso de acopio por nuevo pedido N° {await RefNroPartida((int)idPedido)}"
-                                });
-                            }
                         }
                     }
                 }
@@ -520,7 +451,7 @@ namespace SistemaGian.DAL.Repository
             }
             catch (Exception ex)
             {
-                Console.WriteLine("❌ Error en InsertarProductos: " + ex.Message);
+                Console.WriteLine("❌ Error InsertarProductos: " + ex.Message);
                 return false;
             }
         }
@@ -673,13 +604,14 @@ namespace SistemaGian.DAL.Repository
         {
             try
             {
+                var productos = await _dbcontext.PedidosProductos
+                    .Include(p => p.IdProductoNavigation)
+                        .ThenInclude(p => p.IdUnidadDeMedidaNavigation)
+                    .Include(p => p.IdMonedaNavigation) // 🔥 ESTO FALTABA
+                    .Where(p => p.IdPedido == idPedido)
+                    .ToListAsync();
 
-                List<PedidosProducto> productos = _dbcontext.PedidosProductos
-                    .Include(c => c.IdProductoNavigation)
-                    .ThenInclude(c => c.IdUnidadDeMedidaNavigation)
-                    .Where(c => c.IdPedido == idPedido).ToList();
                 return productos;
-
             }
             catch (Exception ex)
             {
@@ -687,6 +619,7 @@ namespace SistemaGian.DAL.Repository
                 return null;
             }
         }
+
 
         public async Task<IQueryable<Pedido>> ObtenerTodos()
         {

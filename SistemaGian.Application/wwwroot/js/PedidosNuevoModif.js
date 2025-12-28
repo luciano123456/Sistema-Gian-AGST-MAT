@@ -20,6 +20,104 @@ var userSession = JSON.parse(localStorage.getItem('userSession'));
 const TZ_AR = "America/Argentina/Buenos_Aires";
 const fmtISO = d => moment.tz(d, TZ_AR).format("YYYY-MM-DD");
 
+let monedasCache = [];
+
+async function cargarMonedas() {
+    const res = await fetch('/Monedas/Lista');
+    const data = await res.json();
+
+    monedasCache = (data || []).map(m => ({
+        id: m.Id,
+        nombre: m.Nombre,
+        cotizacion: m.Cotizacion || 1
+    }));
+
+    const $sel = $('#productoMoneda');
+    $sel.empty().prop('disabled', false);
+
+    monedasCache.forEach(m => {
+        $sel.append(`<option value="${m.id}">${m.nombre}</option>`);
+    });
+}
+
+
+const ID_ARS = 16;
+const ID_USD = 23;   // <-- poné el ID real de USD en tu tabla Monedas
+const ID_EUR = 24;   // <-- poné el ID real de EURO en tu tabla Monedas
+
+
+function aplicarMonedaProducto(idMoneda) {
+    idMoneda = parseInt(idMoneda);
+    if (!idMoneda) return;
+
+    const esARS = idMoneda === ID_ARS;
+
+    const fieldCot = $('#productoCotizacion').closest('.cc-field');
+    const fieldPrecioArs = $('#precioVentaArs').closest('.cc-field');
+    const fieldTotalArs = $('#totalProductoArs').closest('.cc-field');
+
+    if (esARS) {
+        // 🔒 ARS
+        fieldCot.hide();
+        fieldPrecioArs.hide();
+        fieldTotalArs.hide();
+
+        $('#productoCotizacion')
+            .val(1)
+            .prop('readonly', true);
+
+        $('#precioVentaArs').val('');
+        $('#totalProductoArs').val('');
+    } else {
+        // 🌎 OTRA MONEDA
+        fieldCot.show();
+        fieldPrecioArs.show();
+        fieldTotalArs.show();
+
+        const m = monedasCache.find(x => x.id === idMoneda);
+        $('#productoCotizacion')
+            .val(m?.cotizacion || 1)
+            .prop('readonly', false);
+    }
+
+    recalcularProducto();
+}
+
+
+
+$('#productoMoneda').on('change', function () {
+    aplicarMonedaProducto(this.value);
+});
+
+function recalcularProducto() {
+    const precio = convertirMonedaAFloat($('#precioInput').val()) || 0;
+    const cantidad = desformatearAR($('#cantidadInput').val()) || 0;
+    const cantidadAcopio = parseFloat($('#cantidadAcopioInput').val()) || 0;
+    const productoCantidad = parseFloat($('#productoCantidad').val()) || 1;
+    const cot = convertirMonedaAFloat($('#productoCotizacion').val()) || 1;
+
+    const idMoneda = parseInt($('#productoMoneda').val());
+    const esARS = idMoneda === ID_ARS;
+
+    const cantidadTotal = cantidad + cantidadAcopio;
+    let total = 0;
+
+    const nombre = $('#productoSelect option:selected').text() || "";
+
+    if (nombre.toUpperCase().includes("FAC. IVA")) {
+        total = cantidad * (precio / 100);
+    } else {
+        total = (precio * productoCantidad) * cantidadTotal;
+    }
+
+    $('#totalInput').val(formatNumber(total));
+
+    if (!esARS) {
+        $('#precioVentaArs').val(formatNumber(precio * cot));
+        $('#totalProductoArs').val(formatNumber(total * cot));
+    }
+}
+
 // Setear fecha en el input del pago de cliente
 function setFechaPagoCliente(iso) {
     const inp = document.getElementById("fechapagoCliente");
@@ -31,9 +129,11 @@ let idPedido = document.getElementById('IdPedido').value;
 let productos = [];
 
 $(document).ready(async function () {
-    listaClientes();
+    await cargarMonedas();
+
+    await listaClientes();
     /*listaProveedores();*/
-    listaChoferes ();
+    await listaChoferes ();
 
     inicializarSonidoNotificacion();
 
@@ -104,8 +204,15 @@ $(document).ready(async function () {
         dropdownParent: $("#productosModal"),
         width: "100%",
         placeholder: "Selecciona una opción",
-        allowClear: false
+        allowClear: false,
+        templateResult: renderProductoConMoneda,
+        templateSelection: renderProductoConMoneda,
+        escapeMarkup: m => m
     });
+
+
+
+    $('#precioInput, #cantidadInput, #productoCotizacion').on('input', recalcularProducto);
 
 });
 
@@ -577,14 +684,13 @@ async function ObtenerDatosProveedor(id) {
 }
 
 async function cargarDataTableProductos(data) {
+
     const datos = data != null ? data.$values : data;
 
     if (grdProductos) {
         grdProductos.clear().rows.add(datos).draw();
         return;
     }
-
-
 
     grdProductos = $('#grd_Productos').DataTable({
         data: datos,
@@ -594,23 +700,54 @@ async function cargarDataTableProductos(data) {
         },
         scrollX: true,
         autoWidth: false,
+
         columns: [
+            // 1 Nombre
             { data: 'Nombre', width: "15%" },
-            { data: 'PrecioCosto', width: "15%", visible: false },
-            { data: 'PrecioVenta', width: "15%" },
-            { data: 'ProductoCantidad', width: "15%" },
-            { data: 'Cantidad', width: "15%" },
+
+            // 2 Precio Costo
+            { data: 'PrecioCosto', visible: false },
+
+            // 3 Precio Venta
+            { data: 'PrecioVenta' },
+
+            // 4 Moneda
             {
-                data: 'CantidadUsadaAcopio',
-                width: "15%",
-                render: function (data) {
-                    return data ? data : "0";
+                data: 'IdMoneda',
+                render: d => {
+                    const m = monedasCache.find(x => x.id == d);
+                    return m ? m.nombre : '';
                 }
             },
+
+            // 5 Cotización
+            {
+                data: 'Cotizacion',
+                render: d => d || 1
+            },
+
+            // 6 Precio Venta ARS
+            {
+                data: 'PrecioVentaArs',
+                render: d => formatoMoneda.format(d || 0)
+            },
+
+            // 7 Cantidad de Productos
+            { data: 'ProductoCantidad' },
+
+            // 8 Cantidad
+            { data: 'Cantidad' },
+
+            // 9 Cant. Acopio
+            {
+                data: 'CantidadUsadaAcopio',
+                render: d => d || 0
+            },
+
+            // 10 Total (TU LÓGICA)
             {
                 data: null,
-                width: "15%",
-                render: function (data, type, row) {
+                render: function (_, __, row) {
                     let total = 0;
                     const cantidadBase = parseFloat(row.Cantidad) || 0;
                     const cantidadAcopio = parseFloat(row.CantidadUsadaAcopio) || 0;
@@ -621,58 +758,53 @@ async function cargarDataTableProductos(data) {
                     } else {
                         total = (parseFloat(row.PrecioVenta) * parseFloat(row.ProductoCantidad)) * cantidadTotal;
                     }
+
+                    row.Total = total;
                     return formatoMoneda.format(total);
                 }
             },
-            { data: 'Peso', width: "15%", visible: false },
-            { data: 'UnidadMedida', width: "15%", visible: false },
-            {
-                data: null,
-                width: "15%",
-                render: function (data, type, row) {
-                    const descripcion = row.Nombre ? row.Nombre.toLowerCase() : '';
-                    const unidadMedida = row.UnidadMedida ? row.UnidadMedida.toUpperCase() : '';
-                    const peso = parseFloat(row.Peso) || 0;
 
-                    if (descripcion.includes('hierro') && unidadMedida === 'KG' && peso > 0) {
-                        const kilosTotales = row.ProductoCantidad * row.Cantidad;
-                        const cantidadBarras = kilosTotales / peso;
-                        return `Barras: <span style="color: yellow; font-weight: bold;">${cantidadBarras.toFixed(2)}</span>`;
-                    }
-                    return '';
-                },
-                orderable: false,
-                searchable: false
+            // 11 Total ARS
+            {
+                data: 'TotalArs',
+                render: d => `<b class="text-success">${formatoMoneda.format(d || 0)}</b>`
             },
 
+            // 12 Peso
+            { data: 'Peso', visible: false },
+
+            // 13 Unidad Medida
+            { data: 'UnidadMedida', visible: false },
+
+            // 14 Observacion
+            { data: 'Observacion', defaultContent: '' },
+
+            // 15 Acciones
             {
-                data: "Id",
-                render: function (data, type, row) {
-                    return `
-                <button class='btn btn-sm btneditar btnacciones' type='button' onclick='abrirModalProducto(true, "${row.IdProducto}")' title='Editar'>
-                    <i class='fa fa-pencil-square-o fa-lg text-white' aria-hidden='true'></i>
-                </button>
-                <button class='btn btn-sm btneditar btnacciones' type='button' onclick='eliminarProducto(${row.IdProducto})' title='Eliminar'>
-                    <i class='fa fa-trash-o fa-lg text-danger' aria-hidden='true'></i>
-                </button>`;
-                },
-                orderable: true,
-                searchable: true,
+                data: null,
+                render: (_, __, row) => `
+            <button class='btn btn-sm btneditar btnacciones'
+                onclick='abrirModalProducto(true,"${row.IdProducto}")'>
+                <i class='fa fa-pencil-square-o fa-lg text-white'></i>
+            </button>
+            <button class='btn btn-sm btneditar btnacciones'
+                onclick='eliminarProducto(${row.IdProducto})'>
+                <i class='fa fa-trash-o fa-lg text-danger'></i>
+            </button>`
             }
         ],
+
         orderCellsTop: true,
         fixedHeader: true,
 
-        "columnDefs": [
+        columnDefs: [
             {
-                "render": function (data, type, row) {
-                    return formatNumber(data); // Formatear número en la columna
+                render: function (data) {
+                    return formatNumber(data);
                 },
-                "targets": [1, 2, 5] // Columna Precio
+                targets: [1, 2, 5]
             }
         ],
-
-
 
         initComplete: async function () {
             setTimeout(function () {
@@ -680,8 +812,6 @@ async function cargarDataTableProductos(data) {
             }, 1000);
         }
     });
-
-
 }
 
 
@@ -735,11 +865,18 @@ async function anadirProducto() {
 
         // Llenar el select de productos, deshabilitar los ya agregados
         productos.forEach(producto => {
-            const option = $(`<option value="${producto.IdProducto}">${producto.Nombre}</option>`);
+            const option = $(`
+        <option 
+            value="${producto.IdProducto}"
+            data-moneda="${producto.IdMoneda}"
+        >
+            ${producto.Nombre}
+        </option>
+    `);
 
-            // Deshabilitar si el producto ya está en la tabla
+            // Deshabilitar si ya está agregado
             if (productosEnTabla.includes(producto.IdProducto)) {
-                option.prop('disabled', true); // Deshabilitar la opción si ya está en la tabla
+                option.prop('disabled', true);
             }
 
             productoSelect.append(option);
@@ -814,6 +951,12 @@ async function anadirProducto() {
                 await calcularTotal();
                 calcularDetalleFacturaIVA(selectedProduct);
 
+                $('#productoMoneda')
+                    .prop('disabled', true)
+                    .val(String(selectedProduct.IdMoneda))
+                    .trigger('change');
+
+
             } else {
                 precioInput.val("");
             }
@@ -840,7 +983,9 @@ async function anadirProducto() {
 
 
         // Disparar el evento 'change' para cargar el precio del primer producto
-        productoSelect.trigger("change");
+        setTimeout(() => {
+            productoSelect.trigger("change");
+        }, 0);
         cantidadInput.val("1");
         $("#productoSelect").prop("disabled", false);
 
@@ -914,97 +1059,179 @@ async function calcularSaldoUsado() {
 }
 
 async function guardarProducto() {
+
     const precioSelect = document.getElementById('precioSelect');
     const productoSelect = document.getElementById('productoSelect');
-    const cantidadInput = parseFloat(desformatearAR(document.getElementById('cantidadInput').value)) || 0;
+
+    const cantidadInput =
+        parseFloat(desformatearAR(document.getElementById('cantidadInput').value)) || 0;
+
+    const cantidadAcopio =
+        parseFloat(document.getElementById('cantidadAcopioInput').value) || 0;
+
     const productoId = productoSelect.value;
-    const productoNombre = productoSelect.options[productoSelect.selectedIndex]?.text || '';
+    const productoNombre =
+        productoSelect.options[productoSelect.selectedIndex]?.text || '';
+
     const primerOptionValue = precioSelect.options[0].value;
-   
-    let [precioVenta, precioCosto] = primerOptionValue.split(",").map(Number);
 
-    const cantidadAcopio = parseFloat(document.getElementById('cantidadAcopioInput').value) || 0;
+    const idMoneda = parseInt(document.getElementById("productoMoneda").value);
+    const cotizacion =
+        parseFloat(document.getElementById("productoCotizacion").value) || 1;
+
+    let [precioVenta, precioCosto] =
+        primerOptionValue.split(",").map(Number);
+
+    /* ===============================
+       VALIDACIONES
+    =============================== */
 
     if (cantidadAcopio > cantidadAcopioDisponible) {
-        errorModal(`La cantidad de acopio no puede ser mayor al stock disponible (${cantidadAcopioDisponible})`);
+        errorModal(
+            `La cantidad de acopio no puede ser mayor al stock disponible (${cantidadAcopioDisponible})`
+        );
         return;
     }
 
-    if (cantidadAcopio > cantidadAcopioDisponible) {
-        errorModal(`La cantidad de acopio no puede ser mayor a la cantidad vendida (${cantidadInput})`);
-        return;
-    }
 
+    /* ===============================
+       CONTEXTO MODAL
+    =============================== */
 
     const modal = $('#productosModal');
     const isEditing = modal.attr('data-editing') === 'true';
     const editId = modal.attr('data-id');
 
-    const selectedProduct = productos.find(p => p.IdProducto === parseInt(productoId));
+    const selectedProduct =
+        productos.find(p => p.IdProducto === parseInt(productoId));
 
     let productoExistente = false;
 
-    // Factor sin IVA es la cantidad de productos
+    // Cantidad real del producto (ej: 80)
     const factorSinIVA = selectedProduct.ProductoCantidad;
 
-    let importeVentaUnitario = convertirMonedaAFloat(document.getElementById("precioInput").value);
+    let importeVentaUnitario =
+        convertirMonedaAFloat(document.getElementById("precioInput").value);
+
     let importeCostoUnitario = precioCosto;
+
     let totalVenta = 0;
 
+    /* ===============================
+       CALCULO
+    =============================== */
+
     if (productoNombre.toUpperCase().includes("FAC. IVA")) {
-        // Lo que paga el cliente: Cantidad * (PrecioVenta%)
+
+        // FAC. IVA → porcentaje
         totalVenta = cantidadInput * (precioVenta / 100);
 
-        // El importeCostoUnitario NO debe calcularse, debe seguir siendo el porcentaje
         importeCostoUnitario = precioCosto;
-
-        // Para la grilla mostramos como porcentaje
         importeVentaUnitario = precioVenta;
-   
+
     } else {
-        // Normal
+
         const cantidadTotal = cantidadInput + cantidadAcopio;
-        totalVenta = (importeVentaUnitario * factorSinIVA) * cantidadTotal;
+
+        // Precio unitario en ARS
+        const precioUnitarioArs = importeVentaUnitario * cotizacion;
+
+        // TOTAL FINAL CORRECTO
+        // precio * (cantidad + acopio) * cantidadProducto
+        totalVenta = precioUnitarioArs * cantidadTotal * factorSinIVA;
     }
 
+    const precioVentaArs = importeVentaUnitario * cotizacion;
+    const totalArs = totalVenta;
+
+    /* ===============================
+       EDICIÓN
+    =============================== */
+
     if (isEditing) {
+
         grdProductos.rows().every(function () {
+
             const data = this.data();
+
             if (data.IdProducto == editId) {
+
                 data.Nombre = productoNombre;
                 data.PrecioVenta = parseFloat(importeVentaUnitario);
                 data.PrecioCosto = importeCostoUnitario;
                 data.ProductoCantidad = factorSinIVA;
+
                 data.Cantidad = cantidadInput;
-                data.CantidadUsadaAcopio = cantidadAcopio; // <-- aquí también
+                data.CantidadUsadaAcopio = cantidadAcopio;
+
+                data.IdMoneda = idMoneda;
+                data.Cotizacion = cotizacion;
+
+                data.PrecioVentaArs = precioVentaArs;
                 data.Total = totalVenta;
+                data.TotalArs = totalArs;
+
                 this.data(data).draw();
             }
         });
+
     } else {
+
+        /* ===============================
+           ALTA / SUMA
+        =============================== */
+
         grdProductos.rows().every(function () {
+
             const data = this.data();
+
             if (data.IdProducto == productoId) {
-                // Si no es FAC. IVA, sumamos cantidad
+
                 if (!productoNombre.toUpperCase().includes("FAC. IVA")) {
+
                     data.Cantidad += cantidadInput;
-                    data.Total = (data.PrecioVenta * data.ProductoCantidad) * data.Cantidad;
+                    data.CantidadUsadaAcopio += cantidadAcopio;
+
+                    const cantidadTotal =
+                        data.Cantidad + data.CantidadUsadaAcopio;
+
+                    const precioUnitarioArs =
+                        data.PrecioVenta * data.Cotizacion;
+
+                    data.Total =
+                        precioUnitarioArs *
+                        cantidadTotal *
+                        data.ProductoCantidad;
+
+                    data.TotalArs = data.Total;
                 }
+
                 this.data(data).draw();
                 productoExistente = true;
             }
         });
 
         if (!productoExistente) {
+
             grdProductos.row.add({
                 IdProducto: productoId,
                 Nombre: productoNombre,
+
                 ProductoCantidad: factorSinIVA,
+
                 PrecioVenta: parseFloat(importeVentaUnitario),
                 PrecioCosto: importeCostoUnitario,
+
                 Cantidad: cantidadInput,
                 CantidadUsadaAcopio: cantidadAcopio,
+
+                IdMoneda: idMoneda,
+                Cotizacion: cotizacion,
+
+                PrecioVentaArs: precioVentaArs,
                 Total: totalVenta,
+                TotalArs: totalArs,
+
                 UnidadMedida: selectedProduct.UnidadMedida || "",
                 Peso: selectedProduct.Peso || 0
             }).draw();
@@ -1017,9 +1244,15 @@ async function guardarProducto() {
 
 
 
-
 async function calcularDatosPedido() {
-    let pedidoVenta = 0, pedidoCosto = 0, pagosaproveedores = 0, pagosclientes = 0, restantecliente = 0, restanteproveedor = 0, pedidoVentaFinal = 0, totalPagaraProveedor = 0;
+    let pedidoVenta = 0,
+        pedidoCosto = 0,
+        pagosaproveedores = 0,
+        pagosclientes = 0,
+        restantecliente = 0,
+        restanteproveedor = 0,
+        pedidoVentaFinal = 0,
+        totalPagaraProveedor = 0;
 
     const inputRestanteProveedor = document.getElementById("restanteProveedor");
     const inputRestanteCliente = document.getElementById("restanteCliente");
@@ -1033,33 +1266,53 @@ async function calcularDatosPedido() {
             const cantidadAcopio = parseFloat(producto.CantidadUsadaAcopio) || 0;
             const cantidadTotal = cantidadBase + cantidadAcopio;
 
-            if (producto.Nombre.toUpperCase().includes("FAC. IVA")) {
-                pedidoVenta += cantidadBase * (parseFloat(producto.PrecioVenta) / 100);
-                pedidoCosto += cantidadBase * producto.ProductoCantidad * (parseFloat(producto.PrecioCosto) / 100);
-            } else {
-                pedidoVenta += (parseFloat(producto.PrecioVenta) * producto.ProductoCantidad) * cantidadTotal;
-                pedidoCosto += (parseFloat(producto.PrecioCosto) * producto.ProductoCantidad) * cantidadTotal;
-            }
+            // 🔥 NUEVO: cotización por producto (default 1)
+            const cot = parseFloat(producto.Cotizacion) || 1;
 
+            if (producto.Nombre.toUpperCase().includes("FAC. IVA")) {
+
+                // ===== FAC IVA (RESPETADO AL 100%) =====
+                pedidoVenta += (cantidadBase * (parseFloat(producto.PrecioVenta) / 100)) * cot;
+
+                pedidoCosto += (
+                    cantidadBase *
+                    producto.ProductoCantidad *
+                    (parseFloat(producto.PrecioCosto) / 100)
+                ) * cot;
+
+            } else {
+
+                // ===== NORMAL (RESPETADO AL 100%) =====
+                pedidoVenta += (
+                    (parseFloat(producto.PrecioVenta) * producto.ProductoCantidad) *
+                    cantidadTotal
+                ) * cot;
+
+                pedidoCosto += (
+                    (parseFloat(producto.PrecioCosto) * producto.ProductoCantidad) *
+                    cantidadTotal
+                ) * cot;
+            }
         });
     }
 
-
+    // ===== PAGOS PROVEEDOR (YA EN ARS) =====
     if (grdPagosaProveedores != null && grdPagosaProveedores.rows().count() > 0) {
         grdPagosaProveedores.rows().every(function () {
             const pago = this.data();
-            pagosaproveedores += parseFloat(pago.TotalArs);
+            pagosaproveedores += parseFloat(pago.TotalArs) || 0;
         });
     }
 
+    // ===== PAGOS CLIENTE (YA EN ARS) =====
     if (grdPagosaClientes != null && grdPagosaClientes.rows().count() > 0) {
         grdPagosaClientes.rows().every(function () {
             const pago = this.data();
-            pagosclientes += parseFloat(pago.TotalArs);
+            pagosclientes += parseFloat(pago.TotalArs) || 0;
         });
     }
 
-    const flete = parseFloat(convertirMonedaAFloat(costoFlete.value));
+    const flete = parseFloat(convertirMonedaAFloat(costoFlete.value)) || 0;
 
     const totalGanancia = pedidoVenta - pedidoCosto;
     const porcGanancia = pedidoCosto > 0 ? (totalGanancia / pedidoCosto) * 100 : 0;
@@ -1070,26 +1323,26 @@ async function calcularDatosPedido() {
 
     totalPagaraProveedor = pedidoCosto;
 
-    document.getElementById("totalPagoProveedor").value = formatoMoneda.format(parseFloat(totalPagaraProveedor));
-    document.getElementById("totalPagadoaProveedor").value = formatoMoneda.format(parseFloat(pagosaproveedores));
-    document.getElementById("totalPagoCliente").value = formatoMoneda.format(parseFloat(pedidoVentaFinal));
-    document.getElementById("totalPagadoCliente").value = formatoMoneda.format(parseFloat(pagosclientes));
-    document.getElementById("totalGanancia").value = formatoMoneda.format(parseFloat(totalGanancia));
+    document.getElementById("totalPagoProveedor").value = formatoMoneda.format(totalPagaraProveedor);
+    document.getElementById("totalPagadoaProveedor").value = formatoMoneda.format(pagosaproveedores);
+    document.getElementById("totalPagoCliente").value = formatoMoneda.format(pedidoVentaFinal);
+    document.getElementById("totalPagadoCliente").value = formatoMoneda.format(pagosclientes);
+    document.getElementById("totalGanancia").value = formatoMoneda.format(totalGanancia);
     document.getElementById("porcGanancia").value = `${porcGanancia.toFixed(2)}%`;
 
     inputRestanteProveedor.value = formatoMoneda.format(restanteproveedor);
-    if (restanteproveedor < 0) {
-        inputRestanteProveedor.style.setProperty("color", "red", "important");
-    } else {
-        inputRestanteProveedor.style.setProperty("color", "white", "important");
-    }
+    inputRestanteProveedor.style.setProperty(
+        "color",
+        restanteproveedor < 0 ? "red" : "white",
+        "important"
+    );
 
     inputRestanteCliente.value = formatoMoneda.format(restantecliente);
-    if (restantecliente < 0) {
-        inputRestanteCliente.style.setProperty("color", "red", "important");
-    } else {
-        inputRestanteCliente.style.setProperty("color", "white", "important");
-    }
+    inputRestanteCliente.style.setProperty(
+        "color",
+        restantecliente < 0 ? "red" : "white",
+        "important"
+    );
 }
 
 
@@ -1146,6 +1399,8 @@ async function abrirModalProducto(isEdit = false, productoId = null) {
     const cantidadAcopioInput = document.getElementById('cantidadAcopioInput');
     const lblStockDisponible = document.getElementById("lblStockDisponible");
     const divCantidadAcopio = document.getElementById("divCantidadAcopio");
+
+    $('#productoMoneda').prop('disabled', true);
 
     let i = 0, optionSeleccionado = 0;
 
@@ -1256,6 +1511,11 @@ async function abrirModalProducto(isEdit = false, productoId = null) {
             if (precioSelect.options.length > 0) {
                 precioSelect.options[optionSeleccionado].selected = true;
             }
+
+            $('#productoMoneda')
+                .prop('disabled', true)
+                .val(String(productoData.IdMoneda))
+                .trigger('change');
 
             await calcularTotal();
             await calcularBarras(productoData, productoData.Cantidad);
@@ -1915,25 +2175,34 @@ function obtenerPagos(grd) {
 
 
 function obtenerProductos(grd) {
+
     let productos = [];
+
     grd.rows().every(function () {
-        const producto = this.data();
-        const productoJson = {
-            Id: idPedido != "" ? producto.Id : 0,
-            IdProducto: parseInt(producto.IdProducto),
-            Nombre: producto.Nombre,
-            PrecioCosto: parseFloat(producto.PrecioCosto),
-            PrecioVenta: parseFloat(producto.PrecioVenta),
-            ProductoCantidad: parseFloat(producto.ProductoCantidad),
-            Cantidad: parseFloat(producto.Cantidad),
-            CantidadUsadaAcopio: parseFloat(producto.CantidadUsadaAcopio) // NUEVO
-        };
+        const p = this.data();
 
-        productos.push(productoJson);
+        productos.push({
+            Id: idPedido && !isNaN(parseInt(p.Id)) ? parseInt(p.Id) : 0,
+            IdProducto: parseInt(p.IdProducto),
+            Nombre: p.Nombre,
+
+            PrecioCosto: parseFloat(p.PrecioCosto),
+            PrecioVenta: parseFloat(p.PrecioVenta),
+            PrecioVentaArs: parseFloat(p.PrecioVentaArs),
+
+            ProductoCantidad: parseFloat(p.ProductoCantidad),
+            Cantidad: parseFloat(p.Cantidad),
+            CantidadUsadaAcopio: parseFloat(p.CantidadUsadaAcopio),
+
+            IdMoneda: parseInt(p.IdMoneda),
+            Cotizacion: parseFloat(p.Cotizacion),
+            TotalArs: parseFloat(p.TotalArs)
+        });
     });
-    return productos;
 
+    return productos;
 }
+
 async function guardarCambios() {
    
     if (isValidPedido()) {
@@ -2672,3 +2941,33 @@ $('#Zonas').on('change', function () {
     $('#costoFlete').val(formatNumber(parseFloat(precio)));
     calcularDatosPedido();
 });
+
+
+
+function renderProductoConMoneda(item) {
+    if (!item.id) return item.text;
+
+    const $opt = $(item.element);
+    const idMoneda = parseInt($opt.data('moneda'));
+
+    // ARS => normal
+    if (!idMoneda || idMoneda === ID_ARS) return item.text;
+
+    // Extranjeras => icono + color por moneda
+    let icono = '🌎';
+    let cls = 'producto-moneda-usd'; // default verde
+
+    if (idMoneda === ID_USD) {
+        icono = '💵';
+        cls = 'producto-moneda-usd';
+    } else if (idMoneda === ID_EUR) {
+        icono = '💶';
+        cls = 'producto-moneda-eur';
+    }
+
+    return $(`
+        <span class="${cls}">
+            ${icono} ${item.text}
+        </span>
+    `);
+}

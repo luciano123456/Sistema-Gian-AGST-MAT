@@ -241,18 +241,33 @@
                         <thead>
                             <tr>
                                 <th>Nombre</th>
+
+                                <!-- EXISTENTES -->
                                 <th>Precio Costo</th>
                                 <th>Precio Venta</th>
+
+                                <!-- 🔥 NUEVOS -->
+                                <th>Moneda</th>
+                                <th>Cotización</th>
+                                <th>Precio Venta ARS</th>
+
+                                <!-- EXISTENTES -->
                                 <th>Cantidad de Productos</th>
                                 <th>Cantidad</th>
                                 <th>Cant. Acopio</th>
                                 <th>Total</th>
+
+                                <!-- 🔥 NUEVO -->
+                                <th>Total ARS</th>
+
+                                <!-- EXISTENTES -->
                                 <th>Peso</th>
                                 <th>Unidad Medida</th>
                                 <th>Observacion</th>
                                 <th>Acciones</th>
                             </tr>
                         </thead>
+
                         <tbody></tbody>
                     </table>
                 </div>
@@ -481,6 +496,27 @@
                             </div>
 
                             <div class="cc-field">
+                                <label class="form-label">Moneda</label>
+                                <select id="productoMoneda" class="form-control" disabled></select>
+                            </div>
+
+                            <div class="cc-field">
+                                <label class="form-label">Cotización</label>
+                                <input type="number" id="productoCotizacion" class="form-control" step="0.0001">
+                            </div>
+
+                            <div class="cc-field">
+                                <label class="form-label">Precio Venta ARS</label>
+                                <input type="text" id="precioVentaArs" class="form-control" readonly>
+                            </div>
+
+                            <div class="cc-field">
+                                <label class="form-label">Total ARS</label>
+                                <input type="text" id="totalProductoArs" class="form-control" readonly>
+                            </div>
+
+
+                            <div class="cc-field">
                                 <label for="productoUnidadMedida" class="form-label">Unidad de Medida</label>
                                 <input type="text" id="productoUnidadMedida" class="form-control" readonly>
                             </div>
@@ -698,7 +734,7 @@
     <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
     <script src="~/js/utils/moment.js"></script>
-    <script src="~/js/pedidosnuevomodif.js?v=4.1"></script>
+    <script src="~/js/pedidosnuevomodif.js?v=4.2"></script>
     <script src="~/js/site.js"></script>
 }
 

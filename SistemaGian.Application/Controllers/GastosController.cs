@@ -29,7 +29,7 @@ namespace SistemaGian.Application.Controllers
 
             var q = await _service.Listar(fd, fh, idMoneda, idTipo);
 
-            4var lista = q.Select(x => new VMGastos
+            var lista = q.Select(x => new VMGastos
             {
                 Id = x.Id,
                 Fecha = x.Fecha,

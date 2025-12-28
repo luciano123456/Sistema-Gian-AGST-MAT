@@ -266,7 +266,13 @@ namespace SistemaGian.Application.Controllers
                         PrecioVenta = producto.PrecioVenta,
                         ProductoCantidad = producto.ProductoCantidad,
                         Cantidad = producto.Cantidad,
-                        CantidadUsadaAcopio = producto.CantidadUsadaAcopio
+                        CantidadUsadaAcopio = producto.CantidadUsadaAcopio,
+                        // 🔥 MONEDA
+                        IdMoneda = producto.IdMoneda,
+                        Cotizacion = producto.Cotizacion,
+                        PrecioCostoArs = producto.PrecioCosto * producto.Cotizacion,
+                        PrecioVentaArs = producto.PrecioVenta * producto.Cotizacion,
+                        TotalArs = producto.TotalArs
                     };
                     pedidosProducto.Add(nuevoProducto);
                 }
@@ -401,7 +407,13 @@ namespace SistemaGian.Application.Controllers
                             PrecioVenta = producto.PrecioVenta,
                             ProductoCantidad = producto.ProductoCantidad,
                             Cantidad = producto.Cantidad,
-                            CantidadUsadaAcopio = producto.CantidadUsadaAcopio
+                            CantidadUsadaAcopio = producto.CantidadUsadaAcopio,
+                            // 🔥 MONEDA
+                            IdMoneda = producto.IdMoneda,
+                            Cotizacion = producto.Cotizacion,
+                            PrecioCostoArs = producto.PrecioCosto * producto.Cotizacion,
+                            PrecioVentaArs = producto.PrecioVenta * producto.Cotizacion,
+                            TotalArs = producto.PrecioVenta * producto.Cantidad * producto.Cotizacion
                         };
                         pedidosProducto.Add(nuevoProducto);
                     }
@@ -536,7 +548,15 @@ namespace SistemaGian.Application.Controllers
                     Total = p.PrecioVenta * p.Cantidad,
                     Peso = p.IdProductoNavigation.Peso,
                     UnidadMedida = p.IdProductoNavigation.IdUnidadDeMedidaNavigation.Nombre,
-                    CantidadUsadaAcopio = p.CantidadUsadaAcopio
+                    CantidadUsadaAcopio = (decimal)p.CantidadUsadaAcopio,
+
+                     // 🔥 MONEDA
+                   IdMoneda = (int)p.IdMoneda,
+                    Moneda = p.IdMonedaNavigation.Nombre,
+                    Cotizacion = (decimal)p.Cotizacion,
+                    PrecioCostoArs = (decimal)p.PrecioCostoArs,
+                    PrecioVentaArs = (decimal)p.PrecioVentaArs,
+                    TotalArs = (decimal)p.TotalArs,
 
                 }).ToList();
 
@@ -632,6 +652,7 @@ namespace SistemaGian.Application.Controllers
                         ProductoCantidad = cantidadFinal,
                         UnidadMedida = productoDatos.IdUnidadDeMedidaNavigation.Nombre,
                         Peso = productoDatos.Peso,
+                        IdMoneda = productoDatos.IdMoneda,
                         Precios = grupo.Select(p => new
                         {
                             Id = p.Id,

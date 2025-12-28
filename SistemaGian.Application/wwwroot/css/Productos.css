@@ -580,3 +580,79 @@ select.form-control option {
 #grd_Productos tbody tr.row-selected {
     box-shadow: inset 3px 0 0 0 #2ea043; /* borde verde a la izquierda */
 }
+
+
+.producto-usd-nombre {
+    font-weight: 600;
+    color: #1fa463;
+}
+
+.badge-usd {
+    background: linear-gradient(135deg, #1fa463, #28d17c);
+    color: #fff;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 6px;
+    margin-left: 6px;
+    vertical-align: middle;
+}
+
+
+tr.row-usd {
+    background: linear-gradient( 90deg, rgba(40, 209, 124, 0.10), rgba(40, 209, 124, 0.03) ) !important;
+}
+
+
+.precio-usd {
+    color: #1fa463;
+    font-weight: 600;
+}
+
+.precio-ars {
+    color: inherit;
+}
+
+
+/* ===== USD ===== */
+.precio-usd {
+    color: #2ecc71;
+    font-weight: 600;
+}
+
+.badge-usd {
+    background: #2ecc71;
+    color: #000;
+    font-size: 0.7rem;
+    margin-left: 4px;
+}
+
+/* ===== EUR ===== */
+.precio-eur {
+    color: #f39c12; /* naranja */
+    font-weight: 600;
+}
+
+.badge-eur {
+    background: #f39c12;
+    color: #000;
+    font-size: 0.7rem;
+    margin-left: 4px;
+}
+
+
+/* fila USD */
+.row-usd td {
+    background: rgba(46, 204, 113, 0.08); /* verdosito suave */
+}
+
+/* fila EUR */
+.row-eur td {
+    background: rgba(243, 156, 18, 0.10); /* naranjita suave */
+}
+
+
+/* ===== NOMBRE PRODUCTO EUR ===== */
+.producto-eur-nombre {
+    color: #f39c12; /* naranja */
+    font-weight: 600;
+}
