@@ -22,7 +22,7 @@ namespace SistemaGian.DAL.Repository
         }
         public async Task<bool> Actualizar(GastosTipo model)
         {
-            _dbcontext.GastosTipo.Update(model);
+            _dbcontext.GastosTipos.Update(model);
             await _dbcontext.SaveChangesAsync();
             return true;
         }

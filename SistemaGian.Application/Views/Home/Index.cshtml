@@ -187,6 +187,14 @@
 
                             <div class="col">
                                 <div class="d-flex flex-column align-items-center">
+                                    <img src="~/Imagenes/Menu Principal/Gastos.png" class="img-fluid max-img-size" alt="Gastos" title="Gastos">
+                                    <button type="button" class="btn mt-2 btnMenu" onclick="window.location.href='@Url.Action("Index", "Gastos")'">Gastos</button>
+                                </div>
+                            </div>
+
+
+                            <div class="col">
+                                <div class="d-flex flex-column align-items-center">
                                     <img src="~/Imagenes/Menu Principal/Configuraciones.png" class="img-fluid max-img-size" alt="Configuraciones" title="Configuraciones">
                                     <button type="button" class="btn mt-2 btnMenu" onclick="abrirConfiguraciones()">Configuraciones</button>
                                 </div>
@@ -338,6 +346,17 @@
                                 <span class="config-card__subtitle">Permisos y accesos</span>
                             </button>
                         </div>
+
+                        <div class="col">
+                            <button type="button" class="config-card w-100"
+                                    onclick="abrirConfiguracion('Tipo de Gasto', 'GastosTipos')"
+                                    data-label="Rol" data-table="Gastos">
+                                <img src="/Imagenes/configuraciones.png" alt="" class="config-card__img" loading="lazy">
+                                <span class="config-card__title">Gastos</span>
+                                <span class="config-card__subtitle">Tipos de Gastos</span>
+                            </button>
+                        </div>
+
 
                         <!-- Agregá más items como necesites, copiando la tarjeta -->
                     </div>
