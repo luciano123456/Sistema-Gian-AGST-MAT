@@ -371,6 +371,33 @@ namespace SistemaGian.DAL.Repository
             };
         }
 
+        public async Task<bool> EditarActivo(int idProducto, int idProveedor, int activo)
+        {
+            try
+            {
+                var model = await _dbcontext.ProductosPreciosProveedores
+                    .Where(x => x.IdProducto == idProducto && x.IdProveedor == idProveedor)
+                    .OrderByDescending(x => x.FechaActualizacion)
+                    .FirstOrDefaultAsync();
+
+                if (model == null)
+                    return false;
+
+                model.Activo = activo;
+                model.FechaActualizacion = DateTime.Now;
+
+                _dbcontext.ProductosPreciosProveedores.Update(model);
+                await _dbcontext.SaveChangesAsync();
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+
         private decimal ModificarValor(decimal valor, decimal porcentaje, bool esAumento)
         {
             return esAumento ? valor * (1 + porcentaje / 100.0m) : valor * (1 - porcentaje / 100);

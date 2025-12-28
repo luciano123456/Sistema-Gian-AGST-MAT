@@ -669,6 +669,45 @@ namespace SistemaGian.Application.Controllers
         }
 
 
+        [HttpPost]
+        public async Task<IActionResult> EditarActivoProveedor([FromBody] VMEstadoProductosProveedor model)
+        {
+            try
+            {
+                if (model.IdProveedor <= 0)
+                    return BadRequest("Proveedor inválido");
+
+                var result = await _productoprecioProveedorService.EditarActivo(
+                    model.Id,
+                    model.IdProveedor,
+                    model.activo
+                );
+
+                if (!result)
+                    return Json(new { Status = false });
+
+                var userSession = await SessionHelper.GetUsuarioSesion(HttpContext);
+
+                await _hubContext.Clients.All.SendAsync("ActualizarSignalR", new
+                {
+                    Id = model.Id,
+                    Tipo = "Actualizado",
+                    Producto = _Productoservice.Obtener(model.Id, -1, -1).Result.Descripcion,
+                    Cliente = "",
+                    Proveedor = _proveedorService.Obtener(model.IdProveedor).Result.Nombre,
+                    Usuario = userSession.Nombre,
+                    IdUsuario = userSession.Id
+                });
+
+                return Json(new { Status = true });
+            }
+            catch
+            {
+                return Json(new { Status = false });
+            }
+        }
+
+
 
         [HttpGet]
         public async Task<IActionResult> EditarInfo(int id, int idCliente, int idProveedor)

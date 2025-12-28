@@ -28,6 +28,8 @@ public partial class User
     public int IdEstado { get; set; }
     public int? ModoVendedor { get; set; } = 0;
 
+    public virtual ICollection<Gasto> Gastos { get; set; } = new List<Gasto>();
+
     public virtual EstadosUsuario IdEstadoNavigation { get; set; } = null!;
 
     public virtual Rol IdRolNavigation { get; set; } = null!;

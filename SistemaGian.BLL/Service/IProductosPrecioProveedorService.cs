@@ -14,7 +14,9 @@ namespace SistemaGian.BLL.Service
         Task<ProductosPreciosProveedor> ObtenerProductoProveedor(int idProducto, int idProveedor);
         Task<bool> GuardarOrden(int idProducto, int idProveedor, int Orden);
 
-  
+        Task<bool> EditarActivo(int idProducto, int idProveedor, int activo);
+
+
     }
 
 }

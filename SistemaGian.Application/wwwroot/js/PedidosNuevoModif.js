@@ -32,7 +32,7 @@ let productos = [];
 
 $(document).ready(async function () {
     listaClientes();
-    //listaProveedores();
+    /*listaProveedores();*/
     listaChoferes ();
 
     inicializarSonidoNotificacion();
@@ -172,26 +172,26 @@ async function listaZonas() {
     const response = await fetch(url);
     const data = await response.json();
 
-    $('#Zonas option').remove();
+    const select = document.getElementById("Zonas");
+    select.innerHTML = "";
 
-    select = document.getElementById("Zonas");
-
-    option = document.createElement("option");
-    option.value = -1;
+    let option = document.createElement("option");
+    option.value = "";
     option.text = "Seleccionar";
     option.disabled = true;
+    option.selected = true;
     select.appendChild(option);
 
-    for (i = 0; i < data.length; i++) {
+    for (let i = 0; i < data.length; i++) {
         option = document.createElement("option");
         option.value = data[i].Id;
         option.text = data[i].Nombre;
+
+        // 🔥 CLAVE
+        option.dataset.precio = data[i].Precio;
+
         select.appendChild(option);
-
     }
-
-
-    select.selectedIndex = -1;
 }
 
 async function listaClientes() {
@@ -251,6 +251,7 @@ async function insertarDatosPedido(datosPedido) {
     document.getElementById("dniCliente").value = datosPedido.DniCliente;
 
     await listaZonas(); //CARGAMOS LAS ZONAS ACA YA QUE DESPUES DE CARGAR EL CLIENTE, AHI CARGAMOS LAS ZONAS
+    await listaProveedores(datosPedido.IdCliente);
 
     //Cargamos Datos del Proveedor
     document.getElementById("idProveedor").value = datosPedido.IdProveedor;
@@ -971,7 +972,7 @@ async function guardarProducto() {
             const data = this.data();
             if (data.IdProducto == editId) {
                 data.Nombre = productoNombre;
-                data.PrecioVenta = importeVentaUnitario;
+                data.PrecioVenta = parseFloat(importeVentaUnitario);
                 data.PrecioCosto = importeCostoUnitario;
                 data.ProductoCantidad = factorSinIVA;
                 data.Cantidad = cantidadInput;
@@ -999,7 +1000,7 @@ async function guardarProducto() {
                 IdProducto: productoId,
                 Nombre: productoNombre,
                 ProductoCantidad: factorSinIVA,
-                PrecioVenta: importeVentaUnitario,
+                PrecioVenta: parseFloat(importeVentaUnitario),
                 PrecioCosto: importeCostoUnitario,
                 Cantidad: cantidadInput,
                 CantidadUsadaAcopio: cantidadAcopio,
@@ -1060,14 +1061,14 @@ async function calcularDatosPedido() {
 
     const flete = parseFloat(convertirMonedaAFloat(costoFlete.value));
 
-    const totalGanancia = pedidoVenta - pedidoCosto - flete;
+    const totalGanancia = pedidoVenta - pedidoCosto;
     const porcGanancia = pedidoCosto > 0 ? (totalGanancia / pedidoCosto) * 100 : 0;
 
     restanteproveedor = pedidoCosto - pagosaproveedores;
     pedidoVentaFinal = pedidoVenta + flete;
     restantecliente = pedidoVentaFinal - pagosclientes;
 
-    totalPagaraProveedor = pedidoCosto + flete;
+    totalPagaraProveedor = pedidoCosto;
 
     document.getElementById("totalPagoProveedor").value = formatoMoneda.format(parseFloat(totalPagaraProveedor));
     document.getElementById("totalPagadoaProveedor").value = formatoMoneda.format(parseFloat(pagosaproveedores));
@@ -2657,3 +2658,17 @@ async function _renderUltimaFechaHistorialUI_Cliente() {
         wrap.hidden = true;  // No hay historial
     }
 }
+
+
+$('#Zonas').on('change', function () {
+    const option = this.options[this.selectedIndex];
+    const precio = option.dataset.precio;
+
+    if (!precio) {
+        $('#costoFlete').val('');
+        return;
+    }
+
+    $('#costoFlete').val(formatNumber(parseFloat(precio)));
+    calcularDatosPedido();
+});

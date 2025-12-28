@@ -22,6 +22,8 @@ public partial class ProductosPreciosProveedor
 
     public int? Orden { get; set; }
 
+    public int? Activo { get; set; }
+
     public virtual Producto IdProductoNavigation { get; set; } = null!;
 
     public virtual Proveedor IdProveedorNavigation { get; set; } = null!;

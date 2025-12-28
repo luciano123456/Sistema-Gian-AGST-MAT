@@ -133,47 +133,54 @@ namespace SistemaGian.DAL.Repository
         {
             try
             {
-
                 var productos = await _dbcontext.Productos
-           .Include(p => p.ProductosPreciosHistorial)
-           .Include(p => p.ProductosPreciosProveedor) // Incluye la relación con ProductosPreciosProveedores
-           .Where(p => p.ProductosPreciosHistorial.Any(ppp => (ppp.IdProveedor == idProveedor && ppp.IdCliente == idCliente) || (ppp.IdProveedor == idProveedor && ppp.IdCliente == null)) && p.Activo == 1) // Filtra por proveedor específico
-           .ToListAsync();
+                    .Include(p => p.ProductosPreciosHistorial)
+                    .Include(p => p.ProductosPreciosProveedor)
+                    .Where(p =>
+                        p.ProductosPreciosProveedor.Any(pp =>
+                            pp.IdProveedor == idProveedor &&
+                            pp.Activo == 1
+                        )
+                    )
+                    .ToListAsync();
 
                 var resultados = new List<ProductosPreciosHistorial>();
 
                 foreach (var producto in productos)
                 {
-
-                    // Filtra el historial de precios para el producto actual y el cliente específico
                     var historialPrecios = producto.ProductosPreciosHistorial
                         .Where(h =>
-                    (idCliente == -1 && idProveedor == -1) || // Si ambos son -1, traer todos
-                    (idCliente == -1 && h.IdProveedor == idProveedor) || // Si idCliente es -1, coincidir por proveedor
-                    (idProveedor == -1 && h.IdCliente == idCliente) || // Si idProveedor es -1, coincidir por cliente
-                    (h.IdCliente == idCliente && h.IdProveedor == idProveedor) // Coincidencia exacta
-                )
-                        .OrderByDescending(h => h.Id) // Ordenar por Id descendente para obtener los precios más recientes
-                        .Take(3) // Tomar los últimos 3 precios
+                            (idCliente == -1 && h.IdProveedor == idProveedor) ||
+                            (h.IdProveedor == idProveedor && h.IdCliente == idCliente)
+                        )
+                        .OrderByDescending(h => h.Id)
+                        .Take(3)
                         .ToList();
 
                     if (historialPrecios.Any())
                     {
-                        // Si hay historial, agrega esos precios
                         resultados.AddRange(historialPrecios);
                     }
                     else
                     {
-                        // Si no hay historial, agrega un nuevo objeto usando el precio base del producto
-                        resultados.Add(new ProductosPreciosHistorial
+                        // fallback: usar precio del proveedor, NO del producto base
+                        var precioProveedor = producto.ProductosPreciosProveedor
+                            .FirstOrDefault(pp => pp.IdProveedor == idProveedor && pp.Activo == 1);
+
+                        if (precioProveedor != null)
                         {
-                            IdProducto = producto.Id,
-                            PVentaNuevo = producto.PVenta, // Precio base del producto
-                            PCostoNuevo = producto.PCosto, // Precio base del producto
-                            IdCliente = idCliente,
-                            IdProveedor = idProveedor,
-                            IdProductoNavigation = producto
-                        });
+                            resultados.Add(new ProductosPreciosHistorial
+                            {
+                                IdProducto = producto.Id,
+                                IdProveedor = idProveedor,
+                                IdCliente = idCliente,
+                                PVentaNuevo = precioProveedor.PVenta,
+                                PCostoNuevo = precioProveedor.PCosto,
+                                PorGananciaNuevo = precioProveedor.PorcGanancia,
+                                Fecha = DateTime.Now,
+                                IdProductoNavigation = producto
+                            });
+                        }
                     }
                 }
 
