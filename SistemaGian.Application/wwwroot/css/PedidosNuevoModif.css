@@ -2961,3 +2961,41 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 select.form-control option {
     color: white;
 }
+
+
+/* ===== Productos en USD ===== */
+.tr-usd {
+    background: linear-gradient(90deg, #0f5132 0%, #198754 100%);
+    color: #fff !important;
+}
+
+    .tr-usd td {
+        color: #fff !important;
+    }
+
+.badge-usd {
+    background: #00c853;
+    color: #000;
+    font-weight: bold;
+    padding: 4px 8px;
+    border-radius: 8px;
+}
+
+.badge-ars {
+    background: #0d6efd;
+    color: #fff;
+    font-weight: bold;
+    padding: 4px 8px;
+    border-radius: 8px;
+}
+
+
+.producto-moneda-usd {
+    color: #28a745; /* verde */
+    font-weight: 600;
+}
+
+.producto-moneda-eur {
+    color: #ff8c00; /* naranja */
+    font-weight: 600;
+}

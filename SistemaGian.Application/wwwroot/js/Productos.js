@@ -1248,7 +1248,26 @@ async function configurarDataTable(data) {
                 },
 
                 // 1..10) datos
-                { data: "Descripcion", title: "Descripcion" },
+                {
+                    data: "Descripcion",
+                    title: "Descripción",
+                    render: function (data, type, row) {
+                        if (type !== 'display') return data;
+
+                        const m = getMonedaInfo(row);
+
+                        if (m.tipo !== 'ARS') {
+                            return `
+            <span class="producto-${m.tipo.toLowerCase()}-nombre">
+                ${m.simbolo} ${data}
+                <span class="badge badge-${m.tipo.toLowerCase()}">${m.badge}</span>
+            </span>
+        `;
+                        }
+
+                        return data;
+                    }
+                },
                 { data: "Proveedor", title: "Proveedor", visible: false },
                 { data: "Marca", title: "Marca" },
                 { data: "Categoria", title: "Categoria" },
@@ -1288,22 +1307,31 @@ async function configurarDataTable(data) {
             ],
 
             columnDefs: [
-                // formato números
                 {
                     targets: [6, 7, 9], // PCosto, PVenta, Total
-                    render: function (d, t) {
+                    render: function (d, t, row) {
                         if (t !== 'display') return d;
-                        return formatNumber(d);
+
+                        const m = getMonedaInfo(row);
+                        return `<span class="${m.clase}">${formatNumber(d, m.tipo)}</span>`;
                     }
                 }
             ],
 
-            createdRow: function (row, r) {
-                $(row).attr('data-id', r.Id);
-                if ((r.Descripcion || '').toLowerCase().includes('copia')) {
+            createdRow: function (row, data) {
+                $(row).attr('data-id', data.Id);
+
+                const m = getMonedaInfo(data); // 'ARS' | 'USD' | 'EUR'
+
+                if (m.tipo === 'USD') $(row).addClass('row-usd');
+                else if (m.tipo === 'EUR') $(row).addClass('row-eur');
+                // ARS no agrega nada
+
+                if ((data.Descripcion || '').toLowerCase().includes('copia')) {
                     $(row).addClass('productocopia');
                 }
             },
+
 
             initComplete: async function () {
                 const api = this.api();
@@ -2707,4 +2735,48 @@ async function rebuildFiltersProductos(api) {
 
     // ajustar anchos una vez armado todo
     api.columns.adjust().draw(false);
+}
+
+function getMonedaInfo(row) {
+    if (!row) {
+        return { tipo: 'ARS', simbolo: '$', clase: 'precio-ars', badge: null };
+    }
+
+    const moneda = (row.Moneda || '').toLowerCase();
+
+    // USD
+    if (
+        moneda.includes('dolar') ||
+        moneda.includes('usd') ||
+        row.IdMoneda === 23
+    ) {
+        return {
+            tipo: 'USD',
+            simbolo: '💵',
+            clase: 'precio-usd',
+            badge: 'USD'
+        };
+    }
+
+    // EUR
+    if (
+        moneda.includes('euro') ||
+        moneda.includes('eur') ||
+        row.IdMoneda === 24
+    ) {
+        return {
+            tipo: 'EUR',
+            simbolo: '€',
+            clase: 'precio-eur',
+            badge: 'EUR'
+        };
+    }
+
+    // ARS (default)
+    return {
+        tipo: 'ARS',
+        simbolo: '$',
+        clase: 'precio-ars',
+        badge: null
+    };
 }

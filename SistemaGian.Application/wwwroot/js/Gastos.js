@@ -361,6 +361,9 @@ async function aplicarFiltros() {
         });
 
         gastosCache = Array.isArray(data) ? data : [];
+        actualizarVisibilidadDashboard(gastosCache);
+
+
 
         configurarDataTable(gastosCache);
         actualizarKPIs(gastosCache);
@@ -1273,3 +1276,27 @@ function parseNumberAR(valor) {
 }
 
 
+
+
+function setVisible($el, visible) {
+    if (!$el || !$el.length) return;
+    $el.toggleClass('d-none', !visible);
+}
+
+function actualizarVisibilidadDashboard(data) {
+
+    const hayDatos = Array.isArray(data) && data.length > 0;
+
+    const $msg = $('#msgSinDatosResumen');
+    const $dash = $('#dashboardResumen');
+    const $mensual = $('#wrapAnaliticaMensual');
+    const $tipos = $('#wrapTiposGasto');
+
+    // DEBUG rápido si no encuentra el elemento
+    // console.log('msgSinDatosResumen length:', $msg.length);
+
+    setVisible($msg, !hayDatos);
+    setVisible($dash, hayDatos);
+    setVisible($mensual, hayDatos);
+    setVisible($tipos, hayDatos);
+}

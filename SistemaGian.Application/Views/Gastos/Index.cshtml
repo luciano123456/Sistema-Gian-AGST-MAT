@@ -142,6 +142,13 @@
             <div id="collapseResumen" class="accordion-collapse collapse">
                 <div class="accordion-body">
 
+                    <div id="msgSinDatosResumen"
+                         class="text-center text-muted py-4 d-none">
+                        <i class="fa fa-info-circle me-2"></i>
+                        No hay datos para mostrar
+                        <div><small>Probá cambiar los filtros</small></div>
+                    </div>
+
                     <div id="dashboardResumen" class="row g-3">
                         <!-- Cards dinámicas por moneda / tipo -->
                     </div>
@@ -181,7 +188,7 @@
                     </div>
 
                     <!-- TIPOS DE GASTO -->
-                    <div class="row g-4 mt-4">
+                    <div class="row g-4 mt-4" id="wrapTiposGasto">
 
                         <div class="col-lg-6">
                             <div class="card-glass p-4">
@@ -303,6 +310,6 @@
 
 
     <!-- JS DEL MÓDULO -->
-    <script src="~/js/gastos.js?v=1.0"></script>
+    <script src="~/js/gastos.js?v=1.1"></script>
 }
 

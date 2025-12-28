@@ -27,5 +27,16 @@ public partial class VMPedidosProducto
 
     public decimal CantidadUsadaAcopio { get; set; }
 
+    public int IdMoneda { get; set; }
+
+    public string Moneda { get; set; }
+
+    public decimal Cotizacion { get; set; }
+
+    public decimal PrecioCostoArs { get; set; }
+
+    public decimal PrecioVentaArs { get; set; }
+
+    public decimal TotalArs { get; set; }
 
 }

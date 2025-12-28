@@ -15,6 +15,7 @@ public partial class Moneda
 
     public virtual ICollection<Gasto> Gastos { get; set; } = new List<Gasto>();
 
+    public virtual ICollection<PedidosProducto> PedidosProductos { get; set; } = new List<PedidosProducto>();
 
     public virtual ICollection<Producto> Productos { get; set; } = new List<Producto>();
 }
