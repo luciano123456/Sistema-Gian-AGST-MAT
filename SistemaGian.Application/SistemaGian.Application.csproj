@@ -12,6 +12,7 @@
     <Content Remove="wwwroot\js\Choferes.js" />
     <Content Remove="wwwroot\js\Gastos.js" />
     <Content Remove="wwwroot\js\HistorialPRecios.js" />
+    <Content Remove="wwwroot\js\Home-Personalizada.js" />
     <Content Remove="wwwroot\js\Home.js" />
     <Content Remove="wwwroot\js\Login.js" />
     <Content Remove="wwwroot\js\Monedas.js" />
@@ -28,6 +29,7 @@
 
   <ItemGroup>
     <None Include="wwwroot\Imagenes\Clientes.png" />
+    <None Include="wwwroot\js\Home-Personalizada.js" />
     <None Include="wwwroot\js\Login.js" />
     <None Include="wwwroot\js\AcopioHistorial.js" />
     <None Include="wwwroot\js\Ventas.js" />
@@ -53,6 +55,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Views\HomePersonalizada\Partials\" />
     <Folder Include="Views\Home\Partials\" />
   </ItemGroup>
 

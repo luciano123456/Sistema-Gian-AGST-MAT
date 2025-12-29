@@ -60,7 +60,8 @@
 
                     // Redirigir a la página principal
                     localStorage.setItem('userSession', JSON.stringify(data.user)); // Guardar el usuario
-                    window.location.href = data.redirectUrl;
+
+                    redirigirSegunMenu();
                 } else {
                     // Mostrar el mensaje de error
                     $(document).ready(function () {
@@ -268,3 +269,25 @@ function errorModal(texto) {
 function advertenciaModal(texto) {
     mostrarModalConContador('AdvertenciaModal', texto, 3000);
 }
+
+
+const LS_MENU_TYPE = 'menu_tipo'; // 'clasico' | 'personalizado'
+
+
+function redirigirSegunMenu() {
+    const menu = localStorage.getItem(LS_MENU_TYPE);
+
+    if (!menu) {
+        window.location.href = '/Home/';
+        return;
+    }
+
+    if (menu === 'personalizado') {
+        window.location.href = '/HomePersonalizada';
+        return;
+    }
+
+    // Default
+    window.location.href = '/Home';
+}
+

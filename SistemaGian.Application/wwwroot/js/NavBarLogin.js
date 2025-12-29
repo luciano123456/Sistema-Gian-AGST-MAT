@@ -1,7 +1,97 @@
-﻿document.addEventListener("DOMContentLoaded", async function () {
+﻿// =====================================================================
+// CONFIGURACIÓN GLOBAL
+// =====================================================================
+const LS_MENU_TYPE = 'menu_tipo'; // 'clasico' | 'personalizado'
+
+
+// =====================================================================
+// MENÚ — UTILIDADES (ÚNICO SISTEMA)
+// =====================================================================
+
+// Marca visualmente el menú activo usando data-menu
+function marcarMenuActivo(tipo) {
+    document.querySelectorAll('.menu-option').forEach(btn => {
+        btn.classList.remove('active');
+
+        if ((btn.dataset.menu || '').toLowerCase() === (tipo || '').toLowerCase()) {
+            btn.classList.add('active');
+        }
+    });
+}
+
+// Guarda el menú elegido
+function setMenuTipo(tipo) {
+    const t = (tipo || '').toLowerCase();
+    if (t !== 'clasico' && t !== 'personalizado') return;
+
+    localStorage.setItem(LS_MENU_TYPE, t);
+    marcarMenuActivo(t);
+}
+
+// Selección desde navbar / selector
+function seleccionarMenuNavbar(tipo) {
+    const t = (tipo || '').toLowerCase();
+    if (t !== 'clasico' && t !== 'personalizado') return;
+
+    const actual = (localStorage.getItem(LS_MENU_TYPE) || '').toLowerCase();
+
+    // Guardar selección
+    localStorage.setItem(LS_MENU_TYPE, t);
+    marcarMenuActivo(t);
+
+    // Si ya estaba seleccionado, no hace falta recargar
+    if (actual === t) return;
+
+    // Redirigir según el menú elegido
+    if (t === 'personalizado') {
+        window.location.href = '/HomePersonalizada';
+    } else {
+        window.location.href = '/Home';
+    }
+}
+
+
+// Redirección centralizada (Login / Home / Selector)
+function redirigirSegunMenu() {
+    const menu = localStorage.getItem(LS_MENU_TYPE);
+
+    if (!menu) {
+        window.location.href = '/Home/Selector';
+        return;
+    }
+
+    if (menu === 'personalizado') {
+        window.location.href = '/HomePersonalizada';
+        return;
+    }
+
+    // Default
+    window.location.href = '/Home';
+}
+
+
+// =====================================================================
+// DOM READY — INICIALIZACIÓN GENERAL
+// =====================================================================
+document.addEventListener("DOMContentLoaded", async function () {
+
+    // ==========================================================
+    // MENÚ — INIT (NO rompe nada)
+    // ==========================================================
+    let menuActual = localStorage.getItem(LS_MENU_TYPE);
+    if (!menuActual) {
+        menuActual = 'clasico';
+        localStorage.setItem(LS_MENU_TYPE, menuActual);
+    }
+    marcarMenuActivo(menuActual);
+    // ==========================================================
+
+
+    // ==========================================================
+    // TU LÓGICA EXISTENTE — USER SESSION
+    // ==========================================================
     var userSession = JSON.parse(localStorage.getItem('userSession'));
 
-    // Configura el estado del switch
     if (userSession) {
         var userFullName = userSession.Nombre + ' ' + userSession.Apellido;
         $("#userName").html('<i class="fa fa-user"></i> ' + userFullName);
@@ -9,101 +99,96 @@
         document.getElementById('modoVendedorSwitch').checked = userSession.ModoVendedor;
 
         if (userSession.ModoVendedor == 1) {
-            // Ocultar todas las opciones excepto "Nuevo Pedido", "Pedidos", y "Ventas"
+            // Ocultar opciones no permitidas
             document.querySelectorAll('.btnMenu').forEach(btn => {
-                if (!btn.textContent.includes('Nuevo Pedido') &&
+                if (
+                    !btn.textContent.includes('Nuevo Pedido') &&
                     !btn.textContent.includes('Pedidos') &&
                     !btn.textContent.includes('Lista de Productos') &&
-                    !btn.textContent.includes('Ventas')) {
+                    !btn.textContent.includes('Ventas')
+                ) {
                     btn.closest('.col').style.display = 'none';
                 }
             });
         }
     }
 
-    // Manejo del menú desplegable del usuario
+    // ==========================================================
+    // TU LÓGICA EXISTENTE — MENÚ USUARIO
+    // ==========================================================
     var userMenuToggle = document.getElementById('navbarDropdown');
     var userMenu = document.getElementById('userMenu');
 
-    userMenuToggle.addEventListener('click', function (event) {
-        event.preventDefault();
+    if (userMenuToggle && userMenu) {
 
-        // Alterna el menú del usuario
-        var isExpanded = userMenuToggle.getAttribute('aria-expanded') === 'true';
-        userMenuToggle.setAttribute('aria-expanded', !isExpanded);
-        userMenu.classList.toggle('show');
-    });
+        userMenuToggle.addEventListener('click', function (event) {
+            event.preventDefault();
 
-    // Cierra el menú del usuario si se hace clic fuera de él
-    document.addEventListener('click', function (event) {
-        var isUserMenu = event.target.closest('#userMenu');
-        var isUserToggle = event.target.closest('#navbarDropdown');
+            var isExpanded = userMenuToggle.getAttribute('aria-expanded') === 'true';
+            userMenuToggle.setAttribute('aria-expanded', !isExpanded);
+            userMenu.classList.toggle('show');
+        });
 
-        if (!isUserMenu && !isUserToggle) {
-            userMenu.classList.remove('show');
-            userMenuToggle.setAttribute('aria-expanded', 'false');
-        }
-    });
+        // Cerrar menú usuario al clickear afuera
+        document.addEventListener('click', function (event) {
+            var isUserMenu = event.target.closest('#userMenu');
+            var isUserToggle = event.target.closest('#navbarDropdown');
 
-    // Cierra otros menús desplegables al interactuar fuera del navbar
-    document.addEventListener('click', function (event) {
-        var isDropdownToggle = event.target.closest('.dropdown-toggle');
-        var isDropdownMenu = event.target.closest('.dropdown-menu');
+            if (!isUserMenu && !isUserToggle) {
+                userMenu.classList.remove('show');
+                userMenuToggle.setAttribute('aria-expanded', 'false');
+            }
+        });
 
-        if (!isDropdownToggle && !isDropdownMenu) {
-            document.querySelectorAll('.dropdown-menu.show').forEach(function (dropdownMenu) {
-                if (dropdownMenu !== userMenu) { // No cerrar el menú de usuario
-                    dropdownMenu.classList.remove('show');
-                    var dropdownToggle = dropdownMenu.previousElementSibling;
-                    if (dropdownToggle) {
-                        dropdownToggle.setAttribute('aria-expanded', 'false');
+        // Cerrar otros dropdowns
+        document.addEventListener('click', function (event) {
+            var isDropdownToggle = event.target.closest('.dropdown-toggle');
+            var isDropdownMenu = event.target.closest('.dropdown-menu');
+
+            if (!isDropdownToggle && !isDropdownMenu) {
+                document.querySelectorAll('.dropdown-menu.show').forEach(function (dropdownMenu) {
+                    if (dropdownMenu !== userMenu) {
+                        dropdownMenu.classList.remove('show');
+                        var dropdownToggle = dropdownMenu.previousElementSibling;
+                        if (dropdownToggle) {
+                            dropdownToggle.setAttribute('aria-expanded', 'false');
+                        }
                     }
-                }
-            });
-        }
-    });
+                });
+            }
+        });
+    }
 });
 
-async function obtenerDataUser(id) {
 
+// =====================================================================
+// TU CÓDIGO ORIGINAL — FUNCIONES (NO TOCADO)
+// =====================================================================
+async function obtenerDataUser(id) {
     const url = `/Usuarios/Obtener?id=${id}`;
     const response = await fetch(url);
     const data = await response.json();
-
     return data;
-
 }
-
-
 
 async function toggleModoVendedor(activar) {
 
-    // Obtener el objeto userSession desde localStorage
     var userSession = JSON.parse(localStorage.getItem('userSession'));
 
-    // Si no existe userSession, no hacer nada (puedes manejar el error si es necesario)
     if (!userSession) {
         console.error("No hay información de sesión");
         return;
     }
 
-    // Establecer el modo dependiendo de activar (1 para true, 0 para false)
     const modo = activar ? 1 : 0;
 
-    // Actualizar el valor de ModoVendedor en el objeto userSession
     userSession.ModoVendedor = modo;
-
-    // Guardar el objeto userSession actualizado en localStorage
     localStorage.setItem('userSession', JSON.stringify(userSession));
 
-    // Construir la URL con los parámetros como query string
     const url = `/Usuarios/ActualizarModoVendedor?id=${userSession.Id}&modo=${modo}`;
 
-    const method = "PUT";
-
-    // Enviar la solicitud PUT con los parámetros en la URL
     fetch(url, {
-        method: method,
+        method: "PUT",
         headers: {
             'Content-Type': 'application/json;charset=utf-8'
         }
@@ -113,11 +198,11 @@ async function toggleModoVendedor(activar) {
             return response.json();
         })
         .then(dataJson => {
-            console.log(dataJson); // Manejar la respuesta si es necesario
+            console.log(dataJson);
         })
         .catch(error => {
             console.error('Error:', error);
         });
 
-    window.location.href = '/Home'; // Redirige a la home
+    window.location.href = '/Home';
 }
