@@ -1,5 +1,4 @@
 ﻿@using Microsoft.Extensions.Configuration
-
 @inject IConfiguration Configuration
 
 @{
@@ -8,52 +7,83 @@
 
 <link href="~/css/navbarlogin.css" rel="stylesheet" />
 
-
 <nav class="navbar navbar-expand navbar-light nav-user" id="navbarLogin">
-    <div class="container-fluid d-flex justify-content-between align-items-center">
+    <div class="container-fluid d-flex align-items-center">
 
         @if (ambienteTest == 1)
         {
-            <div class="ambiente-test-label" style="
-        position: absolute;
-        left: 50%;
-        transform: translateX(-50%);
-        color: #ffcc00;
-        font-size: 22px;
-        font-weight: bold;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        letter-spacing: 1px;
-        text-shadow: 1px 1px 2px #000;
-        ">
+            <div class="ambiente-test-label"
+                 style="position:absolute;left:50%;transform:translateX(-50%);
+                        color:#ffcc00;font-size:22px;font-weight:bold;
+                        text-shadow:1px 1px 2px #000;">
                 ⚠ AMBIENTE TEST
             </div>
         }
 
-        <!-- Nombre de usuario y menú desplegable -->
-        <ul class="navbar-nav">
-            <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle text-white" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" onclick="event.stopPropagation();">
-                    <span id="userName">Usuario</span>
-                </a>
-                <div class="dropdown-menu" id="userMenu" aria-labelledby="navbarDropdown">
-                    <a class="dropdown-item" href="#" onclick="window.location.href='/Usuarios/Configuracion';">Configuración</a>
-                    <div class="dropdown-divider"></div>
-                    <a class="dropdown-item" href="#" onclick="window.location.href='/Login/Logout';">Cerrar sesión</a>
-                </div>
-            </li>
+        <!-- IZQUIERDA -->
+        <div class="d-flex align-items-center">
+            <div class="menu-selector d-flex align-items-center gap-2">
+                <span class="menu-label">Menú:</span>
 
-        </ul>
-        <!-- Interruptor Modo Vendedor -->
+                <div class="menu-toggle btn-group" role="group" aria-label="Selector de menú">
+                    <button type="button"
+                            class="menu-option"
+                            data-menu="clasico"
+                            onclick="seleccionarMenuNavbar('clasico')"
+                            aria-pressed="false"
+                            title="Menú clásico">
+                        <i class="fa fa-th"></i>
+                        <span class="d-none d-md-inline ms-1">Clásico</span>
+                    </button>
+
+                    <button type="button"
+                            class="menu-option"
+                            data-menu="personalizado"
+                            onclick="seleccionarMenuNavbar('personalizado')"
+                            aria-pressed="false"
+                            title="Menú personalizado">
+                        <i class="fa fa-paint-brush"></i>
+                        <span class="d-none d-md-inline ms-1">Personalizado</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- DERECHA -->
         <div class="d-flex align-items-center ms-auto">
-            <span class="me-2 custom-label">Modo Vendedor</span>
-            <label class="switch">
-                <input type="checkbox" id="modoVendedorSwitch" onchange="toggleModoVendedor(this.checked)">
-                <span class="slider round"></span>
-            </label>
+
+            <!-- MODO VENDEDOR -->
+            <div class="d-flex align-items-center me-4">
+                <span class="me-2 custom-label">Modo Vendedor</span>
+                <label class="switch">
+                    <input type="checkbox" id="modoVendedorSwitch" onchange="toggleModoVendedor(this.checked)">
+                    <span class="slider round"></span>
+                </label>
+            </div>
+
+            <!-- USUARIO -->
+            <ul class="navbar-nav">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle text-white"
+                       href="#"
+                       id="navbarDropdown"
+                       role="button"
+                       aria-expanded="false"
+                       onclick="event.stopPropagation();">
+                        <span id="userName">Usuario</span>
+                    </a>
+
+                    <div class="dropdown-menu dropdown-menu-end" id="userMenu">
+                        <a class="dropdown-item" href="/Usuarios/Configuracion">Configuración</a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="/Login/Logout">Cerrar sesión</a>
+                    </div>
+                </li>
+            </ul>
+
         </div>
     </div>
 </nav>
 
-
-
-<script src="~/js/NavBarLogin.js?v=1.0" asp-append-version="true"></script>
+<script src="~/js/NavBarLogin.js?v=2.0" asp-append-version="true"></script>

@@ -855,3 +855,52 @@
     font-size: 0.95rem;
     letter-spacing: 0.3px;
 }
+
+
+.menu-selector {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.menu-label {
+    color: #cbd5e1;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.menu-toggle {
+    display: flex;
+    background: rgba(255,255,255,0.08);
+    border-radius: 10px;
+    padding: 4px;
+    backdrop-filter: blur(6px);
+}
+
+.menu-option {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border: none;
+    background: transparent;
+    color: #cbd5e1;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all .2s ease;
+}
+
+    .menu-option i {
+        font-size: 14px;
+    }
+
+    .menu-option:hover {
+        background: rgba(255,255,255,0.08);
+    }
+
+    .menu-option.active {
+        background: linear-gradient(135deg, #2563eb, #1e40af);
+        color: #fff;
+        box-shadow: 0 0 0 1px rgba(255,255,255,.15) inset;
+    }
