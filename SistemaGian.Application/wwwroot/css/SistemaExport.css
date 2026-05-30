@@ -1,0 +1,157 @@
+/* Modal exportar — compartido en todo el sistema */
+.sg-export-modal {
+    background: linear-gradient(160deg, rgba(22, 30, 48, 0.98), rgba(14, 20, 34, 0.99));
+    border: 1px solid rgba(91, 140, 255, 0.35);
+    border-radius: 20px;
+    color: #eaf1ff;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+}
+
+.sg-export-modal .modal-header,
+.sg-export-modal .modal-footer {
+    padding: 1.25rem 1.5rem;
+}
+
+.sg-export-modal__sub {
+    font-size: 0.85rem;
+    color: #9db1d2;
+    margin-top: 0.25rem;
+}
+
+.sg-export-modal__hint {
+    font-size: 0.9rem;
+    color: #9db1d2;
+    margin-bottom: 1rem;
+}
+
+.sg-export-cards {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+@media (max-width: 576px) {
+    .sg-export-cards {
+        grid-template-columns: 1fr;
+    }
+}
+
+.sg-export-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.35rem;
+    padding: 1.35rem 1rem 1.15rem;
+    border-radius: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    background: rgba(12, 18, 32, 0.75);
+    cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+    margin: 0;
+}
+
+.sg-export-card:hover {
+    border-color: rgba(91, 140, 255, 0.45);
+    transform: translateY(-2px);
+}
+
+.sg-export-card:has(.sg-export-check:checked) {
+    border-color: rgba(91, 140, 255, 0.85);
+    background: linear-gradient(145deg, rgba(30, 45, 75, 0.9), rgba(18, 28, 50, 0.95));
+    box-shadow: 0 12px 32px rgba(91, 140, 255, 0.25);
+}
+
+.sg-export-card .sg-export-check {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.sg-export-card__check {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    color: transparent;
+    transition: all 0.2s;
+}
+
+.sg-export-card:has(.sg-export-check:checked) .sg-export-card__check {
+    background: linear-gradient(135deg, #5b8cff, #7b5cff);
+    border-color: transparent;
+    color: #fff;
+}
+
+.sg-export-card__icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.75rem;
+    margin-bottom: 0.25rem;
+}
+
+.sg-export-card__icon--excel {
+    background: rgba(33, 115, 70, 0.2);
+    color: #5fd68a;
+}
+
+.sg-export-card__icon--pdf {
+    background: rgba(200, 60, 60, 0.2);
+    color: #ff8a8a;
+}
+
+.sg-export-card__title {
+    font-weight: 800;
+    font-size: 1.05rem;
+    color: #eaf1ff;
+}
+
+.sg-export-card__desc {
+    font-size: 0.78rem;
+    color: #9db1d2;
+    line-height: 1.35;
+    max-width: 220px;
+}
+
+.sg-export-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 20000;
+    background: rgba(8, 12, 22, 0.72);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sg-export-overlay__box {
+    text-align: center;
+    color: #eaf1ff;
+    padding: 2rem;
+    border-radius: 16px;
+    background: rgba(20, 28, 43, 0.95);
+    border: 1px solid rgba(91, 140, 255, 0.35);
+}
+
+.sg-export-overlay__box i {
+    color: #5b8cff;
+    margin-bottom: 0.75rem;
+}
+
+.btn-exportar-modal {
+    background: linear-gradient(135deg, #5b8cff 0%, #7b5cff 100%) !important;
+    color: #fff !important;
+    border: none !important;
+}

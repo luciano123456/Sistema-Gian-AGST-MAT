@@ -631,18 +631,22 @@ namespace SistemaGian.DAL.Repository
 
         public async Task<int> ObtenerUltimoNroRemito()
         {
-            var ultimoNroRemitoStr = await _dbcontext.Pedidos
-                .OrderByDescending(p => p.NroRemito)
-                .Select(p => p.NroRemito)
-                .FirstOrDefaultAsync();
+            // NroRemito es texto en BD: OrderByDescending alfabético falla ("9" > "10").
+            var remitos = await _dbcontext.Pedidos
+                .AsNoTracking()
+                .Where(p => p.NroRemito != null && p.NroRemito != "")
+                .Select(p => p.NroRemito!)
+                .ToListAsync();
 
-            if (string.IsNullOrWhiteSpace(ultimoNroRemitoStr))
-                return 0;
+            var max = 0;
+            foreach (var r in remitos)
+            {
+                var s = r.Trim();
+                if (int.TryParse(s, out var n) && n > max)
+                    max = n;
+            }
 
-            if (int.TryParse(ultimoNroRemitoStr, out int nro))
-                return nro;
-
-            return 0;
+            return max;
         }
 
         private async Task<string> RefNroPartida(int idPedido)

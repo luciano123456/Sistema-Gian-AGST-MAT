@@ -155,9 +155,8 @@ $(document).ready(async function () {
     } else {
 
         const proximoNro = await obtenerProximoNroRemito();
-
-        // Asignarlo al input
-        document.getElementById("nroRemito").value = proximoNro.valor + 1;
+        const ultimo = Number(proximoNro?.valor ?? 0);
+        document.getElementById("nroRemito").value = String(ultimo + 1);
 
         idPedido = 0; // Reemplaza con el id correspondiente
 
@@ -2461,10 +2460,11 @@ async function obtenerProximoNroRemito() {
         const response = await fetch('/Pedidos/ObtenerProximoNroRemito');
         if (!response.ok) throw new Error('Error al obtener el número de partida.');
         const data = await response.json();
-        return data;
+        const valor = data?.valor ?? data?.Valor ?? 0;
+        return { valor: Number(valor) || 0 };
     } catch (error) {
         console.error('Error:', error);
-        return '';
+        return { valor: 0 };
     }
 }
 

@@ -220,47 +220,11 @@ async function configurarDataTable(data) {
                
             ],
             dom: 'Bfrtip',
-            buttons: [
-                {
-                    extend: 'excelHtml5',
-                    text: 'Exportar Excel',
-                    filename: 'Reporte Proveedores',
-                    title: '',
-                    exportOptions: {
-                        columns: function (idx, data, node) {
-                            const columnasPermitidas = [1, 2, 3, 4];
-                            return columnasPermitidas.includes(idx) && $(node).is(':visible');
-                        }
-                    },
-                    className: 'btn-exportar-excel',
-                },
-                {
-                    extend: 'pdfHtml5',
-                    text: 'Exportar PDF',
-                    filename: 'Reporte Proveedores',
-                    title: '',
-                    exportOptions: {
-                        columns: function (idx, data, node) {
-                            const columnasPermitidas = [1, 2, 3, 4];
-                            return columnasPermitidas.includes(idx) && $(node).is(':visible');
-                        }
-                    },
-                    className: 'btn-exportar-pdf',
-                },
-                {
-                    extend: 'print',
-                    text: 'Imprimir',
-                    title: '',
-                    exportOptions: {
-                        columns: function (idx, data, node) {
-                            const columnasPermitidas = [1, 2, 3, 4];
-                            return columnasPermitidas.includes(idx) && $(node).is(':visible');
-                        }
-                    },
-                    className: 'btn-exportar-print'
-                },
-                'pageLength'
-            ],
+            buttons: SistemaExport.botonesDataTable({
+                titulo: 'Proveedores',
+                archivo: 'proveedores',
+                columnas: (idx) => [1, 2, 3, 4].includes(idx)
+            }),
             orderCellsTop: true,
             fixedHeader: true,
 

@@ -184,47 +184,11 @@ async function configurarDataTable(data) {
                 
             ],
             dom: 'Bfrtip',
-            buttons: [
-                {
-                    extend: 'excelHtml5',
-                    text: 'Exportar Excel',
-                    filename: 'Reporte Pedidos',
-                    title: '',
-                    exportOptions: {
-                        columns: function (idx, data, node) {
-                            const columnasPermitidas = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-                            return columnasPermitidas.includes(idx) && $(node).is(':visible');
-                        }
-                    },
-                    className: 'btn-exportar-excel',
-                },
-                {
-                    extend: 'pdfHtml5',
-                    text: 'Exportar PDF',
-                    filename: 'Reporte pedidos',
-                    title: '',
-                    exportOptions: {
-                        columns: function (idx, data, node) {
-                            const columnasPermitidas = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-                            return columnasPermitidas.includes(idx) && $(node).is(':visible');
-                        }
-                    },
-                    className: 'btn-exportar-pdf',
-                },
-                {
-                    extend: 'print',
-                    text: 'Imprimir',
-                    title: '',
-                    exportOptions: {
-                        columns: function (idx, data, node) {
-                            const columnasPermitidas = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-                            return columnasPermitidas.includes(idx) && $(node).is(':visible');
-                        }
-                    },
-                    className: 'btn-exportar-print'
-                },
-                'pageLength'
-            ],
+            buttons: SistemaExport.botonesDataTable({
+                titulo: 'Ventas',
+                archivo: 'ventas',
+                columnas: (idx) => idx > 0
+            }),
             orderCellsTop: true,
             fixedHeader: true,
 

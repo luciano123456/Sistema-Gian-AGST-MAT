@@ -88,16 +88,11 @@ async function configurarTablaStock(data) {
                 }
             ],
             dom: 'Bfrtip',
-            buttons: [
-                {
-                    extend: 'excelHtml5',
-                    text: 'Exportar Excel',
-                    filename: 'StockAcopio',
-                    title: '',
-                    className: 'btn-exportar-excel'
-                },
-                'pageLength'
-            ],
+            buttons: SistemaExport.botonesDataTable({
+                titulo: 'Stock de acopio',
+                archivo: 'stock-acopio',
+                columnas: (idx) => idx > 0
+            }),
             orderCellsTop: true,
             fixedHeader: true,
             initComplete: function () {

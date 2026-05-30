@@ -1117,47 +1117,11 @@ async function configurarDataTable(data) {
             colReorder: true,
             stateSave: false,
             dom: 'Bfrtip',
-            buttons: [
-                {
-                    extend: 'excelHtml5',
-                    text: 'Exportar Excel',
-                    filename: 'Reporte Productos',
-                    exportOptions: {
-                        columns: function (idx, data, node) {
-                            const columnasPermitidas = [1, 2, 3, 4, 5, 6, 7, 8];
-                            const visible = $(node).is(':visible');
-                            return columnasPermitidas.includes(idx) && visible;
-                        }
-                    },
-                    className: 'btn-exportar-excel'
-                },
-                {
-                    extend: 'pdfHtml5',
-                    text: 'Exportar PDF',
-                    filename: 'Reporte Productos',
-                    exportOptions: {
-                        columns: function (idx, data, node) {
-                            const columnasPermitidas = [1, 2, 3, 4, 5, 6, 7, 8];
-                            const visible = $(node).is(':visible');
-                            return columnasPermitidas.includes(idx) && visible;
-                        }
-                    },
-                    className: 'btn-exportar-pdf'
-                },
-                {
-                    extend: 'print',
-                    text: 'Imprimir',
-                    exportOptions: {
-                        columns: function (idx, data, node) {
-                            const columnasPermitidas = [1, 2, 3, 4, 5, 6, 7, 8];
-                            const visible = $(node).is(':visible');
-                            return columnasPermitidas.includes(idx) && visible;
-                        }
-                    },
-                    className: 'btn-exportar-print'
-                },
-                'pageLength'
-            ],
+            buttons: SistemaExport.botonesDataTable({
+                titulo: 'Productos',
+                archivo: 'productos',
+                columnas: (idx) => idx > 0
+            }),
             orderCellsTop: true,
             fixedHeader: true,
 

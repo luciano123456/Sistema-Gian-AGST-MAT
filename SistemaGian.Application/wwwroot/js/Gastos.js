@@ -466,6 +466,12 @@ async function configurarDataTable(data) {
             scrollCollapse: true,
             orderCellsTop: true,
             fixedHeader: true,
+            dom: 'Bfrtip',
+            buttons: SistemaExport.botonesDataTable({
+                titulo: 'Gastos',
+                archivo: 'gastos',
+                columnas: (idx) => idx > 0
+            }),
 
             columns: [
                 {

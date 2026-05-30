@@ -51,6 +51,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\SistemaGian.BLL\SistemaGian.BLL.csproj" />
+    <ProjectReference Include="..\SistemaGian.DAL\SistemaGian.DAL.csproj" />
     <ProjectReference Include="..\SistemaGian.Models\SistemaGian.Models.csproj" />
   </ItemGroup>
 

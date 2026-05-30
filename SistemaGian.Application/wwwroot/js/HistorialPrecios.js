@@ -179,47 +179,11 @@ async function configurarDataTable(data) {
                 },
             ],
             dom: 'Bfrtip',
-            buttons: [
-                {
-                    extend: 'excelHtml5',
-                    text: 'Exportar Excel',
-                    filename: 'Reporte Historial',
-                    title: '',
-                    exportOptions: {
-                        columns: function (idx, data, node) {
-                            const columnasPermitidas = [0, 1, 2,3];
-                            return columnasPermitidas.includes(idx) && $(node).is(':visible');
-                        }
-                    },
-                    className: 'btn-exportar-excel',
-                },
-                {
-                    extend: 'pdfHtml5',
-                    text: 'Exportar PDF',
-                    filename: 'Reporte Historial',
-                    title: '',
-                    exportOptions: {
-                        columns: function (idx, data, node) {
-                            const columnasPermitidas = [0, 1, 2, 3];
-                            return columnasPermitidas.includes(idx) && $(node).is(':visible');
-                        }
-                    },
-                    className: 'btn-exportar-pdf',
-                },
-                {
-                    extend: 'print',
-                    text: 'Imprimir',
-                    title: '',
-                    exportOptions: {
-                        columns: function (idx, data, node) {
-                            const columnasPermitidas = [0, 1, 2, 3];
-                            return columnasPermitidas.includes(idx) && $(node).is(':visible');
-                        }
-                    },
-                    className: 'btn-exportar-print'
-                },
-                'pageLength'
-            ],
+            buttons: SistemaExport.botonesDataTable({
+                titulo: 'Historial de precios',
+                archivo: 'historial-precios',
+                columnas: (idx) => idx < 4
+            }),
             "columnDefs": [
                 {
 

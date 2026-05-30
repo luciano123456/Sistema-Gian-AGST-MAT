@@ -207,38 +207,11 @@ async function configurarDataTable(data) {
                 },
             ],
             dom: 'Bfrtip',
-            buttons: [
-                {
-                    extend: 'excelHtml5',
-                    text: 'Exportar Excel',
-                    filename: 'Reporte Choferes',
-                    title: '',
-                    exportOptions: {
-                        columns: [0, 1, 2]
-                    },
-                    className: 'btn-exportar-excel',
-                },
-                {
-                    extend: 'pdfHtml5',
-                    text: 'Exportar PDF',
-                    filename: 'Reporte Choferes',
-                    title: '',
-                    exportOptions: {
-                        columns: [0, 1, 2]
-                    },
-                    className: 'btn-exportar-pdf',
-                },
-                {
-                    extend: 'print',
-                    text: 'Imprimir',
-                    title: '',
-                    exportOptions: {
-                        columns: [0, 1, 2]
-                    },
-                    className: 'btn-exportar-print'
-                },
-                'pageLength'
-            ],
+            buttons: SistemaExport.botonesDataTable({
+                titulo: 'Choferes',
+                archivo: 'choferes',
+                columnas: (idx) => idx > 0
+            }),
             orderCellsTop: true,
             fixedHeader: true,
 

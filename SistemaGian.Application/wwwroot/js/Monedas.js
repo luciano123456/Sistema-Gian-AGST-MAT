@@ -1,4 +1,20 @@
-﻿let gridMonedas;
+﻿let cacheMonedasLista = [];
+
+function escMoneda(s) {
+    if (s == null) return '';
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function setModalMonedaAbierto(abierto) {
+    const el = document.getElementById('modalEdicion');
+    if (!el) return;
+    if (typeof bootstrap !== 'undefined') {
+        const inst = bootstrap.Modal.getOrCreateInstance(el);
+        abierto ? inst.show() : inst.hide();
+    } else if (typeof $ !== 'undefined' && $.fn?.modal) {
+        $(el).modal(abierto ? 'show' : 'hide');
+    }
+}
 
 const columnConfig = [
     { index: 0, filterType: 'text' },
@@ -19,10 +35,34 @@ $(document).ready(() => {
 
     listaMonedas();
 
+    document.getElementById('btnExportarMonedas')?.addEventListener('click', exportarListadoMonedas);
+
     $('#txtNombre').on('input', function () {
         validarCampos()
     });
 })
+
+function exportarListadoMonedas() {
+    SistemaExport.abrir({
+        titulo: 'Monedas',
+        subtitulo: 'Cotizaciones vigentes',
+        archivo: 'monedas',
+        validar: () => (!cacheMonedasLista.length ? 'No hay monedas para exportar.' : null),
+        getPayload: () => ({
+            titulo: 'Monedas',
+            filtros: 'Listado de cotizaciones',
+            generado: new Date().toLocaleString('es-AR'),
+            hojas: [{
+                nombre: 'Monedas',
+                headers: ['Nombre', 'Cotización'],
+                rows: cacheMonedasLista.map(m => [
+                    m.Nombre || '',
+                    Number(String(m.Cotizacion).replace(',', '.')) || 0
+                ])
+            }]
+        })
+    });
+}
 
 
 
@@ -53,7 +93,7 @@ function guardarCambios() {
             })
             .then(dataJson => {
                 const mensaje = idMoneda === "" ? "Moneda registrada correctamente" : "Moneda modificada correctamente";
-                $('#modalEdicion').modal('hide');
+                setModalMonedaAbierto(false);
                 exitoModal(mensaje);
                 listaMonedas();
             })
@@ -70,18 +110,16 @@ function validarCampos() {
     const nombre = $("#txtNombre").val();
     const camposValidos = nombre !== "";
 
-    $("#lblNombre").css("color", camposValidos ? "" : "red");
-    $("#txtNombre").css("border-color", camposValidos ? "" : "red");
+    $("#txtNombre").css("border-color", camposValidos ? "" : "#ff5a6a");
 
     return camposValidos;
 }
 function nuevoMoneda() {
     limpiarModal();
-    $('#modalEdicion').modal('show');
+    setModalMonedaAbierto(true);
     $("#btnGuardar").text("Registrar");
-    $("#modalEdicionLabel").text("Nueva Moneda");
-    $('#lblNombre').css('color', 'red');
-    $('#txtNombre').css('border-color', 'red');
+    $("#modalEdicionLabel").text("Nueva moneda");
+    $('#txtNombre').css('border-color', '#ff5a6a');
 }
 
 
@@ -95,11 +133,10 @@ async function mostrarModal(modelo) {
     $("#imgMon").val(modelo.Image);
 
 
-    $('#modalEdicion').modal('show');
+    setModalMonedaAbierto(true);
     $("#btnGuardar").text("Guardar");
-    $("#modalEdicionLabel").text("Editar Moneda");
-
-    $('#lblNombre, #txtNombre').css('color', '').css('border-color', '');
+    $("#modalEdicionLabel").text("Editar moneda");
+    $('#txtNombre').css('border-color', '');
 }
 
 
@@ -112,78 +149,91 @@ function limpiarModal() {
     });
 
 
-    $("#lblNombre, #txtNombre").css("color", "").css("border-color", "");
+    $("#imgMoneda").attr("src", "");
+    $("#txtNombre").css("border-color", "");
 }
 
 
 async function listaMonedas() {
-    const url = `/Monedas/Lista`; // URL de la API de monedas
-    const response = await fetch(url);
-    const data = await response.json(); // Obtén el array de monedas desde la API
+    const container = document.getElementById('monedasContainer');
+    if (!container) return;
 
-    const container = document.getElementById("monedasContainer");
-    container.innerHTML = ''; // Limpiar el contenedor
+    container.innerHTML = `<div class="monedas-loading"><i class="fa fa-spinner fa-spin d-block"></i>Cargando monedas…</div>`;
 
-    // Crear las tarjetas para cada moneda
-    data.forEach(moned => {
-        // Crear la tarjeta de moneda
-        const card = document.createElement("div");
-        card.classList.add("card");
+    try {
+        const response = await fetch('/Monedas/Lista');
+        if (!response.ok) throw new Error();
+        const data = await response.json();
+        cacheMonedasLista = data || [];
+        renderMonedasGrid(cacheMonedasLista);
+    } catch {
+        container.innerHTML = `<div class="monedas-empty"><i class="fa fa-exclamation-circle d-block mb-2"></i>No se pudieron cargar las monedas.</div>`;
+        cacheMonedasLista = [];
+    }
 
-        // Crear la imagen de la moneda
-        const img = document.createElement("img");
-        img.src = "data:image/png;base64," + moned.Image; // Ruta de la imagen de la moneda
-        img.alt = moned.Nombre; // Nombre o descripción de la moneda
-        card.appendChild(img);
+    const kpi = document.getElementById('kpiMonedasCount');
+    if (kpi) kpi.textContent = String(cacheMonedasLista.length);
+}
 
-        // Crear el nombre de la moneda
-        const nombre = document.createElement("p");
-        nombre.textContent = moned.Nombre; // Nombre de la moneda
-        nombre.classList.add("nombre")
-        card.appendChild(nombre);
+function renderMonedasGrid(data) {
+    const container = document.getElementById('monedasContainer');
+    if (!container) return;
 
-        // Crear la cotización de la moneda
-        const precio = document.createElement("p");
-        precio.textContent = formatNumber(moned.Cotizacion); // Cotización de la moneda
-        precio.classList.add("cotizacion")
-        card.appendChild(precio);
+    const cards = (data || []).map(m => `
+        <article class="moneda-card" data-id="${m.Id}">
+            <div class="moneda-card__media">
+                <img src="data:image/png;base64,${m.Image || ''}" alt="${escMoneda(m.Nombre)}" loading="lazy" />
+            </div>
+            <div class="moneda-card__body">
+                <h3 class="moneda-card__name">${escMoneda(m.Nombre)}</h3>
+                <p class="moneda-card__rate-label">Cotización</p>
+                <p class="moneda-card__rate">${formatNumber(m.Cotizacion)}</p>
+            </div>
+            <div class="moneda-card__actions">
+                <button type="button" class="btn-moneda-action btn-moneda-action--edit" data-action="edit" data-id="${m.Id}">
+                    <i class="fa fa-pencil me-1"></i> Editar
+                </button>
+                <button type="button" class="btn-moneda-action btn-moneda-action--del" data-action="del" data-id="${m.Id}">
+                    <i class="fa fa-trash-o me-1"></i> Eliminar
+                </button>
+            </div>
+        </article>
+    `).join('');
 
-        // Crear el ícono de lápiz y añadir al card
-        const eliminarIcon = document.createElement("i");
-        eliminarIcon.classList.add("fa", "fa-trash-o", "eliminar-icon");
-        eliminarIcon.classList.add("text-danger");
-        eliminarIcon.onclick = function () {
-            eliminarMoneda(moned.Id); // Llamar a la función de edición pasando el ID
-        };
-        card.appendChild(eliminarIcon);
+    container.innerHTML = cards + `
+        <article class="moneda-card moneda-card--add" id="btnNuevaMonedaCard" role="button" tabindex="0" aria-label="Agregar moneda">
+            <div class="moneda-card--add__inner">
+                <div class="moneda-card--add__icon"><i class="fa fa-plus"></i></div>
+                <p class="moneda-card--add__title">Nueva moneda</p>
+                <p class="moneda-card--add__sub">Agregar cotización</p>
+            </div>
+        </article>
+    `;
 
-        // Agregar la tarjeta al contenedor
-        container.appendChild(card);
-
-        // Crear el ícono de lápiz y añadir al card
-        const editarIcon = document.createElement("i");
-        editarIcon.classList.add("fa", "fa-pencil-square-o", "edit-icon");
-        editarIcon.onclick = function () {
-            editarMoneda(moned.Id); // Llamar a la función de edición pasando el ID
-        };
-        card.appendChild(editarIcon);
-
-       
+    container.querySelectorAll('[data-action="edit"]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            editarMoneda(parseInt(btn.dataset.id, 10));
+        });
+    });
+    container.querySelectorAll('[data-action="del"]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            eliminarMoneda(parseInt(btn.dataset.id, 10));
+        });
     });
 
-    // Crear la tarjeta para agregar nueva moneda al final
-    const addCard = document.createElement("div");
-    addCard.classList.add("card", "add-card");
-    const addIcon = document.createElement("img"); // Usar imagen para agregar
-    addIcon.src = "imagenes/agregar.png"; // Ruta de la imagen para agregar
-    addIcon.alt = "Agregar"; // Texto alternativo de la imagen
-    addIcon.onclick = function () {
-        nuevoMoneda(); // Llamar a la función para agregar nueva moneda
-    };
-    addCard.appendChild(addIcon);
-
-    // Agregar la nueva tarjeta al final
-    container.appendChild(addCard);
+    const addBtn = document.getElementById('btnNuevaMonedaCard');
+    if (addBtn) {
+        const openNew = () => nuevoMoneda();
+        addBtn.addEventListener('click', openNew);
+        addBtn.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                openNew();
+            }
+        });
+    }
 }
 
 

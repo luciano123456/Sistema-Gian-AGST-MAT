@@ -1,239 +1,334 @@
-:root {
-    --muted: #9aa8c5;
-    --text: #e7ecff;
-    --border: rgba(255,255,255,.08);
-    /* DataTables / superficies oscuras */
-    --dt-body: #0b1320;
-    --dt-head: #1d2633;
-    --dt-head-b: #2b3647;
-    --dt-row: #0f1722;
-    --dt-row-zebra: #363659;
-    --dt-row-zebra2: #525285;
-    --dt-row-hover: #152037;
-    --dt-text: #e5e7eb;
-    --dt-input: #111827;
-    --dt-input-b: #2b3647;
-    --dt-pag-bg: #0f192b;
-    --dt-pag-active: #3d6af2;
-    --chip-in: #18c37e;
-    --chip-out: #ff7a66;
-    --chip-stock: #7cc2ff;
-    --color-general: #05225E;
-    --bg: #0a111f;
-    --panel: #141c2b;
-    --panel2: #101726;
-    --soft: rgba(255,255,255,.06);
-    --b1: rgba(255,255,255,.12);
-    --head: #1b2740;
-    --primary: #4c8dff;
-    --accent: #7b5cff;
-    --ok: #1ecf93;
-    --warn: #ffb200;
-    --danger: #ff5a6a;
-    --txt: #eaf1ff;
-    --muted: #9db1d2;
-    --dt-row-hover: #152037;
-    --dt-row-hover: rgba(17, 22, 44, .78);
-    --dt-row-zebra: rgba(24, 28, 52, .9);
-    --dt-row-zebra2: rgba(17, 22, 44, .78);
+/* =========================================================
+   Monedas — alineado a redisenopantallas / Gastos / Reportes
+   ========================================================= */
+
+.monedas-page {
+    margin-top: 100px;
+    padding: 0 0.5rem 2rem;
+    max-width: 99%;
+    margin-left: auto;
+    margin-right: auto;
 }
 
-
-
-body {
-    background: radial-gradient(1200px 700px at -5% -10%,#1a1f42 0%,#0e1224 40%,#0e1224 100%) fixed;
+.mon-badge {
+    background: linear-gradient(135deg, #f0b429 0%, #e67e22 100%) !important;
+    box-shadow: 0 8px 24px rgba(240, 180, 41, 0.35);
 }
 
-
-.container {
-    display: flex !important;
-    flex-wrap: wrap !important;
-    justify-content: left !important;
-    gap: 20px !important;
-    padding: 20px !important;
+.btn-monedas-export {
+    background: linear-gradient(135deg, #5b8cff 0%, #7b5cff 100%);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 0.5rem 1.1rem;
+    font-weight: 700;
+    font-size: 0.9rem;
+    transition: transform 0.15s, box-shadow 0.2s;
 }
 
-.card {
-    border-radius: 20px;
-    box-shadow: 4px 4px 20px rgba(40, 138, 237, 0.8);
-    color: red; /* Letras blancas */
-    width: 380px; /* Tamaño de tarjeta */
-    padding: 10px;
-    text-align: center;
-    border-radius: 10px; /* Bordes redondeados */
-    transition: transform 0.2s, box-shadow 0.2s; /* Añadir efecto de animación */
-    position: relative; /* Para posicionar el ícono */
+.btn-monedas-export:hover {
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(91, 140, 255, 0.4);
 }
 
-    .card:hover {
-        transform: scale(1.05); /* Pequeño aumento al pasar el mouse */
-        box-shadow: 0px 0px 10px rgba(40, 0, 237, 2); /* Sombra al pasar el mouse */
-    }
-
-    .card img {
-        width: 100%; /* Ancho completo de la imagen */
-        height: 100%; /* Tamaño de la imagen */
-        border-radius: 10px; /* Bordes redondeados */
-        margin-bottom: 10px;
-    }
-
-.nombre {
-    margin: 5px 0;
-    font-size: 35px;
-    font-weight: bold; /* Negrita para el texto */
-    color: white;
+.monedas-panel {
+    border: 1px solid var(--b1, rgba(255, 255, 255, 0.12));
 }
 
-.cotizacion {
-    margin: 5px 0;
-    font-size: 35px;
-    font-weight: bold; /* Negrita para el texto */
-    box-shadow: 4px 4px 20px rgba(255, 255, 237, 0.1);
-    color: white;
-    border-radius: 10px; /* Bordes redondeados */
-}
-
-.edit-icon {
-    font-size: 30px;
-    color: white;
-    position: absolute;
-    bottom: 25px;
-    left: 20px;
-    cursor: pointer;
-}
-
-
-.eliminar-icon {
-    font-size: 30px;
-    color: white;
-    position: absolute;
-    bottom: 25px;
-    right: 20px;
-    cursor: pointer;
-}
-
-/*.titulo-moneda{
-    color: white;
-    font-size: 70px;
-    background-color: gray;
-    border-radius: 50px;
-    height: 120px;
-    text-align: center;
-}*/
-
-@media (max-width: 1300px) {
-
-    .container {
-        justify-content: center;
-    }
-}
-
-@media (max-width: 1000px) {
-
-    .card {
-        width: 85%; /* Tamaño de tarjeta */
-    }
-}
-
-
-
-
-
-/* ===== Modales (coherentes con Ventas) ===== */
-.colorEncabezado {
-    background: linear-gradient(10deg, var(--dt-row-zebra), var(--dt-row-zebra3));
-    color: #eaf2ff;
-    border-bottom: 1px solid rgba(255,255,255,.08);
-}
-
-    .colorEncabezado .btn-close {
-        filter: invert(1) grayscale(100%);
-        opacity: .8;
-    }
-
-.modal-content {
-    background-color: var(--dt-row-zebra) !important;
-    border-radius: 14px;
-    box-shadow: none;
-    color: var(--dt-row-zebra);
-}
-
-
-.modal-edicion .form-label {
-    font-weight: 900;
-    font-size: 17px;
-}
-
-.modal-footer {
-    background: #1b2434;
-    border-top: 1px solid rgba(255,255,255,.08);
-}
-
-/* Inputs/Selects en modales */
-.modal .form-label {
-    color: #cfd7e6;
-}
-
-
-.modal .form-control, .modal .form-select {
-    background: var(--dt-row-zebra) !important;
-    border: 1px solid rgba(255,255,255,.12) !important;
-    color: #e8eef7 !important;
-}
-
-    .modal .form-control::placeholder {
-        color: #8896ad !important;
-        opacity: 1 !important;
-    }
-
-    .modal .form-control:focus, .modal .form-select:focus {
-        background: #101b2f !important;
-        color: #fff !important;
-        border-color: #3f5ba7 !important;
-        box-shadow: none !important;
-    }
-
-
-
-
-.select2-container .select2-selection--single {
-    height: 48px !important;
+.monedas-panel__head {
     display: flex;
     align-items: center;
-    background: var(--dt-row-zebra2);
-    border: 1px solid var(--b1) !important;
-    border-radius: 12px !important;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.85rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    color: var(--txt, #eaf1ff);
+    font-weight: 600;
+    font-size: 0.95rem;
 }
 
-.select2-container--default .select2-selection--single .select2-selection__arrow {
-    height: 38px !important;
+.monedas-panel__head i {
+    color: var(--primary, #4c8dff);
 }
 
-.select2-dropdown {
-    background: #0f1625 !important;
-    border: 1px solid rgba(255,255,255,.12) !important;
+.monedas-panel__hint {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--muted, #9db1d2);
 }
 
-.select2-results__option {
-    color: var(--dt-row-zebra);
+/* Grid de tarjetas — NO usar .container global */
+.monedas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.25rem;
+    width: 100%;
 }
 
-.select2-container--default .select2-results__option--highlighted[aria-selected] {
-    background: var(--dt-row-zebra) !important;
-    color: beige !important;
-}
-/* Estado de validación (opcional) */
-select.is-invalid + .select2 .select2-selection {
-    border-color: #dc3545 !important;
-    box-shadow: 0 0 0 .2rem rgba(220,53,69,.25) !important;
-}
-
-select.is-valid + .select2 .select2-selection {
-    border-color: #198754 !important;
-    box-shadow: 0 0 0 .2rem rgba(25,135,84,.25) !important;
+.moneda-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    background: linear-gradient(155deg, rgba(22, 30, 48, 0.95), rgba(14, 20, 36, 0.98));
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 18px;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+    min-height: 320px;
 }
 
-.modal-edicion .form-label {
-    font-weight: 900;
-    font-size: 17px;
+.moneda-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(91, 140, 255, 0.45);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(91, 140, 255, 0.15);
+}
+
+.moneda-card__media {
+    height: 140px;
+    background: linear-gradient(180deg, rgba(30, 42, 70, 0.6), rgba(12, 18, 32, 0.4));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.moneda-card__media img {
+    max-width: 100%;
+    max-height: 110px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    border-radius: 8px;
+    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.35));
+}
+
+.moneda-card__body {
+    flex: 1;
+    padding: 1.1rem 1.15rem 0.75rem;
+    text-align: center;
+}
+
+.moneda-card__name {
+    margin: 0 0 0.5rem;
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: 0.02em;
+}
+
+.moneda-card__rate-label {
+    margin: 0;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted, #9db1d2);
+    font-weight: 600;
+}
+
+.moneda-card__rate {
+    margin: 0.35rem 0 0;
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: #b8d4ff;
+    background: rgba(91, 140, 255, 0.12);
+    border: 1px solid rgba(91, 140, 255, 0.25);
+    border-radius: 12px;
+    padding: 0.45rem 0.75rem;
+    display: inline-block;
+    min-width: 60%;
+}
+
+.moneda-card__actions {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0 1rem 1rem;
+    justify-content: center;
+}
+
+.btn-moneda-action {
+    flex: 1;
+    max-width: 120px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.05);
+    color: #eaf1ff;
+    border-radius: 10px;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.btn-moneda-action:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+.btn-moneda-action--edit:hover {
+    border-color: rgba(30, 207, 147, 0.5);
+    color: #5fd68a;
+}
+
+.btn-moneda-action--del:hover {
+    border-color: rgba(255, 90, 106, 0.5);
+    color: #ff8a8a;
+}
+
+/* Tarjeta agregar */
+.moneda-card--add {
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-style: dashed;
+    border-color: rgba(91, 140, 255, 0.35);
+    background: rgba(91, 140, 255, 0.06);
+    min-height: 320px;
+}
+
+.moneda-card--add:hover {
+    background: rgba(91, 140, 255, 0.12);
+    border-color: rgba(91, 140, 255, 0.6);
+}
+
+.moneda-card--add__inner {
+    text-align: center;
+    padding: 2rem;
+}
+
+.moneda-card--add__icon {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #5b8cff, #7b5cff);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    font-size: 2rem;
+    color: #fff;
+    box-shadow: 0 12px 28px rgba(91, 140, 255, 0.35);
+}
+
+.moneda-card--add__title {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #eaf1ff;
+    margin: 0;
+}
+
+.moneda-card--add__sub {
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin: 0.35rem 0 0;
+}
+
+.monedas-loading,
+.monedas-empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--muted);
+}
+
+.monedas-loading i {
+    font-size: 2rem;
+    color: var(--primary);
+    margin-bottom: 0.75rem;
+}
+
+/* Modal */
+.mon-modal {
+    background: linear-gradient(160deg, rgba(22, 30, 48, 0.98), rgba(14, 20, 34, 0.99));
+    border: 1px solid rgba(91, 140, 255, 0.35);
+    border-radius: 18px;
+    color: #eaf1ff;
+}
+
+.mon-modal__head,
+.mon-modal__foot {
+    border-color: rgba(255, 255, 255, 0.08);
+    background: rgba(15, 22, 37, 0.6);
+}
+
+.mon-modal__head .modal-title {
+    color: #fff;
+}
+
+.mon-modal .form-label {
+    color: #9db1d2;
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+.mon-modal .form-control {
+    background: rgba(12, 18, 32, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #eaf1ff;
+    border-radius: 10px;
+}
+
+.mon-modal .form-control:focus {
+    background: rgba(16, 24, 42, 0.95);
+    border-color: rgba(91, 140, 255, 0.6);
+    color: #fff;
+    box-shadow: 0 0 0 3px rgba(91, 140, 255, 0.15);
+}
+
+.mon-modal__preview {
+    background: rgba(0, 0, 0, 0.25);
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    min-height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mon-modal__preview img {
+    max-width: 180px;
+    max-height: 90px;
+    object-fit: contain;
+}
+
+.btn-monedas-primary {
+    background: linear-gradient(135deg, #5b8cff, #7b5cff);
+    border: none;
+    color: #fff;
+    font-weight: 700;
+    border-radius: 10px;
+    padding: 0.5rem 1.25rem;
+}
+
+.btn-monedas-primary:hover {
+    color: #fff;
+    filter: brightness(1.08);
+}
+
+.btn-monedas-ghost {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #eaf1ff;
+    font-weight: 600;
+    border-radius: 10px;
+}
+
+.btn-monedas-ghost:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+@media (max-width: 576px) {
+    .monedas-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .monedas-panel__head {
+        flex-direction: column;
+        align-items: flex-start;
+    }
 }
