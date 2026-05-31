@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using SistemaGian.Application.Models;
@@ -111,6 +111,17 @@ namespace SistemaGian.Application.Controllers
             return Ok(new { valor = respuesta });
         }
 
+        [HttpGet]
+        public async Task<IActionResult> ExisteNroRemito(string nroRemito, int idPedido = 0)
+        {
+            if (string.IsNullOrWhiteSpace(nroRemito))
+                return Ok(new { existe = false });
+
+            int? excluir = idPedido > 0 ? idPedido : null;
+            var existe = await _pedidoservice.ExisteNroRemitoAsync(nroRemito.Trim(), excluir);
+            return Ok(new { existe });
+        }
+
         // Método de ejemplo para obtener datos
         private object ObtenerDatosPorId(int id)
         {
@@ -184,6 +195,16 @@ namespace SistemaGian.Application.Controllers
         [HttpPut]
         public async Task<IActionResult> Actualizar([FromBody] VMPedido model)
         {
+            if (!string.IsNullOrWhiteSpace(model.NroRemito)
+                && await _pedidoservice.ExisteNroRemitoAsync(model.NroRemito.Trim(), model.Id))
+            {
+                return BadRequest(new
+                {
+                    valor = false,
+                    mensaje = $"Ya existe otro pedido con el número de partida {model.NroRemito.Trim()}."
+                });
+            }
+
             Pedido pedido = await _pedidoservice.ObtenerPedido((int)model.Id);
 
             if (pedido != null)
@@ -316,7 +337,15 @@ namespace SistemaGian.Application.Controllers
         [HttpPost]
         public async Task<IActionResult> Insertar([FromBody] VMPedido model)
         {
-
+            if (!string.IsNullOrWhiteSpace(model.NroRemito)
+                && await _pedidoservice.ExisteNroRemitoAsync(model.NroRemito.Trim()))
+            {
+                return BadRequest(new
+                {
+                    valor = false,
+                    mensaje = $"Ya existe un pedido con el número de partida {model.NroRemito.Trim()}."
+                });
+            }
 
             var pedido = new Pedido
             {
@@ -347,7 +376,10 @@ namespace SistemaGian.Application.Controllers
 
             if (model.SaldoUsado > 0)
             {
-                var observacion = $"Se resta el saldo por el pago de {model.SaldoUsado} en el pedido Nro {pedido.Id}";
+                var nroPartida = !string.IsNullOrWhiteSpace(model.NroRemito)
+                    ? model.NroRemito.Trim()
+                    : "sin partida";
+                var observacion = $"Se resta el saldo por el pago de {model.SaldoUsado} en el pedido N° {nroPartida}";
 
                 respSaldo = await _clienteService.RestarSaldo((int)model.IdCliente, (decimal)model.SaldoUsado, observacion);
             }

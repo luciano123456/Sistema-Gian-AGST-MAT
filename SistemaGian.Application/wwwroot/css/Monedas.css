@@ -1,5 +1,5 @@
 /* =========================================================
-   Monedas — alineado a redisenopantallas / Gastos / Reportes
+   Monedas ï¿½ alineado a redisenopantallas / Gastos / Reportes
    ========================================================= */
 
 .monedas-page {
@@ -60,7 +60,7 @@
     color: var(--muted, #9db1d2);
 }
 
-/* Grid de tarjetas — NO usar .container global */
+/* Grid de tarjetas ï¿½ NO usar .container global */
 .monedas-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));

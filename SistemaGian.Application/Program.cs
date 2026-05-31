@@ -24,7 +24,7 @@ builder.Services.AddSignalR();
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
-        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true; // Insensible a mayúsculas
+        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true; // Insensible a mayï¿½sculas
         options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase; // Acepta camelCase
     });
 
@@ -104,12 +104,12 @@ builder.Services.AddControllersWithViews()
         o.JsonSerializerOptions.PropertyNamingPolicy = null;
     });
 
-// Configurar autenticación con cookies
+// Configurar autenticaciï¿½n con cookies
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
-        options.LoginPath = "/Login/Index";  // Ruta para redirigir al login si no está autenticado
-        options.LogoutPath = "/Login/Logout"; // Ruta para cerrar sesión
+        options.LoginPath = "/Login/Index";  // Ruta para redirigir al login si no estï¿½ autenticado
+        options.LogoutPath = "/Login/Logout"; // Ruta para cerrar sesiï¿½n
     });
 
 
@@ -150,8 +150,8 @@ app.UseStaticFiles(new StaticFileOptions
 
 app.UseRouting();
 
-app.UseAuthentication(); // Habilitar la autenticación con cookies
-app.UseAuthorization();  // Habilitar la autorización
+app.UseAuthentication(); // Habilitar la autenticaciï¿½n con cookies
+app.UseAuthorization();  // Habilitar la autorizaciï¿½n
 
 app.MapHub<SistemaGian.Application.Hubs.NotificacionesHub>("/notificacionesHub");
 
@@ -160,7 +160,7 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-// Asegúrate de que las rutas de login estén excluidas del middleware de autenticación
+// Asegï¿½rate de que las rutas de login estï¿½n excluidas del middleware de autenticaciï¿½n
 app.MapControllerRoute(
     name: "login",
     pattern: "Login/{action=Index}",

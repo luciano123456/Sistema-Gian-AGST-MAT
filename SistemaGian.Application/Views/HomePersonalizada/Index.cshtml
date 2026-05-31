@@ -1,4 +1,4 @@
-﻿@{
+@{
     ViewData["Title"] = "Home - Menú Personalizado";
     Layout = null;
 }
@@ -22,7 +22,7 @@
     <!-- CSS base del proyecto (si lo usás en Gian) -->
     <link rel="stylesheet" href="~/css/site.css" />
     <link rel="stylesheet" href="~/css/navbarLogin.css?v=1.1" />
-    <link rel="stylesheet" href="~/css/redisenopantallas.css?v=1.0" />
+    <link rel="stylesheet" href="~/css/redisenopantallas.css?v=1.2" />
 
     <!-- ✅ CSS del Menú Personalizado (nuevo) -->
     <link rel="stylesheet" href="~/css/home-personalizada.css?v=1.0" />
@@ -96,11 +96,11 @@
                 <div class="tiles">
                     <a class="tile" data-id="pedidos-nuevo" data-title="Nuevo Pedido" href="@Url.Action("NuevoModif","Pedidos")">
                         <i class="fa fa-plus-circle"></i><span>Nuevo Pedido</span>
-                        <button class="tile-handle" title="Arrastrar"><i class="fa fa-hand-paper-o"></i></button>
+                        <span class="tile-handle" title="Arrastrar" aria-hidden="true"><i class="fa fa-hand-paper-o"></i></span>
                     </a>
                     <a class="tile" data-id="pedidos-lista" data-title="Pedidos" href="@Url.Action("Index","Pedidos")">
                         <i class="fa fa-list"></i><span>Pedidos</span>
-                        <button class="tile-handle" title="Arrastrar"><i class="fa fa-hand-paper-o"></i></button>
+                        <span class="tile-handle" title="Arrastrar" aria-hidden="true"><i class="fa fa-hand-paper-o"></i></span>
                     </a>
                 </div>
             </section>
@@ -121,11 +121,11 @@
                 <div class="tiles">
                     <a class="tile" data-id="ventas-ventas" data-title="Ventas" href="@Url.Action("Index","Ventas")">
                         <i class="fa fa-shopping-cart"></i><span>Ventas</span>
-                        <button class="tile-handle" title="Arrastrar"><i class="fa fa-hand-paper-o"></i></button>
+                        <span class="tile-handle" title="Arrastrar" aria-hidden="true"><i class="fa fa-hand-paper-o"></i></span>
                     </a>
                     <a class="tile" data-id="ventas-clientes" data-title="Clientes" href="@Url.Action("Index","Clientes")">
                         <i class="fa fa-users"></i><span>Clientes</span>
-                        <button class="tile-handle" title="Arrastrar"><i class="fa fa-hand-paper-o"></i></button>
+                        <span class="tile-handle" title="Arrastrar" aria-hidden="true"><i class="fa fa-hand-paper-o"></i></span>
                     </a>
                 </div>
             </section>
@@ -146,11 +146,11 @@
                 <div class="tiles">
                     <a class="tile" data-id="prod-productos" data-title="Productos" href="@Url.Action("Index","Productos")">
                         <i class="fa fa-cubes"></i><span>Productos</span>
-                        <button class="tile-handle" title="Arrastrar"><i class="fa fa-hand-paper-o"></i></button>
+                        <span class="tile-handle" title="Arrastrar" aria-hidden="true"><i class="fa fa-hand-paper-o"></i></span>
                     </a>
                     <a class="tile" data-id="prod-historial" data-title="Historial de Precios" href="@Url.Action("Index","HistorialPrecios")">
                         <i class="fa fa-line-chart"></i><span>Historial de Precios</span>
-                        <button class="tile-handle" title="Arrastrar"><i class="fa fa-hand-paper-o"></i></button>
+                        <span class="tile-handle" title="Arrastrar" aria-hidden="true"><i class="fa fa-hand-paper-o"></i></span>
                     </a>
                 </div>
             </section>
@@ -171,11 +171,11 @@
                 <div class="tiles">
                     <a class="tile" data-id="log-choferes" data-title="Choferes" href="@Url.Action("Index","Choferes")">
                         <i class="fa fa-id-badge"></i><span>Choferes</span>
-                        <button class="tile-handle" title="Arrastrar"><i class="fa fa-hand-paper-o"></i></button>
+                        <span class="tile-handle" title="Arrastrar" aria-hidden="true"><i class="fa fa-hand-paper-o"></i></span>
                     </a>
                     <a class="tile" data-id="log-zonas" data-title="Zonas" href="@Url.Action("Index","Zonas")">
                         <i class="fa fa-map-marker"></i><span>Zonas</span>
-                        <button class="tile-handle" title="Arrastrar"><i class="fa fa-hand-paper-o"></i></button>
+                        <span class="tile-handle" title="Arrastrar" aria-hidden="true"><i class="fa fa-hand-paper-o"></i></span>
                     </a>
                 </div>
             </section>
@@ -196,7 +196,7 @@
                 <div class="tiles">
                     <a class="tile" data-id="aco-mov" data-title="Movimientos Acopio" href="@Url.Action("Index","AcopioHistorial")">
                         <i class="fa fa-exchange"></i><span>Movimientos Acopio</span>
-                        <button class="tile-handle" title="Arrastrar"><i class="fa fa-hand-paper-o"></i></button>
+                        <span class="tile-handle" title="Arrastrar" aria-hidden="true"><i class="fa fa-hand-paper-o"></i></span>
                     </a>
                 </div>
             </section>
@@ -217,15 +217,15 @@
                 <div class="tiles">
                     <a class="tile" data-id="fin-gastos" data-title="Gastos" href="@Url.Action("Index","Gastos")">
                         <i class="fa fa-line-chart"></i><span>Gastos</span>
-                        <button class="tile-handle" title="Arrastrar"><i class="fa fa-hand-paper-o"></i></button>
+                        <span class="tile-handle" title="Arrastrar" aria-hidden="true"><i class="fa fa-hand-paper-o"></i></span>
                     </a>
                     <a class="tile" data-id="fin-monedas" data-title="Monedas" href="@Url.Action("Index","Monedas")">
                         <i class="fa fa-eur"></i><span>Monedas</span>
-                        <button class="tile-handle" title="Arrastrar"><i class="fa fa-hand-paper-o"></i></button>
+                        <span class="tile-handle" title="Arrastrar" aria-hidden="true"><i class="fa fa-hand-paper-o"></i></span>
                     </a>
                     <a class="tile" data-id="fin-reportes" data-title="Reportes" href="@Url.Action("Index","Reportes")">
                         <i class="fa fa-bar-chart"></i><span>Reportes</span>
-                        <button class="tile-handle" title="Arrastrar"><i class="fa fa-hand-paper-o"></i></button>
+                        <span class="tile-handle" title="Arrastrar" aria-hidden="true"><i class="fa fa-hand-paper-o"></i></span>
                     </a>
                 </div>
             </section>
@@ -247,14 +247,13 @@
 
                 <div id="config-all" class="config-grid scroll-clip">
                     <!-- Usuarios (pantalla, NO configuración) -->
-                    <button class="conf-tile" data-id="conf-usuarios"
-                            onclick="window.location.href='@Url.Action("Index","Usuarios")'">
+                    <a class="conf-tile" data-id="conf-usuarios" href="@Url.Action("Index","Usuarios")">
                         <i class="fa fa-user"></i>
                         <span>Usuarios</span>
-                        <span class="tile-handle" title="Arrastrar">
+                        <span class="tile-handle" title="Arrastrar" aria-hidden="true">
                             <i class="fa fa-hand-paper-o"></i>
                         </span>
-                    </button>
+                    </a>
 
 
                     <!-- Categorías -->

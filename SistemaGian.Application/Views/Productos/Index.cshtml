@@ -1,4 +1,4 @@
-ï»¿@using Microsoft.Extensions.Configuration
+@using Microsoft.Extensions.Configuration
 @inject IConfiguration Configuration
 
 @{
@@ -21,21 +21,21 @@
       <!-- Vista productos -->
         <link href="~/css/productos.css?v=1.1" rel="stylesheet" />
 
-    <link rel="stylesheet" href="~/css/redisenopantallas.css?v=1.0" />
+    <link rel="stylesheet" href="~/css/redisenopantallas.css?v=1.2" />
 
   
 
     <!-- ColReorder -->
     <link rel="stylesheet" href="https://cdn.datatables.net/colreorder/1.6.2/css/colReorder.dataTables.min.css" />
 
-    <!-- Select2 (mantenemos tu versiÃ³n) -->
+    <!-- Select2 (mantenemos tu versión) -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
 }
 
 <partial name="~/Views/Shared/Partials/BotonMenu.cshtml" />
 
 <div class="container page-99" style="margin-top:100px">
-    <!-- Header KPI estilo â€œglassâ€ -->
+    <!-- Header KPI estilo “glass” -->
     <div class="cc-header shadow-lg rounded-4 p-4 mb-4">
         <div class="d-flex align-items-center gap-3 flex-wrap">
             <div class="d-flex align-items-center gap-3">
@@ -85,7 +85,7 @@
                         </div>
                     </div>
 
-                    <!-- Barra de filtros plegable (mismos IDs que ya usÃ¡s) -->
+                    <!-- Barra de filtros plegable (mismos IDs que ya usás) -->
                     <form id="formFiltrosProductos" class="filter-bar shadow-sm rounded-3 mb-3 p-3 d-none">
                         <div class="row g-2 align-items-end">
 
@@ -134,7 +134,7 @@
                                 <span class="sa-text">Seleccionar todos</span>
                             </label>
                         </div>
-                        <!-- â€¦ la tabla â€¦ -->
+                        <!-- … la tabla … -->
                     </div>
 
                     <table class="dt-dark display nowrap" id="grd_Productos" style="width:100%">
@@ -421,12 +421,12 @@
     <!-- ColReorder -->
     <script src="https://cdn.datatables.net/colreorder/1.6.2/js/dataTables.colReorder.min.js"></script>
 
-    <!-- Select2 (mantenemos tu versiÃ³n) -->
+    <!-- Select2 (mantenemos tu versión) -->
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/js/select2.min.js"></script>
 
     <!-- Utilidades -->
     <script src="~/js/site.js"></script>
 
-    <!-- LÃ³gica de la vista -->
+    <!-- Lógica de la vista -->
     <script src="~/js/Productos.js?v=2.4"></script>
 }

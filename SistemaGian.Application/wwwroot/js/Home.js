@@ -1,4 +1,4 @@
-﻿//#########################################################################################################################################################
+//#########################################################################################################################################################
 //#########################################################################################################################################################
 //#############################################################################CLIENTES####################################################################
 const precioZonaInput = document.getElementById('txtPrecioZona');
@@ -1152,3 +1152,52 @@ async function listaEstados() {
     }
 }
 
+/* ====================== BUSCADOR MENÚ HOME ====================== */
+(function initHomeMenuSearch() {
+    const input = document.getElementById('homeMenuSearch');
+    const grid = document.getElementById('homeMenuGrid');
+    const emptyMsg = document.getElementById('homeMenuSearchEmpty');
+    const clearBtn = document.getElementById('homeMenuSearchClear');
+    if (!input || !grid) return;
+
+    const normalize = (text) => (text || '')
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '');
+
+    const items = [...grid.querySelectorAll(':scope > .home-menu-item')].map((col) => {
+        const label = col.querySelector('.btnMenu')?.textContent?.trim() || '';
+        const alt = col.querySelector('img')?.getAttribute('alt') || '';
+        const title = col.querySelector('img')?.getAttribute('title') || '';
+        col.dataset.search = normalize(`${label} ${alt} ${title}`);
+        return col;
+    });
+
+    function applyFilter() {
+        const q = normalize(input.value.trim());
+        if (clearBtn) clearBtn.hidden = !q;
+
+        let visible = 0;
+        items.forEach((col) => {
+            const match = !q || col.dataset.search.includes(q);
+            col.classList.toggle('home-menu-item--hidden', !match);
+            if (match) visible++;
+        });
+
+        if (emptyMsg) emptyMsg.hidden = visible > 0 || !q;
+    }
+
+    applyFilter();
+    input.addEventListener('input', applyFilter);
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            input.value = '';
+            applyFilter();
+        }
+    });
+    clearBtn?.addEventListener('click', () => {
+        input.value = '';
+        applyFilter();
+        input.focus();
+    });
+})();

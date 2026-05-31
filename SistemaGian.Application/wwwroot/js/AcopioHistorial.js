@@ -131,10 +131,6 @@ async function configurarTablaStock(data) {
 
                 actualizarKpis(data)
 
-                // Hover cursor
-                $('#grd_acopio tbody').on('mouseenter', 'tr', function () {
-                    $(this).css('cursor', 'pointer');
-                });
             }
         });
     } else {

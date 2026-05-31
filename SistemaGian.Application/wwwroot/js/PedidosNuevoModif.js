@@ -127,6 +127,9 @@ function setFechaPagoCliente(iso) {
 
 let idPedido = document.getElementById('IdPedido').value;
 let productos = [];
+let nroRemitoDuplicado = false;
+let nroRemitoVerificacionSeq = 0;
+let nroRemitoDebounceTimer = null;
 
 $(document).ready(async function () {
     await cargarMonedas();
@@ -190,7 +193,8 @@ $(document).ready(async function () {
         $(".ocultarmodoVendedor").hide();
     }
 
-
+    inicializarValidacionNroRemito();
+    await verificarNroRemitoPartida();
 
     $("#Clientes, #Proveedores, #Zonas, #Choferes").select2({
         width: "100%",
@@ -433,24 +437,6 @@ async function abrirProveedor() {
         }
     });
 
-    let filaSeleccionada = null; // Variable para almacenar la fila seleccionada
-
-    $('#tablaProveedores tbody').on('click', 'tr', function () {
-        // Remover la clase de la fila anteriormente seleccionada
-        if (filaSeleccionada) {
-            $(filaSeleccionada).removeClass('selected');
-            $('td', filaSeleccionada).removeClass('selected');
-
-        }
-
-        // Obtener la fila actual
-        filaSeleccionada = $(this);
-
-        // Agregar la clase a la fila actual
-        $(filaSeleccionada).addClass('selected');
-        $('td', filaSeleccionada).addClass('selected');
-    });
-
     // Abre el modal
     $('#proveedorModal').modal('show');
 
@@ -499,8 +485,6 @@ async function abrirCliente() {
 }
 
 function configurarEventosTablaClientes() {
-    let filaSeleccionada = null; // Variable para almacenar la fila seleccionada
-
     // Doble clic en fila para seleccionar cliente
     $('#tablaClientes tbody').on('dblclick', 'tr', function () {
         const data = $('#tablaClientes').DataTable().row(this).data();
@@ -521,22 +505,6 @@ function configurarEventosTablaClientes() {
             errorModal('Seleccione un Cliente');
         }
     });
-
-
-
-    // Selección de fila en la tabla
-    $('#tablaClientes tbody').on('click', 'tr', function () {
-        if (filaSeleccionada) {
-            $(filaSeleccionada).removeClass('selected');
-            $('td', filaSeleccionada).removeClass('selected');
-        }
-
-        filaSeleccionada = $(this);
-        $(filaSeleccionada).addClass('selected');
-        $('td', filaSeleccionada).addClass('selected');
-    });
-
-
 }
 
 
@@ -559,26 +527,6 @@ async function abrirChofer() {
         var data = $('#tablaChoferes').DataTable().row(this).data();
         cargarDatosChofer(data);
         $('#choferModal').modal('hide');
-    });
-
-
-
-    let filaSeleccionada = null; // Variable para almacenar la fila seleccionada
-
-    $('#tablaChoferes tbody').on('click', 'tr', function () {
-        // Remover la clase de la fila anteriormente seleccionada
-        if (filaSeleccionada) {
-            $(filaSeleccionada).removeClass('selected');
-            $('td', filaSeleccionada).removeClass('selected');
-
-        }
-
-        // Obtener la fila actual
-        filaSeleccionada = $(this);
-
-        // Agregar la clase a la fila actual
-        $(filaSeleccionada).addClass('selected');
-        $('td', filaSeleccionada).addClass('selected');
     });
 
     // Abre el modal
@@ -2203,7 +2151,13 @@ function obtenerProductos(grd) {
 }
 
 async function guardarCambios() {
-   
+    await verificarNroRemitoPartida();
+    if (nroRemitoDuplicado) {
+        errorModal('Ya existe un pedido con ese número de partida. Cambiá el N° de partida para continuar.');
+        document.getElementById('nroRemito')?.focus();
+        return;
+    }
+
     if (isValidPedido()) {
         // Función reutilizable para recolectar los pagos
        
@@ -2254,9 +2208,15 @@ async function guardarCambios() {
             },
             body: JSON.stringify(nuevoModelo)
         })
-            .then(response => {
-
-                if (!response.ok) throw new Error(response.statusText);
+            .then(async response => {
+                if (!response.ok) {
+                    let msg = response.statusText;
+                    try {
+                        const err = await response.json();
+                        if (err.mensaje) msg = err.mensaje;
+                    } catch { /* ignore */ }
+                    throw new Error(msg);
+                }
                 return response.json();
             })
             .then(dataJson => {
@@ -2275,6 +2235,7 @@ async function guardarCambios() {
             })
             .catch(error => {
                 console.error('Error:', error);
+                errorModal(error.message || 'Error al guardar el pedido.');
             });
     }
 }
@@ -2455,6 +2416,66 @@ function calcularDetalleFacturaIVA(selectedProduct) {
 }
 
 
+function _idPedidoActualParaPartida() {
+    const raw = idPedido ?? document.getElementById('IdPedido')?.value;
+    const n = parseInt(raw, 10);
+    return Number.isFinite(n) && n > 0 ? n : 0;
+}
+
+async function verificarNroRemitoPartida() {
+    const input = document.getElementById('nroRemito');
+    const aviso = document.getElementById('nroRemitoAviso');
+    const avisoTexto = document.getElementById('nroRemitoAvisoTexto');
+    if (!input || !aviso) return false;
+
+    const valor = (input.value || '').trim();
+    if (!valor) {
+        nroRemitoDuplicado = false;
+        aviso.hidden = true;
+        input.classList.remove('nro-remito-duplicado');
+        return false;
+    }
+
+    const seq = ++nroRemitoVerificacionSeq;
+    try {
+        const qs = new URLSearchParams({
+            nroRemito: valor,
+            idPedido: String(_idPedidoActualParaPartida())
+        });
+        const response = await fetch(`/Pedidos/ExisteNroRemito?${qs}`);
+        if (!response.ok) return nroRemitoDuplicado;
+        if (seq !== nroRemitoVerificacionSeq) return nroRemitoDuplicado;
+
+        const data = await response.json();
+        nroRemitoDuplicado = !!data.existe;
+        if (avisoTexto) {
+            avisoTexto.textContent = nroRemitoDuplicado
+                ? `El número de partida ${valor} ya existe en otro pedido.`
+                : '';
+        }
+        aviso.hidden = !nroRemitoDuplicado;
+        input.classList.toggle('nro-remito-duplicado', nroRemitoDuplicado);
+        return nroRemitoDuplicado;
+    } catch (e) {
+        console.warn('verificarNroRemitoPartida', e);
+        return nroRemitoDuplicado;
+    }
+}
+
+function inicializarValidacionNroRemito() {
+    const input = document.getElementById('nroRemito');
+    if (!input || input.dataset.partidaValidacion === '1') return;
+    input.dataset.partidaValidacion = '1';
+
+    const programar = () => {
+        clearTimeout(nroRemitoDebounceTimer);
+        nroRemitoDebounceTimer = setTimeout(() => verificarNroRemitoPartida(), 350);
+    };
+
+    input.addEventListener('input', programar);
+    input.addEventListener('blur', () => verificarNroRemitoPartida());
+}
+
 async function obtenerProximoNroRemito() {
     try {
         const response = await fetch('/Pedidos/ObtenerProximoNroRemito');
@@ -2534,6 +2555,7 @@ function cargarDatosGeneralesDelPedido(datos) {
     if (datos.NroRemito && $("#nroRemito").val() !== datos.NroRemito) {
         $("#nroRemito").val(datos.NroRemito);
         mostrarTooltipCampoModificado("nroRemito", "N° de Partida actualizado");
+        verificarNroRemitoPartida();
     }
 
     if (datos.IdZona && $("#Zonas").val() !== String(datos.IdZona)) {

@@ -1,4 +1,4 @@
-ï»¿@using Microsoft.Extensions.Configuration
+@using Microsoft.Extensions.Configuration
 @inject IConfiguration Configuration
 @{
     var ambienteTest = Configuration.GetValue<int>("AmbienteTest");
@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" />
  
     <link rel="stylesheet" href="~/css/acopioHistorial.css?v=1.0" />
-    <link rel="stylesheet" href="~/css/redisenoPantallas.css?v=1.0" />
+    <link rel="stylesheet" href="~/css/redisenopantallas.css?v=1.2" />
 }
 
 <div class="container page-99" style="margin-top:100px">
@@ -73,7 +73,7 @@
                                 <th>Proveedor</th>
                                 <th>Producto</th>
                                 <th>Cantidad</th>
-                                <th>Ãšltima ActualizaciÃ³n</th>
+                                <th>Última Actualización</th>
                             </tr>
                         </thead>
                         <tbody></tbody>

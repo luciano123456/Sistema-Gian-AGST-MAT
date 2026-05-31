@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using SistemaGian.DAL.Repository;
 using SistemaGian.Models;
@@ -21,9 +21,12 @@ namespace SistemaGian.BLL.Service
             return await _productospreciorepo.Eliminar(id);
         }
 
-        public async Task<List<ProductosPreciosHistorial>> ObtenerHistorialProducto(int idProducto, int idProveedor, DateTime FechaDesde, DateTime FechaHasta)
+        public async Task<List<ProductosPreciosHistorial>> ObtenerHistorialProducto(int idProducto, int idProveedor, int idCliente, DateTime FechaDesde, DateTime FechaHasta)
         {
-            return await _productospreciorepo.ObtenerUltimosPreciosProductoFecha(idProducto, idProveedor, FechaDesde, FechaHasta);
+            return await _productospreciorepo.ObtenerUltimosPreciosProductoFecha(idProducto, idProveedor, idCliente, FechaDesde, FechaHasta);
         }
+
+        public Task<bool> RevertirPrecio(int idHistorial, string tipo)
+            => _productospreciorepo.RevertirPrecioAsync(idHistorial, tipo);
     }
 }

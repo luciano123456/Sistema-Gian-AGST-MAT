@@ -1,4 +1,4 @@
-﻿using SistemaGian.Models;
+using SistemaGian.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,7 +18,7 @@ namespace SistemaGian.DAL.Repository
         Task<bool> Actualizar(Pedido model);
         Task<bool> Insertar(Pedido pedido, List<PagosPedidosCliente> pagosCliente, List<PagosPedidosProveedor> pagosProveedores, List<PedidosProducto> productos);
         Task<bool> Actualizar(Pedido pedido, List<PagosPedidosCliente> pagosCliente, List<PagosPedidosProveedor> pagosProveedores, List<PedidosProducto> productos);
-        Task<bool> InsertarPagosCliente(int idPedido, List<PagosPedidosCliente> pagos);
+        Task<bool> InsertarPagosCliente(int idPedido, List<PagosPedidosCliente> pagos, string? nroRemito = null);
         Task<bool> InsertarPagosProveedor(int idPedido, List<PagosPedidosProveedor> pagos);
         Task<bool> InsertarProductos(List<PedidosProducto> productos, int idProveedor);
         Task<bool> ActualizarPagosCliente(List<PagosPedidosCliente> pagos);
@@ -30,6 +30,7 @@ namespace SistemaGian.DAL.Repository
         Task<bool> EliminarPagoProveedor(int idPago);
         Task<IQueryable<Pedido>> ObtenerTodos();
         Task<int> ObtenerUltimoNroRemito();
+        Task<bool> ExisteNroRemitoAsync(string nroRemito, int? excluirIdPedido = null);
 
     }
 }

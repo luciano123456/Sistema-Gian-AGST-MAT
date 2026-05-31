@@ -1,4 +1,4 @@
-ï»¿@using Microsoft.Extensions.Configuration
+@using Microsoft.Extensions.Configuration
 @inject IConfiguration Configuration
 @{
     var ambienteTest = Configuration.GetValue<int>("AmbienteTest");
@@ -16,8 +16,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
 
     <!-- Mismos estilos que Productos -->
-    <link href="~/css/productos.css?v=1.0" rel="stylesheet" />
-    <link href="~/css/redisenopantallas.css?v=1.0" rel="stylesheet" />
+    <link href="~/css/productos.css?v=1.2" rel="stylesheet" />
+    <link href="~/css/redisenopantallas.css?v=1.2" rel="stylesheet" />
 
     <!-- Select2 -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
@@ -34,7 +34,7 @@
                 <span class="cc-badge"><i class="fa fa-line-chart"></i></span>
                 <div>
                     <h2 class="m-0 fw-800">Historial de Precios</h2>
-                    <small class="text-muted-cc">EvoluciÃ³n por producto / proveedor</small>
+                    <small class="text-muted-cc">Evolución por producto / proveedor</small>
                 </div>
             </div>
 
@@ -53,7 +53,7 @@
             <div class="card-glass p-3">
                 <div class="tabla-wrap position-relative">
 
-                    <!-- Controles superiores (idÃ©ntico patrÃ³n que Productos) -->
+                    <!-- Controles superiores (idéntico patrón que Productos) -->
                     <div class="tabla-controls-top d-flex gap-2 flex-wrap align-items-center mb-2">
                         <button class="btn btn-outline-primary d-flex align-items-center" type="button" id="btnToggleFiltros">
                             <i class="fa fa-arrow-up me-2" id="iconFiltros"></i> Filtros
@@ -73,35 +73,40 @@
                         </div>
                     </div>
 
-                    <!-- Barra de filtros PLEGABLE (mismos IDs tuyos) -->
-                    <form id="formFiltrosHistorial" class="filter-bar shadow-sm rounded-3 mb-3 p-3 d-none">
-                        <div class="row g-2 align-items-end">
-                            <div class="col-6 col-md-2">
-                                <label class="form-label">Desde</label>
+                    <!-- Barra de filtros compacta -->
+                    <form id="formFiltrosHistorial" class="filter-bar hist-filtros shadow-sm rounded-3 mb-3 p-3 d-none">
+                        <div class="hist-filtros__grid">
+                            <div class="hist-filtros__field hist-filtros__field--fecha">
+                                <label class="form-label" for="txtFechaDesde">Desde</label>
                                 <input type="date" id="txtFechaDesde" class="form-control">
                             </div>
-                            <div class="col-6 col-md-2">
-                                <label class="form-label">Hasta</label>
+                            <div class="hist-filtros__field hist-filtros__field--fecha">
+                                <label class="form-label" for="txtFechaHasta">Hasta</label>
                                 <input type="date" id="txtFechaHasta" class="form-control">
                             </div>
-                            <div class="col-12 col-md-2">
-                                <label class="form-label">Proveedor</label>
+                            <div class="hist-filtros__field">
+                                <label class="form-label" for="clientesfiltro">Cliente</label>
+                                <select id="clientesfiltro" name="select" class="form-select input-nuevo">
+                                    <option value="" selected>Cliente</option>
+                                </select>
+                            </div>
+                            <div class="hist-filtros__field hist-filtros__field--proveedor">
+                                <label class="form-label" for="Proveedoresfiltro">Proveedor</label>
                                 <select id="Proveedoresfiltro" name="select" class="form-select input-nuevo">
                                     <option value="" selected>Proveedor</option>
                                 </select>
                             </div>
-                            <div class="col-12 col-md-3">
-                                <label class="form-label">Producto</label>
+                            <div class="hist-filtros__field hist-filtros__field--producto">
+                                <label class="form-label" for="Productosfiltro">Producto</label>
                                 <select id="Productosfiltro" name="select" class="form-select input-nuevo">
                                     <option value="" selected>Producto</option>
                                 </select>
                             </div>
-
-                            <div class="col-12 col-md-3 d-flex gap-2 mt-2">
-                                <a class="btn btn-primary flex-fill" id="aplicarFiltros" onclick="aplicarFiltros()">
+                            <div class="hist-filtros__actions">
+                                <button type="button" class="btn btn-primary" id="btnAplicarFiltrosHist">
                                     <i class="fa fa-search me-1"></i> Aplicar
-                                </a>
-                                <button type="button" class="btn btn-outline-secondary" onclick="limpiarFiltros()">
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary" id="btnLimpiarFiltrosHist" title="Limpiar filtros">
                                     <i class="fa fa-eraser me-1"></i> Limpiar
                                 </button>
                             </div>
@@ -155,6 +160,6 @@
     <!-- Moment -->
     <script src="~/js/utils/moment.js"></script>
 
-    <!-- LÃ³gica -->
-    <script src="~/js/HistorialPrecios.js?v=1.1"></script>
+    <!-- Lógica -->
+    <script src="~/js/HistorialPrecios.js?v=1.7"></script>
 }

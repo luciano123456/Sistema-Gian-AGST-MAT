@@ -1,6 +1,56 @@
 ﻿let gridHistorial;
 const precioInput = document.getElementById('txtPrecio');
 
+/** PascalCase o camelCase según serialización del API */
+function histVal(obj, name) {
+    if (!obj || !name) return undefined;
+    if (obj[name] !== undefined && obj[name] !== null) return obj[name];
+    const camel = name.charAt(0).toLowerCase() + name.slice(1);
+    return obj[camel];
+}
+
+function normalizarHistorialLista(data) {
+    if (!Array.isArray(data)) return [];
+    const lista = data.map(row => ({
+        Id: histVal(row, 'Id'),
+        IdProducto: histVal(row, 'IdProducto'),
+        IdProveedor: histVal(row, 'IdProveedor'),
+        IdCliente: histVal(row, 'IdCliente'),
+        Producto: histVal(row, 'Producto'),
+        Fecha: histVal(row, 'Fecha'),
+        PCostoNuevo: Number(histVal(row, 'PCostoNuevo')) || 0,
+        PCostoAnterior: Number(histVal(row, 'PCostoAnterior')) || 0,
+        PVentaNuevo: Number(histVal(row, 'PVentaNuevo')) || 0,
+        PVentaAnterior: Number(histVal(row, 'PVentaAnterior')) || 0
+    }));
+    lista.sort((a, b) => new Date(b.Fecha) - new Date(a.Fecha));
+    return lista;
+}
+
+function formatFechaHistorial(valor, type) {
+    if (valor == null || valor === '') {
+        return type === 'sort' || type === 'type' ? 0 : '';
+    }
+
+    const fecha = typeof valor === 'string' ? valor : (valor instanceof Date ? valor.toISOString() : String(valor));
+
+    if (type === 'sort' || type === 'type') {
+        const t = Date.parse(fecha);
+        return isNaN(t) ? 0 : t;
+    }
+
+    if (typeof moment === 'function') {
+        const m = moment(fecha);
+        if (m.isValid()) return m.format('DD/MM/YYYY HH:mm');
+    }
+
+    const d = new Date(fecha);
+    if (isNaN(d.getTime())) return fecha;
+
+    const pad = (n) => String(n).padStart(2, '0');
+    return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
 
 const columnConfig = [
     { index: 0, filterType: 'text' },
@@ -23,40 +73,80 @@ $(document).ready(() => {
         document.getElementById("txtFechaDesde").value = fechaDesde; // Fecha 4 días atrás
         document.getElementById("txtFechaHasta").value = moment().format('YYYY-MM-DD');
 
-        await listaProveedoresFiltro();
+        if (document.getElementById('clientesfiltro')) {
+            await listaClientesFiltro();
+        }
+        await listaProveedoresFiltro(-1);
 
         initToggleFiltrosPersistente();
-     
         configurarDataTable(null);
-        
     };
 
-    init(); // Llamar a la función asíncrona
-
-
-    $("#Productosfiltro, #Proveedoresfiltro").select2({
-        placeholder: "Selecciona una opción",
-        allowClear: false
+    init().catch(err => {
+        console.error('HistorialPrecios init:', err);
+        errorModal?.('Error al cargar filtros del historial de precios.');
     });
 
+    const selectsFiltro = '#Productosfiltro, #Proveedoresfiltro, #clientesfiltro';
+    if ($(selectsFiltro).length) {
+        $(selectsFiltro).select2({
+            placeholder: 'Selecciona una opción',
+            allowClear: false
+        });
+    }
 
+    document.getElementById('btnAplicarFiltrosHist')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        aplicarFiltros();
+    });
+    document.getElementById('btnLimpiarFiltrosHist')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        limpiarFiltros();
+    });
+
+    $('#grd_Historial').on('click', '.hist-btn-revertir', async function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const id = Number(this.dataset.id);
+        const tipo = this.dataset.tipo;
+        if (id > 0 && tipo) await revertirPrecioHistorial(id, tipo);
+    });
+});
+
+$('#clientesfiltro').on('change', async function () {
+    const idCliente = parseInt(this.value, 10) || -1;
+    await listaProveedoresFiltro(idCliente);
+    $('#Productosfiltro').empty().append(new Option('-', -1));
 });
 
 $("#Proveedoresfiltro").on("change", async function () {
-    const idProveedor = parseInt($(this).val());
+    const idProveedor = parseInt($(this).val(), 10) || -1;
     await listaProductosFiltro(idProveedor);
 });
 
 
 async function aplicarFiltros() {
-    $('#labelIncrementoDecremento').text("");  // Borra solo el texto
-    listaHistorial(document.getElementById("Productosfiltro").value, document.getElementById("Proveedoresfiltro").value, document.getElementById("txtFechaDesde").value, document.getElementById("txtFechaHasta").value, );
+    $('#labelIncrementoDecremento').text("");
+    const idCliente = document.getElementById("clientesfiltro")?.value ?? -1;
+    listaHistorial(
+        document.getElementById("Productosfiltro").value,
+        document.getElementById("Proveedoresfiltro").value,
+        idCliente,
+        document.getElementById("txtFechaDesde").value,
+        document.getElementById("txtFechaHasta").value
+    );
+}
+
+function limpiarFiltros() {
+    const fechaDesde = moment().add(-30, 'days').format('YYYY-MM-DD');
+    document.getElementById("txtFechaDesde").value = fechaDesde;
+    document.getElementById("txtFechaHasta").value = moment().format('YYYY-MM-DD');
+    $('#clientesfiltro').val(-1).trigger('change');
 }
 
 
-async function listaHistorial(idProducto, idProveedor, fechaDesde, fechaHasta) {
-    // Construir la URL con los parámetros como query string
-    const url = `/HistorialPrecios/Lista?idProducto=${idProducto}&idProveedor=${idProveedor}&FechaDesde=${encodeURIComponent(fechaDesde)}&FechaHasta=${encodeURIComponent(fechaHasta)}`;
+async function listaHistorial(idProducto, idProveedor, idCliente, fechaDesde, fechaHasta) {
+    const url = `/HistorialPrecios/Lista?idProducto=${idProducto}&idProveedor=${idProveedor}&idCliente=${idCliente}&FechaDesde=${encodeURIComponent(fechaDesde)}&FechaHasta=${encodeURIComponent(fechaHasta)}`;
 
 
     try {
@@ -72,13 +162,47 @@ async function listaHistorial(idProducto, idProveedor, fechaDesde, fechaHasta) {
             return;
         }
 
-        const data = await response.json();
+        const data = normalizarHistorialLista(await response.json());
         await configurarDataTable(data);
     } catch (error) {
         console.error('Error en la solicitud:', error);
     }
 }
 
+
+function renderCeldaPrecioConRevertir(data, type, row, meta, tipoRevertir, campoNuevo, campoAnterior) {
+    if (type !== 'display') return data;
+
+    const actual = Number(data) || 0;
+    const prevRow = meta.row > 0 ? gridHistorial.row(meta.row - 1).data() : null;
+    let arrow = '';
+    let percentageChange = '';
+
+    if (prevRow) {
+        const prevValue = Number(histVal(prevRow, campoNuevo)) || 0;
+        const diff = actual - prevValue;
+        if (diff !== 0 && prevValue !== 0) {
+            if (diff > 0) {
+                const percentage = ((diff / prevValue) * 100).toFixed(2);
+                arrow = '<i class="fa fa-arrow-up" style="color: green;"></i>';
+                percentageChange = `<span style="color: green;"> (+${percentage} %)</span>`;
+            } else {
+                const percentage = ((Math.abs(diff) / prevValue) * 100).toFixed(2);
+                arrow = '<i class="fa fa-arrow-down" style="color: red;"></i>';
+                percentageChange = `<span style="color: red;"> (-${percentage} %)</span>`;
+            }
+        }
+    }
+
+    const anterior = Number(histVal(row, campoAnterior)) || 0;
+    const puedeRevertir = anterior !== actual;
+    const idHist = histVal(row, 'Id');
+    const btn = puedeRevertir && idHist
+        ? `<button type="button" class="hist-btn-revertir" data-id="${idHist}" data-tipo="${tipoRevertir}" title="Volver al ${tipoRevertir === 'costo' ? 'costo' : 'precio de venta'} anterior (${formatNumber(anterior)})"><i class="fa fa-undo"></i> Anterior</button>`
+        : '';
+
+    return `${formatNumber(data)} ${arrow} ${percentageChange}${btn}`;
+}
 
 async function configurarDataTable(data) {
     if (!gridHistorial) {
@@ -98,73 +222,12 @@ async function configurarDataTable(data) {
                 {
                     data: 'PCostoNuevo',
                     title: 'Precio de Costo',
-                    render: function (data, type, row, meta) {
-                        if (type !== 'display') return data; // Mantener formato para exportar o buscar
-
-                        // Comparar con la fila anterior
-                        const prevRow = meta.row > 0 ? gridHistorial.row(meta.row - 1).data() : null;
-                        let arrow = '';
-                        let percentageChange = '';
-
-                        if (prevRow) {
-                            const prevValue = prevRow.PCostoNuevo; // Precio anterior
-                            const diff = data - prevValue; // Diferencia entre los dos precios
-
-                            let percentage = 0;
-
-                            if (diff !== 0) {
-                                // Si el valor actual es mayor que el anterior (incremento)
-                                if (diff > 0) {
-                                    percentage = ((diff / prevValue) * 100).toFixed(2); // Incremento positivo
-                                    arrow = '<i class="fa fa-arrow-up" style="color: green;"></i>';
-                                    percentageChange = `<span style="color: green;"> (+${percentage} %)</span>`;
-                                } else {
-                                    // Si el valor actual es menor que el anterior (decremento)
-                                    percentage = ((Math.abs(diff) / prevValue) * 100).toFixed(2); // Decremento negativo
-                                    arrow = '<i class="fa fa-arrow-down" style="color: red;"></i>';
-                                    percentageChange = `<span style="color: red;"> (-${percentage} %)</span>`;
-                                }
-                            }
-                        }
-
-                        return `${formatNumber(data)} ${arrow} ${percentageChange}`;
-                    }
+                    render: (data, type, row, meta) => renderCeldaPrecioConRevertir(data, type, row, meta, 'costo', 'PCostoNuevo', 'PCostoAnterior')
                 },
-
                 {
                     data: 'PVentaNuevo',
                     title: 'Precio de Venta',
-                    render: function (data, type, row, meta) {
-                        if (type !== 'display') return data; // Mantener formato para exportar o buscar
-
-                        // Comparar con la fila anterior
-                        const prevRow = meta.row > 0 ? gridHistorial.row(meta.row - 1).data() : null;
-                        let arrow = '';
-                        let percentageChange = '';
-
-                        if (prevRow) {
-                            const prevValue = prevRow.PVentaNuevo; // Precio anterior
-                            const diff = data - prevValue; // Diferencia entre los dos precios
-
-                            let percentage = 0;
-
-                            if (diff !== 0) {
-                                // Si el valor actual es mayor que el anterior (incremento)
-                                if (diff > 0) {
-                                    percentage = ((diff / prevValue) * 100).toFixed(2); // Incremento positivo
-                                    arrow = '<i class="fa fa-arrow-up" style="color: green;"></i>';
-                                    percentageChange = `<span style="color: green;"> (+${percentage} %)</span>`;
-                                } else {
-                                    // Si el valor actual es menor que el anterior (decremento)
-                                    percentage = ((Math.abs(diff) / prevValue) * 100).toFixed(2); // Decremento negativo
-                                    arrow = '<i class="fa fa-arrow-down" style="color: red;"></i>';
-                                    percentageChange = `<span style="color: red;"> (-${percentage} %)</span>`;
-                                }
-                            }
-                        }
-
-                        return `${formatNumber(data)} ${arrow} ${percentageChange}`;
-                    }
+                    render: (data, type, row, meta) => renderCeldaPrecioConRevertir(data, type, row, meta, 'venta', 'PVentaNuevo', 'PVentaAnterior')
                 },
                 {
                     data: "Id",
@@ -184,23 +247,27 @@ async function configurarDataTable(data) {
                 archivo: 'historial-precios',
                 columnas: (idx) => idx < 4
             }),
-            "columnDefs": [
+            order: [[1, 'desc']],
+            columnDefs: [
                 {
-
-                    "render": function (data, type, row) {
-                        // Formatear fecha desde el formato ISO
-                        if (data) {
-                            const date = new Date(data); // Convierte la cadena en un objeto Date
-                            return date.toLocaleDateString('es-ES'); // Formato: 'DD/MM/YYYY'
-                        }
-                    },
-                    "targets": [1] // Índices de las columnas de fechas
+                    targets: 1,
+                    render: function (data, type) {
+                        return formatFechaHistorial(data, type);
+                    }
                 },
                 {
-                    "render": function (data, type, row) {
-                        return formatNumber(data); // Formatear número en la columna
-                    },
-                    "targets": [2] // Columna Precio
+                    targets: 2,
+                    render: function (data, type) {
+                        if (type === 'display') return formatNumber(data);
+                        return data;
+                    }
+                },
+                {
+                    targets: 3,
+                    render: function (data, type) {
+                        if (type === 'display') return formatNumber(data);
+                        return data;
+                    }
                 }
             ],
             orderCellsTop: true,
@@ -230,6 +297,8 @@ async function configurarDataTable(data) {
                             select.append('<option value="' + item.Id + '">' + item.Nombre + '</option>');
                         });
 
+                    } else if (config.filterType === 'none') {
+                        cell.empty();
                     } else if (config.filterType === 'text') {
                         var input = $('<input type="text" placeholder="Buscar..." />')
                             .appendTo(cell.empty())
@@ -276,7 +345,7 @@ async function configurarDataTable(data) {
 
 
     } else {
-        gridHistorial.clear().rows.add(data).draw();
+        gridHistorial.clear().rows.add(data).order([1, 'desc']).draw();
         actualizarKpis(data);
     }
 }
@@ -292,8 +361,10 @@ function calcularCambioPorcentual() {
     const lastRow = data[data.length - 1];
 
     // Obtenemos el nombre del producto y proveedor seleccionados
-    const proveedor = $('#Proveedoresfiltro').find('option:selected').text(); // Nombre del proveedor
-    const producto = $('#Productosfiltro').find('option:selected').text(); // Nombre del producto
+    const proveedor = $('#Proveedoresfiltro').find('option:selected').text();
+    const producto = $('#Productosfiltro').find('option:selected').text();
+    const cliente = $('#clientesfiltro').find('option:selected').text();
+    const clienteTxt = cliente && cliente !== '-' ? ` del cliente <span style="color: yellow;">${cliente}</span>` : '';
 
     if (firstRow && lastRow) {
         const diffCosto = lastRow.PCostoNuevo - firstRow.PCostoNuevo;
@@ -327,7 +398,7 @@ function calcularCambioPorcentual() {
 
         // Crear la frase con colores aplicados a las partes relevantes
         const labelText = `
-            El producto <span style="color: yellow;">${producto}</span> del proveedor <span style="color: yellow;">${proveedor}</span> ha tenido un 
+            El producto <span style="color: yellow;">${producto}</span> del proveedor <span style="color: yellow;">${proveedor}</span>${clienteTxt} ha tenido un 
             <span style="color: ${colorCosto};">${incrementoDecrementoCosto}</span> 
             de <span style="color: ${colorCosto};">${porcentajeCosto}%</span> en el precio de costo y un 
             <span style="color: ${colorVenta};">${incrementoDecrementoVenta}</span> 
@@ -389,26 +460,37 @@ function configurarOpcionesColumnas() {
     });
 }
 
-async function listaProveedoresFiltro() {
-    const url = `/Proveedores/Lista`;
-    const response = await fetch(url);
+async function listaClientesFiltro() {
+    const response = await fetch('/Clientes/Lista');
+    if (!response.ok) return;
+
     const data = await response.json();
+    const selectClientes = document.getElementById('clientesfiltro');
+    if (!selectClientes) return;
+
+    $('#clientesfiltro option').remove();
+    selectClientes.appendChild(new Option('-', -1));
+
+    for (let i = 0; i < data.length; i++) {
+        selectClientes.appendChild(new Option(data[i].Nombre, data[i].Id));
+    }
+}
+
+async function listaProveedoresFiltro(idCliente) {
+    const id = parseInt(idCliente, 10);
+    const url = id > 0 ? `/Proveedores/ListaPorCliente?IdCliente=${id}` : '/Proveedores/Lista';
+    const response = await fetch(url);
+    if (!response.ok) return;
+
+    const data = await response.json();
+    const selectProveedores = document.getElementById('Proveedoresfiltro');
+    if (!selectProveedores) return;
 
     $('#Proveedoresfiltro option').remove();
+    selectProveedores.appendChild(new Option('-', -1));
 
-    selectProveedores = document.getElementById("Proveedoresfiltro");
-
-    option = document.createElement("option");
-    option.value = -1;
-    option.text = "-";
-    selectProveedores.appendChild(option);
-
-    for (i = 0; i < data.length; i++) {
-        option = document.createElement("option");
-        option.value = data[i].Id;
-        option.text = data[i].Nombre;
-        selectProveedores.appendChild(option);
-
+    for (let i = 0; i < data.length; i++) {
+        selectProveedores.appendChild(new Option(data[i].Nombre, data[i].Id));
     }
 }
 async function listaProductosFiltro(idproveedor) {
@@ -434,6 +516,43 @@ async function listaProductosFiltro(idproveedor) {
     }
 }
 
+
+async function revertirPrecioHistorial(id, tipo) {
+    const etiqueta = tipo === 'costo' ? 'precio de costo' : 'precio de venta';
+    const fila = gridHistorial?.rows().data().toArray().find(r => Number(histVal(r, 'Id')) === Number(id));
+    if (!fila) {
+        errorModal('No se encontró el registro del historial.');
+        return;
+    }
+
+    const valorActual = tipo === 'costo' ? histVal(fila, 'PCostoNuevo') : histVal(fila, 'PVentaNuevo');
+    const valorAnterior = tipo === 'costo' ? histVal(fila, 'PCostoAnterior') : histVal(fila, 'PVentaAnterior');
+
+    const mensaje = `¿Restaurar el ${etiqueta} a ${formatNumber(valorAnterior)}? (valor actual en este registro: ${formatNumber(valorActual)})`;
+    const confirmado = await confirmarModal(mensaje);
+    if (!confirmado) return;
+
+    try {
+        const response = await fetch(`/HistorialPrecios/RevertirPrecio?id=${id}&tipo=${encodeURIComponent(tipo)}`, {
+            method: 'POST'
+        });
+
+        if (!response.ok) {
+            let msg = 'No se pudo revertir el precio.';
+            try {
+                const err = await response.json();
+                if (err.mensaje) msg = err.mensaje;
+            } catch { /* ignore */ }
+            errorModal(msg);
+            return;
+        }
+
+        exitoModal(`Se restauró el ${etiqueta} al valor anterior.`);
+        await aplicarFiltros();
+    } catch {
+        errorModal('Error al revertir el precio.');
+    }
+}
 
 async function eliminarHistorial(id) {
     let resultado = await confirmarModal("¿Desea eliminar el registro?");

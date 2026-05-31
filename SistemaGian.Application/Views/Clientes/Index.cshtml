@@ -1,4 +1,4 @@
-ï»¿@using Microsoft.Extensions.Configuration
+@using Microsoft.Extensions.Configuration
 @inject IConfiguration Configuration
 
 @{
@@ -17,10 +17,10 @@
 
     <!-- Estilos base proyecto (mismo look & feel del otro) -->
     <link rel="stylesheet" href="~/css/usuarios.css?v=1.0" />
-    <link rel="stylesheet" href="~/css/redisenopantallas.css?v=1.0" />
+    <link rel="stylesheet" href="~/css/redisenopantallas.css?v=1.2" />
     <link rel="stylesheet" href="~/css/Clientes.css?v=1.0" />
 
-    <!-- (Dejo tus estilos originales tambiÃ©n, por compatibilidad) -->
+    <!-- (Dejo tus estilos originales también, por compatibilidad) -->
     <link href="~/css/clientes.css" rel="stylesheet" />
     <link href="~/css/RedisenoPantallas.css" rel="stylesheet" />
 }
@@ -30,14 +30,14 @@
 
 <div class="container page-99" style="margin-top:100px">
   
-    <!-- Header KPI estilo â€œglassâ€ -->
+    <!-- Header KPI estilo “glass” -->
     <div class="cc-header shadow-lg rounded-4 p-4 mb-4">
         <div class="d-flex align-items-center gap-3 flex-wrap">
             <div class="d-flex align-items-center gap-3">
                 <span class="cc-badge"><i class="fa fa-users"></i></span>
                 <div>
                     <h2 class="m-0 fw-800">Clientes</h2>
-                    <small class="text-muted-cc">GestiÃ³n y listado de clientes</small>
+                    <small class="text-muted-cc">Gestión y listado de clientes</small>
                 </div>
             </div>
 
@@ -74,7 +74,7 @@
         </div>
     </div>
 
-    <!-- Tarjeta / Tabla estilo â€œglassâ€ -->
+    <!-- Tarjeta / Tabla estilo “glass” -->
     <div class="row g-4">
         <div class="col-12">
             <div class="card-glass p-3">
@@ -123,12 +123,12 @@
                     </div>
 
                     <div class="col-md-6">
-                        <label for="txtTelefono" class="form-label">TelÃ©fono</label>
+                        <label for="txtTelefono" class="form-label">Teléfono</label>
                         <input type="text" class="form-control" id="txtTelefono">
                     </div>
 
                     <div class="col-md-6">
-                        <label for="txtDireccion" class="form-label">DirecciÃ³n</label>
+                        <label for="txtDireccion" class="form-label">Dirección</label>
                         <input type="text" class="form-control" id="txtDireccion">
                     </div>
 
@@ -159,8 +159,8 @@
     </div>
 </div>
 
-<!-- MODAL ÃšNICO: Saldos (Historial + Nuevo + EdiciÃ³n) -->
-<!-- MODAL ÃšNICO: Saldos (Historial + Nuevo + Editar) â€” versiÃ³n linda -->
+<!-- MODAL ÚNICO: Saldos (Historial + Nuevo + Edición) -->
+<!-- MODAL ÚNICO: Saldos (Historial + Nuevo + Editar) — versión linda -->
 <div class="modal fade" id="modalSaldos" tabindex="-1" aria-labelledby="modalSaldosLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-centered">
         <div class="modal-content cc-modal cc-elev-3">
@@ -201,7 +201,7 @@
                         <div class="cc-chip-total">
                             <i class="fa fa-balance-scale"></i>
                             <span class="label">Saldo actual</span>
-                            <strong id="saldoHeaderValue">â€”</strong>
+                            <strong id="saldoHeaderValue">—</strong>
                         </div>
                     </li>
                 </ul>
@@ -217,15 +217,15 @@
                                 <div class="d-flex align-items-center gap-2">
                                     <span class="cc-mini-stat success">
                                         <i class="fa fa-arrow-up"></i>
-                                        <span>Ingresos:</span><strong id="sumIngresos">â€”</strong>
+                                        <span>Ingresos:</span><strong id="sumIngresos">—</strong>
                                     </span>
                                     <span class="cc-mini-stat danger">
                                         <i class="fa fa-arrow-down"></i>
-                                        <span>Egresos:</span><strong id="sumEgresos">â€”</strong>
+                                        <span>Egresos:</span><strong id="sumEgresos">—</strong>
                                     </span>
                                     <span class="cc-mini-stat">
                                         <i class="fa fa-scale-balanced"></i>
-                                        <span>Saldo:</span><strong id="sumSaldo">â€”</strong>
+                                        <span>Saldo:</span><strong id="sumSaldo">—</strong>
                                     </span>
                                 </div>
                             </div>
@@ -248,7 +248,7 @@
                             <div class="cc-footbar">
                                 <div class="cc-chip soft">
                                     <i class="fa fa-info-circle"></i>
-                                    Los montos editados/quitados ajustan automÃ¡ticamente el <strong>Saldo a favor</strong> del cliente.
+                                    Los montos editados/quitados ajustan automáticamente el <strong>Saldo a favor</strong> del cliente.
                                 </div>
                                 <button class="btn btn-ghost" data-bs-dismiss="modal">
                                     <i class="fa fa-times"></i> Cerrar

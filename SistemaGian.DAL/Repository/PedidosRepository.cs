@@ -1,4 +1,4 @@
-﻿using Azure;
+using Azure;
 using Microsoft.EntityFrameworkCore;
 using SistemaGian.DAL.DataContext;
 using SistemaGian.Models;
@@ -57,16 +57,13 @@ namespace SistemaGian.DAL.Repository
                         .Where(p => p.IdPedido == idPedido)
                         .ToListAsync();
 
-                    // Devolver el saldo usado en cada pago
-                    foreach (var pago in pagosCliente)
-                    {
-                        devolucionPagos = pago.SaldoUsado;
-                    }
+                    devolucionPagos = pagosCliente.Sum(p => p.SaldoUsado);
 
                     if (devolucionPagos > 0)
                     {
+                        var nroPartidaElim = FormatearNroPartida(pedidoModel.NroRemito);
                         await _clienteRepository.SumarSaldoInterno((int)pedidoModel.IdCliente, devolucionPagos,
-                            $"Devolución por eliminación del pedido N° {await RefNroPartida(pedidoModel.Id)}");
+                            $"Devolución por eliminación del pedido N° {nroPartidaElim}");
                     }
 
                     // Eliminar los pagos de cliente
@@ -87,25 +84,12 @@ namespace SistemaGian.DAL.Repository
                     {
                         if (producto.CantidadUsadaAcopio > 0)
                         {
-                            var stock = await _dbcontext.AcopioStockActual
-                                .FirstOrDefaultAsync(x => x.IdProducto == producto.IdProducto);
-
-                            if (stock != null)
-                            {
-                                // Sumar la cantidad devuelta al stock
-                                stock.CantidadActual += (decimal)producto.CantidadUsadaAcopio;
-
-                                // Registrar historial
-                                _dbcontext.AcopioHistorial.Add(new AcopioHistorial
-                                {
-                                    IdProducto = (int)producto.IdProducto,
-                                    IdProveedor = (int)pedidoModel.IdProveedor,
-                                    Fecha = DateTime.Now,
-                                    Ingreso = producto.CantidadUsadaAcopio,
-                                    Egreso = null,
-                                    Observaciones = $"Devolución de acopio por eliminación del pedido N° {await RefNroPartida(pedidoModel.Id)}"
-                                });
-                            }
+                            var nroRemito = await TextoNroRemitoPedido(pedidoModel.Id);
+                            await RegistrarDevolucionAcopioAsync(
+                                (int)producto.IdProducto,
+                                (int)pedidoModel.IdProveedor,
+                                (decimal)producto.CantidadUsadaAcopio,
+                                $"Devolución de acopio por eliminación del pedido N° {nroRemito}");
                         }
                     }
 
@@ -161,7 +145,7 @@ namespace SistemaGian.DAL.Repository
 
 
                 // === PAGOS CLIENTE ===
-                if (!await InsertarPagosCliente(pedidoModal.Id, pagosCliente))
+                if (!await InsertarPagosCliente(pedidoModal.Id, pagosCliente, pedidoModal.NroRemito))
                     throw new Exception("Error al actualizar pagos cliente");
 
                 // === PAGOS PROVEEDOR ===
@@ -202,7 +186,7 @@ namespace SistemaGian.DAL.Repository
                     pc.IdPedidoNavigation = null;
                 }
 
-                if (!await InsertarPagosCliente(idPedido, pagosCliente)) throw new Exception("Error al insertar pagos cliente");
+                if (!await InsertarPagosCliente(idPedido, pagosCliente, pedido.NroRemito)) throw new Exception("Error al insertar pagos cliente");
 
                 // === PAGOS PROVEEDOR ===
                 foreach (var pp in pagosProveedores)
@@ -245,7 +229,7 @@ namespace SistemaGian.DAL.Repository
             }
         }
 
-        public async Task<bool> InsertarPagosCliente(int idPedido, List<PagosPedidosCliente> pagos)
+        public async Task<bool> InsertarPagosCliente(int idPedido, List<PagosPedidosCliente> pagos, string? nroRemito = null)
         {
             try
             {
@@ -254,6 +238,8 @@ namespace SistemaGian.DAL.Repository
                     .AsNoTracking()
                     .FirstOrDefaultAsync(p => p.Id == idPedido);
                 if (pedido == null) return false;
+
+                var nroPartida = await ResolverNroPartidaPedidoAsync(idPedido, nroRemito ?? pedido.NroRemito);
 
                 var cliente = await _dbcontext.Clientes
                     .FirstOrDefaultAsync(c => c.Id == pedido.IdCliente);
@@ -280,7 +266,7 @@ namespace SistemaGian.DAL.Repository
                         IdCliente = cliente.Id,
                         Ingreso = pe.SaldoUsado,
                         Egreso = 0,
-                        Observaciones = $"Devolución de saldo por eliminación de pago del pedido N° {await RefNroPartida(pedido.Id)}"
+                        Observaciones = $"Devolución de saldo por eliminación de pago del pedido N° {nroPartida}"
                     });
                 }
 
@@ -306,7 +292,7 @@ namespace SistemaGian.DAL.Repository
                                 IdCliente = cliente.Id,
                                 Ingreso = diff < 0 ? Math.Abs(diff) : 0,
                                 Egreso = diff > 0 ? diff : 0,
-                                Observaciones = $"Ajuste de saldo por modificación de pago del pedido N° {await RefNroPartida(pedido.Id)}"
+                                Observaciones = $"Ajuste de saldo por modificación de pago del pedido N° {nroPartida}"
                             });
                         }
 
@@ -330,7 +316,7 @@ namespace SistemaGian.DAL.Repository
                                 IdCliente = cliente.Id,
                                 Ingreso = 0,
                                 Egreso = p.SaldoUsado,
-                                Observaciones = $"Uso de saldo por nuevo pago del pedido N° {await RefNroPartida(pedido.Id)}"
+                                Observaciones = $"Uso de saldo por nuevo pago del pedido N° {nroPartida}"
                             });
                         }
 
@@ -406,6 +392,11 @@ namespace SistemaGian.DAL.Repository
 
                 foreach (var idPedido in idPedidos)
                 {
+                    if (idPedido is not > 0)
+                        throw new Exception("Id de pedido inválido al guardar productos.");
+
+                    var nroRemito = await TextoNroRemitoPedido(idPedido.Value);
+
                     var existentes = await _dbcontext.PedidosProductos
                         .Where(x => x.IdPedido == idPedido)
                         .ToListAsync();
@@ -413,6 +404,19 @@ namespace SistemaGian.DAL.Repository
                     var aEliminar = existentes
                         .Where(pe => !productos.Any(p => p.IdProducto == pe.IdProducto))
                         .ToList();
+
+                    foreach (var pe in aEliminar)
+                    {
+                        var acopioDevolver = pe.CantidadUsadaAcopio ?? 0;
+                        if (acopioDevolver > 0)
+                        {
+                            await RegistrarDevolucionAcopioAsync(
+                                (int)pe.IdProducto,
+                                idProveedor,
+                                acopioDevolver,
+                                $"Devolución de acopio por eliminación de producto del pedido N° {nroRemito}");
+                        }
+                    }
 
                     _dbcontext.PedidosProductos.RemoveRange(aEliminar);
 
@@ -423,6 +427,27 @@ namespace SistemaGian.DAL.Repository
                         p.IdMonedaNavigation = null;
 
                         var existente = existentes.FirstOrDefault(x => x.IdProducto == p.IdProducto);
+                        var acopioAnterior = existente?.CantidadUsadaAcopio ?? 0;
+                        var acopioNuevo = p.CantidadUsadaAcopio ?? 0;
+                        var deltaAcopio = acopioNuevo - acopioAnterior;
+
+                        if (deltaAcopio > 0)
+                        {
+                            var obs = existente == null
+                                ? $"Uso de acopio por alta de producto en pedido N° {nroRemito}"
+                                : $"Uso de acopio por modificación de producto en pedido N° {nroRemito}";
+
+                            if (!await RegistrarEgresoAcopioAsync((int)p.IdProducto, idProveedor, deltaAcopio, obs))
+                                throw new Exception("Stock de acopio insuficiente para uno de los productos.");
+                        }
+                        else if (deltaAcopio < 0)
+                        {
+                            await RegistrarDevolucionAcopioAsync(
+                                (int)p.IdProducto,
+                                idProveedor,
+                                Math.Abs(deltaAcopio),
+                                $"Devolución de acopio por modificación de producto en pedido N° {nroRemito}");
+                        }
 
                         if (existente != null)
                         {
@@ -432,7 +457,6 @@ namespace SistemaGian.DAL.Repository
                             existente.PrecioVenta = p.PrecioVenta;
                             existente.CantidadUsadaAcopio = p.CantidadUsadaAcopio;
 
-                            // 🔥 MONEDA
                             existente.IdMoneda = p.IdMoneda;
                             existente.Cotizacion = p.Cotizacion;
                             existente.PrecioCostoArs = p.PrecioCostoArs;
@@ -451,7 +475,7 @@ namespace SistemaGian.DAL.Repository
             }
             catch (Exception ex)
             {
-                Console.WriteLine("❌ Error InsertarProductos: " + ex.Message);
+                Console.WriteLine("❌ Error InsertarProductos: " + (ex.InnerException?.Message ?? ex.Message));
                 return false;
             }
         }
@@ -649,7 +673,36 @@ namespace SistemaGian.DAL.Repository
             return max;
         }
 
-        private async Task<string> RefNroPartida(int idPedido)
+        public async Task<bool> ExisteNroRemitoAsync(string nroRemito, int? excluirIdPedido = null)
+        {
+            var normalizado = nroRemito?.Trim();
+            if (string.IsNullOrWhiteSpace(normalizado))
+                return false;
+
+            var query = _dbcontext.Pedidos
+                .AsNoTracking()
+                .Where(p => p.NroRemito != null && p.NroRemito == normalizado);
+
+            if (excluirIdPedido.HasValue && excluirIdPedido.Value > 0)
+                query = query.Where(p => p.Id != excluirIdPedido.Value);
+
+            return await query.AnyAsync();
+        }
+
+        private static string FormatearNroPartida(string? nroRemito) =>
+            !string.IsNullOrWhiteSpace(nroRemito) ? nroRemito.Trim() : "sin partida";
+
+        /// <summary>Partida (NroRemito) para observaciones; usa el valor en memoria si viene del guardado.</summary>
+        private async Task<string> ResolverNroPartidaPedidoAsync(int idPedido, string? nroRemitoHint = null)
+        {
+            if (!string.IsNullOrWhiteSpace(nroRemitoHint))
+                return FormatearNroPartida(nroRemitoHint);
+
+            return await TextoNroRemitoPedido(idPedido);
+        }
+
+        /// <summary>NroRemito del pedido para textos guardados (nunca el id interno).</summary>
+        private async Task<string> TextoNroRemitoPedido(int idPedido)
         {
             var nroRemito = await _dbcontext.Pedidos
                 .AsNoTracking()
@@ -657,10 +710,71 @@ namespace SistemaGian.DAL.Repository
                 .Select(p => p.NroRemito)
                 .FirstOrDefaultAsync();
 
-            return !string.IsNullOrWhiteSpace(nroRemito)
-                ? nroRemito.Trim()
-                : idPedido.ToString();
+            return FormatearNroPartida(nroRemito);
         }
+
+        private async Task<bool> RegistrarEgresoAcopioAsync(int idProducto, int idProveedor, decimal cantidad, string observaciones)
+        {
+            if (cantidad <= 0) return true;
+
+            var stock = await _dbcontext.AcopioStockActual
+                .FirstOrDefaultAsync(x => x.IdProducto == idProducto && x.IdProveedor == idProveedor);
+
+            if (stock == null || stock.CantidadActual < cantidad)
+                return false;
+
+            stock.CantidadActual -= cantidad;
+            stock.FechaUltimaActualizacion = DateTime.Now;
+
+            _dbcontext.AcopioHistorial.Add(new AcopioHistorial
+            {
+                IdProducto = idProducto,
+                IdProveedor = idProveedor,
+                Fecha = DateTime.Now,
+                Egreso = cantidad,
+                Ingreso = null,
+                Observaciones = observaciones
+            });
+
+            return true;
+        }
+
+        private async Task RegistrarDevolucionAcopioAsync(int idProducto, int idProveedor, decimal cantidad, string observaciones)
+        {
+            if (cantidad <= 0) return;
+
+            var stock = await _dbcontext.AcopioStockActual
+                .FirstOrDefaultAsync(x => x.IdProducto == idProducto && x.IdProveedor == idProveedor);
+
+            if (stock == null)
+            {
+                stock = new AcopioStockActual
+                {
+                    IdProducto = idProducto,
+                    IdProveedor = idProveedor,
+                    CantidadActual = cantidad,
+                    FechaUltimaActualizacion = DateTime.Now
+                };
+                _dbcontext.AcopioStockActual.Add(stock);
+            }
+            else
+            {
+                stock.CantidadActual += cantidad;
+                stock.FechaUltimaActualizacion = DateTime.Now;
+            }
+
+            _dbcontext.AcopioHistorial.Add(new AcopioHistorial
+            {
+                IdProducto = idProducto,
+                IdProveedor = idProveedor,
+                Fecha = DateTime.Now,
+                Ingreso = cantidad,
+                Egreso = null,
+                Observaciones = observaciones
+            });
+        }
+
+        private Task<string> RefNroPartida(int idPedido) => ResolverNroPartidaPedidoAsync(idPedido);
 
 
 

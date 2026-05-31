@@ -1,4 +1,4 @@
-﻿:root {
+:root {
     --bg: #0b1320;
     --panel: #131d2b;
     --tile-from: #232c3b;
@@ -132,6 +132,17 @@ a {
     .tiles-inline .tile {
         width: min(420px,100%);
     }
+
+a.tile,
+a.conf-tile {
+    text-decoration: none;
+    cursor: pointer;
+}
+
+a.tile:visited,
+a.conf-tile:visited {
+    color: var(--tl-text);
+}
 
 .tile {
     display: flex;
