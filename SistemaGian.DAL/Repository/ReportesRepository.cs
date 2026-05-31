@@ -41,30 +41,32 @@ public class ReportesRepository : IReportesRepository
             .ToListAsync();
     }
 
-    public async Task<List<ReporteCatalogoItemDto>> ListarProductosEvolucionAsync(int idCliente, int idProveedor)
+    public async Task<List<ReporteCatalogoItemDto>> ListarProductosEvolucionAsync(List<int> idClientes, List<int> idProveedores)
     {
+        var clientes = idClientes?.Where(x => x > 0).Distinct().ToList() ?? new List<int>();
+        var proveedores = idProveedores?.Where(x => x > 0).Distinct().ToList() ?? new List<int>();
         HashSet<int>? ids = null;
 
-        if (idCliente > 0)
+        if (clientes.Count > 0)
         {
             var porCliente = await _db.ProductosPreciosClientes.AsNoTracking()
-                .Where(x => x.IdCliente == idCliente)
+                .Where(x => clientes.Contains(x.IdCliente))
                 .Select(x => x.IdProducto)
                 .Distinct()
                 .ToListAsync();
             ids = porCliente.ToHashSet();
         }
 
-        if (idProveedor > 0)
+        if (proveedores.Count > 0)
         {
             var porProveedor = await _db.ProductosPreciosProveedores.AsNoTracking()
-                .Where(x => x.IdProveedor == idProveedor)
+                .Where(x => proveedores.Contains(x.IdProveedor))
                 .Select(x => x.IdProducto)
                 .Distinct()
                 .ToListAsync();
 
             var porProducto = await _db.Productos.AsNoTracking()
-                .Where(p => p.IdProveedor == idProveedor)
+                .Where(p => p.IdProveedor != null && proveedores.Contains(p.IdProveedor.Value))
                 .Select(p => p.Id)
                 .ToListAsync();
 
@@ -159,8 +161,9 @@ public class ReportesRepository : IReportesRepository
 
         if (esCliente)
         {
-            if (filtro.IdCliente > 0)
-                pedidos = pedidos.Where(p => p.IdCliente == filtro.IdCliente).ToList();
+            var idsCli = ResolverIds(filtro.IdClientes, filtro.IdCliente);
+            if (idsCli.Count > 0)
+                pedidos = pedidos.Where(p => p.IdCliente != null && idsCli.Contains(p.IdCliente.Value)).ToList();
 
             return pedidos
                 .GroupBy(p => new { p.IdCliente, Nombre = p.IdClienteNavigation?.Nombre ?? "Sin cliente" })
@@ -177,8 +180,9 @@ public class ReportesRepository : IReportesRepository
                 .ToList();
         }
 
-        if (filtro.IdProveedor > 0)
-            pedidos = pedidos.Where(p => p.IdProveedor == filtro.IdProveedor).ToList();
+        var idsProv = ResolverIds(filtro.IdProveedores, filtro.IdProveedor);
+        if (idsProv.Count > 0)
+            pedidos = pedidos.Where(p => p.IdProveedor != null && idsProv.Contains(p.IdProveedor.Value)).ToList();
 
         return pedidos
             .GroupBy(p => new { p.IdProveedor, Nombre = p.IdProveedorNavigation?.Nombre ?? "Sin proveedor" })
@@ -213,10 +217,12 @@ public class ReportesRepository : IReportesRepository
                 && pp.IdPedidoNavigation.FechaEntrega >= desde
                 && pp.IdPedidoNavigation.FechaEntrega <= hasta);
 
-        if (filtro.IdCliente > 0)
-            query = query.Where(pp => pp.IdPedidoNavigation!.IdCliente == filtro.IdCliente);
-        if (filtro.IdProveedor > 0)
-            query = query.Where(pp => pp.IdPedidoNavigation!.IdProveedor == filtro.IdProveedor);
+        var idsCli = ResolverIds(filtro.IdClientes, filtro.IdCliente);
+        if (idsCli.Count > 0)
+            query = query.Where(pp => pp.IdPedidoNavigation!.IdCliente != null && idsCli.Contains(pp.IdPedidoNavigation.IdCliente.Value));
+        var idsProv = ResolverIds(filtro.IdProveedores, filtro.IdProveedor);
+        if (idsProv.Count > 0)
+            query = query.Where(pp => pp.IdPedidoNavigation!.IdProveedor != null && idsProv.Contains(pp.IdPedidoNavigation.IdProveedor.Value));
         var idsProducto = ResolverIdsProducto(filtro);
         if (idsProducto.Count > 0)
             query = query.Where(pp => pp.IdProducto != null && idsProducto.Contains(pp.IdProducto.Value));
@@ -293,8 +299,9 @@ public class ReportesRepository : IReportesRepository
                 .Where(p => p.Fecha >= SqlDateTimeMin && p.Fecha <= SqlDateTimeMax)
                 .Where(p => p.Fecha >= desde && p.Fecha <= hasta);
 
-            if (filtro.IdProveedor > 0)
-                q = q.Where(p => p.IdPedidoNavigation != null && p.IdPedidoNavigation.IdProveedor == filtro.IdProveedor);
+            var idsProv = ResolverIds(filtro.IdProveedores, filtro.IdProveedor);
+            if (idsProv.Count > 0)
+                q = q.Where(p => p.IdPedidoNavigation != null && p.IdPedidoNavigation.IdProveedor != null && idsProv.Contains(p.IdPedidoNavigation.IdProveedor.Value));
 
             var pagos = await q
                 .OrderBy(p => p.Fecha)
@@ -324,8 +331,9 @@ public class ReportesRepository : IReportesRepository
             .Where(p => p.Fecha >= SqlDateTimeMin && p.Fecha <= SqlDateTimeMax)
             .Where(p => p.Fecha >= desde && p.Fecha <= hasta);
 
-        if (filtro.IdCliente > 0)
-            qc = qc.Where(p => p.IdPedidoNavigation != null && p.IdPedidoNavigation.IdCliente == filtro.IdCliente);
+        var idsCli = ResolverIds(filtro.IdClientes, filtro.IdCliente);
+        if (idsCli.Count > 0)
+            qc = qc.Where(p => p.IdPedidoNavigation != null && p.IdPedidoNavigation.IdCliente != null && idsCli.Contains(p.IdPedidoNavigation.IdCliente.Value));
 
         var pagosCli = await qc
             .OrderBy(p => p.Fecha)
@@ -413,7 +421,7 @@ public class ReportesRepository : IReportesRepository
                 Unidad = pp.IdProductoNavigation?.IdUnidadDeMedidaNavigation?.Nombre ?? "",
                 Cantidad = pp.Cantidad ?? 0,
                 CantidadUsadaAcopio = pp.CantidadUsadaAcopio ?? 0,
-                ProductoCantidad = pp.ProductoCantidad ?? 1,
+                ProductoCantidad = FactorBultoLinea(pp),
                 PrecioCosto = pp.PrecioCostoArs ?? pp.PrecioCosto ?? 0,
                 PrecioVenta = pp.PrecioVentaArs ?? pp.PrecioVenta ?? 0,
                 TotalLinea = ImporteLineaDetalle(pp, precioVenta)
@@ -440,10 +448,12 @@ public class ReportesRepository : IReportesRepository
                 && p.Fecha >= SqlDateTimeMin && p.Fecha <= SqlDateTimeMax
                 && p.Fecha >= desde && p.Fecha <= hasta);
 
-        if (filtro.IdCliente > 0)
-            q = q.Where(p => p.IdCliente == filtro.IdCliente);
-        if (filtro.IdProveedor > 0)
-            q = q.Where(p => p.IdProveedor == filtro.IdProveedor);
+        var idsCli = ResolverIds(filtro.IdClientes, filtro.IdCliente);
+        if (idsCli.Count > 0)
+            q = q.Where(p => p.IdCliente != null && idsCli.Contains(p.IdCliente.Value));
+        var idsProv = ResolverIds(filtro.IdProveedores, filtro.IdProveedor);
+        if (idsProv.Count > 0)
+            q = q.Where(p => p.IdProveedor != null && idsProv.Contains(p.IdProveedor.Value));
 
         return q;
     }
@@ -561,32 +571,55 @@ public class ReportesRepository : IReportesRepository
         return meses;
     }
 
-    private static List<int> ResolverIdsProducto(ReportesFiltroDto filtro)
+    private static List<int> ResolverIds(List<int>? ids, int legacyId = -1)
     {
-        var ids = (filtro.IdProductos ?? new List<int>()).Where(x => x > 0).Distinct().ToList();
-        if (ids.Count == 0 && filtro.IdProducto > 0)
-            ids.Add(filtro.IdProducto);
-        return ids;
+        var list = (ids ?? new List<int>()).Where(x => x > 0).Distinct().ToList();
+        if (list.Count == 0 && legacyId > 0)
+            list.Add(legacyId);
+        return list;
     }
+
+    private static List<int> ResolverIdsProducto(ReportesFiltroDto filtro)
+        => ResolverIds(filtro.IdProductos, filtro.IdProducto);
 
     private static decimal MontoLineaProducto(PedidosProducto item)
     {
         return ImporteLineaDetalle(item, precioVenta: true);
     }
 
-    /// <summary>Importe ARS de la línea, igual que en el pedido (TotalArs o precio × cantidad × bulto).</summary>
+    /// <summary>Bultos por unidad de venta (línea del pedido o, si falta, ficha del producto).</summary>
+    private static decimal FactorBultoLinea(PedidosProducto pp)
+    {
+        var linea = pp.ProductoCantidad;
+        if (linea is > 1) return linea.Value;
+
+        var prod = pp.IdProductoNavigation?.ProductoCantidad;
+        if (prod is > 1) return prod.Value;
+
+        var factor = linea ?? prod ?? 1;
+        return factor == 0 ? 1 : factor;
+    }
+
+    /// <summary>Importe ARS: (cantidad + acopio) × ProductoCantidad × precio unit.</summary>
     private static decimal ImporteLineaDetalle(PedidosProducto pp, bool precioVenta)
     {
-        if (precioVenta && pp.TotalArs.HasValue)
-            return pp.TotalArs.Value;
+        var nombre = pp.IdProductoNavigation?.Descripcion ?? "";
+        if (nombre.Contains("FAC. IVA", StringComparison.OrdinalIgnoreCase))
+        {
+            if (precioVenta && pp.TotalArs.HasValue)
+                return pp.TotalArs.Value;
+            var precioFac = precioVenta
+                ? (pp.PrecioVentaArs ?? pp.PrecioVenta ?? 0)
+                : (pp.PrecioCostoArs ?? pp.PrecioCosto ?? 0);
+            return (pp.Cantidad ?? 0) * (precioFac / 100m);
+        }
 
         var precioUnit = precioVenta
             ? (pp.PrecioVentaArs ?? pp.PrecioVenta ?? 0)
             : (pp.PrecioCostoArs ?? pp.PrecioCosto ?? 0);
         var cant = (pp.Cantidad ?? 0) + (pp.CantidadUsadaAcopio ?? 0);
-        var factor = pp.ProductoCantidad ?? 1;
-        if (factor == 0) factor = 1;
-        return precioUnit * cant * factor;
+        var factorBulto = FactorBultoLinea(pp);
+        return precioUnit * cant * factorBulto;
     }
 
     private static string ArmarInformacionEvolucionProducto(

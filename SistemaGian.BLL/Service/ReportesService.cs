@@ -15,8 +15,8 @@ public class ReportesService : IReportesService
     public Task<List<ReporteCatalogoItemDto>> ListarClientesAsync() => _repo.ListarClientesAsync();
     public Task<List<ReporteCatalogoItemDto>> ListarProveedoresAsync() => _repo.ListarProveedoresAsync();
     public Task<List<ReporteCatalogoItemDto>> ListarProductosAsync() => _repo.ListarProductosAsync();
-    public Task<List<ReporteCatalogoItemDto>> ListarProductosEvolucionAsync(int idCliente, int idProveedor)
-        => _repo.ListarProductosEvolucionAsync(idCliente, idProveedor);
+    public Task<List<ReporteCatalogoItemDto>> ListarProductosEvolucionAsync(List<int> idClientes, List<int> idProveedores)
+        => _repo.ListarProductosEvolucionAsync(idClientes, idProveedores);
     public Task<List<ReportePedidoDiaDto>> PedidosPorDiaAsync(ReportesFiltroDto filtro) => _repo.PedidosPorDiaAsync(filtro);
     public Task<List<ReporteGrupoDto>> EstadoCuentaClientesAsync(ReportesFiltroDto filtro, bool paraCliente) => _repo.EstadoCuentaClientesAsync(filtro, paraCliente);
     public Task<List<ReporteGrupoDto>> EstadoCuentaProveedoresAsync(ReportesFiltroDto filtro) => _repo.EstadoCuentaProveedoresAsync(filtro);

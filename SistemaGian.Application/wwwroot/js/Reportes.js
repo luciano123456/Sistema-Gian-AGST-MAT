@@ -1,18 +1,25 @@
 /* Reportes AGS MAT — UI + datos (compatible PascalCase / camelCase API) */
 
 const REPORTES = [
-    { id: 'pedidos-dia', titulo: 'Pedidos por día', icon: 'fa-calendar', desc: 'Resumen por fecha de entrega (no por fecha de carga del pedido), con detalle de partidas y productos.', endpoint: 'PedidosPorDia', filtros: ['fechas'] },
-    { id: 'ec-clientes', titulo: 'Estado de cuenta — Clientes', icon: 'fa-users', desc: 'Agrupado por cliente: monto, cobrado, saldo, ganancia y proveedor. Expandí cada partida.', endpoint: 'EstadoCuentaClientes', filtros: ['fechas', 'cliente', 'soloSaldo'] },
-    { id: 'ec-para-cliente', titulo: 'Para cliente', icon: 'fa-file-text-o', desc: 'Versión para entregar al cliente (sin ganancia ni proveedor).', endpoint: 'EstadoCuentaParaCliente', filtros: ['fechas', 'cliente', 'soloSaldo'] },
-    { id: 'ec-proveedores', titulo: 'Estado de cuenta — Proveedores', icon: 'fa-truck', desc: 'Deuda con proveedores. Usá «Pagar en pedido» para registrar el pago; «Incluir» para armar la composición de saldos.', endpoint: 'EstadoCuentaProveedores', filtros: ['fechas', 'proveedor', 'soloSaldo'], composicion: true },
-    { id: 'evolucion-ventas', titulo: 'Evolución de ventas', icon: 'fa-line-chart', desc: 'Facturado y % ganancia por cliente o proveedor.', endpoint: 'EvolucionVentas', filtros: ['fechas', 'tipoEvolucion'] },
-    { id: 'evolucion-producto', titulo: 'Evolución por producto', icon: 'fa-cubes', desc: 'Cantidades por mes según fecha de entrega del pedido (no fecha de carga), con variación % y filtros por cliente, proveedor y productos.', endpoint: 'EvolucionProducto', filtros: ['fechas', 'cliente', 'proveedor', 'producto'] },
-    { id: 'pagos-clientes', titulo: 'Pagos clientes', icon: 'fa-money', desc: 'Pagos recibidos por fecha, método y detalle.', endpoint: 'PagosClientes', filtros: ['fechas', 'cliente'] },
-    { id: 'pagos-proveedores', titulo: 'Pagos proveedores', icon: 'fa-credit-card', desc: 'Pagos realizados a proveedores con detalle.', endpoint: 'PagosProveedores', filtros: ['fechas', 'proveedor'] }
+    { id: 'pedidos-dia', titulo: 'Pedidos por día', icon: 'fa-calendar', endpoint: 'PedidosPorDia', filtros: ['fechas'] },
+    { id: 'ec-clientes', titulo: 'Estado de cuenta — Clientes', icon: 'fa-users', endpoint: 'EstadoCuentaClientes', filtros: ['fechas', 'cliente', 'soloSaldo'] },
+    { id: 'ec-para-cliente', titulo: 'Para cliente', icon: 'fa-file-text-o', endpoint: 'EstadoCuentaParaCliente', filtros: ['fechas', 'cliente', 'soloSaldo'] },
+    { id: 'ec-proveedores', titulo: 'Estado de cuenta — Proveedores', icon: 'fa-truck', endpoint: 'EstadoCuentaProveedores', filtros: ['fechas', 'proveedor', 'soloSaldo'], composicion: true },
+    { id: 'evolucion-ventas', titulo: 'Evolución de ventas', icon: 'fa-line-chart', endpoint: 'EvolucionVentas', filtros: ['fechas', 'tipoEvolucion'] },
+    { id: 'evolucion-producto', titulo: 'Evolución por producto', icon: 'fa-cubes', endpoint: 'EvolucionProducto', filtros: ['fechas', 'cliente', 'proveedor', 'producto'] },
+    { id: 'pagos-clientes', titulo: 'Pagos clientes', icon: 'fa-money', endpoint: 'PagosClientes', filtros: ['fechas', 'cliente'] },
+    { id: 'pagos-proveedores', titulo: 'Pagos proveedores', icon: 'fa-credit-card', endpoint: 'PagosProveedores', filtros: ['fechas', 'proveedor'] }
 ];
 
-const SELECT_IDS = '#filtroCliente, #filtroProveedor, #filtroEntidad';
-let filtroProductoCheckBound = false;
+const RPT_CHECK_META = {
+    cliente: { todos: 'Todos los clientes', uno: '1 cliente', n: 'clientes seleccionados', vacio: 'No hay clientes' },
+    proveedor: { todos: 'Todos los proveedores', uno: '1 proveedor', n: 'proveedores seleccionados', vacio: 'No hay proveedores' },
+    entidad: { todos: 'Todos', uno: '1 seleccionado', n: 'seleccionados', vacio: 'Sin ítems' },
+    producto: { todos: 'Todos los productos', uno: '1 producto', n: 'productos seleccionados', vacio: 'No hay productos para el cliente/proveedor elegido.' }
+};
+const checkFiltroItems = { cliente: [], proveedor: [], entidad: [], producto: [] };
+let checkFiltrosBound = false;
+let checkDropAbierto = null;
 
 /** Lee propiedad en camelCase o PascalCase */
 function val(o, ...keys) {
@@ -115,7 +122,6 @@ function normPedidosLinea(arr) {
 
 let reporteActivo = REPORTES[0];
 let catalogos = { clientes: [], proveedores: [], productos: [] };
-let productosEvolucionCache = [];
 let ultimoResultado = null;
 let pedidosSeleccionadosProveedor = new Set();
 
@@ -126,7 +132,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     initFechasDefault();
     renderNavReportes();
-    initSelect2();
+    initFiltroTipoSelect();
+    bindFiltrosCheckGlobal();
     await cargarCatalogos();
     configurarFiltrosVisibles();
     document.getElementById('btnGenerar').addEventListener('click', generarReporte);
@@ -185,130 +192,197 @@ async function cargarCatalogos() {
         const res = await fetch('/Reportes/Catalogos');
         if (!res.ok) throw new Error(await res.text());
         catalogos = normCatalogos(await res.json());
-        llenarSelect('#filtroCliente', catalogos.clientes, true);
-        llenarSelect('#filtroProveedor', catalogos.proveedores, true);
+        renderFiltroCheck('cliente', catalogos.clientes);
+        renderFiltroCheck('proveedor', catalogos.proveedores);
         onCambioTipoEvolucion();
-        if (reporteActivo.id === 'evolucion-producto') {
-            initFiltroProductoEvolucion();
-            actualizarCatalogoProductosEvolucion();
-        }
+        refrescarFiltrosDelReporte();
     } catch (e) {
         console.error(e);
         if (typeof errorModal === 'function') errorModal('No se pudieron cargar clientes, proveedores y productos.');
     }
 }
 
-function llenarSelect(sel, items, conTodos) {
-    const $el = $(sel);
+function initFiltroTipoSelect() {
+    const $el = $('#filtroTipo');
+    if (!$el.length) return;
     if ($el.data('select2')) $el.select2('destroy');
-    $el.empty();
-    if (conTodos) $el.append(new Option('— Todos —', '-1', true, true));
-    (items || []).forEach(x => {
-        if (x.id != null && x.nombre) $el.append(new Option(x.nombre, String(x.id)));
-    });
-    initSelect2One(sel);
-}
-
-function initSelect2() {
-    $(SELECT_IDS).each(function () { initSelect2One(this); });
-    $('#filtroTipo').select2({
+    $el.select2({
         width: '100%',
         minimumResultsForSearch: Infinity,
         dropdownParent: $('#panelFiltrosReportes')
     });
 }
 
-function initSelect2One(sel) {
-    const $el = $(sel);
-    if (!$el.length) return;
-    if ($el.data('select2')) $el.select2('destroy');
-    $el.select2({
-        width: '100%',
-        placeholder: '— Todos —',
-        allowClear: false,
-        dropdownParent: $('#panelFiltrosReportes')
-    });
-}
-
 function configurarFiltrosVisibles() {
     const f = reporteActivo.filtros || [];
-    const esEvolProd = reporteActivo.id === 'evolucion-producto';
     document.querySelector('.filtro-cliente').classList.toggle('d-none', !f.includes('cliente'));
     document.querySelector('.filtro-proveedor').classList.toggle('d-none', !f.includes('proveedor'));
     document.querySelector('.filtro-producto').classList.toggle('d-none', !f.includes('producto'));
     document.querySelector('.filtro-tipo').classList.toggle('d-none', !f.includes('tipoEvolucion'));
     document.querySelector('.filtro-entidad').classList.toggle('d-none', !f.includes('tipoEvolucion'));
     document.querySelector('.filtro-solo-saldo').classList.toggle('d-none', !f.includes('soloSaldo'));
-    document.getElementById('reporteDescripcion').textContent = reporteActivo.desc || '';
     actualizarEtiquetasFiltroFechas();
-
-    teardownFiltroProductoEvolucion();
-    if (esEvolProd) {
-        initFiltroProductoEvolucion();
-        actualizarCatalogoProductosEvolucion();
-    }
-
+    cerrarDropCheck();
+    refrescarFiltrosDelReporte();
     if (f.includes('tipoEvolucion')) onCambioTipoEvolucion();
-    setTimeout(() => $(SELECT_IDS).trigger('change.select2'), 50);
 }
 
-function teardownFiltroProductoEvolucion() {
-    $('#filtroCliente, #filtroProveedor').off('change.evolProd');
-    cerrarDropProductosCheck();
+function refrescarFiltrosDelReporte() {
+    const f = reporteActivo.filtros || [];
+    if (f.includes('cliente')) renderFiltroCheck('cliente', catalogos.clientes, obtenerIdsFiltroCheck('cliente'));
+    if (f.includes('proveedor')) renderFiltroCheck('proveedor', catalogos.proveedores, obtenerIdsFiltroCheck('proveedor'));
+    if (f.includes('producto')) actualizarCatalogoProductosEvolucion();
+    if (f.includes('tipoEvolucion')) onCambioTipoEvolucion();
 }
 
-function initFiltroProductoEvolucion() {
-    bindFiltroProductoCheckEvents();
-    $('#filtroCliente, #filtroProveedor').off('change.evolProd')
-        .on('change.evolProd', () => actualizarCatalogoProductosEvolucion());
+function getCheckEls(key) {
+    return {
+        wrap: document.querySelector(`[data-check-filtro="${key}"]`),
+        btn: document.querySelector(`[data-check-trigger="${key}"]`),
+        drop: document.querySelector(`[data-check-drop="${key}"]`),
+        lista: document.querySelector(`[data-check-lista="${key}"]`),
+        buscar: document.querySelector(`[data-check-buscar="${key}"]`),
+        resumen: document.querySelector(`[data-check-resumen="${key}"]`)
+    };
 }
 
-function bindFiltroProductoCheckEvents() {
-    if (filtroProductoCheckBound) return;
-    filtroProductoCheckBound = true;
+function bindFiltrosCheckGlobal() {
+    if (checkFiltrosBound) return;
+    checkFiltrosBound = true;
 
-    const btn = document.getElementById('btnFiltroProductoToggle');
-    const drop = document.getElementById('dropFiltroProducto');
-    const lista = document.getElementById('listaFiltroProductoCheck');
-    const buscar = document.getElementById('buscarFiltroProducto');
-
-    btn?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const abierto = btn.getAttribute('aria-expanded') === 'true';
-        if (abierto) cerrarDropProductosCheck();
-        else abrirDropProductosCheck();
+    document.getElementById('panelFiltrosReportes')?.addEventListener('click', (e) => {
+        const trigger = e.target.closest('[data-check-trigger]');
+        if (trigger) {
+            e.stopPropagation();
+            const key = trigger.getAttribute('data-check-trigger');
+            if (checkDropAbierto === key) cerrarDropCheck();
+            else abrirDropCheck(key);
+            return;
+        }
+        const todos = e.target.closest('[data-check-todos]');
+        if (todos) {
+            e.preventDefault();
+            const key = todos.getAttribute('data-check-todos');
+            const { lista } = getCheckEls(key);
+            lista?.querySelectorAll('.rpt-prod-check__item:not(.is-hidden) input[type="checkbox"]')
+                .forEach(cb => { cb.checked = true; });
+            onCambioFiltroCheck(key);
+            return;
+        }
+        const ninguno = e.target.closest('[data-check-ninguno]');
+        if (ninguno) {
+            e.preventDefault();
+            const key = ninguno.getAttribute('data-check-ninguno');
+            const { lista } = getCheckEls(key);
+            lista?.querySelectorAll('input[type="checkbox"]').forEach(cb => { cb.checked = false; });
+            onCambioFiltroCheck(key);
+        }
     });
 
-    document.getElementById('btnProdCheckTodos')?.addEventListener('click', (e) => {
-        e.preventDefault();
-        lista?.querySelectorAll('.rpt-prod-check__item:not(.is-hidden) input[type="checkbox"]')
-            .forEach(cb => { cb.checked = true; });
-        actualizarResumenProductosCheck();
+    document.getElementById('panelFiltrosReportes')?.addEventListener('input', (e) => {
+        const buscar = e.target.closest('[data-check-buscar]');
+        if (buscar) filtrarListaCheck(buscar.getAttribute('data-check-buscar'), buscar.value);
     });
 
-    document.getElementById('btnProdCheckNinguno')?.addEventListener('click', (e) => {
-        e.preventDefault();
-        lista?.querySelectorAll('input[type="checkbox"]').forEach(cb => { cb.checked = false; });
-        actualizarResumenProductosCheck();
-    });
-
-    buscar?.addEventListener('input', () => filtrarListaProductosCheck(buscar.value));
-
-    lista?.addEventListener('change', (e) => {
-        if (e.target.matches('input[type="checkbox"]')) actualizarResumenProductosCheck();
+    document.getElementById('panelFiltrosReportes')?.addEventListener('change', (e) => {
+        if (!e.target.matches('[data-check-lista] input[type="checkbox"]')) return;
+        const lista = e.target.closest('[data-check-lista]');
+        if (lista) onCambioFiltroCheck(lista.getAttribute('data-check-lista'));
     });
 
     document.addEventListener('click', (e) => {
-        if (!drop || drop.hidden) return;
-        const wrap = document.getElementById('wrapFiltroProductoCheck');
-        if (wrap && !wrap.contains(e.target)) cerrarDropProductosCheck();
+        if (!checkDropAbierto) return;
+        const { wrap } = getCheckEls(checkDropAbierto);
+        if (wrap && !wrap.contains(e.target)) cerrarDropCheck();
+    });
+
+    window.addEventListener('resize', () => { if (checkDropAbierto) posicionarDropCheck(checkDropAbierto); });
+    window.addEventListener('scroll', () => { if (checkDropAbierto) posicionarDropCheck(checkDropAbierto); }, true);
+}
+
+function onCambioFiltroCheck(key) {
+    actualizarResumenCheck(key);
+    if (key === 'cliente' || key === 'proveedor') {
+        if (reporteActivo.id === 'evolucion-producto') actualizarCatalogoProductosEvolucion();
+    }
+}
+
+function filtrarListaCheck(key, q) {
+    const { lista } = getCheckEls(key);
+    if (!lista) return;
+    const term = (q || '').trim().toLowerCase();
+    lista.querySelectorAll('.rpt-prod-check__item').forEach(row => {
+        const nombre = (row.dataset.nombre || '').toLowerCase();
+        row.classList.toggle('is-hidden', term.length > 0 && !nombre.includes(term));
     });
 }
 
-function posicionarDropProductosCheck() {
-    const btn = document.getElementById('btnFiltroProductoToggle');
-    const drop = document.getElementById('dropFiltroProducto');
-    const wrap = document.getElementById('wrapFiltroProductoCheck');
+function renderFiltroCheck(key, items, idsSeleccionados) {
+    const meta = RPT_CHECK_META[key];
+    const { lista, buscar } = getCheckEls(key);
+    if (!lista || !meta) return;
+
+    checkFiltroItems[key] = items || [];
+    const sel = new Set((idsSeleccionados || []).map(String));
+
+    if (!items?.length) {
+        lista.innerHTML = `<p class="rpt-prod-check__empty">${meta.vacio}</p>`;
+        actualizarResumenCheck(key);
+        return;
+    }
+
+    lista.innerHTML = items.map(p => {
+        const id = String(p.id);
+        const checked = sel.has(id) ? ' checked' : '';
+        const nombreRaw = p.nombre || '';
+        const nombreAttr = nombreRaw.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+        return `<label class="rpt-prod-check__item" data-nombre="${nombreAttr}" data-id="${id}">
+            <input type="checkbox" class="form-check-input" value="${id}"${checked} />
+            <span class="rpt-prod-check__name">${esc(nombreRaw)}</span>
+        </label>`;
+    }).join('');
+
+    filtrarListaCheck(key, buscar?.value || '');
+    actualizarResumenCheck(key);
+}
+
+function actualizarResumenCheck(key) {
+    const meta = RPT_CHECK_META[key];
+    const { resumen } = getCheckEls(key);
+    if (!resumen || !meta) return;
+
+    const ids = obtenerIdsFiltroCheck(key);
+    const total = checkFiltroItems[key].length;
+    if (!total) {
+        resumen.textContent = meta.vacio;
+        return;
+    }
+    if (!ids.length) {
+        resumen.textContent = meta.todos;
+        return;
+    }
+    if (ids.length === 1) {
+        const p = checkFiltroItems[key].find(x => x.id === ids[0]);
+        resumen.textContent = p?.nombre || meta.uno;
+        return;
+    }
+    if (ids.length === total) {
+        resumen.textContent = meta.todos;
+        return;
+    }
+    resumen.textContent = `${ids.length} ${meta.n}`;
+}
+
+function obtenerIdsFiltroCheck(key) {
+    const { lista } = getCheckEls(key);
+    if (!lista) return [];
+    return Array.from(lista.querySelectorAll('input[type="checkbox"]:checked'))
+        .map(cb => parseInt(cb.value, 10))
+        .filter(n => n > 0);
+}
+
+function posicionarDropCheck(key) {
+    const { btn, drop } = getCheckEls(key);
     if (!btn || !drop || drop.hidden) return;
     const r = btn.getBoundingClientRect();
     const maxH = Math.min(320, window.innerHeight - r.bottom - 12);
@@ -320,133 +394,59 @@ function posicionarDropProductosCheck() {
     if (lista) lista.style.maxHeight = `${Math.max(80, maxH - 90)}px`;
 }
 
-function onReposicionarDropProductosCheck() {
-    posicionarDropProductosCheck();
-}
-
-function abrirDropProductosCheck() {
-    const btn = document.getElementById('btnFiltroProductoToggle');
-    const drop = document.getElementById('dropFiltroProducto');
-    const wrap = document.getElementById('wrapFiltroProductoCheck');
+function abrirDropCheck(key) {
+    cerrarDropCheck();
+    const { btn, drop, wrap, buscar } = getCheckEls(key);
     if (!btn || !drop) return;
+    checkDropAbierto = key;
     drop.hidden = false;
     btn.setAttribute('aria-expanded', 'true');
     btn.classList.add('is-open');
     wrap?.classList.add('is-open');
-    posicionarDropProductosCheck();
-    window.addEventListener('resize', onReposicionarDropProductosCheck);
-    window.addEventListener('scroll', onReposicionarDropProductosCheck, true);
-    document.getElementById('buscarFiltroProducto')?.focus();
+    posicionarDropCheck(key);
+    buscar?.focus();
 }
 
-function cerrarDropProductosCheck() {
-    const btn = document.getElementById('btnFiltroProductoToggle');
-    const drop = document.getElementById('dropFiltroProducto');
-    const wrap = document.getElementById('wrapFiltroProductoCheck');
-    if (!btn || !drop) return;
-    drop.hidden = true;
-    btn.setAttribute('aria-expanded', 'false');
-    btn.classList.remove('is-open');
+function cerrarDropCheck() {
+    if (!checkDropAbierto) return;
+    const key = checkDropAbierto;
+    const { btn, drop, wrap, buscar } = getCheckEls(key);
+    checkDropAbierto = null;
+    if (drop) {
+        drop.hidden = true;
+        drop.style.top = drop.style.left = drop.style.width = drop.style.maxHeight = '';
+        const lista = drop.querySelector('.rpt-prod-check__list');
+        if (lista) lista.style.maxHeight = '';
+    }
+    if (btn) {
+        btn.setAttribute('aria-expanded', 'false');
+        btn.classList.remove('is-open');
+    }
     wrap?.classList.remove('is-open');
-    window.removeEventListener('resize', onReposicionarDropProductosCheck);
-    window.removeEventListener('scroll', onReposicionarDropProductosCheck, true);
-    drop.style.top = '';
-    drop.style.left = '';
-    drop.style.width = '';
-    drop.style.maxHeight = '';
-    const lista = drop.querySelector('.rpt-prod-check__list');
-    if (lista) lista.style.maxHeight = '';
-    const buscar = document.getElementById('buscarFiltroProducto');
-    if (buscar) buscar.value = '';
-    filtrarListaProductosCheck('');
-}
-
-function filtrarListaProductosCheck(q) {
-    const term = (q || '').trim().toLowerCase();
-    document.querySelectorAll('#listaFiltroProductoCheck .rpt-prod-check__item').forEach(row => {
-        const nombre = (row.dataset.nombre || '').toLowerCase();
-        row.classList.toggle('is-hidden', term.length > 0 && !nombre.includes(term));
-    });
-}
-
-function renderListaProductosCheck(productos, idsSeleccionados) {
-    const lista = document.getElementById('listaFiltroProductoCheck');
-    if (!lista) return;
-    const sel = new Set((idsSeleccionados || []).map(String));
-
-    if (!productos?.length) {
-        lista.innerHTML = '<p class="rpt-prod-check__empty">No hay productos para el cliente/proveedor elegido.</p>';
-        actualizarResumenProductosCheck();
-        return;
+    if (buscar) {
+        buscar.value = '';
+        filtrarListaCheck(key, '');
     }
-
-    lista.innerHTML = productos.map(p => {
-        const id = String(p.id);
-        const checked = sel.has(id) ? ' checked' : '';
-        const nombreRaw = p.nombre || '';
-        const nombreAttr = nombreRaw.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
-        return `<label class="rpt-prod-check__item" data-nombre="${nombreAttr}" data-id="${id}">
-            <input type="checkbox" class="form-check-input" value="${id}"${checked} />
-            <span class="rpt-prod-check__name">${esc(nombreRaw)}</span>
-        </label>`;
-    }).join('');
-
-    filtrarListaProductosCheck(document.getElementById('buscarFiltroProducto')?.value || '');
-    actualizarResumenProductosCheck();
-}
-
-function actualizarResumenProductosCheck() {
-    const resumen = document.getElementById('filtroProductoResumen');
-    if (!resumen) return;
-    const ids = obtenerIdsProductosSeleccionados();
-    const total = productosEvolucionCache.length;
-    if (!total) {
-        resumen.textContent = 'Sin productos';
-        return;
-    }
-    if (!ids.length) {
-        resumen.textContent = 'Todos los productos';
-        return;
-    }
-    if (ids.length === 1) {
-        const p = productosEvolucionCache.find(x => x.id === ids[0]);
-        resumen.textContent = p?.nombre || '1 producto';
-        return;
-    }
-    if (ids.length === total) {
-        resumen.textContent = 'Todos los productos';
-        return;
-    }
-    resumen.textContent = `${ids.length} productos seleccionados`;
 }
 
 async function actualizarCatalogoProductosEvolucion() {
     if (reporteActivo.id !== 'evolucion-producto') return;
-    const idCliente = parseInt(document.getElementById('filtroCliente').value, 10) || -1;
-    const idProveedor = parseInt(document.getElementById('filtroProveedor').value, 10) || -1;
-    const prev = obtenerIdsProductosSeleccionados();
+    const prev = obtenerIdsFiltroCheck('producto');
+    const qs = new URLSearchParams();
+    obtenerIdsFiltroCheck('cliente').forEach(id => qs.append('idClientes', id));
+    obtenerIdsFiltroCheck('proveedor').forEach(id => qs.append('idProveedores', id));
 
     try {
-        const res = await fetch(`/Reportes/ProductosEvolucion?idCliente=${idCliente}&idProveedor=${idProveedor}`);
+        const res = await fetch(`/Reportes/ProductosEvolucion?${qs}`);
         if (!res.ok) throw new Error(await res.text());
         const raw = await res.json();
-        productosEvolucionCache = (Array.isArray(raw) ? raw : []).map(normItem);
-        const valid = new Set(productosEvolucionCache.map(x => x.id));
-        const restore = prev.filter(id => valid.has(id));
-        renderListaProductosCheck(productosEvolucionCache, restore);
+        const items = (Array.isArray(raw) ? raw : []).map(normItem);
+        const valid = new Set(items.map(x => x.id));
+        renderFiltroCheck('producto', items, prev.filter(id => valid.has(id)));
     } catch (e) {
         console.error(e);
-        productosEvolucionCache = [];
-        renderListaProductosCheck([], []);
+        renderFiltroCheck('producto', [], []);
     }
-}
-
-function obtenerIdsProductosSeleccionados() {
-    const lista = document.getElementById('listaFiltroProductoCheck');
-    if (!lista) return [];
-    return Array.from(lista.querySelectorAll('input[type="checkbox"]:checked'))
-        .map(cb => parseInt(cb.value, 10))
-        .filter(n => n > 0);
 }
 
 const REPORTES_FECHA_ENTREGA = new Set([
@@ -465,27 +465,45 @@ function actualizarEtiquetasFiltroFechas() {
 function onCambioTipoEvolucion() {
     const tipo = document.getElementById('filtroTipo').value;
     const esCliente = tipo === 'Cliente';
-    document.getElementById('lblFiltroEntidad').textContent = 'Nombres';
-    llenarSelect('#filtroEntidad', esCliente ? catalogos.clientes : catalogos.proveedores, true);
+    const lbl = document.getElementById('lblFiltroEntidad');
+    if (lbl) lbl.textContent = esCliente ? 'Clientes' : 'Proveedores';
+    const meta = RPT_CHECK_META.entidad;
+    if (meta) {
+        meta.todos = esCliente ? 'Todos los clientes' : 'Todos los proveedores';
+        meta.uno = esCliente ? '1 cliente' : '1 proveedor';
+        meta.n = esCliente ? 'clientes seleccionados' : 'proveedores seleccionados';
+        meta.vacio = esCliente ? 'No hay clientes' : 'No hay proveedores';
+    }
+    const items = esCliente ? catalogos.clientes : catalogos.proveedores;
+    const prev = obtenerIdsFiltroCheck('entidad');
+    const valid = new Set(items.map(x => x.id));
+    renderFiltroCheck('entidad', items, prev.filter(id => valid.has(id)));
 }
 
 function obtenerFiltro() {
     const tipo = document.getElementById('filtroTipo').value;
-    const entidad = parseInt(document.getElementById('filtroEntidad').value, 10);
+    const idClientes = obtenerIdsFiltroCheck('cliente');
+    const idProveedores = obtenerIdsFiltroCheck('proveedor');
+    const idEntidades = obtenerIdsFiltroCheck('entidad');
+
     const base = {
         fechaDesde: document.getElementById('filtroDesde').value || null,
         fechaHasta: document.getElementById('filtroHasta').value || null,
-        idCliente: parseInt(document.getElementById('filtroCliente').value, 10) || -1,
-        idProveedor: parseInt(document.getElementById('filtroProveedor').value, 10) || -1,
+        idCliente: -1,
+        idProveedor: -1,
         idProducto: -1,
-        idProductos: obtenerIdsProductosSeleccionados(),
+        idClientes,
+        idProveedores,
+        idProductos: obtenerIdsFiltroCheck('producto'),
         tipo,
         soloConSaldo: document.getElementById('filtroSoloSaldo').checked
     };
+
     if (reporteActivo.filtros?.includes('tipoEvolucion')) {
-        if (tipo === 'Cliente') base.idCliente = entidad;
-        else base.idProveedor = entidad;
+        if (tipo === 'Cliente') base.idClientes = idEntidades;
+        else base.idProveedores = idEntidades;
     }
+
     return base;
 }
 
@@ -641,7 +659,7 @@ function renderPedidosPorDia(rows) {
             body += filaPedidoConDetalle(p, {
                 cols: [
                     tdExpand(p.idPedido, true),
-                    `<td><strong>${esc(p.partida)}</strong></td>`,
+                    celdaPartida(p.partida, p.idPedido),
                     `<td>${fmtFecha(p.fechaEntrega)}</td>`,
                     `<td>${esc(p.cliente || '—')}</td>`,
                     `<td>${esc(p.proveedor || '—')}</td>`,
@@ -740,7 +758,7 @@ function tablaPedidosGrupo(pedidos, opts) {
     const colspan = contarColumnas(head);
     let body = '';
     (pedidos || []).forEach(p => {
-        const cols = [tdExpand(p.idPedido, precioVenta), `<td><strong>${esc(p.partida)}</strong></td>`, `<td>${fmtFecha(p.fechaEntrega)}</td>`];
+        const cols = [tdExpand(p.idPedido, precioVenta), celdaPartida(p.partida, p.idPedido), `<td>${fmtFecha(p.fechaEntrega)}</td>`];
         if (esEvol) {
             cols.push(`<td class="text-end rpt-num">${fmtMoney(p.monto)}</td>`);
             cols.push(`<td class="text-end rpt-num rpt-num--ok">${fmtMoney(p.ganancia)}</td>`);
@@ -776,6 +794,22 @@ function tablaPedidosGrupo(pedidos, opts) {
     });
     if (!body) body = `<tr><td colspan="${colspan}" class="rpt-empty-cell">Sin pedidos</td></tr>`;
     return wrapTable(head, body);
+}
+
+function celdaPartida(partida, idPedido) {
+    const txt = esc(partida || '—');
+    const id = Number(idPedido);
+    if (!id) return `<td><strong>${txt}</strong></td>`;
+    const url = `/Pedidos/NuevoModif/${id}`;
+    return `<td class="rpt-partida-cell">
+        <span class="rpt-partida-wrap">
+            <strong>${txt}</strong>
+            <a href="${url}" class="rpt-pedido-link" target="_blank" rel="noopener noreferrer"
+               title="Abrir pedido en nueva pestaña" onclick="event.stopPropagation()">
+                <i class="fa fa-eye" aria-hidden="true"></i>
+            </a>
+        </span>
+    </td>`;
 }
 
 function tdExpand(idPedido, precioVenta) {
@@ -829,8 +863,6 @@ function badgeEstado(estado) {
 
 function panelComposicionProveedor() {
     return `<div class="rpt-composicion-panel no-print">
-        <p class="rpt-desc mb-2"><strong>Registrar pago:</strong> usá el botón <em>Pagar en pedido</em> en cada fila (pestaña «Pagos proveedor» del pedido).<br/>
-        <strong>Composición de saldos:</strong> marcá <em>Incluir</em> en los pedidos que entren en el listado y exportá en Excel o PDF.</p>
         <div class="d-flex flex-wrap gap-2 align-items-center">
             <button type="button" class="btn btn-rpt-ghost btn-sm" id="btnIrPedidoPago" disabled title="Abrir un pedido marcado con Incluir">
                 <i class="fa fa-external-link me-1"></i> Abrir pedido (1 incluido)
@@ -969,7 +1001,7 @@ function renderPagos(grupos) {
                 id ? tdExpand(id, precioVenta) : '<td class="rpt-col-expand"></td>',
                 `<td class="text-end rpt-num"><strong>${fmtMoney(p.monto)}</strong></td>`,
                 `<td>${esc(p.metodoPago)}</td>`,
-                `<td>${esc(p.partida || '—')}</td>`,
+                celdaPartida(p.partida, id),
                 esCli ? `<td>${esc(p.cliente || '—')}</td>` : `<td>${esc(p.proveedor || '—')}</td>`,
                 `<td>${fmtFecha(p.fechaEntrega)}</td>`
             ];
@@ -1275,12 +1307,22 @@ function normDetallePedido(d) {
     };
 }
 
+function factorBultoDetalle(p) {
+    const f = Number(p.productoCantidad);
+    return f > 0 ? f : 1;
+}
+
+function calcImporteLineaDetalle(p, precioVenta) {
+    const pr = precioVenta ? (Number(p.precioVenta) || 0) : (Number(p.precioCosto) || 0);
+    const cant = (Number(p.cantidad) || 0) + (Number(p.cantidadUsadaAcopio) || 0);
+    return pr * cant * factorBultoDetalle(p);
+}
+
 function fmtCantidadDetallePedido(p) {
-    let s = fmtNum(p.cantidad);
+    const cant = Number(p.cantidad) || 0;
     const acopio = Number(p.cantidadUsadaAcopio) || 0;
-    const factor = Number(p.productoCantidad);
+    let s = fmtNum(cant);
     if (acopio > 0) s += `<br><small class="rpt-detail-sub">+ ${fmtNum(acopio)} acopio</small>`;
-    if (factor > 0 && factor !== 1) s += `<br><small class="rpt-detail-sub">× ${fmtNum(factor)} bulto</small>`;
     return s;
 }
 
@@ -1297,28 +1339,26 @@ function renderDetalleProductos(det, precioVenta) {
     let sumImporte = 0;
     prods.forEach(p => {
         const pr = precioVenta ? p.precioVenta : p.precioCosto;
-        const imp = Number(p.totalLinea) || 0;
+        const factor = factorBultoDetalle(p);
+        const imp = calcImporteLineaDetalle(p, precioVenta);
         sumImporte += imp;
         body += `<tr>
             <td>${esc(p.producto)}</td>
             <td>${esc(p.unidad)}</td>
             <td class="text-end">${fmtCantidadDetallePedido(p)}</td>
+            <td class="text-end rpt-num">${fmtNum(factor)}</td>
             <td class="text-end rpt-num">${fmtMoney(pr)}</td>
             <td class="text-end rpt-num"><strong>${fmtMoney(imp)}</strong></td>
         </tr>`;
     });
     body += `<tr class="rpt-detail-total-row">
-        <td colspan="4" class="text-end"><strong>Total productos</strong></td>
+        <td colspan="5" class="text-end"><strong>Total productos</strong></td>
         <td class="text-end rpt-num"><strong>${fmtMoney(sumImporte)}</strong></td>
     </tr>`;
 
-    const nota = precioVenta
-        ? '<p class="rpt-detail-note mb-2"><i class="fa fa-info-circle"></i> El importe coincide con el guardado en el pedido (incluye bulto y acopio cuando aplica).</p>'
-        : '';
-
-    return `${meta ? `<div class="rpt-detail-header">${meta}</div>` : ''}${nota}
+    return `${meta ? `<div class="rpt-detail-header">${meta}</div>` : ''}
         ${wrapTable(
-            `<th>Producto</th><th>Unidad</th><th class="text-end">Cantidad</th><th class="text-end">${col}</th><th class="text-end">Importe</th>`,
+            `<th>Producto</th><th>Unidad</th><th class="text-end">Cantidad</th><th class="text-end">Producto cantidad</th><th class="text-end">${col}</th><th class="text-end">Importe</th>`,
             body
         )}`;
 }
@@ -1510,33 +1550,21 @@ function obtenerTextoFiltrosExport() {
     if (f.fechaDesde) parts.push(`Desde ${f.fechaDesde}`);
     if (f.fechaHasta) parts.push(`Hasta ${f.fechaHasta}`);
 
-    const selTxt = (id, label) => {
-        const el = document.getElementById(id);
-        if (!el || el.closest('.d-none')) return;
-        const v = el.value;
-        if (!v || v === '-1') return;
-        const opt = el.options[el.selectedIndex];
-        if (opt?.text) parts.push(`${label}: ${opt.text.trim()}`);
+    const agregarCheck = (key, label, items) => {
+        const ids = obtenerIdsFiltroCheck(key);
+        if (!ids.length) return;
+        const wrap = document.querySelector(`[data-check-filtro="${key}"]`);
+        if (wrap?.closest('.d-none')) return;
+        const nombres = ids.map(id => items.find(x => x.id === id)?.nombre || `#${id}`);
+        parts.push(`${label}: ${nombres.join(', ')}`);
     };
-    selTxt('filtroCliente', 'Cliente');
-    selTxt('filtroProveedor', 'Proveedor');
-    if (reporteActivo.id === 'evolucion-producto') {
-        const ids = obtenerIdsProductosSeleccionados();
-        if (ids.length) {
-            const nombres = ids.map(id => {
-                const p = productosEvolucionCache.find(x => x.id === id)
-                    || catalogos.productos.find(x => x.id === id);
-                return p?.nombre || `#${id}`;
-            });
-            parts.push(`Productos: ${nombres.join(', ')}`);
-        }
-    }
+    agregarCheck('cliente', 'Clientes', catalogos.clientes);
+    agregarCheck('proveedor', 'Proveedores', catalogos.proveedores);
+    agregarCheck('producto', 'Productos', checkFiltroItems.producto);
     if (reporteActivo.filtros?.includes('tipoEvolucion')) {
         const tipo = document.getElementById('filtroTipo')?.value || '';
-        const ent = document.getElementById('filtroEntidad');
-        if (ent?.value && ent.value !== '-1') {
-            parts.push(`${tipo}: ${ent.options[ent.selectedIndex]?.text?.trim() || ent.value}`);
-        }
+        const items = tipo === 'Cliente' ? catalogos.clientes : catalogos.proveedores;
+        agregarCheck('entidad', tipo, items);
     }
     if (document.getElementById('filtroSoloSaldo')?.checked) parts.push('Solo con saldo');
     return parts.join(' · ') || 'Sin filtros adicionales';

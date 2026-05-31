@@ -19,9 +19,11 @@ public class ReportesController : Controller
     public IActionResult Index() => View();
 
     [HttpGet]
-    public async Task<IActionResult> ProductosEvolucion(int idCliente = -1, int idProveedor = -1)
+    public async Task<IActionResult> ProductosEvolucion([FromQuery] List<int> idClientes, [FromQuery] List<int> idProveedores)
     {
-        var productos = await _reportes.ListarProductosEvolucionAsync(idCliente, idProveedor);
+        var productos = await _reportes.ListarProductosEvolucionAsync(
+            idClientes?.Where(x => x > 0).Distinct().ToList() ?? new List<int>(),
+            idProveedores?.Where(x => x > 0).Distinct().ToList() ?? new List<int>());
         return Ok(productos.Select(MapCatalogo));
     }
 
@@ -106,6 +108,8 @@ public class ReportesController : Controller
         IdCliente = vm.IdCliente,
         IdProveedor = vm.IdProveedor,
         IdProducto = vm.IdProducto,
+        IdClientes = vm.IdClientes?.Where(x => x > 0).Distinct().ToList() ?? new List<int>(),
+        IdProveedores = vm.IdProveedores?.Where(x => x > 0).Distinct().ToList() ?? new List<int>(),
         IdProductos = vm.IdProductos?.Where(x => x > 0).Distinct().ToList() ?? new List<int>(),
         Tipo = vm.Tipo ?? "Cliente",
         SoloConSaldo = vm.SoloConSaldo

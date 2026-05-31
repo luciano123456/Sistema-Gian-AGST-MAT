@@ -7,6 +7,8 @@ public class ReportesFiltroDto
     public int IdCliente { get; set; } = -1;
     public int IdProveedor { get; set; } = -1;
     public int IdProducto { get; set; } = -1;
+    public List<int> IdClientes { get; set; } = new();
+    public List<int> IdProveedores { get; set; } = new();
     public List<int> IdProductos { get; set; } = new();
     public string Tipo { get; set; } = "Cliente";
     public bool SoloConSaldo { get; set; }

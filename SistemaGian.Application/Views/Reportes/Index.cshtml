@@ -62,36 +62,16 @@
                         <input type="date" id="filtroHasta" class="form-control rpt-input" />
                     </div>
                     <div class="col-lg-3 col-md-6 col-12 filtro-cliente">
-                        <label class="form-label rpt-label" for="filtroCliente">Clientes</label>
-                        <select id="filtroCliente" class="form-select rpt-select">
-                            <option value="-1">— Todos —</option>
-                        </select>
+                        <label class="form-label rpt-label">Clientes</label>
+                        <partial name="~/Views/Reportes/_FiltroCheck.cshtml" view-data='new ViewDataDictionary(ViewData) { {"key", "cliente"}, {"labelTodos", "Todos los clientes"}, {"placeholderBuscar", "Buscar cliente…"} }' />
                     </div>
                     <div class="col-lg-3 col-md-6 col-12 filtro-proveedor d-none">
-                        <label class="form-label rpt-label" for="filtroProveedor">Proveedores</label>
-                        <select id="filtroProveedor" class="form-select rpt-select">
-                            <option value="-1">— Todos —</option>
-                        </select>
+                        <label class="form-label rpt-label">Proveedores</label>
+                        <partial name="~/Views/Reportes/_FiltroCheck.cshtml" view-data='new ViewDataDictionary(ViewData) { {"key", "proveedor"}, {"labelTodos", "Todos los proveedores"}, {"placeholderBuscar", "Buscar proveedor…"} }' />
                     </div>
                     <div class="col-lg-3 col-md-6 col-12 filtro-producto d-none">
                         <label class="form-label rpt-label" id="lblFiltroProducto">Productos</label>
-                        <div class="rpt-prod-check" id="wrapFiltroProductoCheck">
-                            <button type="button" class="rpt-prod-check__trigger" id="btnFiltroProductoToggle" aria-expanded="false" aria-haspopup="listbox">
-                                <span class="rpt-prod-check__label" id="filtroProductoResumen">Todos los productos</span>
-                                <i class="fa fa-chevron-down rpt-prod-check__icon" aria-hidden="true"></i>
-                            </button>
-                            <div class="rpt-prod-check__drop" id="dropFiltroProducto" hidden>
-                                <div class="rpt-prod-check__toolbar">
-                                    <input type="search" class="form-control form-control-sm rpt-prod-check__search" id="buscarFiltroProducto" placeholder="Buscar producto…" autocomplete="off" />
-                                    <div class="rpt-prod-check__actions">
-                                        <button type="button" class="btn btn-link btn-sm p-0" id="btnProdCheckTodos">Marcar todos</button>
-                                        <span class="rpt-prod-check__sep">·</span>
-                                        <button type="button" class="btn btn-link btn-sm p-0" id="btnProdCheckNinguno">Desmarcar</button>
-                                    </div>
-                                </div>
-                                <div class="rpt-prod-check__list" id="listaFiltroProductoCheck" role="listbox" aria-multiselectable="true"></div>
-                            </div>
-                        </div>
+                        <partial name="~/Views/Reportes/_FiltroCheck.cshtml" view-data='new ViewDataDictionary(ViewData) { {"key", "producto"}, {"labelTodos", "Todos los productos"}, {"placeholderBuscar", "Buscar producto…"} }' />
                     </div>
                     <div class="col-lg-2 col-md-4 col-6 filtro-tipo d-none">
                         <label class="form-label rpt-label" for="filtroTipo">Tipo</label>
@@ -101,10 +81,8 @@
                         </select>
                     </div>
                     <div class="col-lg-3 col-md-6 col-12 filtro-entidad d-none">
-                        <label class="form-label rpt-label" for="filtroEntidad" id="lblFiltroEntidad">Nombre</label>
-                        <select id="filtroEntidad" class="form-select rpt-select">
-                            <option value="-1">— Todos —</option>
-                        </select>
+                        <label class="form-label rpt-label" id="lblFiltroEntidad">Nombres</label>
+                        <partial name="~/Views/Reportes/_FiltroCheck.cshtml" view-data='new ViewDataDictionary(ViewData) { {"key", "entidad"}, {"labelTodos", "Todos"}, {"placeholderBuscar", "Buscar…"} }' />
                     </div>
                     <div class="col-lg-2 col-md-4 col-6 filtro-solo-saldo d-none">
                         <label class="form-label rpt-label d-block">Opciones</label>
@@ -120,7 +98,6 @@
                         </button>
                     </div>
                 </div>
-                <p class="rpt-desc mb-0 mt-3" id="reporteDescripcion"></p>
             </div>
         </div>
     </section>
@@ -146,5 +123,5 @@
 @section Scripts {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.min.js"></script>
     <script src="~/js/Utils/moment.js"></script>
-    <script src="~/js/Reportes.js?v=5.0" asp-append-version="true"></script>
+    <script src="~/js/Reportes.js?v=5.2" asp-append-version="true"></script>
 }

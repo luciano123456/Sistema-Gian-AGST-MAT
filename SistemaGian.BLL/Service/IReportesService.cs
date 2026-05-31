@@ -7,7 +7,7 @@ public interface IReportesService
     Task<List<ReporteCatalogoItemDto>> ListarClientesAsync();
     Task<List<ReporteCatalogoItemDto>> ListarProveedoresAsync();
     Task<List<ReporteCatalogoItemDto>> ListarProductosAsync();
-    Task<List<ReporteCatalogoItemDto>> ListarProductosEvolucionAsync(int idCliente, int idProveedor);
+    Task<List<ReporteCatalogoItemDto>> ListarProductosEvolucionAsync(List<int> idClientes, List<int> idProveedores);
     Task<List<ReportePedidoDiaDto>> PedidosPorDiaAsync(ReportesFiltroDto filtro);
     Task<List<ReporteGrupoDto>> EstadoCuentaClientesAsync(ReportesFiltroDto filtro, bool paraCliente);
     Task<List<ReporteGrupoDto>> EstadoCuentaProveedoresAsync(ReportesFiltroDto filtro);

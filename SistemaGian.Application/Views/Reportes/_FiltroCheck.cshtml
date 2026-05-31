@@ -1,0 +1,23 @@
+@* Partial: multiselect con checkboxes. Uso: partial con ViewData["key"], ["labelTodos"] *@
+@{
+    var key = ViewData["key"]?.ToString() ?? "filtro";
+    var labelTodos = ViewData["labelTodos"]?.ToString() ?? "Todos";
+    var placeholderBuscar = ViewData["placeholderBuscar"]?.ToString() ?? "Buscar…";
+}
+<div class="rpt-prod-check" data-check-filtro="@key">
+    <button type="button" class="rpt-prod-check__trigger" data-check-trigger="@key" aria-expanded="false" aria-haspopup="listbox">
+        <span class="rpt-prod-check__label" data-check-resumen="@key">@labelTodos</span>
+        <i class="fa fa-chevron-down rpt-prod-check__icon" aria-hidden="true"></i>
+    </button>
+    <div class="rpt-prod-check__drop" data-check-drop="@key" hidden>
+        <div class="rpt-prod-check__toolbar">
+            <input type="search" class="form-control form-control-sm rpt-prod-check__search" data-check-buscar="@key" placeholder="@placeholderBuscar" autocomplete="off" />
+            <div class="rpt-prod-check__actions">
+                <button type="button" class="btn btn-link btn-sm p-0" data-check-todos="@key">Marcar todos</button>
+                <span class="rpt-prod-check__sep">·</span>
+                <button type="button" class="btn btn-link btn-sm p-0" data-check-ninguno="@key">Desmarcar</button>
+            </div>
+        </div>
+        <div class="rpt-prod-check__list" data-check-lista="@key" role="listbox" aria-multiselectable="true"></div>
+    </div>
+</div>

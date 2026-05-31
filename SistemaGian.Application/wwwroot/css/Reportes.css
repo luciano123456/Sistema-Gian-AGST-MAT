@@ -170,15 +170,6 @@
     box-shadow: 0 0 0 3px rgba(76, 141, 255, 0.2) !important;
 }
 
-.rpt-desc {
-    font-size: 0.88rem;
-    color: var(--muted);
-    padding: 0.65rem 0.85rem;
-    background: rgba(91, 140, 255, 0.06);
-    border-left: 3px solid var(--primary);
-    border-radius: 0 8px 8px 0;
-}
-
 .rpt-check .form-check-label {
     color: var(--txt);
     font-size: 0.88rem;
@@ -471,6 +462,35 @@
     margin-right: 0.2rem;
 }
 
+.rpt-partida-cell {
+    white-space: nowrap;
+}
+
+.rpt-partida-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+}
+
+.rpt-pedido-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.65rem;
+    height: 1.65rem;
+    border-radius: 6px;
+    color: var(--primary, #5b8cff);
+    background: rgba(91, 140, 255, 0.12);
+    text-decoration: none;
+    flex-shrink: 0;
+    transition: background 0.15s, color 0.15s;
+}
+
+.rpt-pedido-link:hover {
+    color: #fff;
+    background: var(--primary, #5b8cff);
+}
+
 /* Overlay exportación / impresión */
 .rpt-export-overlay {
     position: fixed;
@@ -718,11 +738,6 @@
 .rpt-detail-sub {
     color: var(--muted, #9db1d2);
     font-size: 0.72rem;
-}
-
-.rpt-detail-note {
-    font-size: 0.78rem;
-    color: var(--muted, #9db1d2);
 }
 
 .rpt-detail-total-row td {
