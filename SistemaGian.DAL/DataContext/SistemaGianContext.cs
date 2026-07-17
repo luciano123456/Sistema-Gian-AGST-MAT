@@ -55,6 +55,16 @@ public partial class SistemaGianContext : DbContext
 
     public virtual DbSet<PedidosProducto> PedidosProductos { get; set; }
 
+    public virtual DbSet<Recorrido> Recorridos { get; set; }
+
+    public virtual DbSet<RecorridoParada> RecorridosParadas { get; set; }
+
+    public virtual DbSet<RecorridoPlantilla> RecorridosPlantillas { get; set; }
+
+    public virtual DbSet<RecorridoPlantillaParada> RecorridosPlantillasParadas { get; set; }
+
+    public virtual DbSet<RecorridoEvento> RecorridosEventos { get; set; }
+
     public virtual DbSet<Producto> Productos { get; set; }
 
     public virtual DbSet<ProductosCategoria> ProductosCategorias { get; set; }
@@ -165,6 +175,14 @@ public partial class SistemaGianContext : DbContext
                 .HasColumnName("SaldoAFavor");
             entity.Property(e => e.Telefono)
                 .HasMaxLength(20)
+                .IsUnicode(false);
+            entity.Property(e => e.Latitud).HasColumnType("decimal(10, 7)");
+            entity.Property(e => e.Longitud).HasColumnType("decimal(10, 7)");
+            entity.Property(e => e.PlaceId)
+                .HasMaxLength(255)
+                .IsUnicode(false);
+            entity.Property(e => e.DireccionMaps)
+                .HasMaxLength(500)
                 .IsUnicode(false);
 
             entity.HasOne(d => d.IdProvinciaNavigation).WithMany(p => p.Clientes)
@@ -501,6 +519,14 @@ public partial class SistemaGianContext : DbContext
             entity.Property(e => e.Ubicacion)
                 .HasMaxLength(500)
                 .IsUnicode(false);
+            entity.Property(e => e.Latitud).HasColumnType("decimal(10, 7)");
+            entity.Property(e => e.Longitud).HasColumnType("decimal(10, 7)");
+            entity.Property(e => e.PlaceId)
+                .HasMaxLength(255)
+                .IsUnicode(false);
+            entity.Property(e => e.DireccionMaps)
+                .HasMaxLength(500)
+                .IsUnicode(false);
         });
 
         modelBuilder.Entity<Provincia>(entity =>
@@ -578,6 +604,108 @@ public partial class SistemaGianContext : DbContext
             entity.HasOne(d => d.IdZonaNavigation).WithMany(p => p.ZonasClientes)
                 .HasForeignKey(d => d.IdZona)
                 .HasConstraintName("FK_ZonasClientes_Zonas");
+        });
+
+        modelBuilder.Entity<Recorrido>(entity =>
+        {
+            entity.ToTable("Recorridos");
+            entity.Property(e => e.Nombre).HasMaxLength(200).IsUnicode(false);
+            entity.Property(e => e.Estado).HasMaxLength(30).IsUnicode(false);
+            entity.Property(e => e.FechaCreacion).HasColumnType("datetime");
+            entity.Property(e => e.FechaInicio).HasColumnType("datetime");
+            entity.Property(e => e.FechaFin).HasColumnType("datetime");
+            entity.Property(e => e.OrigenLat).HasColumnType("decimal(10, 7)");
+            entity.Property(e => e.OrigenLng).HasColumnType("decimal(10, 7)");
+            entity.Property(e => e.OrigenDireccion).HasMaxLength(500).IsUnicode(false);
+            entity.Property(e => e.Observaciones).HasMaxLength(1000).IsUnicode(false);
+            entity.Property(e => e.TipoDestino).HasMaxLength(20).IsUnicode(false);
+
+            entity.HasOne(d => d.IdUsuarioNavigation).WithMany()
+                .HasForeignKey(d => d.IdUsuario)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Recorridos_Usuarios");
+        });
+
+        modelBuilder.Entity<RecorridoParada>(entity =>
+        {
+            entity.ToTable("RecorridosParadas");
+            entity.Property(e => e.NombreCliente).HasMaxLength(255).IsUnicode(false);
+            entity.Property(e => e.Direccion).HasMaxLength(500).IsUnicode(false);
+            entity.Property(e => e.Latitud).HasColumnType("decimal(10, 7)");
+            entity.Property(e => e.Longitud).HasColumnType("decimal(10, 7)");
+            entity.Property(e => e.EstadoParada).HasMaxLength(30).IsUnicode(false);
+            entity.Property(e => e.TipoParada).HasMaxLength(20).IsUnicode(false);
+            entity.Property(e => e.FechaVisitada).HasColumnType("datetime");
+            entity.Property(e => e.FechaOmitida).HasColumnType("datetime");
+            entity.Property(e => e.Notas).HasMaxLength(2000).IsUnicode(false);
+
+            entity.HasOne(d => d.IdRecorridoNavigation).WithMany(p => p.Paradas)
+                .HasForeignKey(d => d.IdRecorrido)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_RecorridosParadas_Recorridos");
+
+            entity.HasOne(d => d.IdClienteNavigation).WithMany()
+                .HasForeignKey(d => d.IdCliente)
+                .HasConstraintName("FK_RecorridosParadas_Clientes");
+
+            entity.HasOne(d => d.IdProveedorNavigation).WithMany()
+                .HasForeignKey(d => d.IdProveedor)
+                .HasConstraintName("FK_RecorridosParadas_Proveedores");
+        });
+
+        modelBuilder.Entity<RecorridoPlantilla>(entity =>
+        {
+            entity.ToTable("RecorridosPlantillas");
+            entity.Property(e => e.Nombre).HasMaxLength(200).IsUnicode(false);
+            entity.Property(e => e.OrigenLat).HasColumnType("decimal(10, 7)");
+            entity.Property(e => e.OrigenLng).HasColumnType("decimal(10, 7)");
+            entity.Property(e => e.OrigenDireccion).HasMaxLength(500).IsUnicode(false);
+            entity.Property(e => e.FechaCreacion).HasColumnType("datetime");
+            entity.Property(e => e.TipoDestino).HasMaxLength(20).IsUnicode(false);
+
+            entity.HasOne(d => d.IdUsuarioNavigation).WithMany()
+                .HasForeignKey(d => d.IdUsuario)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_RecorridosPlantillas_Usuarios");
+        });
+
+        modelBuilder.Entity<RecorridoPlantillaParada>(entity =>
+        {
+            entity.ToTable("RecorridosPlantillasParadas");
+            entity.Property(e => e.TipoParada).HasMaxLength(20).IsUnicode(false);
+
+            entity.HasOne(d => d.IdPlantillaNavigation).WithMany(p => p.Paradas)
+                .HasForeignKey(d => d.IdPlantilla)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_RecPlantillasParadas_Plantilla");
+
+            entity.HasOne(d => d.IdClienteNavigation).WithMany()
+                .HasForeignKey(d => d.IdCliente)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_RecPlantillasParadas_Cliente");
+
+            entity.HasOne(d => d.IdProveedorNavigation).WithMany()
+                .HasForeignKey(d => d.IdProveedor)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_RecPlantillasParadas_Proveedor");
+        });
+
+        modelBuilder.Entity<RecorridoEvento>(entity =>
+        {
+            entity.ToTable("RecorridosEventos");
+            entity.Property(e => e.Tipo).HasMaxLength(50).IsUnicode(false);
+            entity.Property(e => e.Mensaje).HasMaxLength(1000).IsUnicode(false);
+            entity.Property(e => e.Fecha).HasColumnType("datetime");
+
+            entity.HasOne(d => d.IdRecorridoNavigation).WithMany(p => p.Eventos)
+                .HasForeignKey(d => d.IdRecorrido)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("FK_RecorridosEventos_Recorridos");
+
+            entity.HasOne(d => d.IdUsuarioNavigation).WithMany()
+                .HasForeignKey(d => d.IdUsuario)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_RecorridosEventos_Usuarios");
         });
 
         OnModelCreatingPartial(modelBuilder);

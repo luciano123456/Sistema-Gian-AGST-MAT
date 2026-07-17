@@ -1,0 +1,247 @@
+/* Banner recorrido: siempre arriba de DataTables / FAB / headers (z 4000+) */
+.rec-pending-banner {
+    position: fixed;
+    z-index: 100050 !important;
+    left: 12px;
+    right: 12px;
+    top: 12px;
+    bottom: auto;
+    display: flex;
+    justify-content: center;
+    pointer-events: none;
+}
+
+.rec-pending-inner {
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    max-width: 980px;
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: 18px;
+    color: #fff7ed;
+    background: linear-gradient(135deg, rgba(120, 53, 15, .97), rgba(194, 65, 12, .95));
+    border: 1px solid rgba(251, 191, 36, .65);
+    box-shadow: 0 18px 50px rgba(0, 0, 0, .45);
+    backdrop-filter: blur(10px);
+    animation: recPendingIn .45s ease;
+}
+
+a.rec-pending-main {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex: 1 1 240px;
+    min-width: 0;
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+}
+a.rec-pending-main:hover .rec-pending-text strong {
+    text-decoration: underline;
+}
+
+.rec-pending-banner.is-en-curso .rec-pending-inner {
+    border-color: rgba(251, 191, 36, .8);
+}
+
+.rec-pending-pulse {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #fbbf24;
+    box-shadow: 0 0 0 0 rgba(251, 191, 36, .7);
+    animation: recPulse 1.6s infinite;
+    flex: 0 0 auto;
+}
+
+.rec-pending-text {
+    flex: 1 1 240px;
+    min-width: 0;
+}
+
+.rec-pending-text strong {
+    display: block;
+    font-size: 1.05rem;
+    font-weight: 800;
+}
+
+.rec-pending-text span {
+    display: block;
+    opacity: .92;
+    font-size: .92rem;
+    margin-top: 2px;
+}
+
+.rec-pending-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.rec-pending-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    text-decoration: none;
+    border: 0;
+    border-radius: 12px;
+    padding: 9px 14px;
+    font-weight: 700;
+    color: #0b1220;
+    background: linear-gradient(135deg, #fde68a, #fbbf24);
+    cursor: pointer;
+}
+
+.rec-pending-btn.maps {
+    background: linear-gradient(135deg, #34d399, #10b981);
+    color: #052e1c;
+}
+
+.rec-pending-btn.ghost {
+    background: transparent;
+    color: #fff7ed;
+    border: 1px solid rgba(255,255,255,.35);
+}
+
+/* Chip flotante (cuando minimizan el banner) */
+.rec-pending-chip {
+    position: fixed;
+    z-index: 100051 !important;
+    right: 16px;
+    bottom: 88px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    max-width: min(360px, calc(100vw - 32px));
+    padding: 10px 14px;
+    border-radius: 999px;
+    text-decoration: none;
+    font-weight: 800;
+    font-size: .88rem;
+    color: #1c1004;
+    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    box-shadow: 0 12px 30px rgba(245, 158, 11, .45);
+    animation: recHomePulse 1.8s ease-in-out infinite;
+}
+.rec-pending-chip[hidden] { display: none !important; }
+.rec-pending-chip-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #b91c1c;
+    box-shadow: 0 0 0 0 rgba(185, 28, 28, .55);
+    animation: recPulse 1.6s infinite;
+    flex: 0 0 auto;
+}
+#recPendingChipText {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* FAB Inicio marcado */
+.fab-wrap.rec-fab-active .fab-main,
+[data-fab].rec-fab-active .fab-main {
+    position: relative;
+    background: linear-gradient(135deg, #f59e0b, #ea580c) !important;
+    color: #1c1004 !important;
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, .55), 0 10px 28px rgba(245, 158, 11, .4) !important;
+    animation: recHomePulse 1.8s ease-in-out infinite;
+}
+.fab-wrap.rec-fab-active .fab-main::after,
+[data-fab].rec-fab-active .fab-main::after {
+    content: attr(data-rec-badge);
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    font-size: .62rem;
+    font-weight: 800;
+    letter-spacing: .02em;
+    padding: 3px 6px;
+    border-radius: 999px;
+    background: #111827;
+    color: #fde68a;
+    box-shadow: 0 4px 12px rgba(0,0,0,.35);
+    white-space: nowrap;
+}
+
+@keyframes recPulse {
+    0% { box-shadow: 0 0 0 0 rgba(251, 191, 36, .65); }
+    70% { box-shadow: 0 0 0 12px rgba(251, 191, 36, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0); }
+}
+
+@keyframes recPendingIn {
+    from { transform: translateY(-18px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes recHomePulse {
+    0%, 100% { transform: scale(1); filter: brightness(1); }
+    50% { transform: scale(1.04); filter: brightness(1.08); }
+}
+
+@media (max-width: 576px) {
+    .rec-pending-banner { top: 8px; left: 8px; right: 8px; }
+    .rec-pending-chip { bottom: 78px; right: 10px; left: 10px; max-width: none; }
+}
+
+/* Home: botón / tile de Recorridos marcado */
+#btnHomeRecorridos.rec-home-active,
+[data-rec-home-btn].rec-home-active {
+    position: relative;
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, .55), 0 10px 28px rgba(245, 158, 11, .35);
+    animation: recHomePulse 1.8s ease-in-out infinite;
+}
+
+#btnHomeRecorridos.rec-home-active.is-en-curso,
+[data-rec-home-btn].rec-home-active.is-en-curso {
+    background: linear-gradient(135deg, #f59e0b, #ea580c) !important;
+    color: #1c1004 !important;
+    border-color: transparent !important;
+    font-weight: 800;
+}
+
+#btnHomeRecorridos.rec-home-active.is-borrador,
+[data-rec-home-btn].rec-home-active.is-borrador {
+    background: linear-gradient(135deg, #38bdf8, #2563eb) !important;
+    color: #04111f !important;
+    border-color: transparent !important;
+    font-weight: 800;
+}
+
+a.tile.rec-home-active {
+    outline: 3px solid rgba(245, 158, 11, .75);
+    outline-offset: 2px;
+}
+
+.rec-home-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    z-index: 2;
+    font-size: .65rem;
+    font-weight: 800;
+    letter-spacing: .03em;
+    padding: 3px 7px;
+    border-radius: 999px;
+    background: #111827;
+    color: #fde68a;
+    box-shadow: 0 4px 12px rgba(0,0,0,.35);
+    pointer-events: none;
+    white-space: nowrap;
+}
+
+a.tile .rec-home-badge {
+    top: 6px;
+    right: 6px;
+}
+
+.rec-home-wrap-active i {
+    animation: recHomePulse 1.8s ease-in-out infinite;
+    color: #f59e0b !important;
+}

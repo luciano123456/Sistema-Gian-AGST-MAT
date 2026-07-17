@@ -206,6 +206,7 @@ $(document).ready(() => {
 function guardarCambios() {
     if (validarCampos()) {
         const idCliente = $("#txtId").val();
+        const geo = typeof obtenerDatosUbicacionCliente === 'function' ? obtenerDatosUbicacionCliente() : {};
         const nuevoModelo = {
             "Id": idCliente !== "" ? idCliente : 0,
             "Nombre": $("#txtNombre").val(),
@@ -213,7 +214,11 @@ function guardarCambios() {
             "Direccion": $("#txtDireccion").val(),
             "IdProvincia": $("#Provincias").val(),
             "Localidad": $("#txtLocalidad").val(),
-            "Dni": $("#txtDni").val()
+            "Dni": $("#txtDni").val(),
+            "Latitud": geo.Latitud,
+            "Longitud": geo.Longitud,
+            "PlaceId": geo.PlaceId,
+            "DireccionMaps": geo.DireccionMaps
         };
 
         const url = idCliente === "" ? "Clientes/Insertar" : "Clientes/Actualizar";
@@ -256,6 +261,7 @@ function validarCampos() {
 function nuevoCliente() {
     limpiarModal();
     listaProvincias();
+    if (typeof limpiarUbicacionCliente === 'function') limpiarUbicacionCliente();
     $('#modalEdicion').modal('show');
     $("#btnGuardar").text("Registrar");
     $("#modalEdicionLabel").text("Nuevo Cliente");
@@ -270,6 +276,8 @@ async function mostrarModal(modelo) {
     await listaProvincias();
     document.getElementById("Provincias").value = modelo.IdProvincia;
 
+    if (typeof cargarUbicacionEnModal === 'function') cargarUbicacionEnModal(modelo);
+
     $('#modalEdicion').modal('show');
     $("#btnGuardar").text("Guardar");
     $("#modalEdicionLabel").text("Editar Cliente");
@@ -280,6 +288,7 @@ function limpiarModal() {
     const campos = ["Id", "Nombre", "Telefono", "Direccion", "IdProvincia", "Localidad", "DNI"];
     campos.forEach(campo => { $(`#txt${campo}`).val(""); });
     $("#lblNombre, #txtNombre").css("color", "").css("border-color", "");
+    if (typeof limpiarUbicacionCliente === 'function') limpiarUbicacionCliente();
 }
 
 /* =========================

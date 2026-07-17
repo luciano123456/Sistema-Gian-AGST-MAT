@@ -40,12 +40,17 @@ $(document).ready(() => {
 function guardarCambios() {
     if (validarCampos()) {
         const idProveedor = $("#txtId").val();
+        const geo = typeof obtenerDatosUbicacionCliente === 'function' ? obtenerDatosUbicacionCliente() : {};
         const nuevoModelo = {
             "Id": idProveedor !== "" ? idProveedor : 0,
             "Nombre": $("#txtNombre").val(),
             "Apodo": $("#txtApodo").val(),
             "Ubicacion": $("#txtUbicacion").val(),
             "Telefono": $("#txtTelefono").val(),
+            "Latitud": geo.Latitud,
+            "Longitud": geo.Longitud,
+            "PlaceId": geo.PlaceId,
+            "DireccionMaps": geo.DireccionMaps
         };
 
         const url = idProveedor === "" ? "Proveedores/Insertar" : "Proveedores/Actualizar";
@@ -88,6 +93,7 @@ function validarCampos() {
 }
 function nuevoProveedor() {
     limpiarModal();
+    if (typeof limpiarUbicacionCliente === 'function') limpiarUbicacionCliente();
     $('#modalEdicion').modal('show');
     $("#btnGuardar").text("Registrar");
     $("#modalEdicionLabel").text("Nuevo Proveedor");
@@ -101,6 +107,12 @@ async function mostrarModal(modelo) {
         $(`#txt${campo}`).val(modelo[campo]);
     });
 
+    if (typeof cargarUbicacionEnModal === 'function') {
+        cargarUbicacionEnModal({
+            ...modelo,
+            DireccionMaps: modelo.DireccionMaps || modelo.Ubicacion
+        });
+    }
 
     $('#modalEdicion').modal('show');
     $("#btnGuardar").text("Guardar");
@@ -109,9 +121,6 @@ async function mostrarModal(modelo) {
     $('#lblNombre, #txtNombre').css('color', '').css('border-color', '');
 }
 
-
-
-
 function limpiarModal() {
     const campos = ["Id", "Nombre", "Apodo", "Ubicacion", "Telefono"];
     campos.forEach(campo => {
@@ -119,6 +128,7 @@ function limpiarModal() {
     });
 
     $("#lblNombre, #txtNombre").css("color", "").css("border-color", "");
+    if (typeof limpiarUbicacionCliente === 'function') limpiarUbicacionCliente();
 }
 
 

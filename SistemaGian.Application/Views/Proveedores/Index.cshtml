@@ -20,6 +20,7 @@
     <link rel="stylesheet" href="~/css/redisenopantallas.css?v=1.0" />
     <link href="~/css/Proveedores.css?v=1.0" rel="stylesheet" />
     <link href="~/css/RedisenoPantallas.css?v=1.0" rel="stylesheet" />
+    <link href="~/css/ClientesMapa.css?v=1.1" rel="stylesheet" />
 }
 
 <partial name="~/Views/Shared/Partials/BotonMenu.cshtml" />
@@ -93,30 +94,71 @@
 
 <!-- MODAL edición -->
 <div class="modal fade" id="modalEdicion" tabindex="-1" role="dialog" aria-labelledby="modalEdicionLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-edicion" role="document">
-        <div class="modal-content cc-modal">
-            <div class="modal-header colorEncabezado">
-                <h5 class="modal-title fw-bold" id="modalEdicionLabel">Editar proveedor</h5>
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable modal-edicion" role="document">
+        <div class="modal-content cc-modal cli-map-modal">
+            <div class="modal-header colorEncabezado cli-map-header">
+                <div class="d-flex align-items-center gap-3">
+                    <span class="cli-map-icon"><i class="fa fa-map-marker"></i></span>
+                    <div>
+                        <h5 class="modal-title fw-bold m-0" id="modalEdicionLabel">Editar proveedor</h5>
+                        <small class="cli-map-sub">Datos + ubicación en Google Maps</small>
+                    </div>
+                </div>
                 <button type="button" class="btn-close custom-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body cli-map-body">
                 <form id="formEditarProveedor" class="row g-3">
                     <input type="text" id="txtId" hidden readonly>
-                    <div class="col-md-6">
-                        <label for="txtNombre" class="form-label">Nombre (*)</label>
-                        <input type="text" class="form-control" id="txtNombre" required>
+                    <input type="hidden" id="txtLatitud" />
+                    <input type="hidden" id="txtLongitud" />
+                    <input type="hidden" id="txtPlaceId" />
+                    <input type="hidden" id="txtDireccionMaps" />
+
+                    <div class="col-lg-5">
+                        <div class="cli-map-form-panel">
+                            <div class="row g-3">
+                                <div class="col-md-12">
+                                    <label for="txtNombre" class="form-label">Nombre (*)</label>
+                                    <input type="text" class="form-control" id="txtNombre" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="txtApodo" class="form-label">Apodo</label>
+                                    <input type="text" class="form-control" id="txtApodo">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="txtTelefono" class="form-label">Teléfono</label>
+                                    <input type="text" class="form-control" id="txtTelefono">
+                                </div>
+                                <div class="col-md-12">
+                                    <label for="txtBuscarMaps" class="form-label">Buscar en Maps</label>
+                                    <input type="text" class="form-control" id="txtBuscarMaps" placeholder="Calle, número, localidad...">
+                                    <small class="text-muted">Elegí sugerencia o mové el pin.</small>
+                                </div>
+                                <div class="col-md-12">
+                                    <label for="txtUbicacion" class="form-label">Ubicación</label>
+                                    <input type="text" class="form-control" id="txtUbicacion">
+                                </div>
+                                <div class="col-12">
+                                    <div class="cli-map-coords" id="cliMapCoords">
+                                        <span><i class="fa fa-crosshairs"></i> Sin ubicación</span>
+                                    </div>
+                                    <div class="d-flex flex-wrap gap-2 mt-2">
+                                        <button type="button" class="btn btn-outline-primary btn-sm" id="btnMiUbicacionCliente">
+                                            <i class="fa fa-location-arrow"></i> Mi ubicación
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm" id="btnLimpiarUbicacion">
+                                            <i class="fa fa-eraser"></i> Limpiar pin
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="col-md-6">
-                        <label for="txtApodo" class="form-label">Apodo</label>
-                        <input type="text" class="form-control" id="txtApodo">
-                    </div>
-                    <div class="col-md-6">
-                        <label for="txtUbicacion" class="form-label">Ubicación</label>
-                        <input type="text" class="form-control" id="txtUbicacion">
-                    </div>
-                    <div class="col-md-6">
-                        <label for="txtTelefono" class="form-label">Teléfono</label>
-                        <input type="text" class="form-control" id="txtTelefono">
+                    <div class="col-lg-7">
+                        <div class="cli-map-wrap">
+                            <div id="clienteMap" class="cli-map-canvas"></div>
+                            <div class="cli-map-hint" id="cliMapHint">Tocá el mapa o buscá una dirección para ubicar al proveedor</div>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -139,6 +181,33 @@
     <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.print.min.js"></script>
     <script src="https://cdn.datatables.net/fixedheader/3.2.2/js/dataTables.fixedHeader.min.js"></script>
 
- 
-    <script src="~/js/Proveedores.js?v=1.4"></script>
+    <script src="~/js/Proveedores.js?v=1.6"></script>
+    <script src="~/js/ClientesMapa.js?v=1.2"></script>
+    <script>
+        // Adaptar el helper de mapas de clientes al campo Ubicación de proveedores
+        (function () {
+            const origSet = window.setClientePos;
+            // ClientesMapa escribe en txtDireccion; acá usamos txtUbicacion
+            const syncUbicacion = () => {
+                const maps = $('#txtDireccionMaps').val();
+                if (maps) $('#txtUbicacion').val(maps);
+            };
+            $('#modalEdicion').on('shown.bs.modal', () => setTimeout(syncUbicacion, 300));
+            $('#txtDireccionMaps').on('change input', syncUbicacion);
+        })();
+
+        window.__googleMapsApiKey = '@(Configuration["GoogleMaps:ApiKey"] ?? "")';
+        (function loadMaps() {
+            const key = window.__googleMapsApiKey;
+            if (!key || key.indexOf('PEGAR_AQUI') === 0) {
+                console.warn('Google Maps API Key no configurada');
+                return;
+            }
+            const s = document.createElement('script');
+            s.async = true;
+            s.defer = true;
+            s.src = 'https://maps.googleapis.com/maps/api/js?key=' + encodeURIComponent(key) + '&libraries=places&callback=initClienteMap';
+            document.head.appendChild(s);
+        })();
+    </script>
 }

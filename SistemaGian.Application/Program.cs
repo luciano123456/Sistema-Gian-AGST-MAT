@@ -93,6 +93,9 @@ builder.Services.AddScoped<IGastosTiposService, GastosTiposService>();
 builder.Services.AddScoped<IGastosRepository<Gasto>, GastosRepository>();
 builder.Services.AddScoped<IGastosService, GastosService>();
 
+builder.Services.AddScoped<IRecorridosRepository, RecorridosRepository>();
+builder.Services.AddScoped<IRecorridosService, RecorridosService>();
+
 
 builder.Services.AddControllersWithViews()
     .AddJsonOptions(o =>

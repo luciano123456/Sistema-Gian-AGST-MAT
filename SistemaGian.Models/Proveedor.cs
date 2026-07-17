@@ -15,6 +15,14 @@ public partial class Proveedor
 
     public string? Telefono { get; set; }
 
+    public decimal? Latitud { get; set; }
+
+    public decimal? Longitud { get; set; }
+
+    public string? PlaceId { get; set; }
+
+    public string? DireccionMaps { get; set; }
+
     public virtual ICollection<Pedido> Pedidos { get; set; } = new List<Pedido>();
 
     public virtual ICollection<ProductosPreciosCliente> ProductosPreciosClientes { get; set; } = new List<ProductosPreciosCliente>();

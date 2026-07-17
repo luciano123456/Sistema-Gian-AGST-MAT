@@ -14,5 +14,9 @@ namespace SistemaGian.Application.Models.ViewModels
 
         public string? Telefono { get; set; }
 
+        public decimal? Latitud { get; set; }
+        public decimal? Longitud { get; set; }
+        public string? PlaceId { get; set; }
+        public string? DireccionMaps { get; set; }
     }
 }

@@ -1,0 +1,24 @@
+<div id="recorridoPendienteBanner" class="rec-pending-banner" hidden>
+    <div class="rec-pending-inner">
+        <a class="rec-pending-main" id="recPendingBannerLink" href="/Recorridos">
+            <div class="rec-pending-pulse"></div>
+            <div class="rec-pending-text">
+                <strong id="recPendingTitle">Recorrido en curso</strong>
+                <span id="recPendingSub"></span>
+            </div>
+        </a>
+        <div class="rec-pending-actions">
+            <a class="rec-pending-btn maps" id="recPendingMaps" href="#" target="_blank" rel="noopener" hidden>
+                Abrir Maps
+            </a>
+            <a class="rec-pending-btn" id="recPendingContinue" href="/Recorridos">Ir al recorrido</a>
+            <button type="button" class="rec-pending-btn ghost" id="recPendingDismiss" title="Minimizar">Minimizar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Chip siempre visible si hay recorrido en curso (aunque minimicen el banner) -->
+<a id="recorridoPendienteChip" class="rec-pending-chip" href="/Recorridos" hidden>
+    <span class="rec-pending-chip-dot"></span>
+    <span id="recPendingChipText">Recorrido en curso</span>
+</a>

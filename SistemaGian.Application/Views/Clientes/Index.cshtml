@@ -23,6 +23,7 @@
     <!-- (Dejo tus estilos originales también, por compatibilidad) -->
     <link href="~/css/clientes.css" rel="stylesheet" />
     <link href="~/css/RedisenoPantallas.css" rel="stylesheet" />
+    <link href="~/css/ClientesMapa.css?v=1.1" rel="stylesheet" />
 }
 
 
@@ -106,47 +107,90 @@
 
 <!-- MODALES (mismos IDs y names) -->
 <div class="modal fade" id="modalEdicion" tabindex="-1" role="dialog" aria-labelledby="modalEdicionLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered modal-edicion" role="document">
-        <div class="modal-content cc-modal">
-            <div class="modal-header colorEncabezado">
-                <h5 class="modal-title fw-bold" id="modalEdicionLabel">Editar Cliente</h5>
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable modal-edicion" role="document">
+        <div class="modal-content cc-modal cli-map-modal">
+            <div class="modal-header colorEncabezado cli-map-header">
+                <div class="d-flex align-items-center gap-3">
+                    <span class="cli-map-icon"><i class="fa fa-map-marker"></i></span>
+                    <div>
+                        <h5 class="modal-title fw-bold m-0" id="modalEdicionLabel">Editar Cliente</h5>
+                        <small class="cli-map-sub">Datos + ubicación en Google Maps</small>
+                    </div>
+                </div>
                 <button type="button" class="btn-close custom-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
 
-            <div class="modal-body">
+            <div class="modal-body cli-map-body">
                 <form id="formEditarCliente" class="row g-3">
                     <input type="text" id="txtId" hidden readonly>
+                    <input type="hidden" id="txtLatitud" />
+                    <input type="hidden" id="txtLongitud" />
+                    <input type="hidden" id="txtPlaceId" />
+                    <input type="hidden" id="txtDireccionMaps" />
 
-                    <div class="col-md-6">
-                        <label for="txtNombre" class="form-label">Nombre (*)</label>
-                        <input type="text" class="form-control" id="txtNombre" required>
+                    <div class="col-lg-5">
+                        <div class="cli-map-form-panel">
+                            <div class="row g-3">
+                                <div class="col-md-12">
+                                    <label for="txtNombre" class="form-label">Nombre (*)</label>
+                                    <input type="text" class="form-control" id="txtNombre" required>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label for="txtTelefono" class="form-label">Teléfono</label>
+                                    <input type="text" class="form-control" id="txtTelefono">
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label for="txtDni" class="form-label">DNI</label>
+                                    <input type="text" class="form-control" id="txtDni">
+                                </div>
+
+                                <div class="col-md-12">
+                                    <label for="txtBuscarMaps" class="form-label">Buscar en Maps</label>
+                                    <input type="text" class="form-control" id="txtBuscarMaps" placeholder="Calle, número, localidad...">
+                                    <small class="text-muted">Escribí y elegí una sugerencia, o mové el pin en el mapa.</small>
+                                </div>
+
+                                <div class="col-md-12">
+                                    <label for="txtDireccion" class="form-label">Dirección</label>
+                                    <input type="text" class="form-control" id="txtDireccion">
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label for="Provincias" class="form-label">Provincia</label>
+                                    <select id="Provincias" name="select" class="form-control">
+                                        <option value="" selected>Provincias</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label for="txtLocalidad" class="form-label">Localidad</label>
+                                    <input type="text" class="form-control" id="txtLocalidad">
+                                </div>
+
+                                <div class="col-12">
+                                    <div class="cli-map-coords" id="cliMapCoords">
+                                        <span><i class="fa fa-crosshairs"></i> Sin ubicación</span>
+                                    </div>
+                                    <div class="d-flex flex-wrap gap-2 mt-2">
+                                        <button type="button" class="btn btn-outline-primary btn-sm" id="btnMiUbicacionCliente">
+                                            <i class="fa fa-location-arrow"></i> Mi ubicación
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm" id="btnLimpiarUbicacion">
+                                            <i class="fa fa-eraser"></i> Limpiar pin
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="col-md-6">
-                        <label for="txtTelefono" class="form-label">Teléfono</label>
-                        <input type="text" class="form-control" id="txtTelefono">
-                    </div>
-
-                    <div class="col-md-6">
-                        <label for="txtDireccion" class="form-label">Dirección</label>
-                        <input type="text" class="form-control" id="txtDireccion">
-                    </div>
-
-                    <div class="col-md-6">
-                        <label for="Provincias" class="form-label">Provincia</label>
-                        <select id="Provincias" name="select" class="form-control">
-                            <option value="" selected>Provincias</option>
-                        </select>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label for="txtLocalidad" class="form-label">Localidad</label>
-                        <input type="text" class="form-control" id="txtLocalidad">
-                    </div>
-
-                    <div class="col-md-6">
-                        <label for="txtDni" class="form-label">DNI</label>
-                        <input type="text" class="form-control" id="txtDni">
+                    <div class="col-lg-7">
+                        <div class="cli-map-wrap">
+                            <div id="clienteMap" class="cli-map-canvas"></div>
+                            <div class="cli-map-hint" id="cliMapHint">Tocá el mapa o buscá una dirección para ubicar al cliente</div>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -404,6 +448,22 @@
     <script src="https://cdn.datatables.net/fixedheader/3.2.2/js/dataTables.fixedHeader.min.js"></script>
 
     <script src="~/js/utils/moment.js"></script>
-    <script src="~/js/clientes.js?v=1.7"></script>
+    <script src="~/js/clientes.js?v=1.8"></script>
+    <script src="~/js/ClientesMapa.js?v=1.2"></script>
+    <script>
+        window.__googleMapsApiKey = '@(Configuration["GoogleMaps:ApiKey"] ?? "")';
+        (function loadMaps() {
+            const key = window.__googleMapsApiKey;
+            if (!key || key.indexOf('PEGAR_AQUI') === 0) {
+                console.warn('Google Maps API Key no configurada en appsettings.json → GoogleMaps:ApiKey');
+                return;
+            }
+            const s = document.createElement('script');
+            s.async = true;
+            s.defer = true;
+            s.src = 'https://maps.googleapis.com/maps/api/js?key=' + encodeURIComponent(key) + '&libraries=places&callback=initClienteMap';
+            document.head.appendChild(s);
+        })();
+    </script>
 
 }
