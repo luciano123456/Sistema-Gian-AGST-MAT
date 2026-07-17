@@ -1,5 +1,10 @@
 /* Reportes AGS MAT — UI + datos (compatible PascalCase / camelCase API) */
 
+/** Reportes que exportan pedidos con encabezado + detalle de productos (diseño estructurado) */
+const REPORTES_EXPORT_PEDIDOS = [
+    'pedidos-dia', 'ec-clientes', 'ec-para-cliente', 'ec-proveedores', 'evolucion-ventas'
+];
+
 const REPORTES = [
     { id: 'pedidos-dia', titulo: 'Pedidos por día', icon: 'fa-calendar', endpoint: 'PedidosPorDia', filtros: ['fechas'] },
     { id: 'ec-clientes', titulo: 'Estado de cuenta — Clientes', icon: 'fa-users', endpoint: 'EstadoCuentaClientes', filtros: ['fechas', 'cliente', 'soloSaldo'] },
@@ -1517,7 +1522,406 @@ function construirPayloadDesdeVista() {
     };
 }
 
-function obtenerPayloadExportacionReportes() {
+function filtrarDiasPedidosParaExportacion() {
+    const root = document.getElementById('contenedorResultado');
+    if (!root) return ultimoResultado || [];
+
+    const soloSeleccion = hayFilasSeleccionadasEnVista();
+    const idsPermitidos = new Set();
+    let hayAbierto = false;
+
+    root.querySelectorAll('.rpt-acc-item').forEach(acc => {
+        if (!acc.classList.contains('is-open')) return;
+        hayAbierto = true;
+        acc.querySelectorAll('tr.rpt-data-row[data-pedido]').forEach(tr => {
+            if (soloSeleccion && !tr.classList.contains('is-selected')) return;
+            const id = parseInt(tr.dataset.pedido, 10);
+            if (!isNaN(id)) idsPermitidos.add(id);
+        });
+    });
+
+    if (soloSeleccion || hayAbierto) {
+        if (!idsPermitidos.size) return [];
+        return (ultimoResultado || [])
+            .map(dia => ({
+                ...dia,
+                pedidos: (dia.pedidos || []).filter(p => idsPermitidos.has(p.idPedido))
+            }))
+            .filter(dia => (dia.pedidos || []).length > 0);
+    }
+
+    return ultimoResultado || [];
+}
+
+async function cargarDetallesPedidosMap(pedidos) {
+    const map = new Map();
+    const lista = [...pedidos];
+    await Promise.all(lista.map(async p => {
+        const id = p.idPedido;
+        if (!id || map.has(id)) return;
+        try {
+            const res = await fetch(`/Reportes/DetallePedido?id=${id}&precioVenta=true`);
+            if (res.ok) map.set(id, normDetallePedido(await res.json()));
+        } catch { /* omitir detalle si falla */ }
+    }));
+    return map;
+}
+
+function varianteExportPedidos(reporteId) {
+    if (reporteId === 'pedidos-dia') return 'dia';
+    if (reporteId === 'ec-para-cliente') return 'paraCliente';
+    if (reporteId === 'ec-proveedores') return 'proveedor';
+    if (reporteId === 'evolucion-ventas') return 'evolucion';
+    return 'cliente';
+}
+
+/** Hoja Excel plana: totales por grupo (con fila de suma general) */
+function construirHojaResumenGruposExport(grupos, reporteId) {
+    const esEvol = reporteId === 'evolucion-ventas';
+    if (esEvol) {
+        const rows = [];
+        let tf = 0;
+        let tg = 0;
+        (grupos || []).forEach(g => {
+            const fact = Number(g.totalSaldo) || 0;
+            const gan = Number(g.totalGanancia) || 0;
+            tf += fact;
+            tg += gan;
+            rows.push([g.nombre || '—', fact, gan, fact > 0 ? gan / fact : 0]);
+        });
+        return {
+            nombre: 'Resumen por grupo',
+            layout: 'tabla-plana',
+            titulo: 'Resumen por grupo',
+            headers: ['Grupo', 'Facturado', 'Ganancia', '% Ganancia'],
+            rows,
+            footer: ['Total general', tf, tg, tf > 0 ? tg / tf : 0],
+            columnTypes: ['text', 'money', 'money', 'pct']
+        };
+    }
+
+    const rows = [];
+    let total = 0;
+    (grupos || []).forEach(g => {
+        const t = Number(g.totalSaldo) || 0;
+        total += t;
+        rows.push([g.nombre || '—', g.etiquetaTotal || 'Total', t]);
+    });
+    return {
+        nombre: 'Resumen por grupo',
+        layout: 'tabla-plana',
+        titulo: 'Resumen por grupo',
+        headers: ['Grupo', 'Etiqueta total', 'Total'],
+        rows,
+        footer: ['Total general', '', total],
+        columnTypes: ['text', 'text', 'money']
+    };
+}
+
+function filaDetallePlanoExport(nombreGrupo, p, variante) {
+    const row = [nombreGrupo || '', p.partida || '', p.fechaEntregaIso || p.fechaEntrega];
+    if (variante === 'evolucion') {
+        row.push(
+            Number(p.monto) || 0,
+            Number(p.ganancia) || 0,
+            Number(p.porcGanancia) || 0
+        );
+        return { row, columnTypes: ['text', 'text', 'fecha', 'money', 'money', 'pct'] };
+    }
+    if (variante === 'paraCliente') {
+        row.push(Number(p.monto) || 0, Number(p.haber) || 0, Number(p.saldo) || 0);
+        return { row, columnTypes: ['text', 'text', 'fecha', 'money', 'money', 'money'] };
+    }
+    if (variante === 'proveedor') {
+        row.push(
+            Number(p.monto) || 0, Number(p.haber) || 0, Number(p.saldo) || 0,
+            p.cliente || '', p.estadoCliente || ''
+        );
+        return { row, columnTypes: ['text', 'text', 'fecha', 'money', 'money', 'money', 'text', 'text'] };
+    }
+    if (variante === 'dia') {
+        row.push(
+            p.cliente || '', p.proveedor || '',
+            Number(p.monto) || 0, Number(p.costo) || 0, Number(p.ganancia) || 0
+        );
+        return { row, columnTypes: ['text', 'text', 'fecha', 'text', 'text', 'money', 'money', 'money'] };
+    }
+    row.push(
+        Number(p.monto) || 0, Number(p.haber) || 0, Number(p.saldo) || 0,
+        Number(p.ganancia) || 0, p.proveedor || '', p.pagadoProveedor || ''
+    );
+    return {
+        row,
+        columnTypes: ['text', 'text', 'fecha', 'money', 'money', 'money', 'money', 'text', 'text']
+    };
+}
+
+function construirHojaDetallePlanoExport(grupos, detallesMap, variante) {
+    const headersPorVariante = {
+        evolucion: ['Grupo', 'Partida', 'Fecha entrega', 'Facturado', 'Ganancia', '% Ganancia'],
+        paraCliente: ['Grupo', 'Partida', 'Fecha entrega', 'Monto', 'Haber', 'Saldo'],
+        proveedor: ['Grupo', 'Partida', 'Fecha entrega', 'Monto', 'Haber', 'Saldo', 'Cliente', 'Estado cliente'],
+        dia: ['Grupo', 'Partida', 'Fecha entrega', 'Cliente', 'Proveedor', 'Facturado', 'Costo', 'Ganancia'],
+        cliente: ['Grupo', 'Partida', 'Fecha entrega', 'Monto', 'Haber', 'Saldo', 'Ganancia', 'Proveedor', 'Pagado prov.']
+    };
+    const headers = headersPorVariante[variante] || headersPorVariante.cliente;
+    const rows = [];
+    let columnTypes = null;
+
+    (grupos || []).forEach(g => {
+        const pedidos = (g.pedidos || []).map(p =>
+            pedidoABloqueExport(p, detallesMap.get(p.idPedido), variante)
+        );
+        pedidos.forEach(p => {
+            const { row, columnTypes: tipos } = filaDetallePlanoExport(g.nombre, p, variante);
+            rows.push(row);
+            columnTypes = tipos;
+        });
+    });
+
+    return {
+        nombre: 'Detalle pedidos',
+        layout: 'tabla-plana',
+        titulo: 'Detalle pedidos',
+        headers,
+        rows,
+        columnTypes: columnTypes || headers.map(() => 'text')
+    };
+}
+
+function pedidoABloqueExport(p, det, variante) {
+    const prods = (det?.productos || []).map(pr => ({
+        producto: pr.producto || '',
+        unidad: pr.unidad || '',
+        cantidad: Number(pr.cantidad) || 0,
+        cantidadUsadaAcopio: Number(pr.cantidadUsadaAcopio) || 0,
+        productoCantidad: Number(pr.productoCantidad) || 1,
+        precioVenta: Number(pr.precioVenta) || 0,
+        precioCosto: Number(pr.precioCosto) || 0,
+        importe: calcImporteLineaDetalle(pr, true)
+    }));
+    return {
+        partida: p.partida || '',
+        fechaEntrega: fmtFecha(p.fechaEntrega),
+        fechaEntregaIso: fechaSoloDia(p.fechaEntrega),
+        cliente: p.cliente || '',
+        proveedor: p.proveedor || '',
+        monto: Number(p.monto) || 0,
+        costo: Number(p.costo) || 0,
+        ganancia: Number(p.ganancia) || 0,
+        haber: Number(p.haber) || 0,
+        saldo: Number(p.saldo) || 0,
+        porcGanancia: Number(p.porcGanancia) || 0,
+        estadoCliente: textoEstadoExport(p.estadoCliente),
+        pagadoProveedor: textoSiNoExport(p.pagadoProveedor),
+        variante: variante || 'dia',
+        productos: prods
+    };
+}
+
+function filtrarGruposParaExportacion() {
+    const root = document.getElementById('contenedorResultado');
+    if (!root) return ultimoResultado || [];
+
+    const soloSeleccion = hayFilasSeleccionadasEnVista();
+    const idsPermitidos = new Set();
+    let hayAbierto = false;
+
+    root.querySelectorAll('.rpt-acc-item').forEach(acc => {
+        if (!acc.classList.contains('is-open')) return;
+        hayAbierto = true;
+        acc.querySelectorAll('tr.rpt-data-row[data-pedido]').forEach(tr => {
+            if (soloSeleccion && !tr.classList.contains('is-selected')) return;
+            const id = parseInt(tr.dataset.pedido, 10);
+            if (!isNaN(id)) idsPermitidos.add(id);
+        });
+    });
+
+    if (soloSeleccion || hayAbierto) {
+        if (!idsPermitidos.size) return [];
+        return (ultimoResultado || [])
+            .map(g => ({
+                ...g,
+                pedidos: (g.pedidos || []).filter(p => idsPermitidos.has(p.idPedido))
+            }))
+            .filter(g => (g.pedidos || []).length > 0);
+    }
+
+    return ultimoResultado || [];
+}
+
+function notasExportacionPedidos() {
+    const notas = [obtenerTextoFiltrosExport()];
+    if (hayFilasSeleccionadasEnVista()) notas.push('Solo filas seleccionadas');
+    else if (document.querySelector('#contenedorResultado .rpt-acc-item.is-open')) {
+        notas.push('Secciones desplegadas en pantalla');
+    } else {
+        notas.push('Todos los pedidos del período');
+    }
+    notas.push('Diseño con encabezado de pedido y detalle de productos');
+    return notas.filter(Boolean).join(' · ');
+}
+
+/** Exportación estructurada: una sola hoja, diseño tipo pantalla (día/grupo → pedido → productos) */
+async function construirPayloadExportacionPedidosEstructurado(opciones = {}) {
+    const usarVista = opciones.desdeVista !== false;
+    const id = reporteActivo.id;
+    const variante = varianteExportPedidos(id);
+    const bloques = [];
+    let tf = 0, tc = 0, tg = 0, tp = 0;
+
+    if (id === 'pedidos-dia') {
+        const dias = usarVista ? filtrarDiasPedidosParaExportacion() : (ultimoResultado || []);
+        if (!dias.length) {
+            throw new Error('Desplegá al menos un día, seleccioná pedidos o generá el reporte nuevamente.');
+        }
+
+        const resumenRows = [];
+        dias.forEach(d => {
+            resumenRows.push([
+                fmtFecha(d.fecha),
+                String(d.cantidadPedidos ?? 0),
+                fmtMoney(d.totalFacturado),
+                fmtMoney(d.totalCosto),
+                fmtMoney(d.totalGanancia)
+            ]);
+            tp += Number(d.cantidadPedidos) || 0;
+            tf += Number(d.totalFacturado) || 0;
+            tc += Number(d.totalCosto) || 0;
+            tg += Number(d.totalGanancia) || 0;
+        });
+
+        bloques.push({
+            tipo: 'resumen-tabla',
+            titulo: 'Resumen del período',
+            headers: ['Fecha', 'Pedidos', 'Facturado', 'Costo', 'Ganancia'],
+            rows: resumenRows,
+            footer: ['Total período', String(tp), fmtMoney(tf), fmtMoney(tc), fmtMoney(tg)],
+            columnTypes: ['fecha', 'text', 'money', 'money', 'money']
+        });
+
+        const todosPedidos = [];
+        dias.forEach(d => (d.pedidos || []).forEach(p => todosPedidos.push(p)));
+        if (!todosPedidos.length) {
+            throw new Error('No hay pedidos para exportar con los filtros actuales.');
+        }
+        const detallesMap = await cargarDetallesPedidosMap(todosPedidos);
+
+        for (const dia of dias) {
+            const pedidos = (dia.pedidos || []).map(p =>
+                pedidoABloqueExport(p, detallesMap.get(p.idPedido), variante)
+            );
+            if (!pedidos.length) continue;
+            bloques.push({
+                tipo: 'dia',
+                titulo: fmtFecha(dia.fecha),
+                fecha: fmtFecha(dia.fecha),
+                fechaIso: fechaSoloDia(dia.fecha),
+                cantidadPedidos: dia.cantidadPedidos,
+                totalFacturado: dia.totalFacturado,
+                totalCosto: dia.totalCosto,
+                totalGanancia: dia.totalGanancia,
+                pedidos
+            });
+        }
+
+        bloques.push({
+            tipo: 'total-periodo',
+            cantidadPedidos: tp,
+            totalFacturado: tf,
+            totalCosto: tc,
+            totalGanancia: tg
+        });
+    } else {
+        const grupos = usarVista ? filtrarGruposParaExportacion() : (ultimoResultado || []);
+        if (!grupos.length) {
+            throw new Error('Desplegá al menos un grupo, seleccioná pedidos o generá el reporte nuevamente.');
+        }
+
+        const todosPedidos = [];
+        grupos.forEach(g => (g.pedidos || []).forEach(p => todosPedidos.push(p)));
+        if (!todosPedidos.length) {
+            throw new Error('No hay pedidos para exportar con los filtros actuales.');
+        }
+        const detallesMap = await cargarDetallesPedidosMap(todosPedidos);
+
+        const resumenHoja = construirHojaResumenGruposExport(grupos, id);
+        const hojas = [
+            resumenHoja,
+            construirHojaDetallePlanoExport(grupos, detallesMap, variante)
+        ];
+
+        bloques.unshift({
+            tipo: 'resumen-tabla',
+            titulo: resumenHoja.titulo,
+            headers: resumenHoja.headers,
+            rows: resumenHoja.rows.map(r => r.map((c, i) => {
+                const t = resumenHoja.columnTypes[i];
+                if (t === 'money') return fmtMoney(c);
+                if (t === 'pct') return fmtPct(c);
+                return c;
+            })),
+            footer: resumenHoja.footer?.map((c, i) => {
+                const t = resumenHoja.columnTypes[i];
+                if (t === 'money') return fmtMoney(c);
+                if (t === 'pct') return fmtPct(c);
+                return c;
+            })
+        });
+
+        for (const g of grupos) {
+            const pedidos = (g.pedidos || []).map(p =>
+                pedidoABloqueExport(p, detallesMap.get(p.idPedido), variante)
+            );
+            if (!pedidos.length) continue;
+            bloques.push({
+                tipo: 'grupo',
+                nombre: g.nombre || '—',
+                etiquetaTotal: g.etiquetaTotal || 'Total',
+                totalSaldo: g.totalSaldo,
+                totalGanancia: g.totalGanancia,
+                pedidos
+            });
+        }
+
+        const nombreDetalle = id === 'evolucion-ventas'
+            ? 'Detalle por grupo'
+            : reporteActivo.titulo.substring(0, 31);
+        hojas.push({
+            nombre: nombreDetalle,
+            layout: 'estructurado',
+            bloques
+        });
+
+        return {
+            titulo: reporteActivo.titulo,
+            filtros: notasExportacionPedidos(),
+            metaFiltros: obtenerFilasMetaExport(),
+            generado: new Date().toLocaleString('es-AR'),
+            contexto: id,
+            hojas
+        };
+    }
+
+    return {
+        titulo: reporteActivo.titulo,
+        filtros: notasExportacionPedidos(),
+        metaFiltros: obtenerFilasMetaExport(),
+        generado: new Date().toLocaleString('es-AR'),
+        contexto: id,
+        hojas: [{
+            nombre: reporteActivo.titulo.substring(0, 31),
+            layout: 'estructurado',
+            bloques
+        }]
+    };
+}
+
+async function obtenerPayloadExportacionReportes() {
+    if (REPORTES_EXPORT_PEDIDOS.includes(reporteActivo.id)) {
+        return construirPayloadExportacionPedidosEstructurado({ desdeVista: true });
+    }
+
     const vista = construirPayloadDesdeVista();
     if (vista.hojas.length) return vista;
     const completo = construirPayloadExportacion();
@@ -1529,9 +1933,12 @@ function obtenerPayloadExportacionReportes() {
 }
 
 function abrirModalExportar() {
+    const subtituloPedidos = REPORTES_EXPORT_PEDIDOS.includes(reporteActivo.id)
+        ? 'Excel con agrupación por día/cliente, estilos y detalle de productos (como plantilla Reportes AGS MAT)'
+        : 'Exportar lo visible en pantalla (secciones abiertas y filas seleccionadas)';
     SistemaExport.abrir({
         titulo: reporteActivo.titulo,
-        subtitulo: 'Exportar lo visible en pantalla (secciones abiertas y filas seleccionadas)',
+        subtitulo: subtituloPedidos,
         archivo: `reporte-${reporteActivo.id}`,
         validar: () => {
             if (!ultimoResultado) return 'Generá un reporte antes de exportar.';
@@ -1540,8 +1947,42 @@ function abrirModalExportar() {
             if (!root?.querySelector('.rpt-table')) return 'No hay tablas en pantalla.';
             return null;
         },
-        getPayload: () => obtenerPayloadExportacionReportes()
+        getPayload: async () => {
+            if (REPORTES_EXPORT_PEDIDOS.includes(reporteActivo.id)) {
+                if (typeof SistemaExport?.setProcesando === 'function') {
+                    SistemaExport.setProcesando(true, 'Preparando pedidos y productos…');
+                }
+            }
+            return obtenerPayloadExportacionReportes();
+        }
     });
+}
+
+/** Filas superiores del Excel (como plantilla: Fecha desde / hasta, etc.) */
+function obtenerFilasMetaExport() {
+    const f = obtenerFiltro();
+    const filas = [];
+    if (f.fechaDesde || f.fechaHasta) {
+        filas.push(['Fecha desde', f.fechaDesde || '—', '', 'Fecha hasta', f.fechaHasta || '—']);
+    }
+    const nombresCheck = (key, items) => {
+        const ids = obtenerIdsFiltroCheck(key);
+        if (!ids.length) return null;
+        const wrap = document.querySelector(`[data-check-filtro="${key}"]`);
+        if (wrap?.closest('.d-none')) return null;
+        return ids.map(id => items.find(x => x.id === id)?.nombre || `#${id}`).join(', ');
+    };
+    const cli = nombresCheck('cliente', catalogos.clientes);
+    if (cli) filas.push(['Clientes', cli]);
+    const prov = nombresCheck('proveedor', catalogos.proveedores);
+    if (prov) filas.push(['Proveedores', prov]);
+    const prod = nombresCheck('producto', checkFiltroItems.producto);
+    if (prod) filas.push(['Productos', prod]);
+    if (document.getElementById('filtroSoloSaldo')?.checked) {
+        filas.push(['Filtro', 'Solo con saldo']);
+    }
+    filas.push(['Generado', new Date().toLocaleString('es-AR')]);
+    return filas;
 }
 
 function obtenerTextoFiltrosExport() {
@@ -1591,36 +2032,7 @@ function construirPayloadExportacion() {
     const hojas = [];
 
     if (id === 'pedidos-dia') {
-        const resumen = {
-            nombre: 'Resumen por día',
-            headers: ['Fecha', 'Pedidos', 'Facturado', 'Costo', 'Ganancia'],
-            rows: []
-        };
-        const detalle = {
-            nombre: 'Pedidos del período',
-            headers: ['Fecha día', 'Partida', 'Fecha entrega', 'Cliente', 'Proveedor', 'Facturado', 'Costo', 'Ganancia'],
-            rows: []
-        };
-        let tp = 0, tf = 0, tc = 0, tg = 0;
-        (ultimoResultado || []).forEach(r => {
-            resumen.rows.push([
-                fmtFecha(r.fecha), r.cantidadPedidos, numExport(r.totalFacturado),
-                numExport(r.totalCosto), numExport(r.totalGanancia)
-            ]);
-            tp += Number(r.cantidadPedidos) || 0;
-            tf += Number(r.totalFacturado) || 0;
-            tc += Number(r.totalCosto) || 0;
-            tg += Number(r.totalGanancia) || 0;
-            (r.pedidos || []).forEach(p => {
-                detalle.rows.push([
-                    fmtFecha(r.fecha), p.partida || '', fmtFecha(p.fechaEntrega),
-                    p.cliente || '', p.proveedor || '',
-                    numExport(p.monto), numExport(p.costo), numExport(p.ganancia)
-                ]);
-            });
-        });
-        resumen.rows.push(['Total período', tp, numExport(tf), numExport(tc), numExport(tg)]);
-        hojas.push(resumen, detalle);
+        // Ver construirPayloadExportacionPedidosDia (exportación async, una sola hoja)
     } else if (id === 'evolucion-producto') {
         const meses = ultimoResultado.meses || [];
         const hoja = {
@@ -1737,19 +2149,33 @@ function normalizarFechaApi(val) {
     return val;
 }
 
-function fmtFecha(val) {
+/** Fecha calendario YYYY-MM-DD sin desfase por zona horaria (exportación y vista) */
+function fechaSoloDia(val) {
     const n = normalizarFechaApi(val);
-    if (!n) return '—';
-    if (typeof formatearFechaParaVista === 'function') {
-        const s = formatearFechaParaVista(n);
-        return s || '—';
+    if (!n) return null;
+    if (n instanceof Date && !isNaN(n.getTime())) {
+        const y = n.getFullYear();
+        const m = String(n.getMonth() + 1).padStart(2, '0');
+        const d = String(n.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
     }
-    if (typeof moment !== 'undefined') {
-        const m = moment(n, [moment.ISO_8601, 'YYYY-MM-DDTHH:mm:ss', 'YYYY-MM-DDTHH:mm:ss.SSS', 'YYYY-MM-DD HH:mm:ss', 'YYYY-MM-DD']);
-        return m.isValid() ? m.format('DD/MM/YYYY') : '—';
+    const s = String(n).trim();
+    const iso = /^(\d{4})-(\d{2})-(\d{2})/.exec(s);
+    if (iso) return `${iso[1]}-${iso[2]}-${iso[3]}`;
+    const ar = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(s);
+    if (ar) {
+        const d = String(ar[1]).padStart(2, '0');
+        const m = String(ar[2]).padStart(2, '0');
+        return `${ar[3]}-${m}-${d}`;
     }
-    const d = new Date(n);
-    return isNaN(d.getTime()) ? '—' : d.toLocaleDateString('es-AR');
+    return null;
+}
+
+function fmtFecha(val) {
+    const iso = fechaSoloDia(val);
+    if (!iso) return '—';
+    const [y, m, d] = iso.split('-');
+    return `${d}/${m}/${y}`;
 }
 
 function fmtMes(ym) {

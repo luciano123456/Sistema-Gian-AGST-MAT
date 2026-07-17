@@ -1,4 +1,4 @@
-﻿let gridAcopio;
+let gridAcopio;
 let gridHistorial;
 
 // Se ejecuta al cargar la página

@@ -1,4 +1,4 @@
-﻿let gridventas;
+let gridventas;
 
 const columnConfig = [
     { index: 0, filterType: 'text' },

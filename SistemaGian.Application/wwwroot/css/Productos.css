@@ -1,4 +1,4 @@
-/* Chip de seleccin (checkbox lindo) */
+/* Chip de selecciï¿½n (checkbox lindo) */
 .chip-select {
     --chip-fg: #9aa1a7;
     --chip-bg: rgba(255,255,255,.06);
@@ -42,7 +42,7 @@
         box-shadow: 0 0 0 2px rgba(25,135,84,.12) inset;
     }
 
-    /* Estado deseleccionado ms alerta (opcional, rojo suave) */
+    /* Estado deseleccionado mï¿½s ï¿½alertaï¿½ (opcional, rojo suave) */
     .chip-select.is-dim {
         --chip-fg: #dc3545;
         --chip-bg: rgba(220,53,69,.10);
@@ -97,7 +97,7 @@
         top: 50%;
         transform: translateY(-50%);
         border-radius: 50%;
-        background: #b94d4d; /* rojo cuando est off */
+        background: #b94d4d; /* rojo cuando estï¿½ off */
         transition: all .25s ease;
         box-shadow: 0 2px 6px rgba(0,0,0,.35);
     }
@@ -166,14 +166,14 @@
 .fab-green { background: #198754; }
 .fab-gray  { background: #6c757d; }
 
-/* Compacto en mvil */
+/* Compacto en mï¿½vil */
 @media (max-width: 576px){
   .floating-actions{
     right: 12px;
     bottom: 12px;
     gap: .5rem;
   }
-  .fab-action span{ display:none; }   /* slo icono en pantallas chicas */
+  .fab-action span{ display:none; }   /* sï¿½lo icono en pantallas chicas */
   .fab-action{ padding: .6rem; border-radius: 14px; }
 }
 
@@ -233,7 +233,7 @@
     background: #6c757d;
 }
 
-/* Responsive: en mvil se vuelve barra inferior */
+/* Responsive: en mï¿½vil se vuelve barra inferior */
 @media (max-width: 576px) {
     .fab-stack {
         left: 12px;
@@ -251,7 +251,7 @@
 
 
 /* =========================
-   FAB BAR  barra flotante
+   FAB BAR ï¿½ barra flotante
    ========================= */
 .fab-bar {
     position: fixed;
@@ -260,9 +260,9 @@
     right: 16px; /* ancho fluido, permite scroll horizontal si hace falta */
     display: flex;
     gap: 12px;
-    justify-content: flex-end; /* alineada a la derecha (cambi a center si prefers) */
+    justify-content: flex-end; /* alineada a la derecha (cambiï¿½ a center si preferï¿½s) */
     align-items: center;
-    z-index: 1060; /* por encima de paginacin/modales ligeros */
+    z-index: 1060; /* por encima de paginaciï¿½n/modales ligeros */
     pointer-events: none; /* solo los botones reciben click */
     overflow-x: auto; /* mantiene una sola fila en pantallas chicas */
     padding-bottom: env(safe-area-inset-bottom, 0);
@@ -278,7 +278,7 @@
     }
 
 /* =========================
-   Botn FAB tipo chip
+   Botï¿½n FAB tipo ï¿½chipï¿½
    ========================= */
 .btn-fab {
     pointer-events: auto; /* habilita click */
@@ -318,7 +318,7 @@
     .btn-fab[hidden] {
         display: none !important;
     }
-/* respeta la lgica JS */
+/* respeta la lï¿½gica JS */
 
 /* Paletas (match UI oscura) */
 .btn-fab-danger {
@@ -339,12 +339,12 @@
 /* Asignar proveedor/cliente */
 
 /* =========================
-   Versin solo icono en telfono
-    siempre en fila, sin texto
+   Versiï¿½n ï¿½solo iconoï¿½ en telï¿½fono
+   ï¿½ siempre en fila, sin texto
    ========================= */
 @media (max-width: 768px) {
     .fab-bar {
-        justify-content: center; /* centrada en mobile; cambi a flex-end si prefers */
+        justify-content: center; /* centrada en mobile; cambiï¿½ a flex-end si preferï¿½s */
         gap: 10px;
     }
 
@@ -365,8 +365,8 @@
         }
 }
 
-/* (Opcional) Si la barra llega a tapar la paginacin en listas muy largas,
-   pods agregar esta clase a un contenedor principal para dejar espacio: */
+/* (Opcional) Si la barra llega a tapar la paginaciï¿½n en listas muy largas,
+   podï¿½s agregar esta clase a un contenedor principal para dejar espacio: */
 .with-fab-padding {
     padding-bottom: 84px;
 }
@@ -410,7 +410,7 @@
 
 
 .custom-modal-width {
-    min-width: 40%; /* Ajusta el porcentaje segn sea necesario */
+    min-width: 40%; /* Ajusta el porcentaje segï¿½n sea necesario */
 }
 
 .input-nuevomodif {
@@ -449,7 +449,7 @@
     color: black !important;
 }
 
-/* Estilo para la fila con "copia" en la descripcin */
+/* Estilo para la fila con "copia" en la descripciï¿½n */
 table.dataTable.display tbody tr.productocopia,
 table.dataTable.display tbody tr.productocopia td {
     background-color: #ff8c13 !important; /* Naranja */
@@ -545,7 +545,7 @@ table.dataTable thead th {
 }
 
 .fila-resaltada {
-    animation: filaResaltadaShadow 3s ease-out; /* Duracin de 3 segundos, se repite infinitamente */
+    animation: filaResaltadaShadow 3s ease-out; /* Duraciï¿½n de 3 segundos, se repite infinitamente */
 }
 
 
@@ -571,7 +571,7 @@ select.form-control option {
     color: white;
 }
 
-/* ===== Seleccin de filas (verde) ===== */
+/* ===== Selecciï¿½n de filas (verde) ===== */
 .producto-usd-nombre {
     font-weight: 600;
     color: #1fa463;
@@ -647,7 +647,7 @@ tr.row-usd {
     font-weight: 600;
 }
 
-/* Historial de precios  filtros (tipografa alineada al resto de pantallas) */
+/* Historial de precios ï¿½ filtros (tipografï¿½a alineada al resto de pantallas) */
 .hist-filtros {
     padding: 1rem !important;
 }
@@ -762,7 +762,7 @@ tr.row-usd {
     }
 }
 
-/* Historial de precios  revertir valor anterior */
+/* Historial de precios ï¿½ revertir valor anterior */
 .hist-btn-revertir {
     margin-left: 0.35rem;
     padding: 0.15rem 0.45rem;

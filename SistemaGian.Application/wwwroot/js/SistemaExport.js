@@ -197,7 +197,7 @@ window.SistemaExport = (function () {
             if (formatos.includes('excel')) {
                 setProcesando(true, 'Generando Excel…');
                 await esperar();
-                exportarExcel(payload, pendingArchivo, stamp);
+                await exportarExcel(payload, pendingArchivo, stamp);
             }
             if (formatos.includes('pdf')) {
                 setProcesando(true, 'Generando PDF…');
@@ -306,7 +306,24 @@ window.SistemaExport = (function () {
         ];
     }
 
-    function exportarExcel(payload, archivo, stamp) {
+    function hojaEsEstructurada(h) {
+        return h && h.layout === 'estructurado' && Array.isArray(h.bloques) && h.bloques.length > 0;
+    }
+
+    function usaExportReportesExcel(payload) {
+        return payload.hojas?.some(h =>
+            hojaEsEstructurada(h) || (h.layout === 'tabla-plana' && h.rows?.length)
+        );
+    }
+
+    async function exportarExcel(payload, archivo, stamp) {
+        if (usaExportReportesExcel(payload)) {
+            if (!window.SistemaExportReportes) {
+                throw new Error('Módulo de exportación de reportes no cargado. Recargá la página.');
+            }
+            await SistemaExportReportes.exportarExcelXlsx(payload, archivo, stamp);
+            return;
+        }
         if (typeof XLSX === 'undefined') {
             throw new Error('La librería Excel no está disponible. Recargá la página.');
         }
@@ -402,6 +419,18 @@ window.SistemaExport = (function () {
     async function exportarPdf(payload, archivo, stamp) {
         const jspdf = window.jspdf;
         if (!jspdf?.jsPDF) throw new Error('La librería PDF no está disponible. Recargá la página.');
+
+        if (payload.hojas?.some(hojaEsEstructurada)) {
+            if (!window.SistemaExportReportes) {
+                throw new Error('Módulo de exportación de reportes no cargado. Recargá la página.');
+            }
+            await SistemaExportReportes.exportarPdf(payload, archivo, stamp, {
+                jsPDF: jspdf,
+                obtenerLogo: obtenerLogoBase64,
+                dibujarEncabezado: dibujarEncabezadoPdf
+            });
+            return;
+        }
 
         const logo = await obtenerLogoBase64();
         const doc = new jspdf.jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });

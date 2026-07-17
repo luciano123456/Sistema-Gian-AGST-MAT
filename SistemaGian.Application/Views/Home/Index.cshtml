@@ -131,7 +131,7 @@
                             <div class="col home-menu-item">
                                 <div class="d-flex flex-column align-items-center">
                                     <img src="~/Imagenes/Menu Principal/Productos.png" class="img-fluid max-img-size" alt="Nuevo Producto" title="Nuevo Producto">
-                                    <button type="button" class="btn mt-2 btnMenu" onclick="errorModal('Opcion deshabilitada momentaneamente, crearlo desde el listado de productos')">Nuevo Producto</button>
+                                    <button type="button" class="btn mt-2 btnMenu" onclick="nuevoProducto()">Nuevo Producto</button>
                                 </div>
                             </div>
 
@@ -638,97 +638,14 @@
         </div>
     </div>
 
-    <!-- Modal Productos -->
-    <div class="modal fade" id="modalEdicionProductos" tabindex="-1" role="dialog" aria-labelledby="modalEdicionProductosLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-edicion" role="document">
-            <div class="modal-content">
-                <div class="modal-header colorEncabezado">
-                    <h5 class="modal-title fw-bold" id="modalEdicionProductosLabel">Nuevo Producto</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-                </div>
-
-                <div class="modal-body">
-                    <form id="formEdicionProducto" class="row g-3">
-
-                        <input type="text" id="txtId" hidden readonly>
-                        <input type="text" id="txtActivo" hidden readonly>
-
-                        <div class="col-md-3">
-                            <label id="lblDescripcion" for="txtDescripcionProducto" class="form-label">Descripci?n (*)</label>
-                            <input type="text" class="form-control" id="txtDescripcionProducto" required>
-                        </div>
-
-                        <div class="col-md-3">
-                            <label for="MarcasProducto" class="form-label">Marca (*)</label>
-                            <select id="MarcasProducto" class="form-control">
-                                <option value="" selected>Marca</option>
-                            </select>
-                        </div>
-
-                        <div class="col-md-3">
-                            <label for="CategoriasProducto" class="form-label">Categor?a (*)</label>
-                            <select id="CategoriasProducto" class="form-control">
-                                <option value="" selected>Categor?a</option>
-                            </select>
-                        </div>
-
-                        <div class="col-md-3">
-                            <label for="UnidadesDeMedidasProducto" class="form-label">Unidad de Medida (*)</label>
-                            <select id="UnidadesDeMedidasProducto" class="form-control">
-                                <option value="" selected>Unidad de Medida</option>
-                            </select>
-                        </div>
-
-                        <div class="col-md-3" hidden>
-                            <label id="lblProductoCantidad" for="txtProductoCantidad" class="form-label">Cantidad</label>
-                            <input type="number" class="form-control" id="txtProductoCantidad" required>
-                        </div>
-
-                        <div class="col-md-3">
-                            <label for="MonedasProducto" class="form-label">Moneda (*)</label>
-                            <select id="MonedasProducto" class="form-control">
-                                <option value="" selected>Moneda</option>
-                            </select>
-                        </div>
-
-                        <div class="col-md-3">
-                            <label id="lblPrecioCostoProducto" for="txtPrecioCostoProducto" class="form-label">Precio Costo U. (*)</label>
-                            <input type="number" class="form-control" id="txtPrecioCostoProducto" required step="0.01">
-                        </div>
-
-                        <div class="col-md-3">
-                            <label id="lblPorcentajeGananciaProducto" for="txtPorcentajeGananciaProducto" class="form-label">Porc. Ganancia (*)</label>
-                            <input type="number" class="form-control" id="txtPorcentajeGananciaProducto" required step="0.01">
-                        </div>
-
-                        <div class="col-md-3">
-                            <label id="lblPrecioVentaProducto" for="txtPrecioVentaProducto" class="form-label">Precio Venta U.</label>
-                            <input type="number" class="form-control" id="txtPrecioVentaProducto" step="0.01">
-                        </div>
-
-                        <div class="col-md-3" hidden>
-                            <label id="lblTotalProducto" for="txtTotalProducto" class="form-label">Total</label>
-                            <input type="number" class="form-control" id="txtTotalProducto" step="0.01" value="0" readonly>
-                        </div>
-
-                    </form>
-                </div>
-
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                    <button type="button" id="btnGuardarProducto" class="btn btn-primary" onclick="registrarProducto()">Registrar</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-
+    <partial name="~/Views/Shared/Partials/m_productos.cshtml" />
     <partial name="~/Views/Utils/Modals.cshtml" />
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/home.js?v=1.8"></script>
     <script src="~/js/site.js"></script>
+    <script src="~/js/m_productos.js" asp-append-version="true"></script>
+    <script src="~/js/home.js?v=1.9"></script>
 
 </body>
 </html>
