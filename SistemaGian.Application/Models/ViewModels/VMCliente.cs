@@ -23,5 +23,13 @@ namespace SistemaGian.Application.Models.ViewModels
 
         public decimal? SaldoAfavor { get; set; }
 
+        public decimal? Latitud { get; set; }
+
+        public decimal? Longitud { get; set; }
+
+        public string? PlaceId { get; set; }
+
+        public string? DireccionMaps { get; set; }
+
     }
 }

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using SistemaGian.Application.Hubs;
@@ -36,6 +36,7 @@ namespace SistemaGian.Application.Controllers
                 {
                     return RedirectToAction("Index", "Home");
                 }
+                ViewBag.EsAdminRecorridos = userSession.IdRol == 1;
             }
             return View();
         }
@@ -52,6 +53,10 @@ namespace SistemaGian.Application.Controllers
                 Apodo = c.Apodo,
                 Ubicacion = c.Ubicacion,
                 Telefono = c.Telefono,
+                Latitud = c.Latitud,
+                Longitud = c.Longitud,
+                PlaceId = c.PlaceId,
+                DireccionMaps = c.DireccionMaps,
             }).ToList();
 
             return Ok(lista);
@@ -69,6 +74,10 @@ namespace SistemaGian.Application.Controllers
                 Apodo = c.Apodo,
                 Ubicacion = c.Ubicacion,
                 Telefono = c.Telefono,
+                Latitud = c.Latitud,
+                Longitud = c.Longitud,
+                PlaceId = c.PlaceId,
+                DireccionMaps = c.DireccionMaps,
             }).ToList();
 
             return Ok(lista);
@@ -84,6 +93,10 @@ namespace SistemaGian.Application.Controllers
                 Apodo = model.Apodo,
                 Ubicacion = model.Ubicacion,
                 Telefono = model.Telefono,
+                Latitud = model.Latitud,
+                Longitud = model.Longitud,
+                PlaceId = model.PlaceId,
+                DireccionMaps = model.DireccionMaps,
             };
 
             bool respuesta = await _ProveedorService.Insertar(Proveedor);
@@ -108,14 +121,18 @@ namespace SistemaGian.Application.Controllers
         [HttpPut]
         public async Task<IActionResult> Actualizar([FromBody] VMProveedor model)
         {
-            var Proveedor = new Proveedor
-            {
-                Id = model.Id,
-                Nombre = model.Nombre,
-                Apodo = model.Apodo,
-                Ubicacion = model.Ubicacion,
-                Telefono = model.Telefono,
-            };
+            var Proveedor = await _ProveedorService.Obtener(model.Id);
+            if (Proveedor == null)
+                return NotFound(new { mensaje = "Proveedor no encontrado" });
+
+            Proveedor.Nombre = model.Nombre;
+            Proveedor.Apodo = model.Apodo;
+            Proveedor.Ubicacion = model.Ubicacion;
+            Proveedor.Telefono = model.Telefono;
+            Proveedor.Latitud = model.Latitud;
+            Proveedor.Longitud = model.Longitud;
+            Proveedor.PlaceId = model.PlaceId;
+            Proveedor.DireccionMaps = model.DireccionMaps;
 
             bool respuesta = await _ProveedorService.Actualizar(Proveedor);
 

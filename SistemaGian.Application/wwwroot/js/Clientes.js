@@ -1,4 +1,4 @@
-﻿/* ==========================================================
+/* ==========================================================
  * clientes.js — FULL (ARG-TZ & Saldos mejorado)
  *  - Mantiene tu lógica original (DataTable, inline edit, filtros, SignalR)
  *  - Saldos:
@@ -206,6 +206,7 @@ $(document).ready(() => {
 function guardarCambios() {
     if (validarCampos()) {
         const idCliente = $("#txtId").val();
+        const geo = typeof obtenerDatosUbicacionCliente === 'function' ? obtenerDatosUbicacionCliente() : {};
         const nuevoModelo = {
             "Id": idCliente !== "" ? idCliente : 0,
             "Nombre": $("#txtNombre").val(),
@@ -213,7 +214,11 @@ function guardarCambios() {
             "Direccion": $("#txtDireccion").val(),
             "IdProvincia": $("#Provincias").val(),
             "Localidad": $("#txtLocalidad").val(),
-            "Dni": $("#txtDni").val()
+            "Dni": $("#txtDni").val(),
+            "Latitud": geo.Latitud,
+            "Longitud": geo.Longitud,
+            "PlaceId": geo.PlaceId,
+            "DireccionMaps": geo.DireccionMaps
         };
 
         const url = idCliente === "" ? "Clientes/Insertar" : "Clientes/Actualizar";
@@ -256,6 +261,7 @@ function validarCampos() {
 function nuevoCliente() {
     limpiarModal();
     listaProvincias();
+    if (typeof limpiarUbicacionCliente === 'function') limpiarUbicacionCliente();
     $('#modalEdicion').modal('show');
     $("#btnGuardar").text("Registrar");
     $("#modalEdicionLabel").text("Nuevo Cliente");
@@ -270,6 +276,12 @@ async function mostrarModal(modelo) {
     await listaProvincias();
     document.getElementById("Provincias").value = modelo.IdProvincia;
 
+    if (typeof cargarUbicacionEnModal === 'function') {
+        cargarUbicacionEnModal(modelo);
+    } else if (typeof limpiarUbicacionCliente === 'function') {
+        limpiarUbicacionCliente();
+    }
+
     $('#modalEdicion').modal('show');
     $("#btnGuardar").text("Guardar");
     $("#modalEdicionLabel").text("Editar Cliente");
@@ -280,6 +292,7 @@ function limpiarModal() {
     const campos = ["Id", "Nombre", "Telefono", "Direccion", "IdProvincia", "Localidad", "DNI"];
     campos.forEach(campo => { $(`#txt${campo}`).val(""); });
     $("#lblNombre, #txtNombre").css("color", "").css("border-color", "");
+    if (typeof limpiarUbicacionCliente === 'function') limpiarUbicacionCliente();
 }
 
 /* =========================
@@ -290,8 +303,42 @@ async function listaClientes() {
     const url = `/Clientes/Lista`;
     const response = await fetch(url);
     const data = await response.json();
+    if (window.__esAdminRecorridos) {
+        try {
+            const resVis = await fetch('/Recorridos/ResumenVisitas?tipo=Cliente');
+            if (resVis.ok) {
+                const visitas = await resVis.json();
+                window.__visitasClientes = {};
+                (visitas || []).forEach(v => {
+                    const id = v.id ?? v.Id;
+                    window.__visitasClientes[id] = {
+                        dias7: v.dias7 ?? v.Dias7 ?? 0,
+                        dias15: v.dias15 ?? v.Dias15 ?? 0,
+                        dias30: v.dias30 ?? v.Dias30 ?? 0
+                    };
+                });
+            }
+        } catch (e) {
+            console.warn('No se pudo cargar resumen de visitas', e);
+        }
+    }
     await configurarDataTable(data);
     if (paginaActual > 0) gridClientes.page(paginaActual).draw('page');
+}
+
+function verInfoVisitasCliente(id, nombre) {
+    const s = (window.__visitasClientes || {})[id] || { dias7: 0, dias15: 0, dias30: 0 };
+    if (window.VisitasAlert?.showResumen) {
+        window.VisitasAlert.showResumen({ nombre: nombre || 'Cliente', tipo: 'Cliente', stats: s });
+        return;
+    }
+    const vez = (n) => (Number(n) === 1 ? '1 vez' : (Number(n) || 0) + ' veces');
+    alert(
+        (nombre || 'Cliente') + '\n\n' +
+        'En los últimos 7 días se lo visitó ' + vez(s.dias7) + '.\n' +
+        'En los últimos 15 días se lo visitó ' + vez(s.dias15) + '.\n' +
+        'En los últimos 30 días se lo visitó ' + vez(s.dias30) + '.'
+    );
 }
 
 async function obtenerProvincias() {
@@ -851,7 +898,20 @@ async function configurarDataTable(data) {
                     orderable: false,
                     searchable: false,
                 },
-                { data: 'Nombre', width: "25%" },
+                {
+                    data: 'Nombre',
+                    width: "25%",
+                    render: function (data, type, row) {
+                        if (type !== 'display') return data;
+                        const id = row.Id ?? row.id;
+                        const s = window.__esAdminRecorridos ? (window.__visitasClientes || {})[id] : null;
+                        if (!s) return data;
+                        const safeName = String(data || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+                        return `${data} <i class="fa fa-info-circle text-info ms-1" style="cursor:pointer"
+                            title="Visitas recientes en recorridos"
+                            onclick="event.stopPropagation();verInfoVisitasCliente(${id}, '${safeName}')"></i>`;
+                    }
+                },
                 { data: 'Telefono', width: "20" },
                 {
                     data: function (row) {

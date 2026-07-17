@@ -26,11 +26,13 @@
 
     <!-- ✅ CSS del Menú Personalizado (nuevo) -->
     <link rel="stylesheet" href="~/css/home-personalizada.css?v=1.0" />
+    <link href="~/css/RecorridoPendiente.css?v=1.12" rel="stylesheet" />
 </head>
 
 <body class="app-body @(ambienteTest==1 ? "fondo-test" : "")">
 
     <partial name="~/Views/Shared/Partials/NavbarLogin.cshtml" />
+    <partial name="~/Views/Shared/Partials/RecorridoPendienteBanner.cshtml" />
 
     @if (ambienteTest == 1)
     {
@@ -126,6 +128,11 @@
                     <a class="tile" data-id="ventas-clientes" data-title="Clientes" href="@Url.Action("Index","Clientes")">
                         <i class="fa fa-users"></i><span>Clientes</span>
                         <span class="tile-handle" title="Arrastrar" aria-hidden="true"><i class="fa fa-hand-paper-o"></i></span>
+                    </a>
+                    <a class="tile" data-id="recorridos" data-title="Recorridos" data-rec-home-btn id="btnHomeRecorridos"
+                       href="@Url.Action("Index","Recorridos")">
+                        <i class="fa fa-map"></i><span>Recorridos</span>
+                        <button class="tile-handle" title="Arrastrar"><i class="fa fa-hand-paper-o"></i></button>
                     </a>
                 </div>
             </section>
@@ -488,5 +495,6 @@
 
     <!-- tu JS general -->
     <script src="~/js/site.js"></script>
+    <script src="~/js/RecorridoPendiente.js?v=1.14"></script>
 </body>
 </html>

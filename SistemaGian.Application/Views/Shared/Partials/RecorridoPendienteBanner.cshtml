@@ -1,0 +1,47 @@
+<!-- Chip flotante: recorrido en curso (sin banner invasivo) -->
+<div id="recorridoPendienteChip" class="rec-pending-chip" hidden>
+    <span class="rec-pending-chip-dot" aria-hidden="true"></span>
+    <span id="recPendingChipText" class="rec-pending-chip-text">Recorrido en curso</span>
+    <div class="rec-pending-chip-actions" role="group" aria-label="Acciones del recorrido">
+        <button type="button" class="rec-chip-btn is-ok" id="recChipVisit" title="Marcar visitada" aria-label="Marcar visitada">
+            <i class="fa fa-check"></i>
+        </button>
+        <button type="button" class="rec-chip-btn is-skip" id="recChipOmit" title="Omitir / siguiente" aria-label="Omitir parada">
+            <i class="fa fa-forward"></i>
+        </button>
+        <a class="rec-chip-btn is-maps" id="recChipMaps" href="#" target="_blank" rel="noopener" title="Abrir en Google Maps" aria-label="Abrir en Google Maps" hidden>
+            <i class="fa fa-map"></i>
+        </a>
+        <a class="rec-chip-btn is-open" id="recChipOpen" href="/Recorridos" title="Ir al recorrido" aria-label="Ir al recorrido">
+            <i class="fa fa-external-link"></i>
+        </a>
+    </div>
+</div>
+
+<!-- Toast global del chip (Home / cualquier pantalla sin RecorridosApp) -->
+<div id="recPendingToast" class="rec-pending-toast" hidden role="status" aria-live="polite">
+    <span class="rec-pending-toast-icon" aria-hidden="true"><i class="fa fa-check"></i></span>
+    <span id="recPendingToastText" class="rec-pending-toast-text"></span>
+    <span class="rec-pending-toast-shine" aria-hidden="true"></span>
+</div>
+
+<!-- Modal omitir desde el chip (global) -->
+<div class="rec-chip-modal" id="recChipModalOmitir" hidden>
+    <div class="rec-chip-modal-backdrop" data-chip-omit-close></div>
+    <div class="rec-chip-modal-card" role="dialog" aria-modal="true" aria-labelledby="recChipOmitTitle">
+        <header class="rec-chip-modal-head">
+            <h3 id="recChipOmitTitle">Omitir parada</h3>
+            <button type="button" class="rec-chip-modal-x" data-chip-omit-close aria-label="Cerrar">&times;</button>
+        </header>
+        <p class="rec-chip-modal-sub" id="recChipOmitSub">Indicá por qué no se visitó (cerrado, no estaba, etc.).</p>
+        <label class="rec-chip-modal-label" for="txtChipOmitirObs">Observación *</label>
+        <textarea id="txtChipOmitirObs" rows="4" placeholder="Ej: Local cerrado / No se encontraba nadie..."></textarea>
+        <p class="rec-chip-modal-error" id="recChipOmitirError" hidden>Escribí una observación para omitir.</p>
+        <div class="rec-chip-modal-actions">
+            <button type="button" class="rec-chip-modal-btn" data-chip-omit-close>Cancelar</button>
+            <button type="button" class="rec-chip-modal-btn is-warn" id="btnChipConfirmarOmitir">
+                <i class="fa fa-forward"></i> Omitir y seguir
+            </button>
+        </div>
+    </div>
+</div>

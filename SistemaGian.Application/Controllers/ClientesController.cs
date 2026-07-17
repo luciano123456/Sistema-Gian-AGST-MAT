@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using SistemaGian.Application.Hubs;
@@ -39,6 +39,7 @@ namespace SistemaGian.Application.Controllers
                 {
                     return RedirectToAction("Index", "Home");
                 }
+                ViewBag.EsAdminRecorridos = userSession.IdRol == 1;
             }
             return View();
         }
@@ -59,7 +60,11 @@ namespace SistemaGian.Application.Controllers
                 Localidad = c.Localidad,
                 Dni = c.Dni,
                 Saldo = c.Saldo ?? 0,
-                SaldoAfavor = c.SaldoAfavor ?? 0
+                SaldoAfavor = c.SaldoAfavor ?? 0,
+                Latitud = c.Latitud,
+                Longitud = c.Longitud,
+                PlaceId = c.PlaceId,
+                DireccionMaps = c.DireccionMaps
             }).ToList();
 
             return Ok(lista);
@@ -135,6 +140,10 @@ namespace SistemaGian.Application.Controllers
                 IdProvincia = model.IdProvincia,
                 Direccion = model.Direccion,
                 Dni = model.Dni,
+                Latitud = model.Latitud,
+                Longitud = model.Longitud,
+                PlaceId = model.PlaceId,
+                DireccionMaps = model.DireccionMaps,
             };
 
             bool respuesta = await _clienteService.Insertar(cliente);
@@ -173,6 +182,10 @@ namespace SistemaGian.Application.Controllers
             cliente.IdProvincia = model.IdProvincia;
             cliente.Direccion = model.Direccion;
             cliente.Dni = model.Dni;
+            cliente.Latitud = model.Latitud;
+            cliente.Longitud = model.Longitud;
+            cliente.PlaceId = model.PlaceId;
+            cliente.DireccionMaps = model.DireccionMaps;
 
             if (model.SaldoAfavor.HasValue) // Solo actualizar SaldoAfavor si tiene un valor
             {

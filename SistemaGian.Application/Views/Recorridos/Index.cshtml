@@ -1,0 +1,293 @@
+@{
+    ViewData["Title"] = "Recorridos";
+    var apiKey = ViewBag.GoogleMapsApiKey as string ?? "";
+    var vistaUsuarioId = (int)(ViewBag.VistaUsuarioId ?? 0);
+    var vistaUsuarioNombre = ViewBag.VistaUsuarioNombre as string ?? "";
+    var esAdmin = ViewBag.EsAdmin as bool? == true;
+    var tituloRecorridos = vistaUsuarioId > 0
+        ? ("Recorridos de " + vistaUsuarioNombre)
+        : "Recorridos";
+}
+
+@section Estilos {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link href="~/css/Recorridos.css?v=1.27" rel="stylesheet" />
+}
+
+<partial name="~/Views/Shared/Partials/BotonMenu.cshtml" />
+
+<div class="rec-app @(vistaUsuarioId > 0 ? "rec-solo-lectura" : "")" id="recApp">
+    <aside class="rec-sidebar">
+        <header class="rec-side-head">
+            <div>
+                <p class="rec-kicker">Logística</p>
+                <h1 id="recTituloPrincipal">@tituloRecorridos</h1>
+                @if (vistaUsuarioId > 0)
+                {
+                    <p class="rec-sub rec-sub-vista">Solo lectura · visualización de administrador</p>
+                }
+                else
+                {
+                    <p class="rec-sub">Armá la ruta, optimizá el orden y abrila en Google Maps</p>
+                }
+            </div>
+            <button type="button" class="rec-btn rec-btn-ghost" id="btnNuevoRecorrido" title="Nuevo" @(vistaUsuarioId > 0 ? "disabled" : "")>
+                <i class="fa fa-plus"></i>
+            </button>
+        </header>
+
+        <div class="rec-tabs">
+            <button type="button" class="rec-tab active" data-panel="editor">Editor</button>
+            <button type="button" class="rec-tab" data-panel="historial">Historial</button>
+        </div>
+
+        <div class="rec-pending-alert" id="recPendingAlert" hidden>
+            <div class="rec-pending-alert-text">
+                <strong id="recPendingAlertTitle">Tenés un recorrido pendiente</strong>
+                <span id="recPendingAlertSub"></span>
+            </div>
+            <button type="button" class="rec-btn rec-btn-primary" id="btnAbrirPendiente">
+                <i class="fa fa-folder-open"></i> Abrir
+            </button>
+            <button type="button" class="rec-btn rec-btn-ghost" id="btnCerrarPendienteAlert" title="Cerrar">
+                <i class="fa fa-times"></i>
+            </button>
+        </div>
+
+        <section class="rec-panel active" id="panel-editor">
+            <div class="rec-field">
+                <label>Nombre del recorrido</label>
+                <input type="text" id="txtRecNombre" placeholder="Ej: Zona Norte - Mañana" />
+            </div>
+
+            <div class="rec-field">
+                <label>Destino del recorrido</label>
+                <div class="rec-dest-toggle" id="recTipoDestino">
+                    <button type="button" class="rec-dest-btn active" data-tipo="Clientes">Clientes</button>
+                    <button type="button" class="rec-dest-btn" data-tipo="Proveedores">Proveedores</button>
+                    <button type="button" class="rec-dest-btn" data-tipo="Ambos">Ambos</button>
+                </div>
+            </div>
+
+            <div class="rec-origen">
+                <div class="rec-origen-top">
+                    <strong><i class="fa fa-compass"></i> Punto de partida</strong>
+                    <button type="button" class="rec-btn rec-btn-sm" id="btnMiUbicacion">
+                        <i class="fa fa-location-arrow"></i> GPS
+                    </button>
+                </div>
+                <input type="text" id="txtOrigen" placeholder="Tu ubicación o buscá una dirección..." />
+                <div class="rec-origen-meta" id="origenMeta">Sin origen definido</div>
+            </div>
+
+            <div class="rec-actions-row">
+                <button type="button" class="rec-btn rec-btn-primary" id="btnOptimizar">
+                    <i class="fa fa-magic"></i> Ruta sugerida
+                </button>
+                <button type="button" class="rec-btn rec-btn-maps" id="btnAbrirGoogleMaps" title="Abrir navegación en Google Maps">
+                    <i class="fa fa-map"></i> Abrir en Maps
+                </button>
+            </div>
+
+            <div class="rec-stats" id="recStats">
+                <div><span>Paradas</span><strong id="statParadas">0</strong></div>
+                <div><span>Distancia</span><strong id="statDist">—</strong></div>
+                <div><span>Tiempo</span><strong id="statTime">—</strong></div>
+            </div>
+
+            <div class="rec-list-head">
+                <strong>Paradas del recorrido</strong>
+                <small>Arrastrá para reordenar · Click en mapa para agregar</small>
+            </div>
+            <ul class="rec-stops" id="listaParadas"></ul>
+
+            <div class="rec-footer">
+                <div class="rec-estado-pill" id="recEstadoPill">Armando ruta</div>
+                <div class="rec-footer-actions">
+                    <button type="button" class="rec-btn rec-btn-success" id="btnGuardarRecorrido">
+                        <i class="fa fa-save"></i><span>Guardar</span>
+                    </button>
+                    <button type="button" class="rec-btn" id="btnIniciarRecorrido">
+                        <i class="fa fa-play"></i><span>Iniciar</span>
+                    </button>
+                    <button type="button" class="rec-btn rec-btn-warn" id="btnFinalizarRecorrido">
+                        <i class="fa fa-flag-checkered"></i><span>Finalizar</span>
+                    </button>
+                    <div class="rec-export-wrap">
+                        <button type="button" class="rec-btn rec-btn-export" id="btnExportarMenu">
+                            <i class="fa fa-download"></i><span>Exportar</span>
+                        </button>
+                        <div class="rec-export-menu" id="recExportMenu" hidden>
+                            <button type="button" id="btnExportExcel"><i class="fa fa-file-excel-o"></i> Excel (.xlsm)</button>
+                            <button type="button" id="btnExportPdf"><i class="fa fa-file-pdf-o"></i> PDF / Imprimir</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <input type="hidden" id="txtRecId" value="0" />
+        </section>
+
+        <section class="rec-panel" id="panel-historial">
+            <div class="rec-list-head">
+                <strong>Últimos recorridos</strong>
+            </div>
+            <ul class="rec-history" id="listaHistorial"></ul>
+        </section>
+    </aside>
+
+    <main class="rec-main">
+        <div class="rec-map-toolbar">
+            <div class="rec-search-clients">
+                <i class="fa fa-search"></i>
+                <input type="text" id="txtBuscarClienteMapa" placeholder="Filtrar en el mapa..." />
+            </div>
+            <div class="rec-legend" title="Referencias del mapa">
+                <span class="lg-origen">Origen</span>
+                <span class="lg-actual">Actual</span>
+                <span class="lg-visitado">Visitado</span>
+                <span class="lg-omitida">Omitido</span>
+                <span class="lg-pendiente">Pendiente</span>
+                <span class="lg-cli">Cliente</span>
+                <span class="lg-prov">Proveedor</span>
+            </div>
+            <button type="button" class="rec-btn rec-btn-sm rec-toggle-side" id="btnToggleSidebar" title="Ocultar panel" aria-label="Ocultar o mostrar panel">
+                <i class="fa fa-bars"></i>
+            </button>
+        </div>
+        <div id="recorridoMap" class="rec-map"></div>
+        <button type="button" class="rec-fab-maps" id="btnFabGoogleMaps" title="Abrir ruta en Google Maps">
+            <i class="fa fa-location-arrow"></i>
+            <span>Navegar en Maps</span>
+        </button>
+        <div class="rec-toast" id="recToast" hidden role="status" aria-live="polite"></div>
+    </main>
+</div>
+
+<div class="rec-modal" id="recModalOmitir" hidden>
+    <div class="rec-modal-backdrop" data-close-omitir></div>
+    <div class="rec-modal-card" role="dialog" aria-modal="true" aria-labelledby="recOmitirTitle">
+        <header class="rec-modal-head">
+            <h3 id="recOmitirTitle">Omitir parada</h3>
+            <button type="button" class="rec-modal-x" data-close-omitir aria-label="Cerrar">&times;</button>
+        </header>
+        <p class="rec-modal-sub" id="recOmitirSub">Indicá por qué no se visitó (cerrado, no estaba, etc.).</p>
+        <label class="rec-modal-label" for="txtOmitirObs">Observación *</label>
+        <textarea id="txtOmitirObs" rows="4" placeholder="Ej: Local cerrado / No se encontraba nadie..."></textarea>
+        <p class="rec-modal-error" id="recOmitirError" hidden>Escribí una observación para omitir.</p>
+        <div class="rec-modal-actions">
+            <button type="button" class="rec-btn" data-close-omitir>Cancelar</button>
+            <button type="button" class="rec-btn rec-btn-warn" id="btnConfirmarOmitir">
+                <i class="fa fa-forward"></i> Omitir y seguir
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="rec-modal" id="recModalVerObs" hidden>
+    <div class="rec-modal-backdrop" data-close-obs></div>
+    <div class="rec-modal-card" role="dialog" aria-modal="true">
+        <header class="rec-modal-head">
+            <h3 id="recObsTitle">Observación</h3>
+            <button type="button" class="rec-modal-x" data-close-obs aria-label="Cerrar">&times;</button>
+        </header>
+        <p class="rec-modal-obs" id="recObsTexto"></p>
+        <div class="rec-modal-actions">
+            <button type="button" class="rec-btn rec-btn-primary" data-close-obs>Cerrar</button>
+        </div>
+    </div>
+</div>
+
+<div class="rec-modal" id="recModalPlantilla" hidden>
+    <div class="rec-modal-backdrop" data-close-plantilla></div>
+    <div class="rec-modal-card" role="dialog" aria-modal="true" aria-labelledby="recPlantillaTitle">
+        <header class="rec-modal-head">
+            <h3 id="recPlantillaTitle">Ruta predeterminada</h3>
+            <button type="button" class="rec-modal-x" data-close-plantilla aria-label="Cerrar">&times;</button>
+        </header>
+        <p class="rec-modal-sub" id="recPlantillaSub">Tenés una ruta guardada. ¿Querés usarla para el nuevo recorrido?</p>
+        <div class="rec-modal-actions">
+            <button type="button" class="rec-btn" id="btnPlantillaVacio">Empezar vacío</button>
+            <button type="button" class="rec-btn rec-btn-primary" id="btnPlantillaUsar">
+                <i class="fa fa-clone"></i> Usar esa ruta
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="rec-modal" id="recModalEliminar" hidden>
+    <div class="rec-modal-backdrop" data-close-eliminar></div>
+    <div class="rec-modal-card" role="dialog" aria-modal="true" aria-labelledby="recEliminarTitle">
+        <header class="rec-modal-head">
+            <h3 id="recEliminarTitle">Eliminar recorrido</h3>
+            <button type="button" class="rec-modal-x" data-close-eliminar aria-label="Cerrar">&times;</button>
+        </header>
+        <p class="rec-modal-sub" id="recEliminarSub">¿Seguro que querés eliminar este recorrido?</p>
+        <div class="rec-modal-warn" id="recEliminarWarn" hidden></div>
+        <div class="rec-modal-actions">
+            <button type="button" class="rec-btn" data-close-eliminar>Cancelar</button>
+            <button type="button" class="rec-btn rec-btn-danger" id="btnConfirmarEliminar">
+                <i class="fa fa-trash"></i> Eliminar
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="rec-modal" id="recModalFinalizar" hidden>
+    <div class="rec-modal-backdrop" data-close-finalizar></div>
+    <div class="rec-modal-card" role="dialog" aria-modal="true" aria-labelledby="recFinalizarTitle">
+        <header class="rec-modal-head">
+            <h3 id="recFinalizarTitle">Finalizar recorrido</h3>
+            <button type="button" class="rec-modal-x" data-close-finalizar aria-label="Cerrar">&times;</button>
+        </header>
+        <p class="rec-modal-sub" id="recFinalizarSub">¿Estás seguro de finalizar?</p>
+        <div class="rec-modal-warn" id="recFinalizarWarn" hidden></div>
+        <ul class="rec-finalizar-lista" id="recFinalizarLista" hidden></ul>
+        <p class="rec-modal-note" id="recFinalizarNote">Al finalizar se guarda el recorrido tal como está (visitadas, omitidas y pendientes).</p>
+        <div class="rec-modal-actions">
+            <button type="button" class="rec-btn" data-close-finalizar>Cancelar</button>
+            <button type="button" class="rec-btn rec-btn-warn" id="btnConfirmarFinalizar">
+                <i class="fa fa-flag-checkered"></i> Finalizar
+            </button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        window.__googleMapsApiKey = '@apiKey';
+        window.__recorridosVista = {
+            esAdmin: @(esAdmin ? "true" : "false"),
+            usuarioSesionId: @(ViewBag.UsuarioSesionId ?? 0),
+            vistaUsuarioId: @vistaUsuarioId,
+            vistaUsuarioNombre: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(vistaUsuarioNombre))
+        };
+        window.initRecorridosMap = function () {
+            if (window.RecorridosApp) window.RecorridosApp.onMapsReady();
+        };
+    </script>
+    <script src="~/js/Recorridos.js?v=3.19"></script>
+    <script>
+        (function () {
+            const key = window.__googleMapsApiKey;
+            if (!key || key.indexOf('PEGAR_AQUI') === 0) {
+                if (window.RecorridosApp?.toast) {
+                    window.RecorridosApp.toast('Configurá GoogleMaps:ApiKey en appsettings.json', 'warn');
+                } else {
+                    const t = document.getElementById('recToast');
+                    if (t) {
+                        t.hidden = false;
+                        t.className = 'rec-toast is-warn is-show';
+                        t.textContent = 'Configurá GoogleMaps:ApiKey en appsettings.json';
+                    }
+                }
+                if (window.RecorridosApp) window.RecorridosApp.bootWithoutMaps();
+                return;
+            }
+            const s = document.createElement('script');
+            s.async = true;
+            s.defer = true;
+            s.src = 'https://maps.googleapis.com/maps/api/js?key=' + encodeURIComponent(key) + '&libraries=places&callback=initRecorridosMap';
+            document.head.appendChild(s);
+        })();
+    </script>
+}

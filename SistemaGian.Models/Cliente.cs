@@ -23,6 +23,14 @@ public partial class Cliente
 
     public decimal? SaldoAfavor { get; set; }
 
+    public decimal? Latitud { get; set; }
+
+    public decimal? Longitud { get; set; }
+
+    public string? PlaceId { get; set; }
+
+    public string? DireccionMaps { get; set; }
+
     public virtual ICollection<ClientesHistorialSaldo> ClientesHistorialSaldos { get; set; } = new List<ClientesHistorialSaldo>();
 
     public virtual Provincia? IdProvinciaNavigation { get; set; }

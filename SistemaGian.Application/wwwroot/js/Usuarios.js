@@ -1,4 +1,4 @@
-﻿let gridUsuarios;
+let gridUsuarios;
 
 const columnConfig = [
     { index: 1, filterType: 'text' },
@@ -202,6 +202,9 @@ async function configurarDataTable(data) {
                     <div class="acciones-dropdown" style="display: none;">
                         <button class='btn btn-sm btneditar' type='button' onclick='editarUsuario(${data})' title='Editar'>
                             <i class='fa fa-pencil-square-o fa-lg text-success' aria-hidden='true'></i> Editar
+                        </button>
+                        <button class='btn btn-sm btnverrec' type='button' onclick='verRecorridosUsuario(${data})' title='Ver recorridos'>
+                            <i class='fa fa-map fa-lg text-info' aria-hidden='true'></i> Recorridos
                         </button>
                         <button class='btn btn-sm btneliminar' type='button' onclick='eliminarUsuario(${data})' title='Eliminar'>
                             <i class='fa fa-trash-o fa-lg text-danger' aria-hidden='true'></i> Eliminar
@@ -421,6 +424,11 @@ function toggleAcciones(id) {
         $('.acciones-dropdown').hide();
         $dropdown.show();
     }
+}
+
+function verRecorridosUsuario(id) {
+    if (!id) return;
+    window.location.href = '/Recorridos?usuarioId=' + encodeURIComponent(id);
 }
 
 $(document).on('click', function (e) {
