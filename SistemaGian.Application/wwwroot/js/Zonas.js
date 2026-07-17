@@ -158,39 +158,11 @@ async function configurarDataTable(data) {
             scrollCollapse: true,
             pageLength: 100,
             dom: 'Bfrtip',
-            buttons: [
-                {
-                    extend: 'excelHtml5', text: 'Exportar Excel', filename: 'Reporte Zonas', title: '',
-                    exportOptions: {
-                        columns: function (idx, data, node) {
-                            const colVisible = $(node).is(':visible');
-                            return colVisible && idx > 0; // evita la col de acciones
-                        }
-                    },
-                    className: 'btn-exportar-excel'
-                },
-                {
-                    extend: 'pdfHtml5', text: 'Exportar PDF', filename: 'Reporte Zonas', title: '',
-                    exportOptions: {
-                        columns: function (idx, data, node) {
-                            const colVisible = $(node).is(':visible');
-                            return colVisible && idx > 0;
-                        }
-                    },
-                    className: 'btn-exportar-pdf'
-                },
-                {
-                    extend: 'print', text: 'Imprimir', title: '',
-                    exportOptions: {
-                        columns: function (idx, data, node) {
-                            const colVisible = $(node).is(':visible');
-                            return colVisible && idx > 0;
-                        }
-                    },
-                    className: 'btn-exportar-print'
-                },
-                'pageLength'
-            ],
+            buttons: SistemaExport.botonesDataTable({
+                titulo: 'Zonas',
+                archivo: 'zonas',
+                columnas: (idx) => idx > 0
+            }),
             orderCellsTop: true,
             fixedHeader: true,
 

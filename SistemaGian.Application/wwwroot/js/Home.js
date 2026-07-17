@@ -1,4 +1,4 @@
-﻿//#########################################################################################################################################################
+//#########################################################################################################################################################
 //#########################################################################################################################################################
 //#############################################################################CLIENTES####################################################################
 const precioZonaInput = document.getElementById('txtPrecioZona');
@@ -496,208 +496,12 @@ function limpiarModalUsuario() {
 }
 
 
-//##########################################################################################################################################################
-//##########################################################################################################################################################
-//#########################################################################PRODUCTOS########################################################################
-
-function nuevoProducto() {
-
-    limpiarModalProducto();
-    listaMarcasProducto();
-    listaCategoriasProducto();
-    listaMonedasProducto();
-    listaUnidadesDeMedidaProducto();
-    document.getElementById("MarcasProducto").removeAttribute("disabled");
-    document.getElementById("txtDescripcionProducto").removeAttribute("disabled");
-    document.getElementById("CategoriasProducto").removeAttribute("disabled");
-    document.getElementById("MonedasProducto").removeAttribute("disabled");
-    document.getElementById("UnidadesDeMedidasProducto").removeAttribute("disabled");
-    document.getElementById("txtPrecioCostoProducto").classList.remove("txtEdicion");
-    document.getElementById("txtPorcentajeGananciaProducto").classList.remove("txtEdicion");
-    document.getElementById("txtPrecioVentaProducto").classList.remove("txtEdicion");
-    document.getElementById('txtTotalProducto').setAttribute('hidden', 'hidden');
-    document.getElementById('lblTotalProducto').setAttribute('hidden', 'hidden');
-    $('#modalEdicionProductos').modal('show');
-    $("#btnGuardarProducto").text("Registrar");
-    $("#modalEdicionProductoLabel").text("Nuevo Producto");
-    asignarCamposObligatoriosProducto()
-}
-
-function actualizarProductoCantidad() {
-    const selectedText = $('#UnidadesDeMedidasProducto option:selected').text(); // Obtiene el texto seleccionado
-
-    if (selectedText === 'Pallet') {
-        // Muestra el label y el input
-        document.getElementById('txtProductoCantidad').removeAttribute('hidden');
-        document.getElementById('lblProductoCantidad').removeAttribute('hidden');
-        document.getElementById('txtTotalProducto').removeAttribute('hidden');
-        document.getElementById('lblTotalProducto').removeAttribute('hidden');
-            document.getElementById('txtProductoCantidad').removeAttribute('readonly');
-        
-    } else {
-        // Oculta el label y el input
-        document.getElementById('txtTotalProducto').setAttribute('hidden', 'hidden');
-        document.getElementById('lblTotalProducto').setAttribute('hidden', 'hidden');
-        document.getElementById('txtProductoCantidad').setAttribute('hidden', 'hidden');
-        document.getElementById('lblProductoCantidad').setAttribute('hidden', 'hidden'); 
-    }
-}
-
-$('#txtProductoCantidad').on('input blur', function () {
-    calcularTotalProducto();
-});
-
-
-function asignarCamposObligatoriosProducto() {
-    $('#lblDescripcionProducto').css('color', 'red');
-    $('#txtDescripcionProducto').css('border-color', 'red');
-    $('#lblPrecioCostoProducto').css('color', 'red');
-    $('#txtPrecioCostoProducto').css('border-color', 'red');
-    $('#lblPorcentajeGananciaProducto').css('color', 'red');
-    $('#txtPorcentajeGananciaProducto').css('border-color', 'red');
-}
-
-async function listaMarcasProducto() {
-    const url = `/Marcas/Lista`;
-    const response = await fetch(url);
-    const data = await response.json();
-
-    $('#MarcasProducto option').remove();
-
-    select = document.getElementById("MarcasProducto");
-
-    for (i = 0; i < data.length; i++) {
-        option = document.createElement("option");
-        option.value = data[i].Id;
-        option.text = data[i].Nombre;
-        select.appendChild(option);
-
-    }
-}
-
-async function listaCategoriasProducto() {
-    const url = `/Categorias/Lista`;
-    const response = await fetch(url);
-    const data = await response.json();
-
-    $('#CategoriasProducto option').remove();
-
-    select = document.getElementById("CategoriasProducto");
-
-    for (i = 0; i < data.length; i++) {
-        option = document.createElement("option");
-        option.value = data[i].Id;
-        option.text = data[i].Nombre;
-        select.appendChild(option);
-
-    }
-}
-
-async function listaMonedasProducto() {
-    const url = `/Monedas/Lista`;
-    const response = await fetch(url);
-    const data = await response.json();
-
-    $('#MonedasProducto option').remove();
-
-    select = document.getElementById("MonedasProducto");
-
-    for (i = 0; i < data.length; i++) {
-        option = document.createElement("option");
-        option.value = data[i].Id;
-        option.text = data[i].Nombre;
-        select.appendChild(option);
-
-    }
-}
-
-$('#UnidadesDeMedidasProducto').on('change', function () {
-    document.getElementById('txtProductoCantidad').value = 1;
-    actualizarProductoCantidad();
-});
-
-async function listaUnidadesDeMedidaProducto() {
-    const url = `/UnidadesDeMedidas/Lista`;
-    const response = await fetch(url);
-    const data = await response.json();
-
-    $('#UnidadesDeMedidasProducto option').remove();
-
-    select = document.getElementById("UnidadesDeMedidasProducto");
-
-    for (i = 0; i < data.length; i++) {
-        option = document.createElement("option");
-        option.value = data[i].Id;
-        option.text = data[i].Nombre;
-        select.appendChild(option);
-
-    }
-}
-
-function limpiarModalProducto() {
-    const campos = ["IdProducto", "DescripcionProducto", "PrecioCostoProducto", "PrecioVentaProducto", "PorcentajeGananciaProducto"];
-    campos.forEach(campo => {
-        $(`#txt${campo}`).val("");
-    });
-
-    $("#imgProducto").attr("src", "");
-    $("#imgProd").val("");
-
-}
-
-function registrarProducto() {
-    if (validarCamposProducto()) {
-        sumarPorcentajeProducto(); //Por si las dudas
-        let productoCantidad = $("#txtProductoCantidad").val();
-        const idProducto = $("#txtIdProducto").val();
-        const nuevoModelo = {
-            IdCliente: -1,
-            IdProveedor: -1,
-            "Id": idProducto !== "" ? idProducto : 0,
-            "Descripcion": $("#txtDescripcionProducto").val(),
-            "IdMarca": $("#MarcasProducto").val(),
-            "IdCategoria": $("#CategoriasProducto").val(),
-            "IdMoneda": $("#MonedasProducto").val(),
-            "IdUnidadDeMedida": $("#UnidadesDeMedidasProducto").val(),
-            "PCosto": parseDecimal($("#txtPrecioCostoProducto").val()),
-            "PVenta": parseDecimal($("#txtPrecioVentaProducto").val()),
-            "PorcGanancia": parseDecimal($("#txtPorcentajeGananciaProducto").val()),
-            "ProductoCantidad": (isNaN(productoCantidad) || productoCantidad === null || productoCantidad.trim() === "") ? 1 : parseFloat(productoCantidad),
-            "Image": null,
-        };
-
-        const url = "Productos/Insertar";
-        const method = "POST";
-
-        fetch(url, {
-            method: method,
-            headers: {
-                'Content-Type': 'application/json;charset=utf-8'
-            },
-            body: JSON.stringify(nuevoModelo)
-        })
-            .then(response => {
-                if (!response.ok) throw new Error(response.statusText);
-                return response.json();
-            })
-            .then(dataJson => {
-                const mensaje = "Producto registrado correctamente";
-                $('#modalEdicionProductos').modal('hide');
-                exitoModal(mensaje);
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
-    } else {
-        errorModal('Debes completar los campos requeridos');
-    }
-}
-
+// Productos: modal y lógica en m_productos.js (nuevoProducto, ProductoModal)
 
 function abrirConfiguraciones() {
     $('#ModalEdicionConfiguraciones').modal('show');
     $("#btnGuardarConfiguracion").text("Aceptar");
-    $("#modalEdicionLabel").text("Configuraciones");
+    $("#ModalEdicionConfiguracionesLabel").text("Configuraciones");
 }
 
 
@@ -726,92 +530,6 @@ async function listaConfiguracion() {
         NombreCombo: configuracion.NombreCombo
     }));
 }
-
-$('#txtDescripcionProducto, #txtPorcentajeGananciaProducto').on('input', function () {
-    validarCamposProducto()
-});
-
-$('#txtPrecioCostoProducto').on('input', function () {
-    validarCamposProducto()
-    sumarPorcentajeProducto()
-
-});
-$('#txtPorcentajeGananciaProducto').on('input', function () {
-    sumarPorcentajeProducto()
-});
-
-$('#txtPrecioVentaProducto').on('input', function () {
-    calcularPorcentajeProducto()
-});
-
-
-function sumarPorcentajeProducto() {
-    let precioCosto = Number($("#txtPrecioCostoProducto").val());
-    let porcentajeGanancia = Number($("#txtPorcentajeGananciaProducto").val());
-    let productoCantidad = Number($("#txtProductoCantidad").val());
-
-    if (!isNaN(precioCosto) && !isNaN(porcentajeGanancia)) {
-        let precioVenta = precioCosto + (precioCosto * (porcentajeGanancia / 100));
-        let total = precioVenta * productoCantidad
-        // Limitar el precio de venta a 2 decimales
-        precioVenta = precioVenta.toFixed(2);
-        $("#txtPrecioVentaProducto").val(precioVenta);
-        $("#txtTotalProducto").val(total);
-        calcularTotalProducto();
-    }
-}
-
-function calcularTotalProducto() {
-    let precioCosto = Number($("#txtPrecioCostoProducto").val());
-    let porcentajeGanancia = Number($("#txtPorcentajeGananciaProducto").val());
-    let productoCantidad = Number($("#txtProductoCantidad").val());
-
-    if (!isNaN(precioCosto) && !isNaN(porcentajeGanancia)) {
-        let precioVenta = precioCosto + (precioCosto * (porcentajeGanancia / 100));
-        let total = precioVenta * productoCantidad
-        // Limitar el precio de venta a 2 decimales
-        $("#txtTotalProducto").val(total);
-    }
-}
-
-
-function calcularPorcentajeProducto() {
-    let precioCosto = Number($("#txtPrecioCostoProducto").val());
-    let precioVenta = Number($("#txtPrecioVentaProducto").val());
-
-
-
-    if (!isNaN(precioCosto) && !isNaN(precioVenta) && precioCosto !== 0) {
-        let porcentajeGanancia = ((precioVenta - precioCosto) / precioCosto) * 100;
-        // Limitar el porcentaje de ganancia a 2 decimales
-        porcentajeGanancia = porcentajeGanancia.toFixed(2);
-        $("#txtPorcentajeGananciaProducto").val(porcentajeGanancia);
-    }
-}
-
-function validarCamposProducto() {
-    const descripcion = $("#txtDescripcionProducto").val();
-    const precioCosto = $("#txtPrecioCostoProducto").val();
-    const precioVenta = $("#txtPrecioVentaProducto").val();
-    const porcentajeGanancia = $("#txtPorcentajeGananciaProducto").val();
-
-    const descripcionValida = descripcion !== "";
-    const precioCostoValido = precioCosto !== "" && !isNaN(precioCosto);
-    const precioVentaValido = precioVenta !== "" && !isNaN(precioVenta);
-    const porcentajeGananciaValido = porcentajeGanancia !== "" && !isNaN(porcentajeGanancia);
-
-    $("#lblDescripcionProducto").css("color", descripcionValida ? "" : "red");
-    $("#txtDescripcionProducto").css("border-color", descripcionValida ? "" : "red");
-
-    $("#lblPrecioCostoProducto").css("color", precioCostoValido ? "" : "red");
-    $("#txtPrecioCostoProducto").css("border-color", precioCostoValido ? "" : "red");
-
-    $("#lblPorcentajeGananciaProducto").css("color", porcentajeGananciaValido ? "" : "red");
-    $("#txtPorcentajeGananciaProducto").css("border-color", porcentajeGananciaValido ? "" : "red");
-
-    return descripcionValida && precioCostoValido && precioVentaValido && porcentajeGananciaValido;
-}
-
 
 async function abrirConfiguracion(_nombreConfiguracion, _controllerConfiguracion, _comboNombre = null, _comboController = null, _lblComboNombre) {
 
@@ -1152,3 +870,52 @@ async function listaEstados() {
     }
 }
 
+/* ====================== BUSCADOR MENÚ HOME ====================== */
+(function initHomeMenuSearch() {
+    const input = document.getElementById('homeMenuSearch');
+    const grid = document.getElementById('homeMenuGrid');
+    const emptyMsg = document.getElementById('homeMenuSearchEmpty');
+    const clearBtn = document.getElementById('homeMenuSearchClear');
+    if (!input || !grid) return;
+
+    const normalize = (text) => (text || '')
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '');
+
+    const items = [...grid.querySelectorAll(':scope > .home-menu-item')].map((col) => {
+        const label = col.querySelector('.btnMenu')?.textContent?.trim() || '';
+        const alt = col.querySelector('img')?.getAttribute('alt') || '';
+        const title = col.querySelector('img')?.getAttribute('title') || '';
+        col.dataset.search = normalize(`${label} ${alt} ${title}`);
+        return col;
+    });
+
+    function applyFilter() {
+        const q = normalize(input.value.trim());
+        if (clearBtn) clearBtn.hidden = !q;
+
+        let visible = 0;
+        items.forEach((col) => {
+            const match = !q || col.dataset.search.includes(q);
+            col.classList.toggle('home-menu-item--hidden', !match);
+            if (match) visible++;
+        });
+
+        if (emptyMsg) emptyMsg.hidden = visible > 0 || !q;
+    }
+
+    applyFilter();
+    input.addEventListener('input', applyFilter);
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            input.value = '';
+            applyFilter();
+        }
+    });
+    clearBtn?.addEventListener('click', () => {
+        input.value = '';
+        applyFilter();
+        input.focus();
+    });
+})();

@@ -876,32 +876,11 @@ async function configurarDataTable(data) {
                 },
             ],
             dom: 'Bfrtip',
-            buttons: [
-                {
-                    extend: 'excelHtml5',
-                    text: 'Exportar Excel',
-                    filename: 'Reporte Clientes',
-                    title: '',
-                    exportOptions: { columns: [0, 1, 2, 3, 4, 5] },
-                    className: 'btn-exportar-excel',
-                },
-                {
-                    extend: 'pdfHtml5',
-                    text: 'Exportar PDF',
-                    filename: 'Reporte Clientes',
-                    title: '',
-                    exportOptions: { columns: [0, 1, 2, 3, 4, 5] },
-                    className: 'btn-exportar-pdf',
-                },
-                {
-                    extend: 'print',
-                    text: 'Imprimir',
-                    title: '',
-                    exportOptions: { columns: [0, 1, 2, 3, 4, 5] },
-                    className: 'btn-exportar-print'
-                },
-                'pageLength'
-            ],
+            buttons: SistemaExport.botonesDataTable({
+                titulo: 'Clientes',
+                archivo: 'clientes',
+                columnas: (idx) => idx > 0
+            }),
             orderCellsTop: true,
             fixedHeader: true,
             columnDefs: [

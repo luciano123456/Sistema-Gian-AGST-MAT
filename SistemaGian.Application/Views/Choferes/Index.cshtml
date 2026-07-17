@@ -1,4 +1,4 @@
-ï»¿@using Microsoft.Extensions.Configuration
+@using Microsoft.Extensions.Configuration
 @inject IConfiguration Configuration
 
 @{
@@ -17,7 +17,7 @@
 
     <!-- Estilos base proyecto (alineados con Clientes) -->
     <link rel="stylesheet" href="~/css/usuarios.css?v=1.0" />
-    <link rel="stylesheet" href="~/css/redisenopantallas.css?v=1.0" />
+    <link rel="stylesheet" href="~/css/redisenopantallas.css?v=1.2" />
     <link rel="stylesheet" href="~/css/Choferes.css?v=1.0?v=1.0" />
 
     <!-- (Compatibilidad) -->
@@ -36,19 +36,19 @@
 
 <div class="container page-99" style="margin-top:100px">
 
-    <!-- Header KPI estilo â€œglassâ€ -->
+    <!-- Header KPI estilo “glass” -->
     <div class="cc-header shadow-lg rounded-4 p-4 mb-4">
         <div class="d-flex align-items-center gap-3 flex-wrap">
             <div class="d-flex align-items-center gap-3">
                 <span class="cc-badge"><i class="fa fa-truck"></i></span>
                 <div>
                     <h2 class="m-0 fw-800">Choferes</h2>
-                    <small class="text-muted-cc">GestiÃ³n y listado de choferes</small>
+                    <small class="text-muted-cc">Gestión y listado de choferes</small>
                 </div>
             </div>
 
             <div class="ms-auto d-flex gap-4 flex-wrap align-items-center" id="wrapKpisChoferes">
-                <!-- Ãšnico KPI: Zonas -->
+                <!-- Único KPI: Zonas -->
                 <div class="cc-stat">
                     <div class="label">Choferes</div>
                     <div class="value"><strong id="kpiChoferes">0</strong></div>
@@ -120,12 +120,12 @@
                     </div>
 
                     <div class="col-md-6">
-                        <label for="txtTelefono" class="form-label">TelÃ©fono</label>
+                        <label for="txtTelefono" class="form-label">Teléfono</label>
                         <input type="text" class="form-control" id="txtTelefono" />
                     </div>
 
                     <div class="col-md-12">
-                        <label for="txtDireccion" class="form-label">DirecciÃ³n</label>
+                        <label for="txtDireccion" class="form-label">Dirección</label>
                         <input type="text" class="form-control" id="txtDireccion" />
                     </div>
                 </form>
@@ -144,7 +144,7 @@
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content cc-modal">
             <div class="modal-header colorEncabezado">
-                <h5 class="modal-title" id="modalPreciosLabel">GestiÃ³n de Precios</h5>
+                <h5 class="modal-title" id="modalPreciosLabel">Gestión de Precios</h5>
                 <button type="button" class="btn-close custom-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">

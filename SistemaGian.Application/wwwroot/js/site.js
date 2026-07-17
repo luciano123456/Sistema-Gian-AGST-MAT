@@ -293,3 +293,42 @@ function marcarFilaCambio(grid, id, tipo) {
         }
     });
 }
+
+/** Click en fila: cursor, color y línea en la primera columna (todas las grillas). */
+(function initSeleccionFilasGlobal() {
+    const IGNORAR_CLICK = 'button, a, input, select, textarea, label, .chip-select, .btnacciones, .hist-btn-revertir, .select2-container';
+
+    function tablaUsaChips($table) {
+        return $table.find('tbody .chip-select').length > 0;
+    }
+
+    function limpiarSeleccionSimple($table, $excepto) {
+        $table.find('tbody tr').each(function () {
+            const $r = $(this);
+            if ($r.is($excepto)) return;
+            $r.removeClass('row-selected row-focus seleccionada selected');
+        });
+    }
+
+    $(document).on('click', '.dataTables_wrapper tbody tr, table.dataTable tbody tr, table.dt-dark tbody tr', function (e) {
+        if ($(e.target).closest(IGNORAR_CLICK).length) return;
+
+        const $tr = $(this);
+        if ($tr.hasClass('child') || $tr.hasClass('filters')) return;
+        if ($tr.find('td.dataTables_empty').length) return;
+
+        const $table = $tr.closest('table');
+        const conChips = tablaUsaChips($table);
+
+        if (conChips) {
+            $table.find('tbody tr.row-focus').not($tr).removeClass('row-focus seleccionada');
+            $tr.addClass('row-focus');
+        } else {
+            limpiarSeleccionSimple($table, $tr);
+            $tr.addClass('row-selected');
+            if ($table.is('#tablaProveedores, #tablaClientes, #tablaChoferes')) {
+                $tr.addClass('selected');
+            }
+        }
+    });
+})();

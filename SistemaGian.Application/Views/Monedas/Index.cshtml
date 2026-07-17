@@ -1,111 +1,88 @@
 ﻿@using Microsoft.Extensions.Configuration
-
 @inject IConfiguration Configuration
 
 @{
-    var ambienteTest = Configuration.GetValue<int>("AmbienteTest");
+    ViewData["Title"] = "Monedas";
 }
 
-@{
-    ViewData["Title"] = "Home Page";
-}
-
-
-@*GOOGLEAR CARD BOOTSTRAP 5*@
-@section Estilos{
-
-    <link href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css" rel="stylesheet" />
-
-    @*ESTILOS DE BOTONES*@
-    <link href="https://cdn.datatables.net/buttons/2.2.2/css/buttons.dataTables.min.css" rel="stylesheet" />
-
-    @*filter columns*@
-    <link href="https://cdn.datatables.net/fixedheader/3.2.2/css/fixedHeader.dataTables.min.css" rel="stylesheet" />
-
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-
-
-    <link href="~/css/monedas.css?v=1.0" rel="stylesheet" />
-
+@section Estilos {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <link rel="stylesheet" href="~/css/redisenopantallas.css?v=1.1" />
+    <link rel="stylesheet" href="~/css/monedas.css?v=2.0" asp-append-version="true" />
 }
 
 <partial name="~/Views/Shared/Partials/BotonMenu.cshtml" />
 
+<div class="monedas-page page-99">
+    <div class="cc-header shadow-lg rounded-4 p-4 mb-4">
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+            <div class="d-flex align-items-center gap-3">
+                <span class="cc-badge mon-badge"><i class="fa fa-money"></i></span>
+                <div>
+                    <h2 class="m-0 fw-800">Monedas</h2>
+                    <small class="text-muted-cc">Cotizaciones para pedidos y gastos</small>
+                </div>
+            </div>
+            <div class="ms-auto d-flex gap-3 flex-wrap align-items-center">
+                <div class="cc-stat">
+                    <div class="label">Activas</div>
+                    <div class="value"><strong id="kpiMonedasCount">0</strong></div>
+                </div>
+                <button type="button" class="btn btn-monedas-export" id="btnExportarMonedas" title="Exportar listado">
+                    <i class="fa fa-download me-1"></i> Exportar
+                </button>
+            </div>
+        </div>
+    </div>
 
-<div class="container" id="monedasContainer">
+    <div class="card-glass monedas-panel p-4">
+        <div class="monedas-panel__head">
+            <span><i class="fa fa-th-large me-2"></i> Cotizaciones vigentes</span>
+            <span class="monedas-panel__hint">Tocá una tarjeta para editar o usá <strong>+</strong> para agregar</span>
+        </div>
+        <div id="monedasContainer" class="monedas-grid" aria-live="polite"></div>
+    </div>
 </div>
 
-<div class="modal fade" id="modalEdicion" tabindex="-1" role="dialog" aria-labelledby="modalEdicionLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-edicion" role="document">
-        <div class="modal-content">
-            <div class="modal-header colorEncabezado">
-                <h5 class="modal-title fw-bold" id="modalEdicionLabel">Editar Moneda</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+<div class="modal fade" id="modalEdicion" tabindex="-1" aria-labelledby="modalEdicionLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-moneda">
+        <div class="modal-content mon-modal">
+            <div class="modal-header mon-modal__head">
+                <h5 class="modal-title fw-800 m-0" id="modalEdicionLabel">Moneda</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
-
             <div class="modal-body">
                 <form id="formEditarMoneda" class="row g-3">
-
                     <input type="text" id="txtId" hidden readonly>
-
                     <div class="col-md-6">
                         <label for="txtNombre" class="form-label">Nombre (*)</label>
                         <input type="text" class="form-control" id="txtNombre" required>
                     </div>
-
                     <div class="col-md-6">
                         <label for="txtCotizacion" class="form-label">Cotización</label>
-                        <input type="text" class="form-control" id="txtCotizacion">
+                        <input type="text" class="form-control" id="txtCotizacion" inputmode="decimal">
                     </div>
-
-                    <div class="col-md-12 text-center">
-                        <label for="txtImagen" class="form-label">Imagen</label>
-                        <img id="imgMoneda" class="mb-3 d-block mx-auto" style="width: 150px; height: 80px;" src="" />
-
-                        <input id="Imagen" class="form-control" type="file" name="adjunto" accept=".pdf,.jpg,.png" />
+                    <div class="col-12 text-center mon-modal__img-wrap">
+                        <label for="Imagen" class="form-label">Bandera / ícono</label>
+                        <div class="mon-modal__preview">
+                            <img id="imgMoneda" alt="Vista previa" />
+                        </div>
+                        <input id="Imagen" class="form-control" type="file" accept=".jpg,.jpeg,.png,.webp" />
                         <p id="imgMon" class="d-none"></p>
                     </div>
-
                 </form>
             </div>
-
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                <button type="button" id="btnGuardar" class="btn btn-primary" onclick="guardarCambios()">Registrar</button>
+            <div class="modal-footer mon-modal__foot">
+                <button type="button" class="btn btn-monedas-ghost" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" id="btnGuardar" class="btn btn-monedas-primary" onclick="guardarCambios()">Guardar</button>
             </div>
         </div>
     </div>
 </div>
 
-
-
-
 <partial name="~/Views/Utils/Modals.cshtml" />
 
-@section Scripts{
-
-    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
-
-    @*SCRIPTS DE BOTONES*@
-    <script src="https://cdn.datatables.net/buttons/2.2.2/js/dataTables.buttons.min.js">
-        
-    </script><script src="~/js/site.js"></script>
-
-    @*excel*@
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.html5.min.js"></script>
-
-    @*pdf*@
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
-
-    @*imprimir*@
-    <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.print.min.js"></script>
-
-    @*filter columns*@
-    <script src="https://cdn.datatables.net/fixedheader/3.2.2/js/dataTables.fixedHeader.min.js"></script>
-
-
-    <script src="~/js/Monedas.js?v=1.0"></script>
-   
+@section Scripts {
+    <script src="~/js/site.js"></script>
+    <script src="~/js/Monedas.js?v=2.0" asp-append-version="true"></script>
 }

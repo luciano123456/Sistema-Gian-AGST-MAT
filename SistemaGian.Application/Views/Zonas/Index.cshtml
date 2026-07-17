@@ -1,4 +1,4 @@
-ï»¿@using Microsoft.Extensions.Configuration
+@using Microsoft.Extensions.Configuration
 @inject IConfiguration Configuration
 
 @{
@@ -20,14 +20,14 @@
     <link href="~/css/site.css?v=1.0" rel="stylesheet" />
     <link href="~/css/Zonas.css?v=1.1" rel="stylesheet" />
     <link href="~/css/productos.css?v=1.0" rel="stylesheet" />
-    <!-- Si tenÃ©s el mismo CSS de rediseÃ±o que usÃ¡s en Productos, incluilo tambiÃ©n -->
-    <link rel="stylesheet" href="~/css/redisenopantallas.css?v=1.0" />
+    <!-- Si tenés el mismo CSS de rediseño que usás en Productos, incluilo también -->
+    <link rel="stylesheet" href="~/css/redisenopantallas.css?v=1.2" />
 }
 
 <partial name="~/Views/Shared/Partials/BotonMenu.cshtml" />
 
 <div class="container page-99" style="margin-top:100px">
-    <!-- Header KPI estilo â€œglassâ€ (idÃ©ntico patrÃ³n a Productos) -->
+    <!-- Header KPI estilo “glass” (idéntico patrón a Productos) -->
     <div class="cc-header shadow-lg rounded-4 p-4 mb-4">
         <div class="d-flex align-items-center gap-3 flex-wrap">
             <div class="d-flex align-items-center gap-3">
@@ -74,7 +74,7 @@
             <div class="card-glass p-3">
                 <div class="tabla-wrap position-relative">
 
-                    <!-- Barra de filtros plegable (mismos IDs que ya usÃ¡s) -->
+                    <!-- Barra de filtros plegable (mismos IDs que ya usás) -->
                     <form id="formFiltrosZonas" class="filter-bar shadow-sm rounded-3 mb-3 p-3 d-none">
                         <div class="row g-2 align-items-end">
                             <div class="col-12 col-md-3">
@@ -179,12 +179,12 @@
     </div>
 </div>
 
-<!-- Modal gestiÃ³n de precios -->
+<!-- Modal gestión de precios -->
 <div class="modal fade" id="modalPrecios" tabindex="-1" aria-labelledby="modalPreciosLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="modalPreciosLabel">GestiÃ³n de Precios</h5>
+                <h5 class="modal-title" id="modalPreciosLabel">Gestión de Precios</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -321,6 +321,6 @@
     <!-- Utilidades -->
     <script src="~/js/site.js"></script>
 
-    <!-- LÃ³gica Zonas -->
+    <!-- Lógica Zonas -->
     <script src="~/js/Zonas.js?v=2.2"></script>
 }

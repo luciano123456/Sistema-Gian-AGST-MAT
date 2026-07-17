@@ -158,11 +158,106 @@ table.dataTable.display tbody tr:nth-child(odd) td {
     background-color: #2a303a !important; /* Color para filas impares */
 }
 
-/* Estilo para la fila seleccionada */
-table.dataTable.display tbody tr.seleccionada,
-table.dataTable.display tbody tr.seleccionada td {
-    background-color: #065f8c !important;
-    color: white !important;
+/* ===== Selección de filas (todas las grillas DataTables) ===== */
+:root {
+    --dt-row-select-bg: rgba(78, 160, 255, 0.22);
+    --dt-row-select-accent: #4ea0ff;
+    --dt-row-chip-bg: rgba(46, 160, 67, 0.28);
+    --dt-row-chip-accent: #2ea043;
+}
+
+table.dataTable.display tbody tr,
+table.dt-dark.display tbody tr {
+    cursor: pointer;
+}
+
+/* Selección simple — especificidad alta para ganar al zebra de DataTables */
+table.dataTable.display tbody tr.row-selected td,
+table.dataTable.display tbody tr.row-focus td,
+table.dataTable.display tbody tr.seleccionada td,
+table.dataTable.display tbody tr.selected td,
+table.dt-dark.display tbody tr.row-selected td,
+table.dt-dark.display tbody tr.row-focus td,
+table.dt-dark.display tbody tr.seleccionada td,
+table.dt-dark.display tbody tr.selected td,
+table.dataTable.display tbody tr:nth-child(odd).row-selected td,
+table.dataTable.display tbody tr:nth-child(even).row-selected td,
+table.dataTable.display tbody tr:nth-child(odd).row-focus td,
+table.dataTable.display tbody tr:nth-child(even).row-focus td,
+table.dt-dark.display tbody tr:nth-child(odd).row-selected td,
+table.dt-dark.display tbody tr:nth-child(even).row-selected td,
+table.dt-dark.display tbody tr:nth-child(odd).row-focus td,
+table.dt-dark.display tbody tr:nth-child(even).row-focus td,
+.dataTables_scrollBody table.dataTable.display tbody tr.row-selected td,
+.dataTables_scrollBody table.dataTable.display tbody tr.row-focus td,
+.dataTables_scrollBody table.dt-dark.display tbody tr.row-selected td,
+.dataTables_scrollBody table.dt-dark.display tbody tr.row-focus td {
+    background-color: #1e5a8c !important;
+    color: #e8f4ff !important;
+    transition: background-color 0.2s ease;
+}
+
+table.dataTable.display tbody tr.row-selected td:first-child,
+table.dataTable.display tbody tr.row-focus td:first-child,
+table.dataTable.display tbody tr.seleccionada td:first-child,
+table.dataTable.display tbody tr.selected td:first-child,
+table.dt-dark.display tbody tr.row-selected td:first-child,
+table.dt-dark.display tbody tr.row-focus td:first-child,
+table.dt-dark.display tbody tr.seleccionada td:first-child,
+table.dt-dark.display tbody tr.selected td:first-child,
+table.dataTable.display tbody tr:nth-child(odd).row-selected td:first-child,
+table.dataTable.display tbody tr:nth-child(even).row-selected td:first-child,
+table.dataTable.display tbody tr:nth-child(odd).row-focus td:first-child,
+table.dataTable.display tbody tr:nth-child(even).row-focus td:first-child,
+.dt-dark.display tbody tr.row-selected td:first-child,
+.dt-dark.display tbody tr.row-focus td:first-child {
+    box-shadow: inset 4px 0 0 0 var(--dt-row-select-accent) !important;
+}
+
+.dt-dark tbody tr.row-selected,
+.dt-dark tbody tr.row-focus,
+.dt-dark.display tbody tr.row-selected,
+.dt-dark.display tbody tr.row-focus {
+    background-color: #1e5a8c !important;
+}
+
+.dt-dark tbody tr.row-selected:hover td,
+.dt-dark tbody tr.row-focus:hover td,
+.dt-dark.display tbody tr.row-selected:hover td,
+.dt-dark.display tbody tr.row-focus:hover td {
+    background-color: #2569a3 !important;
+}
+
+/* Multi-selección con chip (Productos, Zonas) */
+table.dataTable.display tbody tr.row-selected:has(.chip-select.is-selected) td,
+table.dt-dark.display tbody tr.row-selected:has(.chip-select.is-selected) td {
+    background-color: #1a6b38 !important;
+    color: #e8ffe8 !important;
+}
+
+table.dataTable.display tbody tr.row-selected:has(.chip-select.is-selected) td:first-child,
+table.dt-dark.display tbody tr.row-selected:has(.chip-select.is-selected) td:first-child {
+    box-shadow: inset 4px 0 0 0 var(--dt-row-chip-accent) !important;
+}
+
+table.dataTable.display tbody tr button,
+table.dataTable.display tbody tr a,
+table.dataTable.display tbody tr input,
+table.dataTable.display tbody tr select,
+table.dataTable.display tbody tr textarea,
+table.dt-dark.display tbody tr button,
+table.dt-dark.display tbody tr a,
+table.dt-dark.display tbody tr input,
+table.dt-dark.display tbody tr select,
+table.dt-dark.display tbody tr textarea {
+    cursor: default;
+}
+
+table.dataTable.display tbody tr .btnacciones,
+table.dataTable.display tbody tr .chip-select,
+table.dt-dark.display tbody tr .btnacciones,
+table.dt-dark.display tbody tr .chip-select {
+    cursor: pointer;
 }
 
 

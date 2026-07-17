@@ -1,0 +1,40 @@
+<div class="modal fade" id="modalExportarSistema" tabindex="-1" aria-labelledby="modalExportarSistemaLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content sg-export-modal">
+            <div class="modal-header border-0 pb-0">
+                <div>
+                    <h5 class="modal-title fw-800" id="modalExportarSistemaLabel">
+                        <i class="fa fa-cloud-download me-2"></i> Exportar
+                    </h5>
+                    <p class="sg-export-modal__sub mb-0" id="modalExportarSistemaNombre">—</p>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body pt-2">
+                <p class="sg-export-modal__hint">Elegí uno o más formatos. Podés marcar Excel y PDF a la vez.</p>
+                <div class="sg-export-cards" role="group" aria-label="Formatos de exportación">
+                    <label class="sg-export-card" data-format-card="excel">
+                        <input type="checkbox" class="sg-export-check" value="excel" />
+                        <span class="sg-export-card__check"><i class="fa fa-check"></i></span>
+                        <span class="sg-export-card__icon sg-export-card__icon--excel"><i class="fa fa-file-excel-o"></i></span>
+                        <span class="sg-export-card__title">Excel</span>
+                        <span class="sg-export-card__desc">Libro .xlsx listo para editar</span>
+                    </label>
+                    <label class="sg-export-card" data-format-card="pdf">
+                        <input type="checkbox" class="sg-export-check" value="pdf" />
+                        <span class="sg-export-card__check"><i class="fa fa-check"></i></span>
+                        <span class="sg-export-card__icon sg-export-card__icon--pdf"><i class="fa fa-file-pdf-o"></i></span>
+                        <span class="sg-export-card__title">PDF</span>
+                        <span class="sg-export-card__desc">Documento con logo y estilo del sistema</span>
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="btnConfirmarExportarSistema" disabled>
+                    <i class="fa fa-download me-1"></i> Exportar selección
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -31,9 +31,12 @@ namespace SistemaGian.Application.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Lista(int idProducto, int idProveedor, DateTime FechaDesde, DateTime FechaHasta)
+        public async Task<IActionResult> Lista(int idProducto, int idProveedor, int idCliente = -1, DateTime? FechaDesde = null, DateTime? FechaHasta = null)
         {
-            var historialPrecios = await _historialService.ObtenerHistorialProducto(idProducto, idProveedor, FechaDesde, FechaHasta);
+            var desde = FechaDesde ?? DateTime.Today.AddDays(-30);
+            var hasta = FechaHasta ?? DateTime.Today;
+
+            var historialPrecios = await _historialService.ObtenerHistorialProducto(idProducto, idProveedor, idCliente, desde, hasta);
 
             if (historialPrecios == null)
             {
@@ -46,14 +49,31 @@ namespace SistemaGian.Application.Controllers
                 {
                     Id = c.Id,
                     IdProducto = c.IdProducto,
+                    IdProveedor = c.IdProveedor,
+                    IdCliente = c.IdCliente,
                     Producto = c.IdProductoNavigation.Descripcion,
                     PVentaNuevo = c.PVentaNuevo,
+                    PVentaAnterior = c.PVentaAnterior,
                     PCostoNuevo = c.PCostoNuevo,
+                    PCostoAnterior = c.PCostoAnterior,
                     Fecha = c.Fecha
                 })
                 .ToList();
 
             return Ok(lista);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> RevertirPrecio(int id, string tipo)
+        {
+            if (id <= 0 || string.IsNullOrWhiteSpace(tipo))
+                return BadRequest(new { valor = false, mensaje = "Datos inválidos." });
+
+            var ok = await _historialService.RevertirPrecio(id, tipo.Trim());
+            if (!ok)
+                return StatusCode(StatusCodes.Status500InternalServerError, new { valor = false, mensaje = "No se pudo revertir el precio. Verificá que el producto tenga precio cargado para ese cliente/proveedor." });
+
+            return Ok(new { valor = true });
         }
 
         [HttpDelete]

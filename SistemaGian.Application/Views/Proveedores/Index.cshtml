@@ -1,4 +1,4 @@
-ï»¿@using Microsoft.Extensions.Configuration
+@using Microsoft.Extensions.Configuration
 @inject IConfiguration Configuration
 
 @{
@@ -17,22 +17,22 @@
 
     <!-- Mismo look & feel que Clientes -->
     <link rel="stylesheet" href="~/css/usuarios.css?v=1.0" />
-    <link rel="stylesheet" href="~/css/redisenopantallas.css?v=1.0" />
+    <link rel="stylesheet" href="~/css/redisenopantallas.css?v=1.2" />
     <link href="~/css/Proveedores.css?v=1.0" rel="stylesheet" />
-    <link href="~/css/RedisenoPantallas.css?v=1.0" rel="stylesheet" />
+    <link href="~/css/redisenopantallas.css?v=1.2" rel="stylesheet" />
 }
 
 <partial name="~/Views/Shared/Partials/BotonMenu.cshtml" />
 
 <div class="container page-99" style="margin-top:100px">
-    <!-- Header â€œglassâ€ + KPIs (igual a Clientes) -->
+    <!-- Header “glass” + KPIs (igual a Clientes) -->
     <div class="cc-header shadow-lg rounded-4 p-4 mb-4">
         <div class="d-flex align-items-center gap-3 flex-wrap">
             <div class="d-flex align-items-center gap-3">
                 <span class="cc-badge"><i class="fa fa-industry"></i></span>
                 <div>
                     <h2 class="m-0 fw-800">Proveedores</h2>
-                    <small class="text-muted-cc">GestiÃ³n y listado de proveedores</small>
+                    <small class="text-muted-cc">Gestión y listado de proveedores</small>
                 </div>
             </div>
 
@@ -91,7 +91,7 @@
     </div>
 </div>
 
-<!-- MODAL ediciÃ³n -->
+<!-- MODAL edición -->
 <div class="modal fade" id="modalEdicion" tabindex="-1" role="dialog" aria-labelledby="modalEdicionLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-edicion" role="document">
         <div class="modal-content cc-modal">
@@ -111,11 +111,11 @@
                         <input type="text" class="form-control" id="txtApodo">
                     </div>
                     <div class="col-md-6">
-                        <label for="txtUbicacion" class="form-label">UbicaciÃ³n</label>
+                        <label for="txtUbicacion" class="form-label">Ubicación</label>
                         <input type="text" class="form-control" id="txtUbicacion">
                     </div>
                     <div class="col-md-6">
-                        <label for="txtTelefono" class="form-label">TelÃ©fono</label>
+                        <label for="txtTelefono" class="form-label">Teléfono</label>
                         <input type="text" class="form-control" id="txtTelefono">
                     </div>
                 </form>

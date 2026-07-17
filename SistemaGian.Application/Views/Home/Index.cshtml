@@ -1,4 +1,4 @@
-﻿@{
+@{
     ViewData["Title"] = "Sistema de Gestion";
     Layout = null;
 }
@@ -22,8 +22,8 @@
     @*<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-LUfwmPel+Fu+sGprUURlOB3Jv3EE6l/BKrJ8rBN3tOSl2l+3uxGg6XZem8uf6Fdi" crossorigin="anonymous">*@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link href="~/css/site.css" rel="stylesheet" />
-    <link href="~/css/home.css" rel="stylesheet" />
-    <link href="~/css/redisenopantallas.css?v=1.0" rel="stylesheet" />
+    <link href="~/css/home.css" rel="stylesheet" asp-append-version="true" />
+    <link href="~/css/redisenopantallas.css?v=1.2" rel="stylesheet" />
     <link href="~/css/navbarLogin.css?v=1.1" rel="stylesheet" />
 
 
@@ -53,61 +53,85 @@
 
         <div class="row">
 
-            <!-- Columna del menú -->
+            <!-- Columna del men? -->
             <div class="col-lg-12">
                 <div class="card">
                     <div class="card-body">
-                        <div class="row row-cols-md-1 row-cols-lg-6 g-4">
+                        <div class="home-menu-toolbar" role="search" aria-label="Buscador de secciones del men&uacute;">
+                            <label class="visually-hidden" for="homeMenuSearch">Buscar secci&oacute;n</label>
+                            <div class="home-menu-search-field">
+                                <i class="fa fa-search home-menu-search-field__icon" aria-hidden="true"></i>
+                                <input type="search"
+                                       id="homeMenuSearch"
+                                       class="home-menu-search-field__input"
+                                       placeholder="Buscar secci&oacute;n: pedidos, clientes, reportes..."
+                                       autocomplete="off"
+                                       spellcheck="false" />
+                                <button type="button"
+                                        class="home-menu-search-field__clear"
+                                        id="homeMenuSearchClear"
+                                        title="Limpiar b&uacute;squeda"
+                                        aria-label="Limpiar b&uacute;squeda"
+                                        hidden>
+                                    <i class="fa fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <p id="homeMenuSearchEmpty" class="home-menu-search-empty" hidden>
+                            No hay secciones que coincidan.
+                        </p>
 
-                            <div class="col">
+                        <div id="homeMenuGrid" class="row row-cols-md-1 row-cols-lg-6 g-4 home-menu-grid">
+
+                            <div class="col home-menu-item">
                                 <div class="d-flex flex-column align-items-center">
                                     <img src="~/Imagenes/Menu Principal/Nuevo Pedido.png" class="img-fluid max-img-size" alt="Nuevo Pedido" title="Nuevo Pedido">
-                                    <button type="button" class="btn mt-2 btnMenu" onclick="window.location.href='@Url.Action("NuevoModif", "Pedidos")'">Nuevo Pedido</button>
+                                    <a class="btn mt-2 btnMenu" href="@Url.Action("NuevoModif", "Pedidos")">Nuevo Pedido</a>
                                 </div>
                             </div>
-                            <div class="col">
+                            <div class="col home-menu-item">
                                 <div class="d-flex flex-column align-items-center">
                                     <img src="~/Imagenes/Menu Principal/Pedidos.png" class="img-fluid max-img-size" alt="Pedidos" title="Pedidos">
-                                    <button type="button" class="btn mt-2 btnMenu" onclick="window.location.href='@Url.Action("Index", "Pedidos")'">Pedidos</button>
+                                    <a class="btn mt-2 btnMenu" href="@Url.Action("Index", "Pedidos")">Pedidos</a>
                                 </div>
                             </div>
-                            <div class="col">
+                            <div class="col home-menu-item">
                                 <div class="d-flex flex-column align-items-center">
                                     <img src="~/Imagenes/Menu Principal/Ventas.png" class="img-fluid max-img-size" alt="Ventas" title="Ventas">
-                                    <button type="button" class="btn mt-2 btnMenu" onclick="window.location.href='@Url.Action("Index", "Ventas")'">Ventas</button>
+                                    <a class="btn mt-2 btnMenu" href="@Url.Action("Index", "Ventas")">Ventas</a>
                                 </div>
                             </div>
-                            <div class="col">
+                            <div class="col home-menu-item">
                                 <div class="d-flex flex-column align-items-center">
                                     <img src="~/Imagenes/Menu Principal/Lista Productos.png" class="img-fluid max-img-size" alt="Lista de Productos" title="Lista de Productos">
-                                    <button type="button" class="btn mt-2 btnMenu" onclick="window.location.href='@Url.Action("Index", "Productos")'">Lista de Productos</button>
+                                    <a class="btn mt-2 btnMenu" href="@Url.Action("Index", "Productos")">Lista de Productos</a>
                                 </div>
                             </div>
-                            <div class="col">
+                            <div class="col home-menu-item">
                                 <div class="d-flex flex-column align-items-center">
                                     <img src="~/Imagenes/Menu Principal/Clientes.png" class="img-fluid max-img-size" alt="Lista de Clientes" title="Lista de Clientes">
-                                    <button type="button" class="btn mt-2 btnMenu" onclick="window.location.href='@Url.Action("Index", "Clientes")'">Lista de Clientes</button>
+                                    <a class="btn mt-2 btnMenu" href="@Url.Action("Index", "Clientes")">Lista de Clientes</a>
                                 </div>
                             </div>
-                            <div class="col">
+                            <div class="col home-menu-item">
                                 <div class="d-flex flex-column align-items-center">
                                     <img src="~/Imagenes/Menu Principal/Lista Proveedores.png" class="img-fluid max-img-size" alt="Lista de Proveedores" title="Lista de Proveedores">
-                                    <button type="button" class="btn mt-2 btnMenu" onclick="window.location.href='@Url.Action("Index", "Proveedores")'">Lista de Proveedores</button>
+                                    <a class="btn mt-2 btnMenu" href="@Url.Action("Index", "Proveedores")">Lista de Proveedores</a>
                                 </div>
                             </div>
-                            <div class="col">
+                            <div class="col home-menu-item">
                                 <div class="d-flex flex-column align-items-center">
                                     <img src="~/Imagenes/Menu Principal/Choferes.png" class="img-fluid max-img-size" alt="Lista de Choferes" title="Lista de Choferes">
-                                    <button type="button" class="btn mt-2 btnMenu" onclick="window.location.href='@Url.Action("Index", "Choferes")'">Lista de Choferes</button>
+                                    <a class="btn mt-2 btnMenu" href="@Url.Action("Index", "Choferes")">Lista de Choferes</a>
                                 </div>
                             </div>
 
 
 
-                            <div class="col">
+                            <div class="col home-menu-item">
                                 <div class="d-flex flex-column align-items-center">
                                     <img src="~/Imagenes/Menu Principal/Productos.png" class="img-fluid max-img-size" alt="Nuevo Producto" title="Nuevo Producto">
-                                    <button type="button" class="btn mt-2 btnMenu" onclick="errorModal('Opcion deshabilitada momentaneamente, crearlo desde el listado de productos')">Nuevo Producto</button>
+                                    <button type="button" class="btn mt-2 btnMenu" onclick="nuevoProducto()">Nuevo Producto</button>
                                 </div>
                             </div>
 
@@ -119,92 +143,91 @@
                             </div>
  *@
 
-                            <div class="col">
+                            <div class="col home-menu-item">
                                 <div class="d-flex flex-column align-items-center">
                                     <img src="~/Imagenes/Menu Principal/Nuevo Cliente.png" class="img-fluid max-img-size" alt="Nuevo Cliente" title="Nuevo Cliente">
                                     <button type="button" class="btn mt-2 btnMenu" onclick="nuevoCliente()">Nuevo Cliente</button>
                                 </div>
                             </div>
 
-                            <div class="col">
+                            <div class="col home-menu-item">
                                 <div class="d-flex flex-column align-items-center">
                                     <img src="~/Imagenes/Menu Principal/Proveedor.png" class="img-fluid max-img-size" alt="Nuevo Proveedor" title="Nuevo Proveedor">
                                     <button type="button" class="btn mt-2 btnMenu " onclick="nuevoProveedor()">Nuevo Proveedor</button>
                                 </div>
                             </div>
 
-                            <div class="col">
+                            <div class="col home-menu-item">
                                 <div class="d-flex flex-column align-items-center">
                                     <img src="~/Imagenes/Menu Principal/Chofer.png" class="img-fluid max-img-size" alt="Nuevo Chofer" title="Nuevo Chofer">
                                     <button type="button" class="btn mt-2 btnMenu" onclick="nuevoChofer()">Nuevo Chofer</button>
                                 </div>
                             </div>
-                            <div class="col">
+                            <div class="col home-menu-item">
                                 <div class="d-flex flex-column align-items-center">
                                     <img src="~/Imagenes/Menu Principal/historialPrecios.png" class="img-fluid max-img-size" alt="Historial de Precios" title="Historial de Precios">
-                                    <button type="button" class="btn mt-2 btnMenu" onclick="window.location.href='@Url.Action("Index", "HistorialPrecios")'">Historial de Precios</button>
+                                    <a class="btn mt-2 btnMenu" href="@Url.Action("Index", "HistorialPrecios")">Historial de Precios</a>
                                 </div>
                             </div>
-                            <div class="col">
+                            <div class="col home-menu-item">
                                 <div class="d-flex flex-column align-items-center">
                                     <img src="~/Imagenes/Menu Principal/Monedas.png" class="img-fluid max-img-size" alt="Monedas" title="Monedas">
-                                    <button type="button" class="btn mt-2 btnMenu" onclick="window.location.href='@Url.Action("Index", "Monedas")'">Monedas</button>
+                                    <a class="btn mt-2 btnMenu" href="@Url.Action("Index", "Monedas")">Monedas</a>
                                 </div>
                             </div>
-                            <div class="col">
+                            <div class="col home-menu-item">
                                 <div class="d-flex flex-column align-items-center">
                                     <img src="~/Imagenes/Menu Principal/Zonas.png" class="img-fluid max-img-size" alt="Lista de Zonas" title="Lista de Zonas">
-                                    <button type="button" class="btn mt-2 btnMenu" onclick="window.location.href='@Url.Action("Index", "Zonas")'">Lista de Zonas</button>
+                                    <a class="btn mt-2 btnMenu" href="@Url.Action("Index", "Zonas")">Lista de Zonas</a>
                                 </div>
                             </div>
-                            <div class="col">
+                            <div class="col home-menu-item">
                                 <div class="d-flex flex-column align-items-center">
                                     <img src="~/Imagenes/Menu Principal/Nueva Zona.png" class="img-fluid max-img-size" alt="Nueva Zona" title="Nueva Zona">
                                     <button type="button" class="btn mt-2 btnMenu" onclick="nuevaZona()">Nueva Zona</button>
                                 </div>
                             </div>
 
-                            <div class="col">
+                            <div class="col home-menu-item">
                                 <div class="d-flex flex-column align-items-center">
                                     <img src="~/Imagenes/Menu Principal/Usuarios.png" class="img-fluid max-img-size" alt="Lista de Usuarios" title="Lista de Usuarios">
-                                    <button type="button" class="btn mt-2 btnMenu" onclick="window.location.href='@Url.Action("Index", "Usuarios")'">Lista de Usuarios</button>
+                                    <a class="btn mt-2 btnMenu" href="@Url.Action("Index", "Usuarios")">Lista de Usuarios</a>
                                 </div>
                             </div>
 
-                            <div class="col">
+                            <div class="col home-menu-item">
                                 <div class="d-flex flex-column align-items-center">
                                     <img src="~/Imagenes/Menu Principal/Nuevo Usuario.png" class="img-fluid max-img-size" alt="Nuevo Usuario" title="Nuevo Usuario">
                                     <button type="button" class="btn mt-2 btnMenu" onclick="nuevoUsuario()">Nuevo Usuario</button>
                                 </div>
                             </div>
 
-                            <div class="col">
+                            <div class="col home-menu-item">
                                 <div class="d-flex flex-column align-items-center">
                                     <img src="~/Imagenes/Menu Principal/Acopio.png" class="img-fluid max-img-size" alt="Acopio Historial" title="Acopio Historial">
-                                    <button type="button" class="btn mt-2 btnMenu" onclick="window.location.href='@Url.Action("Index", "AcopioHistorial")'">Movimientos Acopio</button>
+                                    <a class="btn mt-2 btnMenu" href="@Url.Action("Index", "AcopioHistorial")">Movimientos Acopio</a>
                                 </div>
                             </div>
 
 
-                            <div class="col">
+                            <div class="col home-menu-item">
                                 <div class="d-flex flex-column align-items-center">
                                     <img src="~/Imagenes/Menu Principal/Gastos.png" class="img-fluid max-img-size" alt="Gastos" title="Gastos">
-                                    <button type="button" class="btn mt-2 btnMenu" onclick="window.location.href='@Url.Action("Index", "Gastos")'">Gastos</button>
+                                    <a class="btn mt-2 btnMenu" href="@Url.Action("Index", "Gastos")">Gastos</a>
                                 </div>
                             </div>
 
 
-                            <div class="col">
+                            <div class="col home-menu-item">
                                 <div class="d-flex flex-column align-items-center">
                                     <img src="~/Imagenes/Menu Principal/Configuraciones.png" class="img-fluid max-img-size" alt="Configuraciones" title="Configuraciones">
                                     <button type="button" class="btn mt-2 btnMenu" onclick="abrirConfiguraciones()">Configuraciones</button>
                                 </div>
                             </div>
-                            <div class="col">
+                            <div class="col home-menu-item">
                                 <div class="d-flex flex-column align-items-center">
-                                    <img src="~/Imagenes/Menu Principal/Analisis.png" class="img-fluid max-img-size" alt="Analisis de Datos" title="Analisis de Datos">
-                                    <button type="button" class="btn mt-2 btnMenu" onclick="errorModal('El analisis de datos no se encuentra disponible en este momento.')">Analisis de Datos</button>
-
+                                    <img src="~/Imagenes/Menu Principal/Analisis.png" class="img-fluid max-img-size" alt="Reportes" title="Reportes">
+                                    <a class="btn mt-2 btnMenu" href="@Url.Action("Index", "Reportes")">Reportes</a>
                                 </div>
                             </div>
                         </div>
@@ -215,7 +238,7 @@
     </div>
 
 
-    <!-- Modal Configuraciones (lista/edición) -->
+    <!-- Modal Configuraciones (lista/edici?n) -->
     <div class="modal fade theme-indigo" id="modalConfiguracion" tabindex="-1" aria-labelledby="modalConfiguracionLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content modal-config shadow-lg border-0 rounded-3">
@@ -223,14 +246,14 @@
                 <!-- Header -->
                 <div class="modal-header">
                     <h5 class="modal-title fw-bold" id="modalConfiguracionLabel">
-                        <i class="fa fa-cogs me-2"></i> Configuración
+                        <i class="fa fa-cogs me-2"></i> Configuraci?n
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
 
                 <!-- Body -->
                 <div class="modal-body">
-                    <!-- Mensaje vacío (mismo id que el tuyo) -->
+                    <!-- Mensaje vac?o (mismo id que el tuyo) -->
                     <div id="lblListaVacia" class="alert alert-warning text-center py-2 mb-3" hidden>No hay resultados.</div>
 
                     <!-- Contenedor lista + buscador -->
@@ -243,19 +266,19 @@
                                    oninput="filtrarConfiguracionesLocal(this.value)">
                         </div>
 
-                        <!-- Lista dinámica (mismo id que el tuyo) -->
+                        <!-- Lista din?mica (mismo id que el tuyo) -->
                         <div id="configuracion-list" class="config-list">
-                            <!-- Ítems dinámicos -->
+                            <!-- ?tems din?micos -->
                         </div>
                     </div>
 
-                    <!-- Formulario de edición (mismos ids que usás) -->
+                    <!-- Formulario de edici?n (mismos ids que us?s) -->
                     <div id="contenedorNombreConfiguracion" class="mt-4" hidden>
                         <label for="txtNombreConfiguracion" class="form-label fw-bold">Nombre</label>
                         <input type="text" class="form-control" id="txtNombreConfiguracion" required>
                         <input type="hidden" id="txtIdConfiguracion">
 
-                        <!-- Combo extra genérico (queda oculto si no lo usás) -->
+                        <!-- Combo extra gen?rico (queda oculto si no lo us?s) -->
                         <div id="divConfiguracionCombo" class="mt-3" hidden>
                             <label id="lblConfiguracionCombo" for="cmbConfiguracion" class="form-label fw-bold"></label>
                             <select class="form-select" id="cmbConfiguracion" required>
@@ -281,7 +304,7 @@
                 <!-- Footer -->
                 <div class="modal-footer d-flex justify-content-between">
                     <button id="agregarConfiguracion" class="btn btn-primary" onclick="agregarConfiguracion()">
-                        <i class="fa fa-plus me-1"></i> Añadir
+                        <i class="fa fa-plus me-1"></i> A?adir
                     </button>
                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" onclick="abrirConfiguraciones()">
                         <i class="fa fa-times me-1"></i> Cerrar
@@ -307,14 +330,14 @@
                     <!-- Grid responsiva: 1/2/3/4 columnas -->
                     <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-3" id="gridConfiguraciones">
 
-                        <!-- Ejemplos: adapta tus opciones acá -->
+                        <!-- Ejemplos: adapta tus opciones ac? -->
                         <div class="col">
                             <button type="button" class="config-card w-100"
                                     onclick="abrirConfiguracion('Categoria', 'Categorias')"
                                     data-label="Categoria" data-table="Categorias">
                                 <img src="/Imagenes/Categorias.png" alt="" class="config-card__img" loading="lazy">
-                                <span class="config-card__title">Categorías</span>
-                                <span class="config-card__subtitle">Organiza tu catálogo</span>
+                                <span class="config-card__title">Categor?as</span>
+                                <span class="config-card__subtitle">Organiza tu cat?logo</span>
                             </button>
                         </div>
 
@@ -324,7 +347,7 @@
                                     data-label="Marca" data-table="Marcas">
                                 <img src="/Imagenes/Marcas.png" alt="" class="config-card__img" loading="lazy">
                                 <span class="config-card__title">Marcas</span>
-                                <span class="config-card__subtitle">Alta, edición y baja</span>
+                                <span class="config-card__subtitle">Alta, edici?n y baja</span>
                             </button>
                         </div>
 
@@ -359,7 +382,7 @@
                         </div>
 
 
-                        <!-- Agregá más items como necesites, copiando la tarjeta -->
+                        <!-- Agreg? m?s items como necesites, copiando la tarjeta -->
                     </div>
                 </div>
 
@@ -390,12 +413,12 @@
                         </div>
 
                         <div class="col-md-6">
-                            <label for="txtTelefonoCliente" class="form-label">Teléfono</label>
+                            <label for="txtTelefonoCliente" class="form-label">Tel?fono</label>
                             <input type="text" class="form-control" id="txtTelefonoCliente">
                         </div>
 
                         <div class="col-md-6">
-                            <label for="txtDireccionCliente" class="form-label">Dirección</label>
+                            <label for="txtDireccionCliente" class="form-label">Direcci?n</label>
                             <input type="text" class="form-control" id="txtDireccionCliente">
                         </div>
 
@@ -462,12 +485,12 @@
                         </div>
 
                         <div class="col-md-4">
-                            <label for="txtTelefonoUsuario" class="form-label">Teléfono</label>
+                            <label for="txtTelefonoUsuario" class="form-label">Tel?fono</label>
                             <input type="text" class="form-control" id="txtTelefonoUsuario">
                         </div>
 
                         <div class="col-md-4">
-                            <label for="txtDireccionUsuario" class="form-label">Dirección</label>
+                            <label for="txtDireccionUsuario" class="form-label">Direcci?n</label>
                             <input type="text" class="form-control" id="txtDireccionUsuario">
                         </div>
 
@@ -486,7 +509,7 @@
                         </div>
 
                         <div class="col-md-4">
-                            <label for="txtContrasenaUsuario" class="form-label">Contraseña</label>
+                            <label for="txtContrasenaUsuario" class="form-label">Contrase?a</label>
                             <input type="password" class="form-control" id="txtContrasenaUsuario">
                         </div>
 
@@ -526,12 +549,12 @@
                         </div>
 
                         <div class="col-md-6">
-                            <label for="txtUbicacionProveedor" class="form-label">Ubicación</label>
+                            <label for="txtUbicacionProveedor" class="form-label">Ubicaci?n</label>
                             <input type="text" class="form-control" id="txtUbicacionProveedor">
                         </div>
 
                         <div class="col-md-6">
-                            <label for="txtTelefonoProveedor" class="form-label">Teléfono</label>
+                            <label for="txtTelefonoProveedor" class="form-label">Tel?fono</label>
                             <input type="text" class="form-control" id="txtTelefonoProveedor">
                         </div>
                     </form>
@@ -563,12 +586,12 @@
                         </div>
 
                         <div class="col-md-6">
-                            <label for="txtTelefonoChofer" class="form-label">Teléfono</label>
+                            <label for="txtTelefonoChofer" class="form-label">Tel?fono</label>
                             <input type="text" class="form-control" id="txtTelefonoChofer">
                         </div>
 
                         <div class="col-md-12">
-                            <label for="txtDireccionChofer" class="form-label">Dirección</label>
+                            <label for="txtDireccionChofer" class="form-label">Direcci?n</label>
                             <input type="text" class="form-control" id="txtDireccionChofer">
                         </div>
                     </form>
@@ -615,97 +638,14 @@
         </div>
     </div>
 
-    <!-- Modal Productos -->
-    <div class="modal fade" id="modalEdicionProductos" tabindex="-1" role="dialog" aria-labelledby="modalEdicionProductosLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-edicion" role="document">
-            <div class="modal-content">
-                <div class="modal-header colorEncabezado">
-                    <h5 class="modal-title fw-bold" id="modalEdicionProductosLabel">Nuevo Producto</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-                </div>
-
-                <div class="modal-body">
-                    <form id="formEdicionProducto" class="row g-3">
-
-                        <input type="text" id="txtId" hidden readonly>
-                        <input type="text" id="txtActivo" hidden readonly>
-
-                        <div class="col-md-3">
-                            <label id="lblDescripcion" for="txtDescripcionProducto" class="form-label">Descripción (*)</label>
-                            <input type="text" class="form-control" id="txtDescripcionProducto" required>
-                        </div>
-
-                        <div class="col-md-3">
-                            <label for="MarcasProducto" class="form-label">Marca (*)</label>
-                            <select id="MarcasProducto" class="form-control">
-                                <option value="" selected>Marca</option>
-                            </select>
-                        </div>
-
-                        <div class="col-md-3">
-                            <label for="CategoriasProducto" class="form-label">Categoría (*)</label>
-                            <select id="CategoriasProducto" class="form-control">
-                                <option value="" selected>Categoría</option>
-                            </select>
-                        </div>
-
-                        <div class="col-md-3">
-                            <label for="UnidadesDeMedidasProducto" class="form-label">Unidad de Medida (*)</label>
-                            <select id="UnidadesDeMedidasProducto" class="form-control">
-                                <option value="" selected>Unidad de Medida</option>
-                            </select>
-                        </div>
-
-                        <div class="col-md-3" hidden>
-                            <label id="lblProductoCantidad" for="txtProductoCantidad" class="form-label">Cantidad</label>
-                            <input type="number" class="form-control" id="txtProductoCantidad" required>
-                        </div>
-
-                        <div class="col-md-3">
-                            <label for="MonedasProducto" class="form-label">Moneda (*)</label>
-                            <select id="MonedasProducto" class="form-control">
-                                <option value="" selected>Moneda</option>
-                            </select>
-                        </div>
-
-                        <div class="col-md-3">
-                            <label id="lblPrecioCostoProducto" for="txtPrecioCostoProducto" class="form-label">Precio Costo U. (*)</label>
-                            <input type="number" class="form-control" id="txtPrecioCostoProducto" required step="0.01">
-                        </div>
-
-                        <div class="col-md-3">
-                            <label id="lblPorcentajeGananciaProducto" for="txtPorcentajeGananciaProducto" class="form-label">Porc. Ganancia (*)</label>
-                            <input type="number" class="form-control" id="txtPorcentajeGananciaProducto" required step="0.01">
-                        </div>
-
-                        <div class="col-md-3">
-                            <label id="lblPrecioVentaProducto" for="txtPrecioVentaProducto" class="form-label">Precio Venta U.</label>
-                            <input type="number" class="form-control" id="txtPrecioVentaProducto" step="0.01">
-                        </div>
-
-                        <div class="col-md-3" hidden>
-                            <label id="lblTotalProducto" for="txtTotalProducto" class="form-label">Total</label>
-                            <input type="number" class="form-control" id="txtTotalProducto" step="0.01" value="0" readonly>
-                        </div>
-
-                    </form>
-                </div>
-
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                    <button type="button" id="btnGuardarProducto" class="btn btn-primary" onclick="registrarProducto()">Registrar</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-
+    <partial name="~/Views/Shared/Partials/m_productos.cshtml" />
     <partial name="~/Views/Utils/Modals.cshtml" />
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/home.js?v=1.5"></script>
     <script src="~/js/site.js"></script>
+    <script src="~/js/m_productos.js" asp-append-version="true"></script>
+    <script src="~/js/home.js?v=1.9"></script>
 
 </body>
 </html>

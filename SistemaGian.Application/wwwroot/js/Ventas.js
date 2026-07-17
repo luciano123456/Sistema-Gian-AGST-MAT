@@ -1,4 +1,4 @@
-﻿let gridventas;
+let gridventas;
 
 const columnConfig = [
     { index: 0, filterType: 'text' },
@@ -184,47 +184,11 @@ async function configurarDataTable(data) {
                 
             ],
             dom: 'Bfrtip',
-            buttons: [
-                {
-                    extend: 'excelHtml5',
-                    text: 'Exportar Excel',
-                    filename: 'Reporte Pedidos',
-                    title: '',
-                    exportOptions: {
-                        columns: function (idx, data, node) {
-                            const columnasPermitidas = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-                            return columnasPermitidas.includes(idx) && $(node).is(':visible');
-                        }
-                    },
-                    className: 'btn-exportar-excel',
-                },
-                {
-                    extend: 'pdfHtml5',
-                    text: 'Exportar PDF',
-                    filename: 'Reporte pedidos',
-                    title: '',
-                    exportOptions: {
-                        columns: function (idx, data, node) {
-                            const columnasPermitidas = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-                            return columnasPermitidas.includes(idx) && $(node).is(':visible');
-                        }
-                    },
-                    className: 'btn-exportar-pdf',
-                },
-                {
-                    extend: 'print',
-                    text: 'Imprimir',
-                    title: '',
-                    exportOptions: {
-                        columns: function (idx, data, node) {
-                            const columnasPermitidas = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-                            return columnasPermitidas.includes(idx) && $(node).is(':visible');
-                        }
-                    },
-                    className: 'btn-exportar-print'
-                },
-                'pageLength'
-            ],
+            buttons: SistemaExport.botonesDataTable({
+                titulo: 'Ventas',
+                archivo: 'ventas',
+                columnas: (idx) => idx > 0
+            }),
             orderCellsTop: true,
             fixedHeader: true,
 
@@ -302,34 +266,9 @@ async function configurarDataTable(data) {
                     gridventas.columns.adjust();
                 }, 10);
 
-                // Cambiar el cursor a 'pointer' cuando pase sobre cualquier fila o columna
-                $('#grd_ventas tbody').on('mouseenter', 'tr', function () {
-                    $(this).css('cursor', 'pointer');
-                });
-
-                // Doble clic para ejecutar la función editarPedido(id)
                 $('#grd_ventas tbody').on('dblclick', 'tr', function () {
-                    var id = gridventas.row(this).data().Id; // Obtener el ID de la fila seleccionada
-                    editarPedido(id); // Llamar a la función de editar
-                });
-
-             
-                let filaSeleccionada = null; // Variable para almacenar la fila seleccionada
-                $('#grd_ventas tbody').on('click', 'tr', function () {
-                    // Remover la clase de la fila anteriormente seleccionada
-                    if (filaSeleccionada) {
-                        $(filaSeleccionada).removeClass('seleccionada');
-                        $('td', filaSeleccionada).removeClass('seleccionada');
-
-                    }
-
-                    // Obtener la fila actual
-                    filaSeleccionada = $(this);
-
-                    // Agregar la clase a la fila actual
-                    $(filaSeleccionada).addClass('seleccionada');
-                    $('td', filaSeleccionada).addClass('seleccionada');
-
+                    var id = gridventas.row(this).data().Id;
+                    editarPedido(id);
                 });
 
 

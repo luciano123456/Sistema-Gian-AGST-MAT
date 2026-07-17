@@ -244,27 +244,126 @@ namespace SistemaGian.DAL.Repository
             }
         }
 
-        public async Task<List<ProductosPreciosHistorial>> ObtenerUltimosPreciosProductoFecha(int idProducto, int idProveedor, DateTime FechaDesde, DateTime FechaHasta)
+        public async Task<List<ProductosPreciosHistorial>> ObtenerUltimosPreciosProductoFecha(int idProducto, int idProveedor, int idCliente, DateTime FechaDesde, DateTime FechaHasta)
         {
             try
             {
-                // Ajustar FechaHasta al final del día
                 FechaHasta = FechaHasta.Date.AddDays(1).AddTicks(-1);
 
-                var historialPrecios = await _dbcontext.ProductosPreciosHistorial
+                var query = _dbcontext.ProductosPreciosHistorial
                     .Include(p => p.IdProductoNavigation)
-                    .Where(x => x.IdProveedor == idProveedor && x.IdCliente == null
-                                && x.IdProducto == idProducto
-                                && x.Fecha >= FechaDesde
-                                && x.Fecha <= FechaHasta)
-                    .ToListAsync();
+                    .Where(x => x.Fecha >= FechaDesde && x.Fecha <= FechaHasta);
 
-                return historialPrecios;
+                if (idProducto > 0)
+                    query = query.Where(x => x.IdProducto == idProducto);
+
+                if (idProveedor > 0)
+                    query = query.Where(x => x.IdProveedor == idProveedor);
+
+                if (idCliente > 0)
+                    query = query.Where(x => x.IdCliente == idCliente);
+                else
+                    query = query.Where(x => x.IdCliente == null);
+
+                return await query.ToListAsync();
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error al obtener los últimos precios: {ex.Message}");
                 throw;
+            }
+        }
+
+        public async Task<bool> RevertirPrecioAsync(int idHistorial, string tipo)
+        {
+            await using var trx = await _dbcontext.Database.BeginTransactionAsync();
+            try
+            {
+                var historial = await _dbcontext.ProductosPreciosHistorial
+                    .FirstOrDefaultAsync(x => x.Id == idHistorial);
+                if (historial == null)
+                    return false;
+
+                var revertirCosto = string.Equals(tipo, "costo", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(tipo, "ambos", StringComparison.OrdinalIgnoreCase);
+                var revertirVenta = string.Equals(tipo, "venta", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(tipo, "ambos", StringComparison.OrdinalIgnoreCase);
+
+                if (!revertirCosto && !revertirVenta)
+                    return false;
+
+                decimal costoAntes;
+                decimal ventaAntes;
+                decimal porcNuevo;
+
+                if (historial.IdCliente.HasValue && historial.IdCliente > 0)
+                {
+                    var precioCliente = await _dbcontext.ProductosPreciosClientes
+                        .FirstOrDefaultAsync(x => x.IdProducto == historial.IdProducto
+                            && x.IdProveedor == historial.IdProveedor
+                            && x.IdCliente == historial.IdCliente);
+                    if (precioCliente == null)
+                        return false;
+
+                    costoAntes = precioCliente.PCosto;
+                    ventaAntes = precioCliente.PVenta;
+
+                    if (revertirCosto) precioCliente.PCosto = historial.PCostoAnterior;
+                    if (revertirVenta) precioCliente.PVenta = historial.PVentaAnterior;
+                    if (precioCliente.PCosto > 0)
+                        precioCliente.PorcGanancia = ((precioCliente.PVenta - precioCliente.PCosto) / precioCliente.PCosto) * 100;
+
+                    porcNuevo = precioCliente.PorcGanancia;
+                    precioCliente.FechaActualizacion = DateTime.Now;
+                }
+                else if (historial.IdProveedor.HasValue && historial.IdProveedor > 0)
+                {
+                    var precioProveedor = await _dbcontext.ProductosPreciosProveedores
+                        .FirstOrDefaultAsync(x => x.IdProducto == historial.IdProducto
+                            && x.IdProveedor == historial.IdProveedor);
+                    if (precioProveedor == null)
+                        return false;
+
+                    costoAntes = precioProveedor.PCosto;
+                    ventaAntes = precioProveedor.PVenta;
+
+                    if (revertirCosto) precioProveedor.PCosto = historial.PCostoAnterior;
+                    if (revertirVenta) precioProveedor.PVenta = historial.PVentaAnterior;
+                    if (precioProveedor.PCosto > 0)
+                        precioProveedor.PorcGanancia = ((precioProveedor.PVenta - precioProveedor.PCosto) / precioProveedor.PCosto) * 100;
+
+                    porcNuevo = precioProveedor.PorcGanancia;
+                    precioProveedor.FechaActualizacion = DateTime.Now;
+                }
+                else
+                {
+                    return false;
+                }
+
+                _dbcontext.ProductosPreciosHistorial.Add(new ProductosPreciosHistorial
+                {
+                    IdProducto = historial.IdProducto,
+                    IdProveedor = historial.IdProveedor,
+                    IdCliente = historial.IdCliente,
+                    Fecha = DateTime.Now,
+                    PCostoAnterior = costoAntes,
+                    PCostoNuevo = revertirCosto ? historial.PCostoAnterior : costoAntes,
+                    PVentaAnterior = ventaAntes,
+                    PVentaNuevo = revertirVenta ? historial.PVentaAnterior : ventaAntes,
+                    PorcGananciaAnterior = historial.PorGananciaNuevo,
+                    PorGananciaNuevo = porcNuevo,
+                    ProductoCantidad = historial.ProductoCantidad
+                });
+
+                await _dbcontext.SaveChangesAsync();
+                await trx.CommitAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                await trx.RollbackAsync();
+                Console.WriteLine($"RevertirPrecioAsync: {ex.Message}");
+                return false;
             }
         }
 

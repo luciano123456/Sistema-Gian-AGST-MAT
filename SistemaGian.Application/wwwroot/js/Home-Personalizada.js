@@ -1,4 +1,4 @@
-﻿/************************************************************
+/************************************************************
  * HOME – JS
  * - DnD secciones con guía visual (insert/swap) y ajuste de "Configuraciones"
  * - Tiles: DnD solo dentro de su tarjeta
@@ -71,7 +71,6 @@ function refreshFavorites() {
         // NO heredar estilos de sección
         clone.removeAttribute('style');
         clone.querySelector('.tile-handle')?.remove();
-        clone.addEventListener('click', () => tpl.click());
         const star = document.createElement('i'); star.className = 'fa fa-star fav-rank';
         clone.insertBefore(star, clone.firstChild);
         clone.classList.add(ix === 0 ? 'rank-1' : ix === 1 ? 'rank-2' : ix === 2 ? 'rank-3' : 'rank-4');
@@ -587,7 +586,10 @@ function bindTileDnD() {
             dragging = false;
         };
 
-        handle?.addEventListener('pointerdown', startDrag);
+        handle?.addEventListener('pointerdown', (e) => {
+            if (e.button !== 0) return;
+            startDrag(e);
+        });
         handle?.addEventListener('click', e => e.preventDefault());
         tile.addEventListener('click', (e) => { if (dragging) { e.preventDefault(); e.stopPropagation(); } }, true);
     });

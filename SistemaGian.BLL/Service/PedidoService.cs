@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using SistemaGian.DAL.Repository;
 using SistemaGian.Models;
 
@@ -100,5 +100,8 @@ namespace SistemaGian.BLL.Service
         {
             return await _contactRepo.ObtenerUltimoNroRemito();
         }
+
+        public Task<bool> ExisteNroRemitoAsync(string nroRemito, int? excluirIdPedido = null)
+            => _contactRepo.ExisteNroRemitoAsync(nroRemito, excluirIdPedido);
     }
 }

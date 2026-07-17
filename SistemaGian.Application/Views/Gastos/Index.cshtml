@@ -1,4 +1,4 @@
-ï»¿@using Microsoft.Extensions.Configuration
+@using Microsoft.Extensions.Configuration
 @inject IConfiguration Configuration
 
 @{
@@ -18,7 +18,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
 
     <!-- Estilo base (igual Pedidos / Zonas) -->
-    <link rel="stylesheet" href="~/css/redisenopantallas.css?v=1.0" />
+    <link rel="stylesheet" href="~/css/redisenopantallas.css?v=1.2" />
     <link rel="stylesheet" href="~/css/pedidos.css?v=1.0" />
 }
 
@@ -33,7 +33,7 @@
                 <span class="cc-badge"><i class="fa fa-money"></i></span>
                 <div>
                     <h2 class="m-0 fw-800">Gastos</h2>
-                    <small class="text-muted-cc">Registro y anÃ¡lisis</small>
+                    <small class="text-muted-cc">Registro y análisis</small>
                 </div>
             </div>
 
@@ -114,7 +114,7 @@
                                     <th>Tipo</th>
                                     <th>Moneda</th>
                                     <th>Importe</th>
-                                    <th>CotizaciÃ³n</th>
+                                    <th>Cotización</th>
                                     <th>Importe ARS</th>
                                     <th>Concepto</th>
                                 </tr>
@@ -146,21 +146,21 @@
                          class="text-center text-muted py-4 d-none">
                         <i class="fa fa-info-circle me-2"></i>
                         No hay datos para mostrar
-                        <div><small>ProbÃ¡ cambiar los filtros</small></div>
+                        <div><small>Probá cambiar los filtros</small></div>
                     </div>
 
                     <div id="dashboardResumen" class="row g-3">
-                        <!-- Cards dinÃ¡micas por moneda / tipo -->
+                        <!-- Cards dinámicas por moneda / tipo -->
                     </div>
 
                     <div class="row g-4 mt-4" id="wrapAnaliticaMensual">
 
-                        <!-- EVOLUCIÃ“N MENSUAL -->
+                        <!-- EVOLUCIÓN MENSUAL -->
                         <div class="col-lg-8">
                             <div class="card-glass p-4 h-100">
                                 <h5 class="fw-800 mb-3">
                                     <i class="fa fa-line-chart me-2"></i>
-                                    EvoluciÃ³n mensual de gastos
+                                    Evolución mensual de gastos
                                 </h5>
                                 <canvas id="chartGastosMes"></canvas>
                             </div>
@@ -172,13 +172,13 @@
 
                                 <div class="cc-stat">
                                     <div class="label">Mes con mayor gasto</div>
-                                    <div class="value" id="mesMayorGasto">â€”</div>
+                                    <div class="value" id="mesMayorGasto">—</div>
                                     <small id="mesMayorMonto"></small>
                                 </div>
 
                                 <div class="cc-stat">
                                     <div class="label">Mes con menor gasto</div>
-                                    <div class="value" id="mesMenorGasto">â€”</div>
+                                    <div class="value" id="mesMenorGasto">—</div>
                                     <small id="mesMenorMonto"></small>
                                 </div>
 
@@ -194,7 +194,7 @@
                             <div class="card-glass p-4">
                                 <h5 class="fw-800 mb-3">
                                     <i class="fa fa-pie-chart me-2"></i>
-                                    DistribuciÃ³n por tipo de gasto
+                                    Distribución por tipo de gasto
                                 </h5>
                                 <canvas id="chartTiposGasto"></canvas>
                             </div>
@@ -256,7 +256,7 @@
                     </div>
 
                             <div class="col-md-4 d-none" id="wrapCotizacion">
-                        <label class="form-label">CotizaciÃ³n</label>
+                        <label class="form-label">Cotización</label>
                         <input type="text" id="gastoCotizacion" class="form-control">
                     </div>
 
@@ -297,10 +297,10 @@
     <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.print.min.js"></script>
     <script src="https://cdn.datatables.net/fixedheader/3.2.2/js/dataTables.fixedHeader.min.js"></script>
 
-    <!-- âœ… GRÃFICOS -->
+    <!-- ? GRÁFICOS -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
-    <!-- âœ… PDF -->
+    <!-- ? PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <!-- (opcional para meter charts al PDF como imagen) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -309,7 +309,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment-with-locales.min.js"></script>
 
 
-    <!-- JS DEL MÃ“DULO -->
+    <!-- JS DEL MÓDULO -->
     <script src="~/js/gastos.js?v=1.1"></script>
 }
 

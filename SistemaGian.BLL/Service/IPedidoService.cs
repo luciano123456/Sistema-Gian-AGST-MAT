@@ -1,4 +1,4 @@
-﻿using SistemaGian.DAL.DataContext;
+using SistemaGian.DAL.DataContext;
 using SistemaGian.DAL.Repository;
 using SistemaGian.Models;
 
@@ -23,5 +23,6 @@ namespace SistemaGian.BLL.Service
         Task<bool> EliminarPagoProveedor(int idPago);
         Task<IQueryable<Pedido>> ObtenerTodos();
         Task<int> ObtenerUltimoNroRemito();
+        Task<bool> ExisteNroRemitoAsync(string nroRemito, int? excluirIdPedido = null);
     }
 }
