@@ -91,8 +91,13 @@
                 el.setAttribute('title', detalle || (estado === 'EnCurso'
                     ? 'Tenés un recorrido en curso'
                     : 'Tenés un recorrido pendiente'));
-                if (estado === 'EnCurso' && el.tagName === 'A' && enCursoId) {
-                    el.setAttribute('href', '/Recorridos?abrir=' + encodeURIComponent(enCursoId));
+                if (estado === 'EnCurso' && enCursoId) {
+                    const href = '/Recorridos?abrir=' + encodeURIComponent(enCursoId);
+                    if (el.tagName === 'A') {
+                        el.setAttribute('href', href);
+                    } else if (el.tagName === 'BUTTON') {
+                        el.setAttribute('onclick', "window.location.href='" + href + "'");
+                    }
                 }
             } else {
                 el.removeAttribute('title');
@@ -113,19 +118,6 @@
 
         const wrap = document.getElementById('homeRecorridosWrap');
         if (wrap) wrap.classList.toggle('rec-home-wrap-active', !!activo);
-
-        document.querySelectorAll('[data-fab], .fab-wrap').forEach(fab => {
-            fab.classList.toggle('rec-fab-active', !!activo && estado === 'EnCurso');
-            const main = fab.querySelector('.fab-main');
-            if (main) {
-                if (activo && estado === 'EnCurso') {
-                    main.setAttribute('data-rec-badge', 'EN CURSO');
-                    main.setAttribute('title', detalle || 'Tenés un recorrido en curso');
-                } else {
-                    main.removeAttribute('data-rec-badge');
-                }
-            }
-        });
     }
 
     function setChipVisible(visible) {

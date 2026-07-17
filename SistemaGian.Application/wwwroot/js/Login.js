@@ -1,4 +1,4 @@
-﻿$(document).ready(function () {
+$(document).ready(function () {
 
     // Verificar si el usuario tiene credenciales guardadas
     if (localStorage.getItem('rememberMe') === 'true') {
@@ -13,10 +13,19 @@
     $("#loginForm").on("submit", function (event) {
         event.preventDefault(); // Evitar el envío tradicional del formulario
 
+        var $btn = $("#btnIngresar");
+        if ($btn.prop("disabled")) return;
+
         var username = $("#username").val(); // Obtener el nombre de usuario
         var password = $("#password").val(); // Obtener la contraseña
         var token = $('input[name="__RequestVerificationToken"]').val(); // Obtener token CSRF
         var rememberMe = $("#rememberMe").prop('checked'); // Obtener el estado del checkbox
+
+        function setLoading(on) {
+            $btn.toggleClass("is-loading", !!on);
+            $btn.prop("disabled", !!on);
+            $btn.attr("aria-busy", on ? "true" : "false");
+        }
 
         // Crear el objeto de datos para enviar
         var data = {
@@ -24,6 +33,8 @@
             Contrasena: password,
             __RequestVerificationToken: token // Enviar el token CSRF
         };
+
+        setLoading(true);
 
         fetch(loginUrl, { // Aquí usamos la variable generada por Razor
             method: 'POST',
@@ -61,26 +72,25 @@
                     // Redirigir a la página principal
                     localStorage.setItem('userSession', JSON.stringify(data.user)); // Guardar el usuario
 
+                    // Dejar el loading activo hasta navegar
                     redirigirSegunMenu();
                 } else {
+                    setLoading(false);
                     // Mostrar el mensaje de error
-                    $(document).ready(function () {
-                        // Mostrar el mensaje de error
-                        $("#errorMessage").text(data.message).show(); // Establecer el mensaje
-                        $("#diverrorMessage").show(); // Mostrar el div
+                    $("#errorMessage").text(data.message).show(); // Establecer el mensaje
+                    $("#diverrorMessage").show(); // Mostrar el div
 
-                        // Ocultar el div después de 3 segundos
-                        setTimeout(function () {
-                            $("#diverrorMessage").fadeOut();
-                        }, 3000); // 3000 milisegundos = 3 segundos
-                    });
-
-
+                    // Ocultar el div después de 3 segundos
+                    setTimeout(function () {
+                        $("#diverrorMessage").fadeOut();
+                    }, 3000); // 3000 milisegundos = 3 segundos
                 }
             })
             .catch(error => {
+                setLoading(false);
                 console.error("Error: " + error);
                 $("#errorMessage").text("Hubo un problema al procesar la solicitud. Error: " + error).show();
+                $("#diverrorMessage").show();
             });
     });
 });

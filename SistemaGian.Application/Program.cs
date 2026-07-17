@@ -96,6 +96,9 @@ builder.Services.AddScoped<IGastosService, GastosService>();
 builder.Services.AddScoped<IRecorridosRepository, RecorridosRepository>();
 builder.Services.AddScoped<IRecorridosService, RecorridosService>();
 
+builder.Services.AddScoped<IReportesRepository, ReportesRepository>();
+builder.Services.AddScoped<IReportesService, ReportesService>();
+
 
 
 builder.Services.AddControllersWithViews()
