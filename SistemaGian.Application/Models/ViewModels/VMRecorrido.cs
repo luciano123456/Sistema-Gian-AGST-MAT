@@ -101,6 +101,7 @@ public class VMRecorridoPendiente
     public string? Estado { get; set; }
     public int CantidadParadas { get; set; }
     public int ParadasPendientes { get; set; }
+    public int? ProximaParadaId { get; set; }
     public string? ProximaParadaNombre { get; set; }
     public string? ProximaParadaTipo { get; set; }
     public decimal? ProximaLat { get; set; }

@@ -154,7 +154,7 @@ function limpiarUbicacionCliente() {
         el.classList.remove('is-set');
         el.innerHTML = '<span><i class="fa fa-crosshairs"></i> Sin ubicación</span>';
     }
-    $('#cliMapHint').text('Tocá el mapa o buscá una dirección para ubicar al cliente');
+    $('#cliMapHint').text('Tocá el mapa o buscá una dirección para ubicar');
 }
 
 function usarMiUbicacionCliente() {
@@ -182,23 +182,49 @@ function syncClienteMapFromInputs() {
         clienteMap.setZoom(16);
         const addr = $('#txtDireccionMaps').val();
         if (addr) actualizarCoordsUI(lat, lng, addr);
-    } else if (clienteMap) {
+        return;
+    }
+
+    // Sin coords: sacar marcador del registro anterior
+    if (clienteMarker) {
+        clienteMarker.setVisible(false);
+        try { clienteMarker.setPosition(DEFAULT_CENTER); } catch { /* ignore */ }
+    }
+    if (clienteMap) {
         clienteMap.setCenter(DEFAULT_CENTER);
         clienteMap.setZoom(12);
     }
+    const el = document.getElementById('cliMapCoords');
+    if (el) {
+        el.classList.remove('is-set');
+        el.innerHTML = '<span><i class="fa fa-crosshairs"></i> Sin ubicación</span>';
+    }
+    const hint = document.getElementById('cliMapHint');
+    if (hint) hint.textContent = 'Tocá el mapa o buscá una dirección para ubicar';
 }
 
 function cargarUbicacionEnModal(modelo) {
-    const lat = modelo.Latitud ?? modelo.latitud;
-    const lng = modelo.Longitud ?? modelo.longitud;
-    $('#txtLatitud').val(lat != null ? lat : '');
-    $('#txtLongitud').val(lng != null ? lng : '');
-    $('#txtPlaceId').val(modelo.PlaceId ?? modelo.placeId ?? '');
-    $('#txtDireccionMaps').val(modelo.DireccionMaps ?? modelo.direccionMaps ?? '');
-    $('#txtBuscarMaps').val(modelo.DireccionMaps ?? modelo.direccionMaps ?? modelo.Direccion ?? '');
+    const lat = modelo?.Latitud ?? modelo?.latitud;
+    const lng = modelo?.Longitud ?? modelo?.longitud;
+    const hasCoords = lat != null && lng != null
+        && String(lat).trim() !== '' && String(lng).trim() !== ''
+        && !isNaN(Number(lat)) && !isNaN(Number(lng));
+
+    if (!hasCoords) {
+        // Limpia pin/inputs del anterior antes de pintar este (sin ubicación)
+        limpiarUbicacionCliente();
+        $('#txtBuscarMaps').val('');
+    } else {
+        $('#txtLatitud').val(lat);
+        $('#txtLongitud').val(lng);
+        $('#txtPlaceId').val(modelo.PlaceId ?? modelo.placeId ?? '');
+        $('#txtDireccionMaps').val(modelo.DireccionMaps ?? modelo.direccionMaps ?? '');
+        $('#txtBuscarMaps').val(modelo.DireccionMaps ?? modelo.direccionMaps ?? modelo.Direccion ?? modelo.Ubicacion ?? '');
+    }
 
     if (clienteMapReady) {
         setTimeout(() => {
+            if (!clienteMap) return;
             google.maps.event.trigger(clienteMap, 'resize');
             syncClienteMapFromInputs();
         }, 250);

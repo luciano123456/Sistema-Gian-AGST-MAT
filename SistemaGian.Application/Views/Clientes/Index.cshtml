@@ -1,4 +1,4 @@
-﻿@using Microsoft.Extensions.Configuration
+@using Microsoft.Extensions.Configuration
 @inject IConfiguration Configuration
 
 @{
@@ -24,6 +24,7 @@
     <link href="~/css/clientes.css" rel="stylesheet" />
     <link href="~/css/RedisenoPantallas.css" rel="stylesheet" />
     <link href="~/css/ClientesMapa.css?v=1.1" rel="stylesheet" />
+    <link href="~/css/VisitasAlert.css?v=1.4" rel="stylesheet" />
 }
 
 
@@ -75,6 +76,17 @@
         </div>
     </div>
 
+    <div class="sv-banner" id="svBanner" hidden>
+        <div class="sv-banner-icon"><i class="fa fa-exclamation-triangle"></i></div>
+        <div class="sv-banner-text">
+            <strong id="svBannerTitle">Tenés clientes sin visitar</strong>
+            <span id="svBannerSub">Sin visita en los últimos 30 días</span>
+        </div>
+        <button type="button" class="sv-btn" id="svBannerBtn">
+            <i class="fa fa-eye me-1"></i> Ver más información
+        </button>
+    </div>
+
     <!-- Tarjeta / Tabla estilo “glass” -->
     <div class="row g-4">
         <div class="col-12">
@@ -101,6 +113,39 @@
                     </div>
                 </div><!-- /tabla-wrap -->
             </div><!-- /card-glass -->
+        </div>
+    </div>
+</div>
+
+<partial name="~/Views/Shared/Partials/VisitasResumenModal.cshtml" />
+
+<!-- Modal: clientes/proveedores sin visita reciente -->
+<div class="modal fade sv-modal" id="svModal" tabindex="-1" aria-labelledby="svModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <p class="sv-modal-kicker">Seguimiento</p>
+                    <h5 class="modal-title" id="svModalTitle">Clientes sin visitar</h5>
+                    <p class="modal-sub" id="svModalSub">Última visita hace más de 30 días, o nunca visitados.</p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <div class="sv-tools">
+                    <div class="sv-tools-search">
+                        <i class="fa fa-search"></i>
+                        <input type="search" id="svFiltro" placeholder="Buscar por nombre, dirección, teléfono..." />
+                    </div>
+                    <span class="sv-chip" id="svChipCount">0 clientes</span>
+                    <span class="sv-chip" id="svChipVisible" hidden></span>
+                </div>
+                <div class="sv-list" id="svModalBody"></div>
+            </div>
+            <div class="modal-footer">
+                <a class="btn btn-outline-primary" href="/Recorridos"><i class="fa fa-map me-1"></i> Ir a Recorridos</a>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
         </div>
     </div>
 </div>
@@ -448,8 +493,12 @@
     <script src="https://cdn.datatables.net/fixedheader/3.2.2/js/dataTables.fixedHeader.min.js"></script>
 
     <script src="~/js/utils/moment.js"></script>
-    <script src="~/js/clientes.js?v=1.8"></script>
-    <script src="~/js/ClientesMapa.js?v=1.2"></script>
+    <script>
+        window.__esAdminRecorridos = @(ViewBag.EsAdminRecorridos == true ? "true" : "false");
+    </script>
+    <script src="~/js/VisitasAlert.js?v=1.2"></script>
+    <script src="~/js/clientes.js?v=1.11"></script>
+    <script src="~/js/ClientesMapa.js?v=1.3"></script>
     <script>
         window.__googleMapsApiKey = '@(Configuration["GoogleMaps:ApiKey"] ?? "")';
         (function loadMaps() {
@@ -464,6 +513,9 @@
             s.src = 'https://maps.googleapis.com/maps/api/js?key=' + encodeURIComponent(key) + '&libraries=places&callback=initClienteMap';
             document.head.appendChild(s);
         })();
+        document.addEventListener('DOMContentLoaded', function () {
+            if (window.VisitasAlert) window.VisitasAlert.init({ tipo: 'Cliente' });
+        });
     </script>
 
 }

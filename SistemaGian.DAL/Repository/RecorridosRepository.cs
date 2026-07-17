@@ -140,15 +140,22 @@ public class RecorridosRepository : IRecorridosRepository
         return true;
     }
 
-    public async Task<bool> ActualizarParadaEstado(int idParada, string estadoParada)
+    public async Task<bool> ActualizarParadaEstado(int idParada, string estadoParada, string? notas = null)
     {
         var p = await _db.RecorridosParadas.FirstOrDefaultAsync(x => x.Id == idParada);
         if (p == null) return false;
 
         p.EstadoParada = estadoParada;
-        p.FechaVisitada = estadoParada == "Visitada" ? DateTime.Now : p.FechaVisitada;
+        if (estadoParada == "Visitada") p.FechaVisitada = DateTime.Now;
+        if (estadoParada == "Omitida") p.FechaOmitida = DateTime.Now;
+        if (!string.IsNullOrWhiteSpace(notas)) p.Notas = notas.Trim();
         await _db.SaveChangesAsync();
         return true;
+    }
+
+    public async Task<RecorridoParada?> ObtenerParada(int idParada)
+    {
+        return await _db.RecorridosParadas.AsNoTracking().FirstOrDefaultAsync(x => x.Id == idParada);
     }
 
     public async Task RegistrarEvento(int? idRecorrido, int idUsuario, string tipo, string mensaje)
@@ -263,6 +270,22 @@ public class RecorridosRepository : IRecorridosRepository
         return true;
     }
 
+    public async Task<bool> Eliminar(int id)
+    {
+        var r = await _db.Recorridos
+            .Include(x => x.Paradas)
+            .FirstOrDefaultAsync(x => x.Id == id);
+        if (r == null) return false;
+
+        if (r.Paradas?.Count > 0)
+            _db.RecorridosParadas.RemoveRange(r.Paradas);
+
+        // Eventos quedan con IdRecorrido null (FK SetNull)
+        _db.Recorridos.Remove(r);
+        await _db.SaveChangesAsync();
+        return true;
+    }
+
     public async Task<bool> MarcarPlantillaPredeterminada(int id, int idUsuario)
     {
         var plantillas = await _db.RecorridosPlantillas.Where(p => p.IdUsuario == idUsuario).ToListAsync();
@@ -290,5 +313,101 @@ public class RecorridosRepository : IRecorridosRepository
             .Where(p => p.Latitud != null && p.Longitud != null)
             .OrderBy(p => p.Nombre)
             .ToListAsync();
+    }
+
+    public async Task<List<(int Id, int Dias7, int Dias15, int Dias30)>> ResumenVisitas(string tipoEntidad)
+    {
+        var esProveedor = string.Equals(tipoEntidad, "Proveedor", StringComparison.OrdinalIgnoreCase);
+        var ahora = DateTime.Now;
+        var d7 = ahora.AddDays(-7);
+        var d15 = ahora.AddDays(-15);
+        var d30 = ahora.AddDays(-30);
+
+        var filas = await _db.RecorridosParadas
+            .AsNoTracking()
+            .Include(p => p.IdRecorridoNavigation)
+            .Where(p => p.EstadoParada == "Visitada"
+                && (esProveedor ? p.IdProveedor != null : p.IdCliente != null))
+            .Select(p => new
+            {
+                Id = esProveedor ? p.IdProveedor!.Value : p.IdCliente!.Value,
+                Fecha = p.FechaVisitada
+                    ?? p.IdRecorridoNavigation.FechaFin
+                    ?? p.IdRecorridoNavigation.FechaInicio
+                    ?? p.IdRecorridoNavigation.FechaCreacion
+            })
+            .ToListAsync();
+
+        return filas
+            .GroupBy(x => x.Id)
+            .Select(g => (
+                g.Key,
+                g.Count(x => x.Fecha >= d7),
+                g.Count(x => x.Fecha >= d15),
+                g.Count(x => x.Fecha >= d30)
+            ))
+            .Where(x => x.Item2 > 0 || x.Item3 > 0 || x.Item4 > 0)
+            .OrderBy(x => x.Item1)
+            .ToList();
+    }
+
+    public async Task<List<(int Id, string Nombre, string? Direccion, string? Localidad, string? Telefono, DateTime? UltimaVisita)>> SinVisitaReciente(string tipoEntidad, int dias = 30)
+    {
+        var esProveedor = string.Equals(tipoEntidad, "Proveedor", StringComparison.OrdinalIgnoreCase);
+        var limite = DateTime.Now.AddDays(-Math.Abs(dias <= 0 ? 30 : dias));
+
+        var visitas = await _db.RecorridosParadas
+            .AsNoTracking()
+            .Include(p => p.IdRecorridoNavigation)
+            .Where(p => p.EstadoParada == "Visitada"
+                && (esProveedor ? p.IdProveedor != null : p.IdCliente != null))
+            .Select(p => new
+            {
+                Id = esProveedor ? p.IdProveedor!.Value : p.IdCliente!.Value,
+                Fecha = p.FechaVisitada
+                    ?? p.IdRecorridoNavigation.FechaFin
+                    ?? p.IdRecorridoNavigation.FechaInicio
+                    ?? p.IdRecorridoNavigation.FechaCreacion
+            })
+            .ToListAsync();
+
+        var ultimaPorId = visitas
+            .GroupBy(x => x.Id)
+            .ToDictionary(g => g.Key, g => g.Max(x => x.Fecha));
+
+        if (esProveedor)
+        {
+            var proveedores = await _db.Proveedores
+                .AsNoTracking()
+                .Select(p => new { p.Id, p.Nombre, Direccion = p.DireccionMaps ?? p.Ubicacion, Localidad = (string?)null, p.Telefono })
+                .ToListAsync();
+
+            return proveedores
+                .Select(p =>
+                {
+                    DateTime? ultima = ultimaPorId.TryGetValue(p.Id, out var f) ? f : null;
+                    return (p.Id, p.Nombre, p.Direccion, p.Localidad, p.Telefono, ultima);
+                })
+                .Where(x => !x.ultima.HasValue || x.ultima.Value < limite)
+                .OrderBy(x => x.ultima ?? DateTime.MinValue)
+                .ThenBy(x => x.Nombre)
+                .ToList();
+        }
+
+        var clientes = await _db.Clientes
+            .AsNoTracking()
+            .Select(c => new { c.Id, c.Nombre, Direccion = c.DireccionMaps ?? c.Direccion, c.Localidad, c.Telefono })
+            .ToListAsync();
+
+        return clientes
+            .Select(c =>
+            {
+                DateTime? ultima = ultimaPorId.TryGetValue(c.Id, out var f) ? f : null;
+                return (c.Id, c.Nombre, c.Direccion, c.Localidad, c.Telefono, ultima);
+            })
+            .Where(x => !x.ultima.HasValue || x.ultima.Value < limite)
+            .OrderBy(x => x.ultima ?? DateTime.MinValue)
+            .ThenBy(x => x.Nombre)
+            .ToList();
     }
 }

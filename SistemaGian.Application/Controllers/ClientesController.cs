@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using SistemaGian.Application.Hubs;
@@ -39,6 +39,7 @@ namespace SistemaGian.Application.Controllers
                 {
                     return RedirectToAction("Index", "Home");
                 }
+                ViewBag.EsAdminRecorridos = userSession.IdRol == 1;
             }
             return View();
         }

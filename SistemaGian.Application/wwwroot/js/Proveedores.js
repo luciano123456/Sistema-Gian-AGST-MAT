@@ -1,4 +1,4 @@
-﻿let gridProveedores;
+let gridProveedores;
 let isEditing = false;
 
 
@@ -107,11 +107,14 @@ async function mostrarModal(modelo) {
         $(`#txt${campo}`).val(modelo[campo]);
     });
 
+    // Asegurar que al editar siempre se limpie el estado previo del mapa
     if (typeof cargarUbicacionEnModal === 'function') {
         cargarUbicacionEnModal({
             ...modelo,
             DireccionMaps: modelo.DireccionMaps || modelo.Ubicacion
         });
+    } else if (typeof limpiarUbicacionCliente === 'function') {
+        limpiarUbicacionCliente();
     }
 
     $('#modalEdicion').modal('show');
@@ -137,7 +140,41 @@ async function listaProveedores() {
     const url = `/Proveedores/Lista`;
     const response = await fetch(url);
     const data = await response.json();
+    if (window.__esAdminRecorridos) {
+        try {
+            const resVis = await fetch('/Recorridos/ResumenVisitas?tipo=Proveedor');
+            if (resVis.ok) {
+                const visitas = await resVis.json();
+                window.__visitasProveedores = {};
+                (visitas || []).forEach(v => {
+                    const id = v.id ?? v.Id;
+                    window.__visitasProveedores[id] = {
+                        dias7: v.dias7 ?? v.Dias7 ?? 0,
+                        dias15: v.dias15 ?? v.Dias15 ?? 0,
+                        dias30: v.dias30 ?? v.Dias30 ?? 0
+                    };
+                });
+            }
+        } catch (e) {
+            console.warn('No se pudo cargar resumen de visitas', e);
+        }
+    }
     await configurarDataTable(data);
+}
+
+function verInfoVisitasProveedor(id, nombre) {
+    const s = (window.__visitasProveedores || {})[id] || { dias7: 0, dias15: 0, dias30: 0 };
+    if (window.VisitasAlert?.showResumen) {
+        window.VisitasAlert.showResumen({ nombre: nombre || 'Proveedor', tipo: 'Proveedor', stats: s });
+        return;
+    }
+    const vez = (n) => (Number(n) === 1 ? '1 vez' : (Number(n) || 0) + ' veces');
+    alert(
+        (nombre || 'Proveedor') + '\n\n' +
+        'En los últimos 7 días se lo visitó ' + vez(s.dias7) + '.\n' +
+        'En los últimos 15 días se lo visitó ' + vez(s.dias15) + '.\n' +
+        'En los últimos 30 días se lo visitó ' + vez(s.dias30) + '.'
+    );
 }
 
 const editarProveedor = id => {
@@ -218,7 +255,19 @@ async function configurarDataTable(data) {
                     orderable: false,
                     searchable: false,
                 },
-                { data: 'Nombre' },
+                {
+                    data: 'Nombre',
+                    render: function (data, type, row) {
+                        if (type !== 'display') return data;
+                        const id = row.Id ?? row.id;
+                        const s = window.__esAdminRecorridos ? (window.__visitasProveedores || {})[id] : null;
+                        if (!s) return data;
+                        const safeName = String(data || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+                        return `${data} <i class="fa fa-info-circle text-info ms-1" style="cursor:pointer"
+                            title="Visitas recientes en recorridos"
+                            onclick="event.stopPropagation();verInfoVisitasProveedor(${id}, '${safeName}')"></i>`;
+                    }
+                },
                 { data: 'Apodo' },
                 {
                     data: function (row) {
