@@ -216,17 +216,23 @@ window.SistemaExportReportes = (function () {
     }
 
     function headersProductos(variante) {
-        const colPrecio = variante === 'proveedor' ? 'Precio costo' : 'Precio venta';
-        return ['Producto', 'Unidad', 'Cantidad', 'Prod. cant.', colPrecio, 'Importe'];
+        return ['Producto', 'Unidad', 'Cantidad', 'Prod. cant.', 'Precio costo', 'Precio venta', 'Importe'];
     }
 
     function valoresProducto(pr, variante) {
-        const precio = variante === 'proveedor' ? pr.precioCosto : pr.precioVenta;
         let cant = Number(pr.cantidad) || 0;
         if (Number(pr.cantidadUsadaAcopio) > 0) {
             cant += Number(pr.cantidadUsadaAcopio);
         }
-        return [pr.producto, pr.unidad, cant, pr.productoCantidad, precio, pr.importe];
+        return [
+            pr.producto,
+            pr.unidad,
+            cant,
+            pr.productoCantidad,
+            Number(pr.precioCosto) || 0,
+            Number(pr.precioVenta) || 0,
+            pr.importe
+        ];
     }
 
     function escribirCelda(ws, row, col, valor, estilo, opts = {}) {
@@ -446,8 +452,8 @@ window.SistemaExportReportes = (function () {
                     ws.getRow(r).outlineLevel = 2;
                     r++;
                 });
-                escribirCelda(ws, r, 5, 'Total productos', ST.productRow);
-                escribirCelda(ws, r, 6, sumImp, ST.productRow, { money: true });
+                escribirCelda(ws, r, 6, 'Total productos', ST.productRow);
+                escribirCelda(ws, r, 7, sumImp, ST.productRow, { money: true });
                 ws.getRow(r).outlineLevel = 2;
                 r++;
             }
@@ -642,8 +648,8 @@ body{font-family:Segoe UI,Calibri,Arial,sans-serif;color:${C.txt};margin:0;paddi
                 <td>${esc(pr.unidad)}</td>
                 <td class="text-end">${esc(cant)}</td>
                 <td class="text-end">${esc(fmtNum(pr.productoCantidad))}</td>
-                <td class="text-end">${esc(fmtMoney(pr.precioVenta))}</td>
                 <td class="text-end">${esc(fmtMoney(pr.precioCosto))}</td>
+                <td class="text-end">${esc(fmtMoney(pr.precioVenta))}</td>
                 <td class="text-end"><strong>${esc(fmtMoney(imp))}</strong></td>
             </tr>`;
         });
@@ -651,7 +657,7 @@ body{font-family:Segoe UI,Calibri,Arial,sans-serif;color:${C.txt};margin:0;paddi
             <thead><tr>
                 <th>Producto</th><th>Unidad</th>
                 <th class="text-end">Cantidad</th><th class="text-end">Prod. cant.</th>
-                <th class="text-end">Precio venta</th><th class="text-end">Precio costo</th>
+                <th class="text-end">Precio costo</th><th class="text-end">Precio venta</th>
                 <th class="text-end">Importe</th>
             </tr></thead>
             <tbody>${body}</tbody>
@@ -767,20 +773,20 @@ body{font-family:Segoe UI,Calibri,Arial,sans-serif;color:${C.txt};margin:0;paddi
             if (Number(pr.cantidadUsadaAcopio) > 0) {
                 cant += ` (+${fmtNum(pr.cantidadUsadaAcopio)} ac.)`;
             }
-            const precio = variante === 'proveedor' ? pr.precioCosto : pr.precioVenta;
             return [
                 pr.producto || '',
                 pr.unidad || '',
                 cant,
                 fmtNum(pr.productoCantidad),
-                fmtMoney(precio),
+                fmtMoney(pr.precioCosto),
+                fmtMoney(pr.precioVenta),
                 fmtMoney(pr.importe)
             ];
         });
         let sum = 0;
         (prods || []).forEach(pr => { sum += Number(pr.importe) || 0; });
         if (rows.length) {
-            rows.push(['', '', '', '', 'Total productos', fmtMoney(sum)]);
+            rows.push(['', '', '', '', '', 'Total productos', fmtMoney(sum)]);
         }
         return { hdrs, rows, sum };
     }

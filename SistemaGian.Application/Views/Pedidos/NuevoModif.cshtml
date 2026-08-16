@@ -14,7 +14,7 @@
     <link href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" rel="stylesheet" />
 
     <!-- SKIN NUEVO (igual que tu otro sistema) -->
-        <link href="~/css/PedidosNuevoModif.css?v=1.0" rel="stylesheet" />
+        <link href="~/css/PedidosNuevoModif.css?v=1.2" rel="stylesheet" />
     <link href="~/css/redisenopantallas.css?v=1.2" rel="stylesheet" />
 }
 
@@ -460,8 +460,7 @@
 
 <!-- ================ MODAL: PRODUCTO ================= -->
 <div class="modal fade" id="productosModal" tabindex="-1" role="dialog" aria-labelledby="productosModalLabel" aria-hidden="true" data-editing="false">
-    <div class="modal-dialog modal-xxl modal-dialog-centered modal-dialog-scrollable">
-        <!-- ← antes era modal-xl -->
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content cc-modal cc-modal--elevated">
 
             <div class="modal-header cc-modal-header">
@@ -472,14 +471,11 @@
                 <button type="button" class="btn-close custom-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
 
-            <!-- SACÁ p-0 o dejalo, el CSS de abajo ya agrega padding -->
             <div class="modal-body">
-                <!-- Agrego el modificador de una sola columna -->
                 <div class="cc-modal-grid cc-modal-grid--single">
                     <div class="cc-pane">
                         <div class="cc-pane-title">Detalle del producto</div>
 
-                        <!-- ids ocultos -->
                         <input type="text" class="form-control" id="ProductoModalId" hidden>
                         <input type="text" class="form-control" id="ProductoEditandoModalId" hidden>
 
@@ -487,6 +483,21 @@
                             <div class="cc-field full">
                                 <label class="form-label">Producto</label>
                                 <select id="productoSelect" class="form-control"></select>
+                            </div>
+
+                            <div class="cc-field full">
+                                <label class="form-label">Historial de Costos</label>
+                                <select id="costoSelect" class="form-control"></select>
+                            </div>
+
+                            <div class="cc-field">
+                                <label for="costoInput" class="form-label">Costo Manual</label>
+                                <input type="text" id="costoInput" class="form-control" placeholder="Ingrese costo manual" step="0.01">
+                            </div>
+
+                            <div class="cc-field">
+                                <label class="form-label">Moneda</label>
+                                <select id="productoMoneda" class="form-control" disabled></select>
                             </div>
 
                             <div class="cc-field full">
@@ -501,7 +512,7 @@
 
                             <div class="cc-field">
                                 <label class="form-label">Moneda</label>
-                                <select id="productoMoneda" class="form-control" disabled></select>
+                                <input type="text" id="productoMonedaDisplay" class="form-control" readonly>
                             </div>
 
                             <div class="cc-field">
@@ -514,11 +525,10 @@
                                 <input type="text" id="precioVentaArs" class="form-control" readonly>
                             </div>
 
-                            <div class="cc-field">
+                            <div class="cc-field full">
                                 <label class="form-label">Total ARS</label>
                                 <input type="text" id="totalProductoArs" class="form-control" readonly>
                             </div>
-
 
                             <div class="cc-field">
                                 <label for="productoUnidadMedida" class="form-label">Unidad de Medida</label>
@@ -538,10 +548,10 @@
                             <div class="cc-field" id="divCantidadAcopio" hidden>
                                 <label for="cantidadAcopioInput" class="form-label">Cantidad de Acopio</label>
                                 <input type="number" id="cantidadAcopioInput" class="form-control" placeholder="0" min="0">
-                                <label id="lblStockDisponible" class="form-label text-info"></label>
+                                <label id="lblStockDisponible" class="form-label text-info mb-0"></label>
                             </div>
 
-                            <div class="cc-field">
+                            <div class="cc-field full">
                                 <label for="totalInput" class="form-label">Cantidad Total</label>
                                 <input type="text" id="totalInput" class="form-control" disabled>
                             </div>
@@ -596,7 +606,7 @@
             <!-- Footer -->
             <div class="modal-footer cc-modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                <button type="button" id="btnGuardarProducto" class="btn btn-primary" onclick="guardarProducto()">
+                <button type="button" id="btnGuardarProductoPedido" class="btn btn-primary" onclick="guardarProducto()">
                     <i class="fa fa-check me-1"></i> Añadir Producto
                 </button>
             </div>
@@ -738,7 +748,7 @@
     <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
     <script src="~/js/utils/moment.js"></script>
-    <script src="~/js/pedidosnuevomodif.js?v=4.3"></script>
+    <script src="~/js/pedidosnuevomodif.js?v=4.8"></script>
     <script src="~/js/site.js"></script>
 }
 

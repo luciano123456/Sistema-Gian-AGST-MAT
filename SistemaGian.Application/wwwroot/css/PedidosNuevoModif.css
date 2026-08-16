@@ -3029,3 +3029,51 @@ select.form-control option {
     border-color: var(--danger) !important;
     box-shadow: 0 0 0 2px rgba(255, 90, 106, 0.35);
 }
+
+/* ===== Modal Producto (Pedidos): layout compacto ===== */
+#productosModal .modal-dialog {
+    max-width: 860px;
+}
+
+#productosModal .cc-pane {
+    padding: 12px 14px;
+}
+
+#productosModal .cc-pane-title {
+    margin-bottom: 8px;
+    font-size: .95rem;
+}
+
+#productosModal .cc-form-producto {
+    gap: 8px 12px;
+}
+
+#productosModal .cc-form-producto .cc-field .form-label {
+    font-size: .8rem;
+    margin-bottom: .2rem;
+    font-weight: 700;
+}
+
+#productosModal .cc-form-producto .form-control,
+#productosModal .cc-form-producto .form-select {
+    min-height: 38px;
+    height: 38px;
+    padding: .35rem .65rem;
+    font-size: .9rem;
+    border-radius: 8px;
+}
+
+#productosModal .cc-modal-footer {
+    padding: 10px 14px;
+}
+
+#productosModal #lblStockDisponible {
+    font-size: .8rem;
+    margin-top: .25rem;
+}
+
+@media (max-width: 575.98px) {
+    #productosModal .cc-form-producto {
+        grid-template-columns: 1fr;
+    }
+}
