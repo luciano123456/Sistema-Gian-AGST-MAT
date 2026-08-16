@@ -125,32 +125,6 @@
 
 .rec-chip-btn[hidden] { display: none !important; }
 
-/* FAB Inicio marcado */
-.fab-wrap.rec-fab-active .fab-main,
-[data-fab].rec-fab-active .fab-main {
-    position: relative;
-    background: linear-gradient(135deg, #f59e0b, #ea580c) !important;
-    color: #1c1004 !important;
-    box-shadow: 0 0 0 3px rgba(245, 158, 11, .55), 0 10px 28px rgba(245, 158, 11, .4) !important;
-    animation: recHomePulse 1.8s ease-in-out infinite;
-}
-.fab-wrap.rec-fab-active .fab-main::after,
-[data-fab].rec-fab-active .fab-main::after {
-    content: attr(data-rec-badge);
-    position: absolute;
-    top: -8px;
-    right: -8px;
-    font-size: .62rem;
-    font-weight: 800;
-    letter-spacing: .02em;
-    padding: 3px 6px;
-    border-radius: 999px;
-    background: #111827;
-    color: #fde68a;
-    box-shadow: 0 4px 12px rgba(0,0,0,.35);
-    white-space: nowrap;
-}
-
 @keyframes recPulse {
     0% { box-shadow: 0 0 0 0 rgba(251, 191, 36, .65); }
     70% { box-shadow: 0 0 0 12px rgba(251, 191, 36, 0); }

@@ -168,7 +168,7 @@ const ProductoModal = (function () {
         limpiarModal();
         await cargarCombos();
         habilitarCamposNuevo();
-        $('#btnGuardarProducto').text('Registrar');
+        $modal().find('#btnGuardarProducto').text('Registrar');
         $('#modalEdicionLabel').text('Nuevo Producto');
         asignarCamposObligatorios();
         $modal().modal('show');
@@ -209,7 +209,7 @@ const ProductoModal = (function () {
         $('#txtTotal').val((modelo.PVenta || 0) * (modelo.ProductoCantidad || 1));
 
         actualizarProductoCantidad();
-        $('#btnGuardarProducto').text('Guardar');
+        $modal().find('#btnGuardarProducto').text('Guardar');
         $('#modalEdicionProductoLabel').text('Editar Producto');
         validarCampos();
         $modal().modal('show');
@@ -289,7 +289,7 @@ const ProductoModal = (function () {
     }
 
     function bindEvents() {
-        $('#btnGuardarProducto').off('click.productoModal').on('click.productoModal', guardar);
+        $modal().find('#btnGuardarProducto').off('click.productoModal').on('click.productoModal', guardar);
 
         $('#txtDescripcion, #txtPorcentajeGanancia').off('input.productoModal').on('input.productoModal', validarCampos);
         $('#txtPrecioCosto').off('input.productoModal').on('input.productoModal', validarCampos);

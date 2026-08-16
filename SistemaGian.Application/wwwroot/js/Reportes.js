@@ -1332,7 +1332,6 @@ function fmtCantidadDetallePedido(p) {
 }
 
 function renderDetalleProductos(det, precioVenta) {
-    const col = precioVenta ? 'Precio unit. (ARS)' : 'Precio costo (ARS)';
     const prods = det.productos || [];
     if (!prods.length) return '<div class="rpt-detail-empty">Sin productos en este pedido</div>';
 
@@ -1343,7 +1342,6 @@ function renderDetalleProductos(det, precioVenta) {
     let body = '';
     let sumImporte = 0;
     prods.forEach(p => {
-        const pr = precioVenta ? p.precioVenta : p.precioCosto;
         const factor = factorBultoDetalle(p);
         const imp = calcImporteLineaDetalle(p, precioVenta);
         sumImporte += imp;
@@ -1352,18 +1350,19 @@ function renderDetalleProductos(det, precioVenta) {
             <td>${esc(p.unidad)}</td>
             <td class="text-end">${fmtCantidadDetallePedido(p)}</td>
             <td class="text-end rpt-num">${fmtNum(factor)}</td>
-            <td class="text-end rpt-num">${fmtMoney(pr)}</td>
+            <td class="text-end rpt-num">${fmtMoney(p.precioCosto)}</td>
+            <td class="text-end rpt-num">${fmtMoney(p.precioVenta)}</td>
             <td class="text-end rpt-num"><strong>${fmtMoney(imp)}</strong></td>
         </tr>`;
     });
     body += `<tr class="rpt-detail-total-row">
-        <td colspan="5" class="text-end"><strong>Total productos</strong></td>
+        <td colspan="6" class="text-end"><strong>Total productos</strong></td>
         <td class="text-end rpt-num"><strong>${fmtMoney(sumImporte)}</strong></td>
     </tr>`;
 
     return `${meta ? `<div class="rpt-detail-header">${meta}</div>` : ''}
         ${wrapTable(
-            `<th>Producto</th><th>Unidad</th><th class="text-end">Cantidad</th><th class="text-end">Producto cantidad</th><th class="text-end">${col}</th><th class="text-end">Importe</th>`,
+            `<th>Producto</th><th>Unidad</th><th class="text-end">Cantidad</th><th class="text-end">Producto cantidad</th><th class="text-end">Precio costo (ARS)</th><th class="text-end">Precio unit. (ARS)</th><th class="text-end">Importe</th>`,
             body
         )}`;
 }

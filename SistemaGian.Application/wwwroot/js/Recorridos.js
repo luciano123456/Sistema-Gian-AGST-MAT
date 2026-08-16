@@ -170,7 +170,7 @@
     function colorMarcador(visual, tipoEntidad) {
         if (visual === 'visitada') return '#22c55e';
         if (visual === 'omitida') return '#ef4444';
-        if (visual === 'actual') return '#38bdf8';
+        if (visual === 'actual') return '#0ea5e9';
         if (visual === 'pendiente') return '#f97316';
         if (visual === 'enruta') return tipoEntidad === 'Proveedor' ? '#a855f7' : '#ef4444';
         return tipoEntidad === 'Proveedor' ? '#8b5cf6' : '#e11d48';
@@ -847,6 +847,8 @@
             updateStats();
             renderParadas();
             highlightRouteMarkers();
+            // Redibujar: primer tramo (origen → 1ª parada) en azul
+            refrescarRutaAuto();
             toast('¡Has iniciado el recorrido!', 'success');
             if (window.RecorridoBanner) window.RecorridoBanner.refresh();
             await cargarHistorial();
@@ -1104,17 +1106,88 @@
         limpiarPolylinesRuta();
     }
 
+    /** Línea tipo ruta 3D: sombra + borde + cuerpo + highlight. */
+    function pushPolyline3d(path, color, opts = {}) {
+        if (!path?.length || !state.map) return;
+        const weight = opts.weight || 7;
+        const z = opts.zIndex || 2;
+        const edge = opts.edgeColor || shadeColor(color, -45);
+        const glow = opts.glowColor || shadeColor(color, 55);
+
+        // Sombra (piso)
+        state.routePolylines.push(new google.maps.Polyline({
+            path,
+            map: state.map,
+            geodesic: true,
+            strokeColor: '#000000',
+            strokeOpacity: 0.45,
+            strokeWeight: weight + 8,
+            zIndex: z
+        }));
+        // Borde oscuro
+        state.routePolylines.push(new google.maps.Polyline({
+            path,
+            map: state.map,
+            geodesic: true,
+            strokeColor: edge,
+            strokeOpacity: 0.95,
+            strokeWeight: weight + 3,
+            zIndex: z + 1
+        }));
+        // Cuerpo
+        state.routePolylines.push(new google.maps.Polyline({
+            path,
+            map: state.map,
+            geodesic: true,
+            strokeColor: color,
+            strokeOpacity: 1,
+            strokeWeight: weight,
+            zIndex: z + 2
+        }));
+        // Brillo central (relieve)
+        state.routePolylines.push(new google.maps.Polyline({
+            path,
+            map: state.map,
+            geodesic: true,
+            strokeColor: glow,
+            strokeOpacity: 0.75,
+            strokeWeight: Math.max(2, Math.round(weight * 0.35)),
+            zIndex: z + 3
+        }));
+    }
+
+    function shadeColor(hex, percent) {
+        const h = String(hex || '#888888').replace('#', '');
+        if (h.length !== 6) return hex;
+        const num = parseInt(h, 16);
+        let r = (num >> 16) & 255;
+        let g = (num >> 8) & 255;
+        let b = num & 255;
+        const t = percent < 0 ? 0 : 255;
+        const p = Math.abs(percent) / 100;
+        r = Math.round((t - r) * p + r);
+        g = Math.round((t - g) * p + g);
+        b = Math.round((t - b) * p + b);
+        return '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
+    }
+
     function pintarRutaColoreada(result) {
         limpiarPolylinesRuta();
         if (!result?.routes?.[0]?.legs?.length || !state.map) return;
 
         const legs = result.routes[0].legs;
-        // legs[i] llega a state.paradas[i]
+        const idxActual = indiceParadaActual();
+
+        // legs[i] = tramo que llega a la parada i
+        // En curso:
+        //  - 1ª parada pendiente: azul desde ORIGEN → cliente/proveedor
+        //  - siguientes: azul desde último visitado/omitido → actual
         legs.forEach((leg, i) => {
             const parada = state.paradas[i];
-            const est = (parada && (parada.estadoParada || '')) || '';
-            const visitada = est === 'Visitada';
-            const omitida = est === 'Omitida';
+            const visual = parada ? visualParada(parada, i) : 'pendiente';
+            const esTramoActual = state.estado === 'EnCurso'
+                && idxActual >= 0
+                && (visual === 'actual' || i === idxActual);
             const path = [];
             (leg.steps || []).forEach(step => {
                 (step.path || []).forEach(ll => path.push(ll));
@@ -1124,17 +1197,30 @@
             }
             if (!path.length) return;
 
-            const strokeColor = visitada ? '#22c55e' : (omitida ? '#ef4444' : '#f59e0b');
-            const poly = new google.maps.Polyline({
-                path,
-                map: state.map,
-                geodesic: true,
-                strokeColor,
-                strokeOpacity: (visitada || omitida) ? 0.95 : 0.92,
-                strokeWeight: (visitada || omitida) ? 6 : 5,
-                zIndex: visitada ? 3 : (omitida ? 4 : 2)
-            });
-            state.routePolylines.push(poly);
+            let color = '#ea580c';
+            let weight = 7;
+            let zIndex = 4;
+            let edgeColor = null;
+            let glowColor = null;
+
+            if (visual === 'visitada') {
+                color = '#22c55e';
+                weight = 7;
+                zIndex = 5;
+            } else if (visual === 'omitida') {
+                color = '#ef4444';
+                weight = 7;
+                zIndex = 6;
+            } else if (esTramoActual) {
+                // i===0 → origen→primera parada; i>0 → última resuelta→actual
+                color = '#0284c7';
+                weight = 12;
+                zIndex = 55;
+                edgeColor = '#0c4a6e';
+                glowColor = '#bae6fd';
+            }
+
+            pushPolyline3d(path, color, { weight, zIndex, edgeColor, glowColor });
         });
     }
 
@@ -1222,6 +1308,7 @@
             pintarRutaColoreada(result);
             state.lastOverviewPolyline = result.routes[0]?.overview_polyline || null;
             aplicarStatsDeRuta(result);
+            highlightRouteMarkers();
             if (!silent) toast('Ruta dibujada');
         });
     }

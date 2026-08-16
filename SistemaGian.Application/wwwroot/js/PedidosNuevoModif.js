@@ -80,7 +80,13 @@ function aplicarMonedaProducto(idMoneda) {
             .prop('readonly', false);
     }
 
+    sincronizarMonedaDisplay();
     recalcularProducto();
+}
+
+function sincronizarMonedaDisplay() {
+    const texto = $('#productoMoneda option:selected').text() || '';
+    $('#productoMonedaDisplay').val(texto);
 }
 
 
@@ -653,10 +659,17 @@ async function cargarDataTableProductos(data) {
             { data: 'Nombre', width: "15%" },
 
             // 2 Precio Costo
-            { data: 'PrecioCosto', visible: false },
+            {
+                data: 'PrecioCosto',
+                visible: true,
+                render: d => formatoMoneda.format(parseFloat(d) || 0)
+            },
 
             // 3 Precio Venta
-            { data: 'PrecioVenta' },
+            {
+                data: 'PrecioVenta',
+                render: d => formatoMoneda.format(parseFloat(d) || 0)
+            },
 
             // 4 Moneda
             {
@@ -747,9 +760,9 @@ async function cargarDataTableProductos(data) {
         columnDefs: [
             {
                 render: function (data) {
-                    return formatNumber(data);
+                    return formatNumber(parseFloat(data) || 0);
                 },
-                targets: [1, 2, 5]
+                targets: [5]
             }
         ],
 
@@ -794,12 +807,17 @@ async function anadirProducto() {
         const productoSelect = $("#productoSelect");
         const precioSelect = $("#precioSelect");
         const precioInput = $("#precioInput");
+        const costoSelect = $("#costoSelect");
+        const costoInput = $("#costoInput");
         const cantidadInput = $("#cantidadInput");
         const productoCantidadInput = $("#productoCantidad");
         const unidadMedidaInput = $("#productoUnidadMedida");
 
         productoSelect.empty();
         precioSelect.empty();
+        costoSelect.empty();
+        precioInput.val('');
+        costoInput.val('');
         productoCantidadInput.empty();
         unidadMedidaInput.empty();
 
@@ -837,7 +855,7 @@ async function anadirProducto() {
             return false; // No continuar con la adición si todos ya están añadidos
         }
 
-        productoSelect.on("change", async function () {
+        productoSelect.off("change.pedidoProducto").on("change.pedidoProducto", async function () {
             const selectedProductId = parseInt(this.value);
             const selectedProduct = productos.find(p => p.IdProducto === selectedProductId);
 
@@ -877,11 +895,17 @@ async function anadirProducto() {
 
 
             precioSelect.empty();
+            costoSelect.empty();
             if (selectedProduct && Array.isArray(selectedProduct.Precios) && selectedProduct.Precios.length > 0) {
                 selectedProduct.Precios.forEach(precio => {
                     precioSelect.append(
-                        `<option value="${precio.PrecioVenta},${precio.PrecioCosto}">
+                        `<option value="${precio.PrecioVenta}">
                     ${formatoMoneda.format(precio.PrecioVenta)}
+                </option>`
+                    );
+                    costoSelect.append(
+                        `<option value="${precio.PrecioCosto}">
+                    ${formatoMoneda.format(precio.PrecioCosto)}
                 </option>`
                     );
                 });
@@ -893,6 +917,7 @@ async function anadirProducto() {
 
                 productoCantidadInput.val(productoCantidad);
                 precioInput.val(formatoMoneda.format(precioVenta));
+                costoInput.val(formatoMoneda.format(precioCosto));
                 document.getElementById("productoUnidadMedida").value = productoUnidadMedida;
 
                 await calcularTotal();
@@ -906,39 +931,21 @@ async function anadirProducto() {
 
             } else {
                 precioInput.val("");
+                costoInput.val("");
             }
-        });
-
-
-        // Evento para actualizar el input de precio cuando se cambia el precio en el select
-        precioSelect.on("change", async function () {
-            const selectedValue = this.value; // Obtener el valor del option seleccionado
-            const [precioVenta, precioCosto] = selectedValue.split(",").map(Number); // Dividir PrecioVenta y PrecioCosto
-            const diferencia = precioVenta - precioCosto;
-
-            console.log("Precio Venta:", precioVenta);
-            console.log("Precio Costo:", precioCosto);
-            console.log("Diferencia:", diferencia);
-
-            precioInput.val(formatoMoneda.format(precioVenta));
-
-
-            // Calcular el total
-            await calcularTotal();
-
         });
 
 
         // Disparar el evento 'change' para cargar el precio del primer producto
         setTimeout(() => {
-            productoSelect.trigger("change");
+            productoSelect.trigger("change.pedidoProducto");
         }, 0);
         cantidadInput.val("1");
         $("#productoSelect").prop("disabled", false);
 
         modal.attr('data-editing', 'false');
         modal.removeAttr('data-id');
-        $('#btnGuardarProducto').text('Añadir Producto');
+        $('#btnGuardarProductoPedido').text('Añadir Producto');
 
         await calcularTotal();
 
@@ -1007,7 +1014,6 @@ async function calcularSaldoUsado() {
 
 async function guardarProducto() {
 
-    const precioSelect = document.getElementById('precioSelect');
     const productoSelect = document.getElementById('productoSelect');
 
     const cantidadInput =
@@ -1020,14 +1026,9 @@ async function guardarProducto() {
     const productoNombre =
         productoSelect.options[productoSelect.selectedIndex]?.text || '';
 
-    const primerOptionValue = precioSelect.options[0].value;
-
     const idMoneda = parseInt(document.getElementById("productoMoneda").value);
     const cotizacion =
         parseFloat(document.getElementById("productoCotizacion").value) || 1;
-
-    let [precioVenta, precioCosto] =
-        primerOptionValue.split(",").map(Number);
 
     /* ===============================
        VALIDACIONES
@@ -1060,7 +1061,11 @@ async function guardarProducto() {
     let importeVentaUnitario =
         convertirMonedaAFloat(document.getElementById("precioInput").value);
 
-    let importeCostoUnitario = precioCosto;
+    let importeCostoUnitario =
+        convertirMonedaAFloat(document.getElementById("costoInput").value);
+
+    let precioVenta = importeVentaUnitario;
+    let precioCosto = importeCostoUnitario;
 
     let totalVenta = 0;
 
@@ -1105,7 +1110,7 @@ async function guardarProducto() {
 
                 data.Nombre = productoNombre;
                 data.PrecioVenta = parseFloat(importeVentaUnitario);
-                data.PrecioCosto = importeCostoUnitario;
+                data.PrecioCosto = parseFloat(importeCostoUnitario) || 0;
                 data.ProductoCantidad = factorSinIVA;
 
                 data.Cantidad = cantidadInput;
@@ -1167,7 +1172,7 @@ async function guardarProducto() {
                 ProductoCantidad: factorSinIVA,
 
                 PrecioVenta: parseFloat(importeVentaUnitario),
-                PrecioCosto: importeCostoUnitario,
+                PrecioCosto: parseFloat(importeCostoUnitario) || 0,
 
                 Cantidad: cantidadInput,
                 CantidadUsadaAcopio: cantidadAcopio,
@@ -1340,6 +1345,8 @@ async function abrirModalProducto(isEdit = false, productoId = null) {
     const productoSelect = document.getElementById('productoSelect');
     const precioSelect = document.getElementById('precioSelect');
     const precioInput = document.getElementById('precioInput');
+    const costoSelect = document.getElementById('costoSelect');
+    const costoInput = document.getElementById('costoInput');
     const cantidadInput = document.getElementById('cantidadInput');
     const productoCantidadInput = document.getElementById('productoCantidad');
     const unidadMedidaInput = $("#productoUnidadMedida");
@@ -1349,12 +1356,14 @@ async function abrirModalProducto(isEdit = false, productoId = null) {
 
     $('#productoMoneda').prop('disabled', true);
 
-    let i = 0, optionSeleccionado = 0;
+    let i = 0, optionSeleccionado = 0, optionCostoSeleccionado = 0;
 
     productoSelect.value = '';
     precioSelect.innerHTML = '';
+    costoSelect.innerHTML = '';
     cantidadInput.value = '';
     precioInput.value = '';
+    costoInput.value = '';
     productoCantidadInput.value = '';
     unidadMedidaInput.val('');
     cantidadAcopioInput.value = '';
@@ -1424,6 +1433,7 @@ async function abrirModalProducto(isEdit = false, productoId = null) {
             if (Array.isArray(productos) && productos.length > 0) {
                 productoSelect.innerHTML = '';
                 precioSelect.innerHTML = '';
+                costoSelect.innerHTML = '';
 
                 productos.forEach(p => {
                     const option = document.createElement("option");
@@ -1433,18 +1443,29 @@ async function abrirModalProducto(isEdit = false, productoId = null) {
                 });
             }
 
-            // Cargar precios
+            // Cargar historial de precios y costos (independientes)
             if (selectedProduct && selectedProduct.Precios) {
+                let iCosto = 0;
                 selectedProduct.Precios.forEach(precio => {
-                    const option = document.createElement("option");
-                    option.value = `${precio.PrecioVenta},${precio.PrecioCosto}`;
-                    option.text = formatoMoneda.format(precio.PrecioVenta);
-                    precioSelect.appendChild(option);
+                    const optionPrecio = document.createElement("option");
+                    optionPrecio.value = precio.PrecioVenta;
+                    optionPrecio.text = formatoMoneda.format(precio.PrecioVenta);
+                    precioSelect.appendChild(optionPrecio);
 
                     if (productoData.PrecioVenta == precio.PrecioVenta) {
                         optionSeleccionado = i;
                     }
                     i++;
+
+                    const optionCosto = document.createElement("option");
+                    optionCosto.value = precio.PrecioCosto;
+                    optionCosto.text = formatoMoneda.format(precio.PrecioCosto);
+                    costoSelect.appendChild(optionCosto);
+
+                    if (productoData.PrecioCosto == precio.PrecioCosto) {
+                        optionCostoSeleccionado = iCosto;
+                    }
+                    iCosto++;
                 });
             }
 
@@ -1453,10 +1474,14 @@ async function abrirModalProducto(isEdit = false, productoId = null) {
             productoCantidadInput.value = productoData.ProductoCantidad;
             cantidadInput.value = productoData.Cantidad;
             precioInput.value = formatoMoneda.format(productoData.PrecioVenta);
+            costoInput.value = formatoMoneda.format(productoData.PrecioCosto);
 
             productoSelect.disabled = true;
             if (precioSelect.options.length > 0) {
                 precioSelect.options[optionSeleccionado].selected = true;
+            }
+            if (costoSelect.options.length > 0) {
+                costoSelect.options[optionCostoSeleccionado].selected = true;
             }
 
             $('#productoMoneda')
@@ -1469,12 +1494,12 @@ async function abrirModalProducto(isEdit = false, productoId = null) {
 
             modal.attr('data-editing', 'true');
             modal.attr('data-id', productoId);
-            $('#btnGuardarProducto').text('Editar Producto');
+            $('#btnGuardarProductoPedido').text('Editar Producto');
         }
     } else {
         modal.attr('data-editing', 'false');
         modal.removeAttr('data-id');
-        $('#btnGuardarProducto').text('Añadir Producto');
+        $('#btnGuardarProductoPedido').text('Añadir Producto');
     }
 
     modal.modal('show');
@@ -1561,6 +1586,23 @@ document.getElementById('precioInput').addEventListener('blur', function () {
 
     // Recalcular el total cada vez que cambia el precio
     calcularTotal();
+});
+
+document.getElementById('costoInput').addEventListener('blur', function () {
+    this.value = formatMoneda(convertirMonedaAFloat(this.value));
+});
+
+// Historial de venta → solo actualiza precio manual (no toca el costo)
+$('#precioSelect').off('change.pedidoProducto').on('change.pedidoProducto', async function () {
+    const precioVenta = Number(this.value) || 0;
+    $('#precioInput').val(formatoMoneda.format(precioVenta));
+    await calcularTotal();
+});
+
+// Historial de costo → solo actualiza costo manual (no toca la venta)
+$('#costoSelect').off('change.pedidoProducto').on('change.pedidoProducto', function () {
+    const precioCosto = Number(this.value) || 0;
+    $('#costoInput').val(formatoMoneda.format(precioCosto));
 });
 
 
