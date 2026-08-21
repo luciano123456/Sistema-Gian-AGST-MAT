@@ -7,9 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="**/*.sql" />
+    <None Include="**/*.md" />
     <None Include="..\.editorconfig" Link=".editorconfig" />
-    <None Update="*.sql" />
-    <None Update="README.md" />
   </ItemGroup>
 
 </Project>

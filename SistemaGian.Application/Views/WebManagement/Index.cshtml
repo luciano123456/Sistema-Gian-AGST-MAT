@@ -1,0 +1,1347 @@
+@model SistemaGian.Application.Models.WebManagement.WebManagementViewModel
+@using SistemaGian.Application.Models.WebManagement
+@{
+    ViewData["Title"] = "Web AGS MAT";
+
+    var allProducts = Model.Products.OrderBy(p => p.SortOrder).ThenBy(p => p.Name).ToList();
+    var visibleProducts = allProducts.Where(p => p.Published).ToList();
+    // Misma regla que la web pública: el carrusel de catálogo muestra productos comunes
+    // (ni destacados ni ofertas).
+    var homeProducts = visibleProducts
+        .Where(p => !p.Featured && !p.IsOnOffer)
+        .Take(8)
+        .ToList();
+    if (homeProducts.Count == 0)
+        homeProducts = visibleProducts.Take(8).ToList();
+    var offerProducts = visibleProducts.Where(p => p.IsOnOffer).Take(8).ToList();
+    // En el editor mostramos todas las categorías (también las nuevas sin productos).
+    // En la web pública solo se publican las que tengan productos visibles.
+    var visibleCategories = Model.Categories.ToList();
+    var publishedCategoryCount = Model.Categories.Count(c => c.PublishedCount > 0);
+    var flashOk = TempData["WebMessage"] as string;
+    var flashError = TempData["WebError"] as string;
+    var aboutChecklist = (Model.AboutChecklist ?? "")
+        .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+        .ToList();
+    var aboutPolicyPoints = (Model.AboutPolicyPoints ?? "")
+        .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+        .ToList();
+    var publishedProductCount = visibleProducts.Count;
+}
+
+@section Estilos {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" />
+    <link rel="stylesheet" href="~/css/WebManagement.css" asp-append-version="true" />
+}
+
+<main class="web-admin container-fluid" data-edit-product="@Model.AutoEditProductId" data-preferred-tab="@TempData["WebTab"]">
+    <section class="web-hero">
+        <div>
+            <div class="web-eyebrow">Editor de la web</div>
+            <h1>Web AGS MAT</h1>
+            <p>Tocá el lápiz de cada texto para editarlo. Guardá y después publicá para verlo en la web.</p>
+        </div>
+        <div class="web-hero-actions">
+            @if (Model.SyncConfigured)
+            {
+                <span class="web-chip is-ok"><i class="fa fa-plug"></i>Conectada</span>
+            }
+            else
+            {
+                <span class="web-chip is-warn"><i class="fa fa-plug"></i>Sin conexión</span>
+            }
+            <form asp-action="Publish" method="post" data-publish-form>
+                @Html.AntiForgeryToken()
+                <button class="web-publish" type="submit" data-publish-button>
+                    <i class="fa fa-cloud-upload"></i><span data-publish-label>Publicar en la web</span>
+                </button>
+            </form>
+        </div>
+    </section>
+
+    @if (!Model.SyncConfigured)
+    {
+        <div class="alert alert-warning mt-3 mb-0">
+            <i class="fa fa-plug me-2"></i>
+            Falta el secreto compartido o la URL de la Web. Configurá <code>WebIntegration:SyncSecret</code> y <code>WebIntegration:PublicSiteSyncUrl</code>.
+        </div>
+    }
+
+    <script type="application/json" id="webFlashMessages">@Html.Raw(System.Text.Json.JsonSerializer.Serialize(new { ok = flashOk, error = flashError }))</script>
+
+    <form asp-action="SaveSettings" method="post" id="settingsForm" class="web-hidden-form">
+        @Html.AntiForgeryToken()
+        <input asp-for="SiteName" type="hidden" />
+        <input asp-for="NavHomeLabel" type="hidden" />
+        <input asp-for="NavCatalogLabel" type="hidden" />
+        <input asp-for="NavAboutLabel" type="hidden" />
+        <input asp-for="NavQuoteLabel" type="hidden" />
+        <input asp-for="HeroPill" type="hidden" />
+        <input asp-for="HeroTitle" type="hidden" />
+        <input asp-for="HeroText" type="hidden" />
+        <input asp-for="AudienceTitle" type="hidden" />
+        <input asp-for="AudienceItems" type="hidden" />
+        <input asp-for="AudienceNote" type="hidden" />
+        <input asp-for="CategoriesTitle" type="hidden" />
+        <input asp-for="CategoriesText" type="hidden" />
+        <input asp-for="FeaturedTitle" type="hidden" />
+        <input asp-for="FeaturedText" type="hidden" />
+        <input asp-for="HomeOffersTitle" type="hidden" />
+        <input asp-for="HomeOffersText" type="hidden" />
+        <input asp-for="HomeBenefitsTitle" type="hidden" />
+        <input asp-for="HomeBenefitsText" type="hidden" />
+        <input asp-for="HomeBenefitsItems" type="hidden" />
+        <input asp-for="HomeStepsTitle" type="hidden" />
+        <input asp-for="HomeStepsText" type="hidden" />
+        <input asp-for="HomeStepsItems" type="hidden" />
+        <input asp-for="HomeCtaTitle" type="hidden" />
+        <input asp-for="HomeCtaText" type="hidden" />
+        <input asp-for="FooterDescription" type="hidden" />
+        <input asp-for="FooterExploreTitle" type="hidden" />
+        <input asp-for="FooterCatalogLabel" type="hidden" />
+        <input asp-for="FooterAboutLabel" type="hidden" />
+        <input asp-for="FooterContactLabel" type="hidden" />
+        <input asp-for="FooterCommercialTitle" type="hidden" />
+        <input asp-for="FooterCommercialText" type="hidden" />
+        <input asp-for="Historia" type="hidden" />
+        <input asp-for="AboutKicker" type="hidden" />
+        <input asp-for="AboutHeroTitle" type="hidden" />
+        <input asp-for="AboutHeroText" type="hidden" />
+        <input asp-for="AboutBadgeText" type="hidden" />
+        <input asp-for="AboutStoryKicker" type="hidden" />
+        <input asp-for="AboutStoryTitle" type="hidden" />
+        <input asp-for="AboutStoryFloatTitle" type="hidden" />
+        <input asp-for="AboutStoryFloatText" type="hidden" />
+        <input asp-for="AboutChecklist" type="hidden" />
+        <input asp-for="AboutMisionTitle" type="hidden" />
+        <input asp-for="Mision" type="hidden" />
+        <input asp-for="AboutVisionTitle" type="hidden" />
+        <input asp-for="Vision" type="hidden" />
+        <input asp-for="AboutPillarsKicker" type="hidden" />
+        <input asp-for="AboutPillarsTitle" type="hidden" />
+        <input asp-for="AboutPillar1Title" type="hidden" />
+        <input asp-for="AboutPillar1Text" type="hidden" />
+        <input asp-for="AboutPillar2Title" type="hidden" />
+        <input asp-for="AboutPillar2Text" type="hidden" />
+        <input asp-for="AboutPillar3Title" type="hidden" />
+        <input asp-for="AboutPillar3Text" type="hidden" />
+        <input asp-for="AboutCatsKicker" type="hidden" />
+        <input asp-for="AboutCatsTitle" type="hidden" />
+        <input asp-for="AboutPolicyKicker" type="hidden" />
+        <input asp-for="AboutPolicyTitle" type="hidden" />
+        <input asp-for="Politicas" type="hidden" />
+        <input asp-for="AboutPolicyPoints" type="hidden" />
+        <input asp-for="AboutCtaTitle" type="hidden" />
+        <input asp-for="AboutCtaText" type="hidden" />
+        <input asp-for="AboutCtaPrimary" type="hidden" />
+        <input asp-for="AboutCtaSecondary" type="hidden" />
+        <input asp-for="SeoTitleSuffix" type="hidden" />
+        <input asp-for="SeoMetaDescription" type="hidden" />
+        <input asp-for="TopbarPrimary" type="hidden" />
+        <input asp-for="TopbarSecondary" type="hidden" />
+        <input asp-for="SearchPlaceholder" type="hidden" />
+        <input asp-for="SearchButton" type="hidden" />
+        <input asp-for="CartLabel" type="hidden" />
+        <input asp-for="HomeSearchPlaceholder" type="hidden" />
+        <input asp-for="HomeSearchButton" type="hidden" />
+        <input asp-for="HomeChipsLabel" type="hidden" />
+        <input asp-for="HomeHeroCtaCatalog" type="hidden" />
+        <input asp-for="HomeHeroCtaWhatsApp" type="hidden" />
+        <input asp-for="HomeHeroCtaQuote" type="hidden" />
+        <input asp-for="HomeAudienceLink" type="hidden" />
+        <input asp-for="HomeMetricShippingTitle" type="hidden" />
+        <input asp-for="HomeMetricShippingText" type="hidden" />
+        <input asp-for="HomeHighlightOffersTitle" type="hidden" />
+        <input asp-for="HomeHighlightOffersText" type="hidden" />
+        <input asp-for="HomeHighlightOffersCta" type="hidden" />
+        <input asp-for="HomeHighlightCatalogTitle" type="hidden" />
+        <input asp-for="HomeHighlightCatalogText" type="hidden" />
+        <input asp-for="HomeHighlightWhatsAppTitle" type="hidden" />
+        <input asp-for="HomeHighlightWhatsAppText" type="hidden" />
+        <input asp-for="HomeBenefitsLink" type="hidden" />
+        <input asp-for="HomeOffersRibbon" type="hidden" />
+        <input asp-for="HomeOffersLink" type="hidden" />
+        <input asp-for="HomeFeaturedKicker" type="hidden" />
+        <input asp-for="HomeFeaturedLink" type="hidden" />
+        <input asp-for="HomeEmptyTitle" type="hidden" />
+        <input asp-for="HomeEmptyText" type="hidden" />
+        <input asp-for="HomeStepsKicker" type="hidden" />
+        <input asp-for="HomeStepsHelp" type="hidden" />
+        <input asp-for="HomeStepsWhatsAppCta" type="hidden" />
+        <input asp-for="HomeStepsContactCta" type="hidden" />
+        <input asp-for="HomeCtaKicker" type="hidden" />
+        <input asp-for="HomeCtaPrimary" type="hidden" />
+        <input asp-for="HomeCtaSecondary" type="hidden" />
+        <input asp-for="HomeCtaBullets" type="hidden" />
+        <input asp-for="CatalogHeroKicker" type="hidden" />
+        <input asp-for="CatalogHeroTitle" type="hidden" />
+        <input asp-for="CatalogHeroText" type="hidden" />
+        <input asp-for="CatalogIntroKicker" type="hidden" />
+        <input asp-for="CatalogIntroTitle" type="hidden" />
+        <input asp-for="CatalogIntroText" type="hidden" />
+        <input asp-for="CatalogTrustItems" type="hidden" />
+        <input asp-for="CatalogFiltersHead" type="hidden" />
+        <input asp-for="CatalogFiltersTitle" type="hidden" />
+        <input asp-for="CatalogFilterSearch" type="hidden" />
+        <input asp-for="CatalogFilterSearchPlaceholder" type="hidden" />
+        <input asp-for="CatalogFilterCategory" type="hidden" />
+        <input asp-for="CatalogFilterAllCategories" type="hidden" />
+        <input asp-for="CatalogFilterOffersTitle" type="hidden" />
+        <input asp-for="CatalogFilterOffersHint" type="hidden" />
+        <input asp-for="CatalogFilterSubmit" type="hidden" />
+        <input asp-for="CatalogFilterClear" type="hidden" />
+        <input asp-for="CatalogFilterHelp" type="hidden" />
+        <input asp-for="CatalogEmptyResults" type="hidden" />
+        <input asp-for="CatalogSortLabel" type="hidden" />
+        <input asp-for="CardAddToCart" type="hidden" />
+        <input asp-for="CardViewDetail" type="hidden" />
+        <input asp-for="CardPriceBefore" type="hidden" />
+        <input asp-for="CardSavingsPrefix" type="hidden" />
+        <input asp-for="CardOfferFallback" type="hidden" />
+        <input asp-for="CardBadge3d" type="hidden" />
+        <input asp-for="ProductDescriptionTitle" type="hidden" />
+        <input asp-for="ProductAddToCart" type="hidden" />
+        <input asp-for="ProductQuoteCta" type="hidden" />
+        <input asp-for="ProductQtyLabel" type="hidden" />
+        <input asp-for="ProductPriceNote" type="hidden" />
+        <input asp-for="ProductBenefits" type="hidden" />
+        <input asp-for="AboutHeroCtaCatalog" type="hidden" />
+        <input asp-for="AboutHeroCtaQuote" type="hidden" />
+        <input asp-for="AboutStatProductsLabel" type="hidden" />
+        <input asp-for="AboutStatCategoriesLabel" type="hidden" />
+        <input asp-for="AboutStatWhatsAppTitle" type="hidden" />
+        <input asp-for="AboutStatWhatsAppText" type="hidden" />
+        <input asp-for="ContactTitle" type="hidden" />
+        <input asp-for="ContactLead" type="hidden" />
+        <input asp-for="ContactLabelName" type="hidden" />
+        <input asp-for="ContactLabelCompany" type="hidden" />
+        <input asp-for="ContactLabelPhone" type="hidden" />
+        <input asp-for="ContactLabelEmail" type="hidden" />
+        <input asp-for="ContactLabelCustomerType" type="hidden" />
+        <input asp-for="ContactLabelMessage" type="hidden" />
+        <input asp-for="ContactMessagePlaceholder" type="hidden" />
+        <input asp-for="ContactSubmit" type="hidden" />
+        <input asp-for="ContactSentTitle" type="hidden" />
+        <input asp-for="ContactSentOpenWhatsApp" type="hidden" />
+        <input asp-for="CartKicker" type="hidden" />
+        <input asp-for="CartTitle" type="hidden" />
+        <input asp-for="CartLead" type="hidden" />
+        <input asp-for="CartEmptyTitle" type="hidden" />
+        <input asp-for="CartEmptyText" type="hidden" />
+        <input asp-for="CartEmptyCta" type="hidden" />
+        <input asp-for="CartContinueShopping" type="hidden" />
+        <input asp-for="CartSummaryTitle" type="hidden" />
+        <input asp-for="CartSummaryBadge" type="hidden" />
+        <input asp-for="CartSummaryNote" type="hidden" />
+        <input asp-for="CartCheckoutCta" type="hidden" />
+        <input asp-for="CartSafeItems" type="hidden" />
+        <input asp-for="CheckoutTitle" type="hidden" />
+        <input asp-for="CheckoutLead" type="hidden" />
+        <input asp-for="CheckoutSubmit" type="hidden" />
+        <input asp-for="CheckoutSentTitle" type="hidden" />
+        <input asp-for="CheckoutSentLead" type="hidden" />
+        <input asp-for="CheckoutSentOpenWhatsApp" type="hidden" />
+        <input asp-for="CheckoutSentContinue" type="hidden" />
+    </form>
+
+    <div class="edit-bar">
+        <div class="edit-context" aria-live="polite">
+            <span class="edit-context-icon"><i class="fa fa-pencil-square-o"></i></span>
+            <div>
+                <span>Editor del sitio</span>
+                <strong data-current-page>Inicio</strong>
+            </div>
+            <small>Usá la barra de navegación de la vista previa para cambiar de página o editar sus nombres.</small>
+        </div>
+
+        <div class="edit-tools">
+            <label class="tool-color" title="Color principal">
+                <input asp-for="PrimaryColor" form="settingsForm" type="color" />
+                <span>Principal</span>
+            </label>
+            <label class="tool-color" title="Color de acción">
+                <input asp-for="AccentColor" form="settingsForm" type="color" />
+                <span>Acción</span>
+            </label>
+            <label class="tool-text" title="WhatsApp comercial">
+                <i class="fa fa-whatsapp"></i>
+                <input asp-for="WhatsAppNumber" form="settingsForm" placeholder="54911..." />
+            </label>
+            <div class="tool-device" role="group" aria-label="Ancho de la vista">
+                <button type="button" class="active" data-preview-width="desktop" title="Escritorio"><i class="fa fa-desktop"></i></button>
+                <button type="button" data-preview-width="mobile" title="Celular"><i class="fa fa-mobile"></i></button>
+            </div>
+            <span class="edit-dirty" data-dirty hidden><i class="fa fa-circle"></i>Cambios sin guardar</span>
+            <button class="web-save" type="submit" form="settingsForm"><i class="fa fa-save"></i>Guardar</button>
+        </div>
+    </div>
+
+    @* ------------------------------ INICIO ------------------------------ *@
+    <div class="web-tab-pane active" id="web-tab-home">
+        <div class="site-canvas" data-preview>
+            <div class="site-topbar">
+                <span class="live" contenteditable="true" data-edit-field="TopbarPrimary" data-single-line="true">@Model.TopbarPrimary</span>
+                <span class="live" contenteditable="true" data-edit-field="TopbarSecondary" data-single-line="true">@Model.TopbarSecondary</span>
+            </div>
+            <div class="site-header">
+                <img src="~/Imagenes/logo-color.png" alt="Logo" />
+                <div class="site-header-search"><i class="fa fa-search"></i><span class="live" contenteditable="true" data-edit-field="SearchPlaceholder" data-single-line="true">@Model.SearchPlaceholder</span><span class="live" contenteditable="true" data-edit-field="SearchButton" data-single-line="true">@Model.SearchButton</span></div>
+                <div class="site-nav">
+                    <span class="site-nav-item"><button type="button" class="is-current" data-web-tab="home"><span class="live nav-label" contenteditable="true" data-edit-field="NavHomeLabel" data-single-line="true" data-placeholder="Inicio">@Model.NavHomeLabel</span></button><button type="button" class="live-pencil nav-pencil" data-edit-nav="NavHomeLabel" title="Editar Inicio"><i class="fa fa-pencil"></i></button></span>
+                    <span class="site-nav-item"><button type="button" data-web-tab="catalog"><span class="live nav-label" contenteditable="true" data-edit-field="NavCatalogLabel" data-single-line="true" data-placeholder="Catálogo">@Model.NavCatalogLabel</span></button><button type="button" class="live-pencil nav-pencil" data-edit-nav="NavCatalogLabel" title="Editar Catálogo"><i class="fa fa-pencil"></i></button></span>
+                    <span class="site-nav-item"><button type="button" data-web-tab="about"><span class="live nav-label" contenteditable="true" data-edit-field="NavAboutLabel" data-single-line="true" data-placeholder="Nosotros">@Model.NavAboutLabel</span></button><button type="button" class="live-pencil nav-pencil" data-edit-nav="NavAboutLabel" title="Editar Nosotros"><i class="fa fa-pencil"></i></button></span>
+                    <span class="site-nav-item"><button type="button" data-web-tab="contact"><span class="live nav-label" contenteditable="true" data-edit-field="NavQuoteLabel" data-single-line="true" data-placeholder="Presupuesto">@Model.NavQuoteLabel</span></button><button type="button" class="live-pencil nav-pencil" data-edit-nav="NavQuoteLabel" title="Editar Presupuesto"><i class="fa fa-pencil"></i></button></span>
+                    <button type="button" class="site-cart" data-web-tab="cart"><span class="live" contenteditable="true" data-edit-field="CartLabel" data-single-line="true">@Model.CartLabel</span> (0)</button>
+                </div>
+            </div>
+
+            <div class="site-hero" style="background-image:linear-gradient(90deg,rgba(12,28,45,.82),rgba(12,28,45,.28)),url('@Model.HeroImageUrl');background-size:cover;background-position:center;">
+                <img class="site-hero-mark" src="~/Imagenes/logo-color.png" alt="" aria-hidden="true" />
+                <div class="site-hero-grid">
+                    <div>
+                        <div class="live-wrap is-inline">
+                            <span class="site-pill live" contenteditable="true" data-edit-field="HeroPill" data-single-line="true" data-placeholder="Bajada corta">@Model.HeroPill</span>
+                            <button type="button" class="live-pencil" title="Editar la píldora"><i class="fa fa-pencil"></i></button>
+                        </div>
+                        <div class="live-wrap">
+                            <h1 class="live" contenteditable="true" data-edit-field="HeroTitle" data-single-line="true" data-placeholder="Título principal de la portada">@Model.HeroTitle</h1>
+                            <button type="button" class="live-pencil" title="Editar el título"><i class="fa fa-pencil"></i></button>
+                        </div>
+                        <div class="live-wrap">
+                            <p class="live" contenteditable="true" data-edit-field="HeroText" data-placeholder="Texto de bienvenida">@Model.HeroText</p>
+                            <button type="button" class="live-pencil" title="Editar el texto"><i class="fa fa-pencil"></i></button>
+                        </div>
+                        <div class="site-hero-search">
+                            <i class="fa fa-search"></i>
+                            <span class="live" contenteditable="true" data-edit-field="HomeSearchPlaceholder" data-single-line="true">@Model.HomeSearchPlaceholder</span>
+                            <span class="site-hero-search-btn live" contenteditable="true" data-edit-field="HomeSearchButton" data-single-line="true">@Model.HomeSearchButton</span>
+                        </div>
+                        <div class="site-chips"><strong class="live" contenteditable="true" data-edit-field="HomeChipsLabel" data-single-line="true">@Model.HomeChipsLabel</strong><span>Cemento</span><span>Hierro</span><span>Ladrillos</span></div>
+                        <div class="site-actions">
+                            <button type="button" class="site-btn live" data-web-tab="catalog" contenteditable="true" data-edit-field="HomeHeroCtaCatalog" data-single-line="true">@Model.HomeHeroCtaCatalog</button>
+                            <span class="site-btn is-whatsapp live" contenteditable="true" data-edit-field="HomeHeroCtaWhatsApp" data-single-line="true">@Model.HomeHeroCtaWhatsApp</span>
+                            <button type="button" class="site-btn is-ghost live" data-web-tab="contact" contenteditable="true" data-edit-field="HomeHeroCtaQuote" data-single-line="true">@Model.HomeHeroCtaQuote</button>
+                        </div>
+                    </div>
+
+                    <div class="site-card live-wrap">
+                        <h3 class="live" contenteditable="true" data-edit-field="AudienceTitle" data-single-line="true" data-placeholder="Título del recuadro">@Model.AudienceTitle</h3>
+                        <div class="site-list live" contenteditable="true" data-edit-field="AudienceItems" data-placeholder="Una línea por ítem">@Model.AudienceItems</div>
+                        <p class="site-note live" contenteditable="true" data-edit-field="AudienceNote" data-placeholder="Aclaración final">@Model.AudienceNote</p>
+                        <button type="button" class="site-audience-link live" data-web-tab="about" contenteditable="true" data-edit-field="HomeAudienceLink" data-single-line="true">@Model.HomeAudienceLink</button>
+                        <button type="button" class="live-pencil" title="Editar el recuadro"><i class="fa fa-pencil"></i></button>
+                    </div>
+                </div>
+
+                <div class="site-hero-metrics">
+                    <div>
+                        <strong class="live" contenteditable="true" data-edit-field="HomeHighlightOffersTitle" data-single-line="true">@Model.HomeHighlightOffersTitle</strong>
+                        <span class="live" contenteditable="true" data-edit-field="HomeHighlightOffersText">@Model.HomeHighlightOffersText</span>
+                        <em class="live" contenteditable="true" data-edit-field="HomeHighlightOffersCta" data-single-line="true">@Model.HomeHighlightOffersCta</em>
+                    </div>
+                    <div>
+                        <strong class="live" contenteditable="true" data-edit-field="HomeHighlightCatalogTitle" data-single-line="true">@Model.HomeHighlightCatalogTitle</strong>
+                        <span class="live" contenteditable="true" data-edit-field="HomeHighlightCatalogText">@Model.HomeHighlightCatalogText</span>
+                        <em>@Model.HomeHeroCtaCatalog</em>
+                    </div>
+                    <div>
+                        <strong class="live" contenteditable="true" data-edit-field="HomeHighlightWhatsAppTitle" data-single-line="true">@Model.HomeHighlightWhatsAppTitle</strong>
+                        <span class="live" contenteditable="true" data-edit-field="HomeHighlightWhatsAppText">@Model.HomeHighlightWhatsAppText</span>
+                        <em>@Model.HomeHeroCtaWhatsApp</em>
+                    </div>
+                    <div>
+                        <strong class="live" contenteditable="true" data-edit-field="HomeMetricShippingTitle" data-single-line="true">@Model.HomeMetricShippingTitle</strong>
+                        <span class="live" contenteditable="true" data-edit-field="HomeMetricShippingText">@Model.HomeMetricShippingText</span>
+                        <em>@Model.HomeHeroCtaQuote</em>
+                    </div>
+                </div>
+            </div>
+
+            @{
+                var homeHeroEditor = new WebHeroSlideEditorModel
+                {
+                    Placement = "home",
+                    Title = "Fotos de Inicio",
+                    Hint = "Estas fotos van atrás del título de la home.",
+                    Slides = Model.HomeHeroSlides,
+                    FallbackUrl = Model.HeroImageUrl
+                };
+            }
+            <partial name="_HeroSlideEditor" model="homeHeroEditor" />
+
+            <form asp-action="SaveSiteMedia" method="post" enctype="multipart/form-data" class="home-media-editor">
+                @Html.AntiForgeryToken()
+                <div class="home-media-editor-head">
+                    <div>
+                        <span class="home-editor-kicker">Imágenes del sitio</span>
+                        <h3>Foto de Nosotros</h3>
+                        <p>La portada de Inicio y Productos se arma en el carrusel de cada solapa. Acá queda la foto de la historia.</p>
+                    </div>
+                    <button class="web-save" type="submit"><i class="fa fa-camera"></i>Guardar fotos</button>
+                </div>
+                <div class="home-media-grid is-single">
+                    <label class="home-media-card">
+                        <span>Nosotros</span>
+                        <img src="@Model.AboutStoryImageUrl" alt="Nosotros" />
+                        <input type="file" name="AboutStoryImageFile" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" />
+                    </label>
+                </div>
+            </form>
+
+            <div class="site-section home-editor-block" data-section-theme style="background:@Model.HomeBenefitsColor;color:@Model.HomeBenefitsTextColor;">
+                <partial name="_SectionTheme" model='("HomeBenefitsColor", Model.HomeBenefitsColor, "HomeBenefitsTextColor", Model.HomeBenefitsTextColor)' />
+                <div class="live-wrap">
+                    <span class="home-editor-kicker">Beneficios</span>
+                    <h2 class="live" contenteditable="true" data-edit-field="HomeBenefitsTitle" data-single-line="true">@Model.HomeBenefitsTitle</h2>
+                    <p class="live" contenteditable="true" data-edit-field="HomeBenefitsText">@Model.HomeBenefitsText</p>
+                    <div class="home-editor-lines live" contenteditable="true" data-edit-field="HomeBenefitsItems" data-placeholder="Título|Descripción, una línea por beneficio">@Model.HomeBenefitsItems</div>
+                    <button type="button" class="site-text-link live" data-web-tab="about" contenteditable="true" data-edit-field="HomeBenefitsLink" data-single-line="true">@Model.HomeBenefitsLink</button>
+                    <button type="button" class="live-pencil" title="Editar beneficios"><i class="fa fa-pencil"></i></button>
+                </div>
+            </div>
+
+            <div class="site-section home-editor-block is-offers-preview" data-section-theme style="background:@Model.HomeOffersColor;color:@Model.HomeOffersTextColor;">
+                <partial name="_SectionTheme" model='("HomeOffersColor", Model.HomeOffersColor, "HomeOffersTextColor", Model.HomeOffersTextColor)' />
+                <div class="live-wrap">
+                    <span class="home-editor-kicker live" contenteditable="true" data-edit-field="HomeOffersRibbon" data-single-line="true">@Model.HomeOffersRibbon</span>
+                    <h2 class="live" contenteditable="true" data-edit-field="HomeOffersTitle" data-single-line="true">@Model.HomeOffersTitle</h2>
+                    <p class="live" contenteditable="true" data-edit-field="HomeOffersText">@Model.HomeOffersText</p>
+                    <button type="button" class="site-text-link live" data-web-tab="catalog" contenteditable="true" data-edit-field="HomeOffersLink" data-single-line="true">@Model.HomeOffersLink</button>
+                    <button type="button" class="live-pencil" title="Editar ofertas"><i class="fa fa-pencil"></i></button>
+                </div>
+                @if (offerProducts.Any())
+                {
+                    <div class="site-products">
+                        @foreach (var product in offerProducts)
+                        {
+                            <div class="site-product">
+                                <div class="site-thumb">@if (product.Images.Any()) { <img src="@product.Images[0].PreviewUrl" alt="@product.Name" /> } else { <span>Sin foto</span> }</div>
+                                <div class="site-product-info"><div class="site-product-name">@product.Name</div><div class="site-product-meta">@product.Category · @product.Unit</div><div class="site-price">$ @((product.PublicPrice ?? product.DefaultPrice).ToString("N2"))</div></div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="site-empty"><strong class="live" contenteditable="true" data-edit-field="HomeEmptyTitle">@Model.HomeEmptyTitle</strong><span class="live" contenteditable="true" data-edit-field="HomeEmptyText">@Model.HomeEmptyText</span></div>
+                }
+            </div>
+
+            <div class="site-section is-soft" data-section-theme style="background:@Model.HomeProductsColor;color:@Model.HomeProductsTextColor;">
+                <partial name="_SectionTheme" model='("HomeProductsColor", Model.HomeProductsColor, "HomeProductsTextColor", Model.HomeProductsTextColor)' />
+                <div class="live-wrap">
+                    <span class="home-editor-kicker live" contenteditable="true" data-edit-field="HomeFeaturedKicker" data-single-line="true">@Model.HomeFeaturedKicker</span>
+                    <h2 class="live" contenteditable="true" data-edit-field="FeaturedTitle" data-single-line="true" data-placeholder="Título de la sección">@Model.FeaturedTitle</h2>
+                    <p class="live" contenteditable="true" data-edit-field="FeaturedText" data-placeholder="Bajada de la sección">@Model.FeaturedText</p>
+                    <button type="button" class="site-text-link live" data-web-tab="catalog" contenteditable="true" data-edit-field="HomeFeaturedLink" data-single-line="true">@Model.HomeFeaturedLink</button>
+                    <button type="button" class="live-pencil" title="Editar el encabezado"><i class="fa fa-pencil"></i></button>
+                </div>
+                @if (homeProducts.Any())
+                {
+                    <div class="site-products">
+                        @foreach (var product in homeProducts)
+                        {
+                            <div class="site-product">
+                                <div class="site-thumb @(product.Images.Count > 1 ? "has-gallery" : null)" @if (product.Images.Count > 1) { <text>data-card-gallery</text> }>
+                                    @if (product.Images.Any())
+                                    {
+                                        <img data-gallery-main src="@product.Images[0].PreviewUrl" alt="@product.Name" />
+                                        @if (product.Images.Count > 1)
+                                        {
+                                            <script type="application/json" data-gallery-images>@Html.Raw(System.Text.Json.JsonSerializer.Serialize(product.Images.Select(i => i.PreviewUrl).ToList()))</script>
+                                            <button type="button" class="site-thumb-arrow is-prev" data-gallery-prev title="Foto anterior" aria-label="Foto anterior"><i class="fa fa-chevron-left"></i></button>
+                                            <button type="button" class="site-thumb-arrow is-next" data-gallery-next title="Foto siguiente" aria-label="Foto siguiente"><i class="fa fa-chevron-right"></i></button>
+                                            <span class="site-thumb-count" data-gallery-count>1 / @product.Images.Count</span>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span>Sin foto</span>
+                                    }
+                                </div>
+                                <div class="site-product-info">
+                                    <div class="site-product-name">@product.Name</div>
+                                    <div class="site-product-meta">@product.Category · @product.Unit</div>
+                                    <div class="site-price">$ @((product.PublicPrice ?? product.DefaultPrice).ToString("N2"))</div>
+                                </div>
+                                <button type="button" class="live-pencil" data-open-product="@product.ProductId" title="Editar @product.Name"><i class="fa fa-pencil"></i></button>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="site-empty"><strong class="live" contenteditable="true" data-edit-field="HomeEmptyTitle">@Model.HomeEmptyTitle</strong><span class="live" contenteditable="true" data-edit-field="HomeEmptyText">@Model.HomeEmptyText</span></div>
+                }
+            </div>
+
+            <div class="site-section home-editor-block" data-section-theme style="background:@Model.HomeCategoriesColor;color:@Model.HomeCategoriesTextColor;">
+                <partial name="_SectionTheme" model='("HomeCategoriesColor", Model.HomeCategoriesColor, "HomeCategoriesTextColor", Model.HomeCategoriesTextColor)' />
+                <div class="live-wrap">
+                    <span class="home-editor-kicker live" contenteditable="true" data-edit-field="HomeStepsKicker" data-single-line="true">@Model.HomeStepsKicker</span>
+                    <h2 class="live" contenteditable="true" data-edit-field="HomeStepsTitle" data-single-line="true">@Model.HomeStepsTitle</h2>
+                    <p class="live" contenteditable="true" data-edit-field="HomeStepsText">@Model.HomeStepsText</p>
+                    <div class="home-editor-lines live" contenteditable="true" data-edit-field="HomeStepsItems" data-placeholder="Título|Descripción, una línea por paso">@Model.HomeStepsItems</div>
+                    <p class="live" contenteditable="true" data-edit-field="HomeStepsHelp">@Model.HomeStepsHelp</p>
+                    <div class="site-actions"><span class="site-btn is-whatsapp live" contenteditable="true" data-edit-field="HomeStepsWhatsAppCta">@Model.HomeStepsWhatsAppCta</span><button type="button" class="site-btn is-ghost live" data-web-tab="contact" contenteditable="true" data-edit-field="HomeStepsContactCta">@Model.HomeStepsContactCta</button></div>
+                    <button type="button" class="live-pencil" title="Editar pasos"><i class="fa fa-pencil"></i></button>
+                </div>
+            </div>
+
+            <div class="home-editor-cta" data-section-theme style="background:@Model.HomeCtaColor;color:@Model.HomeCtaTextColor;">
+                <partial name="_SectionTheme" model='("HomeCtaColor", Model.HomeCtaColor, "HomeCtaTextColor", Model.HomeCtaTextColor)' />
+                <div class="live-wrap">
+                    <span class="home-editor-kicker live" contenteditable="true" data-edit-field="HomeCtaKicker" data-single-line="true">@Model.HomeCtaKicker</span>
+                    <h2 class="live" contenteditable="true" data-edit-field="HomeCtaTitle" data-single-line="true">@Model.HomeCtaTitle</h2>
+                    <p class="live" contenteditable="true" data-edit-field="HomeCtaText">@Model.HomeCtaText</p>
+                    <button type="button" class="live-pencil" title="Editar llamado final"><i class="fa fa-pencil"></i></button>
+                </div>
+                <div><div class="site-actions"><button type="button" class="site-btn live" data-web-tab="contact" contenteditable="true" data-edit-field="HomeCtaPrimary">@Model.HomeCtaPrimary</button><span class="site-btn is-ghost live" contenteditable="true" data-edit-field="HomeCtaSecondary">@Model.HomeCtaSecondary</span></div><div class="home-cta-bullets live" contenteditable="true" data-edit-field="HomeCtaBullets">@Model.HomeCtaBullets</div></div>
+            </div>
+
+            <div class="site-footer">
+                <div class="site-footer-grid">
+                    <div>
+                        <img src="~/Imagenes/logo-color.png" alt="Logo" />
+                        <p class="live" contenteditable="true" data-edit-field="FooterDescription" data-placeholder="Descripción breve del sitio">@Model.FooterDescription</p>
+                    </div>
+                    <div class="live-wrap">
+                        <strong class="live" contenteditable="true" data-edit-field="FooterExploreTitle" data-single-line="true">@Model.FooterExploreTitle</strong>
+                        <div class="site-footer-links">
+                            <span class="live" contenteditable="true" data-edit-field="FooterCatalogLabel" data-single-line="true">@Model.FooterCatalogLabel</span>
+                            <span class="live" contenteditable="true" data-edit-field="FooterAboutLabel" data-single-line="true">@Model.FooterAboutLabel</span>
+                            <span class="live" contenteditable="true" data-edit-field="FooterContactLabel" data-single-line="true">@Model.FooterContactLabel</span>
+                        </div>
+                        <button type="button" class="live-pencil" title="Editar enlaces del pie"><i class="fa fa-pencil"></i></button>
+                    </div>
+                    <div class="live-wrap">
+                        <strong class="live" contenteditable="true" data-edit-field="FooterCommercialTitle" data-single-line="true">@Model.FooterCommercialTitle</strong>
+                        <p class="live" contenteditable="true" data-edit-field="FooterCommercialText" data-placeholder="Texto comercial">@Model.FooterCommercialText</p>
+                        <button type="button" class="live-pencil" title="Editar texto comercial"><i class="fa fa-pencil"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* ------------------------------ NOSOTROS ------------------------------ *@
+    <div class="web-tab-pane" id="web-tab-about">
+        <div class="site-canvas" data-preview>
+            <div class="site-topbar"><span class="live" contenteditable="true" data-edit-field="TopbarPrimary" data-single-line="true">@Model.TopbarPrimary</span><span class="live" contenteditable="true" data-edit-field="TopbarSecondary" data-single-line="true">@Model.TopbarSecondary</span></div>
+            <div class="site-header">
+                <img src="~/Imagenes/logo-color.png" alt="Logo" />
+                <div class="site-header-search"><i class="fa fa-search"></i><span class="live" contenteditable="true" data-edit-field="SearchPlaceholder">@Model.SearchPlaceholder</span><span class="live" contenteditable="true" data-edit-field="SearchButton">@Model.SearchButton</span></div>
+                <div class="site-nav">
+                    <span class="site-nav-item"><button type="button" data-web-tab="home"><span class="live nav-label" contenteditable="true" data-edit-field="NavHomeLabel" data-single-line="true" data-placeholder="Inicio">@Model.NavHomeLabel</span></button><button type="button" class="live-pencil nav-pencil" data-edit-nav="NavHomeLabel" title="Editar Inicio"><i class="fa fa-pencil"></i></button></span>
+                    <span class="site-nav-item"><button type="button" data-web-tab="catalog"><span class="live nav-label" contenteditable="true" data-edit-field="NavCatalogLabel" data-single-line="true" data-placeholder="Catálogo">@Model.NavCatalogLabel</span></button><button type="button" class="live-pencil nav-pencil" data-edit-nav="NavCatalogLabel" title="Editar Catálogo"><i class="fa fa-pencil"></i></button></span>
+                    <span class="site-nav-item"><button type="button" class="is-current" data-web-tab="about"><span class="live nav-label" contenteditable="true" data-edit-field="NavAboutLabel" data-single-line="true" data-placeholder="Nosotros">@Model.NavAboutLabel</span></button><button type="button" class="live-pencil nav-pencil" data-edit-nav="NavAboutLabel" title="Editar Nosotros"><i class="fa fa-pencil"></i></button></span>
+                    <span class="site-nav-item"><button type="button" data-web-tab="contact"><span class="live nav-label" contenteditable="true" data-edit-field="NavQuoteLabel" data-single-line="true">@Model.NavQuoteLabel</span></button><button type="button" class="live-pencil nav-pencil" data-edit-nav="NavQuoteLabel"><i class="fa fa-pencil"></i></button></span>
+                    <button type="button" class="site-cart" data-web-tab="cart"><span class="live" contenteditable="true" data-edit-field="CartLabel" data-single-line="true">@Model.CartLabel</span> (0)</button>
+                </div>
+            </div>
+
+            <div class="about-preview">
+                <div class="about-preview-hero" data-section-theme style="background:@Model.AboutHeroColor;color:@Model.AboutHeroTextColor;">
+                    <partial name="_SectionTheme" model='("AboutHeroColor", Model.AboutHeroColor, "AboutHeroTextColor", Model.AboutHeroTextColor)' />
+                    <div class="about-preview-hero-copy theme-copy">
+                        <span class="about-preview-kicker live" contenteditable="true" data-edit-field="AboutKicker" data-single-line="true" data-placeholder="Quiénes somos">@Model.AboutKicker</span>
+                        <h1 class="live" contenteditable="true" data-edit-field="AboutHeroTitle" data-placeholder="Título principal de Nosotros">@Model.AboutHeroTitle</h1>
+                        <p class="live" contenteditable="true" data-edit-field="AboutHeroText" data-placeholder="Texto introductorio">@Model.AboutHeroText</p>
+                        <div class="about-preview-actions">
+                            <button type="button" class="site-btn live" data-web-tab="catalog" contenteditable="true" data-edit-field="AboutHeroCtaCatalog">@Model.AboutHeroCtaCatalog</button>
+                            <button type="button" class="site-btn is-ghost live" data-web-tab="contact" contenteditable="true" data-edit-field="AboutHeroCtaQuote">@Model.AboutHeroCtaQuote</button>
+                        </div>
+                    </div>
+                    <div class="about-preview-stats">
+                        <div class="about-preview-stat">
+                            <strong>@publishedProductCount+</strong>
+                            <span class="live" contenteditable="true" data-edit-field="AboutStatProductsLabel">@Model.AboutStatProductsLabel</span>
+                        </div>
+                        <div class="about-preview-stat">
+                            <strong>@publishedCategoryCount</strong>
+                            <span class="live" contenteditable="true" data-edit-field="AboutStatCategoriesLabel">@Model.AboutStatCategoriesLabel</span>
+                        </div>
+                        <div class="about-preview-stat is-accent">
+                            <strong class="live" contenteditable="true" data-edit-field="AboutStatWhatsAppTitle">@Model.AboutStatWhatsAppTitle</strong>
+                            <span class="live" contenteditable="true" data-edit-field="AboutStatWhatsAppText">@Model.AboutStatWhatsAppText</span>
+                        </div>
+                        <div class="about-preview-badge">
+                            <img src="~/Imagenes/logo-color.png" alt="" />
+                            <div>
+                                <strong class="live" contenteditable="true" data-edit-field="SiteName" data-single-line="true" data-placeholder="Nombre del sitio">@Model.SiteName</strong>
+                                <span class="live" contenteditable="true" data-edit-field="AboutBadgeText" data-single-line="true" data-placeholder="Texto del badge">@Model.AboutBadgeText</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="about-preview-story" data-section-theme style="background:@Model.AboutStoryColor;color:@Model.AboutStoryTextColor;">
+                    <partial name="_SectionTheme" model='("AboutStoryColor", Model.AboutStoryColor, "AboutStoryTextColor", Model.AboutStoryTextColor)' />
+                    <div class="about-preview-story-media">
+                        <img src="@Model.AboutStoryImageUrl" alt="Historia" />
+                        <div class="about-preview-float">
+                            <strong class="live" contenteditable="true" data-edit-field="AboutStoryFloatTitle" data-single-line="true">@Model.AboutStoryFloatTitle</strong>
+                            <span class="live" contenteditable="true" data-edit-field="AboutStoryFloatText" data-single-line="true">@Model.AboutStoryFloatText</span>
+                        </div>
+                    </div>
+                    <div class="about-preview-story-copy live-wrap theme-copy">
+                        <span class="about-preview-kicker live" contenteditable="true" data-edit-field="AboutStoryKicker" data-single-line="true">@Model.AboutStoryKicker</span>
+                        <h2 class="live" contenteditable="true" data-edit-field="AboutStoryTitle" data-single-line="true">@Model.AboutStoryTitle</h2>
+                        <p class="live" contenteditable="true" data-edit-field="Historia" data-placeholder="Contá la historia de la empresa">@Model.Historia</p>
+                        <div class="live-wrap mt-2">
+                            <label class="about-preview-mini-label">Checklist (una línea por ítem)</label>
+                            <div class="about-preview-list live" contenteditable="true" data-edit-field="AboutChecklist" data-placeholder="Un beneficio por línea">@Model.AboutChecklist</div>
+                            <button type="button" class="live-pencil" title="Editar checklist"><i class="fa fa-pencil"></i></button>
+                        </div>
+                        <button type="button" class="live-pencil" title="Editar historia"><i class="fa fa-pencil"></i></button>
+                    </div>
+                </div>
+
+                <div class="about-preview-mv" data-section-theme style="background:@Model.AboutMvColor;color:@Model.AboutMvTextColor;">
+                    <partial name="_SectionTheme" model='("AboutMvColor", Model.AboutMvColor, "AboutMvTextColor", Model.AboutMvTextColor)' />
+                    <article class="live-wrap">
+                        <h3 class="live" contenteditable="true" data-edit-field="AboutMisionTitle" data-single-line="true">@Model.AboutMisionTitle</h3>
+                        <p class="live" contenteditable="true" data-edit-field="Mision" data-placeholder="Escribí la misión">@Model.Mision</p>
+                        <button type="button" class="live-pencil" title="Editar misión"><i class="fa fa-pencil"></i></button>
+                    </article>
+                    <article class="live-wrap">
+                        <h3 class="live" contenteditable="true" data-edit-field="AboutVisionTitle" data-single-line="true">@Model.AboutVisionTitle</h3>
+                        <p class="live" contenteditable="true" data-edit-field="Vision" data-placeholder="Escribí la visión">@Model.Vision</p>
+                        <button type="button" class="live-pencil" title="Editar visión"><i class="fa fa-pencil"></i></button>
+                    </article>
+                </div>
+
+                <div class="about-preview-block" data-section-theme style="background:@Model.AboutPillarsColor;color:@Model.AboutPillarsTextColor;">
+                    <partial name="_SectionTheme" model='("AboutPillarsColor", Model.AboutPillarsColor, "AboutPillarsTextColor", Model.AboutPillarsTextColor)' />
+                    <div class="live-wrap theme-copy">
+                        <span class="about-preview-kicker live" contenteditable="true" data-edit-field="AboutPillarsKicker" data-single-line="true">@Model.AboutPillarsKicker</span>
+                        <h2 class="live" contenteditable="true" data-edit-field="AboutPillarsTitle" data-single-line="true">@Model.AboutPillarsTitle</h2>
+                        <button type="button" class="live-pencil" title="Editar sección"><i class="fa fa-pencil"></i></button>
+                    </div>
+                    <div class="about-preview-pillars">
+                        <article class="live-wrap">
+                            <span>01</span>
+                            <h3 class="live" contenteditable="true" data-edit-field="AboutPillar1Title" data-single-line="true">@Model.AboutPillar1Title</h3>
+                            <p class="live" contenteditable="true" data-edit-field="AboutPillar1Text">@Model.AboutPillar1Text</p>
+                            <button type="button" class="live-pencil" title="Editar"><i class="fa fa-pencil"></i></button>
+                        </article>
+                        <article class="live-wrap">
+                            <span>02</span>
+                            <h3 class="live" contenteditable="true" data-edit-field="AboutPillar2Title" data-single-line="true">@Model.AboutPillar2Title</h3>
+                            <p class="live" contenteditable="true" data-edit-field="AboutPillar2Text">@Model.AboutPillar2Text</p>
+                            <button type="button" class="live-pencil" title="Editar"><i class="fa fa-pencil"></i></button>
+                        </article>
+                        <article class="live-wrap">
+                            <span>03</span>
+                            <h3 class="live" contenteditable="true" data-edit-field="AboutPillar3Title" data-single-line="true">@Model.AboutPillar3Title</h3>
+                            <p class="live" contenteditable="true" data-edit-field="AboutPillar3Text">@Model.AboutPillar3Text</p>
+                            <button type="button" class="live-pencil" title="Editar"><i class="fa fa-pencil"></i></button>
+                        </article>
+                    </div>
+                </div>
+
+                <div class="about-preview-block" data-section-theme style="background:@Model.AboutCatsColor;color:@Model.AboutCatsTextColor;">
+                    <partial name="_SectionTheme" model='("AboutCatsColor", Model.AboutCatsColor, "AboutCatsTextColor", Model.AboutCatsTextColor)' />
+                    <div class="live-wrap theme-copy">
+                        <span class="about-preview-kicker live" contenteditable="true" data-edit-field="AboutCatsKicker" data-single-line="true">@Model.AboutCatsKicker</span>
+                        <h2 class="live" contenteditable="true" data-edit-field="AboutCatsTitle" data-single-line="true">@Model.AboutCatsTitle</h2>
+                        <button type="button" class="live-pencil" title="Editar títulos"><i class="fa fa-pencil"></i></button>
+                    </div>
+                    <div class="about-preview-cats">
+                        @foreach (var category in visibleCategories.Where(c => c.PublishedCount > 0).Take(6))
+                        {
+                            <div class="about-preview-cat">
+                                <strong>@category.Name</strong>
+                                <span>@category.PublishedCount producto@(category.PublishedCount == 1 ? "" : "s")</span>
+                            </div>
+                        }
+                        @if (!visibleCategories.Any(c => c.PublishedCount > 0))
+                        {
+                            <div class="about-preview-cat is-empty">Publicá productos con categoría para verlas acá</div>
+                        }
+                    </div>
+                </div>
+
+                <div class="about-preview-policy" data-section-theme style="background:@Model.AboutPolicyColor;color:@Model.AboutPolicyTextColor;">
+                    <partial name="_SectionTheme" model='("AboutPolicyColor", Model.AboutPolicyColor, "AboutPolicyTextColor", Model.AboutPolicyTextColor)' />
+                    <div class="live-wrap theme-copy">
+                        <span class="about-preview-kicker live" contenteditable="true" data-edit-field="AboutPolicyKicker" data-single-line="true">@Model.AboutPolicyKicker</span>
+                        <h2 class="live" contenteditable="true" data-edit-field="AboutPolicyTitle" data-single-line="true">@Model.AboutPolicyTitle</h2>
+                        <p class="live" contenteditable="true" data-edit-field="Politicas" data-placeholder="Políticas comerciales">@Model.Politicas</p>
+                        <button type="button" class="live-pencil" title="Editar políticas"><i class="fa fa-pencil"></i></button>
+                    </div>
+                    <div class="live-wrap">
+                        <label class="about-preview-mini-label">Puntos (una línea por ítem)</label>
+                        <div class="about-preview-points live" contenteditable="true" data-edit-field="AboutPolicyPoints" data-placeholder="Un punto por línea">@Model.AboutPolicyPoints</div>
+                        <button type="button" class="live-pencil" title="Editar puntos"><i class="fa fa-pencil"></i></button>
+                    </div>
+                </div>
+
+                <div class="about-preview-cta" data-section-theme style="background:@Model.AboutCtaBlockColor;color:@Model.AboutCtaBlockTextColor;">
+                    <partial name="_SectionTheme" model='("AboutCtaBlockColor", Model.AboutCtaBlockColor, "AboutCtaBlockTextColor", Model.AboutCtaBlockTextColor)' />
+                    <div class="theme-copy">
+                        <h2 class="live" contenteditable="true" data-edit-field="AboutCtaTitle" data-single-line="true">@Model.AboutCtaTitle</h2>
+                        <p class="live" contenteditable="true" data-edit-field="AboutCtaText">@Model.AboutCtaText</p>
+                    </div>
+                    <div class="about-preview-actions">
+                        <span class="site-btn live" contenteditable="true" data-edit-field="AboutCtaPrimary" data-single-line="true">@Model.AboutCtaPrimary</span>
+                        <span class="site-btn is-ghost live" contenteditable="true" data-edit-field="AboutCtaSecondary" data-single-line="true">@Model.AboutCtaSecondary</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="site-footer">
+                <div class="site-footer-grid">
+                    <div>
+                        <img src="~/Imagenes/logo-color.png" alt="Logo" />
+                        <p class="live" contenteditable="true" data-edit-field="FooterDescription">@Model.FooterDescription</p>
+                    </div>
+                    <div>
+                        <strong class="live" contenteditable="true" data-edit-field="FooterExploreTitle" data-single-line="true">@Model.FooterExploreTitle</strong>
+                        <div class="site-footer-links">
+                            <span class="live" contenteditable="true" data-edit-field="FooterCatalogLabel" data-single-line="true">@Model.FooterCatalogLabel</span>
+                            <span class="live" contenteditable="true" data-edit-field="FooterAboutLabel" data-single-line="true">@Model.FooterAboutLabel</span>
+                            <span class="live" contenteditable="true" data-edit-field="FooterContactLabel" data-single-line="true">@Model.FooterContactLabel</span>
+                        </div>
+                    </div>
+                    <div>
+                        <strong class="live" contenteditable="true" data-edit-field="FooterCommercialTitle" data-single-line="true">@Model.FooterCommercialTitle</strong>
+                        <p class="live" contenteditable="true" data-edit-field="FooterCommercialText">@Model.FooterCommercialText</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* ------------------------------ CATALOGO ------------------------------ *@
+    <div class="web-tab-pane" id="web-tab-catalog">
+        <div class="site-canvas" data-preview>
+            <div class="site-topbar"><span class="live" contenteditable="true" data-edit-field="TopbarPrimary" data-single-line="true">@Model.TopbarPrimary</span><span class="live" contenteditable="true" data-edit-field="TopbarSecondary" data-single-line="true">@Model.TopbarSecondary</span></div>
+            <div class="site-header">
+                <img src="~/Imagenes/logo-color.png" alt="Logo" />
+                <div class="site-header-search"><i class="fa fa-search"></i><span class="live" contenteditable="true" data-edit-field="SearchPlaceholder">@Model.SearchPlaceholder</span><span class="live" contenteditable="true" data-edit-field="SearchButton">@Model.SearchButton</span></div>
+                <div class="site-nav">
+                    <span class="site-nav-item"><button type="button" data-web-tab="home"><span class="live nav-label" contenteditable="true" data-edit-field="NavHomeLabel" data-single-line="true" data-placeholder="Inicio">@Model.NavHomeLabel</span></button><button type="button" class="live-pencil nav-pencil" data-edit-nav="NavHomeLabel" title="Editar Inicio"><i class="fa fa-pencil"></i></button></span>
+                    <span class="site-nav-item"><button type="button" class="is-current" data-web-tab="catalog"><span class="live nav-label" contenteditable="true" data-edit-field="NavCatalogLabel" data-single-line="true" data-placeholder="Catálogo">@Model.NavCatalogLabel</span></button><button type="button" class="live-pencil nav-pencil" data-edit-nav="NavCatalogLabel" title="Editar Catálogo"><i class="fa fa-pencil"></i></button></span>
+                    <span class="site-nav-item"><button type="button" data-web-tab="about"><span class="live nav-label" contenteditable="true" data-edit-field="NavAboutLabel" data-single-line="true" data-placeholder="Nosotros">@Model.NavAboutLabel</span></button><button type="button" class="live-pencil nav-pencil" data-edit-nav="NavAboutLabel" title="Editar Nosotros"><i class="fa fa-pencil"></i></button></span>
+                    <span class="site-nav-item"><button type="button" data-web-tab="contact"><span class="live nav-label" contenteditable="true" data-edit-field="NavQuoteLabel" data-single-line="true">@Model.NavQuoteLabel</span></button><button type="button" class="live-pencil nav-pencil" data-edit-nav="NavQuoteLabel"><i class="fa fa-pencil"></i></button></span>
+                    <button type="button" class="site-cart" data-web-tab="cart"><span class="live" contenteditable="true" data-edit-field="CartLabel" data-single-line="true">@Model.CartLabel</span> (0)</button>
+                </div>
+            </div>
+
+            <section class="catalog-copy-preview">
+                <div class="catalog-preview-hero" style="background-image:linear-gradient(90deg,rgba(12,28,45,.82),rgba(12,28,45,.28)),url('@Model.CatalogHeroImageUrl');">
+                    <span class="live" contenteditable="true" data-edit-field="CatalogHeroKicker">@Model.CatalogHeroKicker</span>
+                    <h1 class="live" contenteditable="true" data-edit-field="CatalogHeroTitle">@Model.CatalogHeroTitle</h1>
+                    <p class="live" contenteditable="true" data-edit-field="CatalogHeroText">@Model.CatalogHeroText</p>
+                </div>
+                @{
+                    var catalogHeroEditor = new WebHeroSlideEditorModel
+                    {
+                        Placement = "catalog",
+                        Title = "Fotos de Productos",
+                        Hint = "Estas fotos van atrás del título del catálogo.",
+                        Slides = Model.CatalogHeroSlides,
+                        FallbackUrl = Model.CatalogHeroImageUrl
+                    };
+                }
+                <partial name="_HeroSlideEditor" model="catalogHeroEditor" />
+                <div class="catalog-preview-intro" data-section-theme style="background:@Model.CatalogIntroColor;color:@Model.CatalogIntroTextColor;">
+                    <partial name="_SectionTheme" model='("CatalogIntroColor", Model.CatalogIntroColor, "CatalogIntroTextColor", Model.CatalogIntroTextColor)' />
+                    <div class="theme-copy"><span class="home-editor-kicker live" contenteditable="true" data-edit-field="CatalogIntroKicker">@Model.CatalogIntroKicker</span><h2 class="live" contenteditable="true" data-edit-field="CatalogIntroTitle">@Model.CatalogIntroTitle</h2><p class="live" contenteditable="true" data-edit-field="CatalogIntroText">@Model.CatalogIntroText</p></div>
+                    <div class="catalog-trust live" contenteditable="true" data-edit-field="CatalogTrustItems">@Model.CatalogTrustItems</div>
+                </div>
+                <div class="catalog-filter-preview" data-section-theme style="background:@Model.CatalogFiltersColor;color:@Model.CatalogFiltersTextColor;">
+                    <partial name="_SectionTheme" model='("CatalogFiltersColor", Model.CatalogFiltersColor, "CatalogFiltersTextColor", Model.CatalogFiltersTextColor)' />
+                    <span class="home-editor-kicker live" contenteditable="true" data-edit-field="CatalogFiltersHead">@Model.CatalogFiltersHead</span>
+                    <h3 class="live" contenteditable="true" data-edit-field="CatalogFiltersTitle">@Model.CatalogFiltersTitle</h3>
+                    <div class="catalog-filter-fields"><label class="live" contenteditable="true" data-edit-field="CatalogFilterSearch">@Model.CatalogFilterSearch</label><span class="catalog-filter-input live" contenteditable="true" data-edit-field="CatalogFilterSearchPlaceholder">@Model.CatalogFilterSearchPlaceholder</span><label class="live" contenteditable="true" data-edit-field="CatalogFilterCategory">@Model.CatalogFilterCategory</label><span class="catalog-filter-input live" contenteditable="true" data-edit-field="CatalogFilterAllCategories">@Model.CatalogFilterAllCategories</span></div>
+                    <div class="catalog-filter-offer"><strong class="live" contenteditable="true" data-edit-field="CatalogFilterOffersTitle">@Model.CatalogFilterOffersTitle</strong><span class="live" contenteditable="true" data-edit-field="CatalogFilterOffersHint">@Model.CatalogFilterOffersHint</span></div>
+                    <div class="site-actions"><span class="site-btn live" contenteditable="true" data-edit-field="CatalogFilterSubmit">@Model.CatalogFilterSubmit</span><span class="site-btn is-ghost live" contenteditable="true" data-edit-field="CatalogFilterClear">@Model.CatalogFilterClear</span></div>
+                    <p class="live" contenteditable="true" data-edit-field="CatalogFilterHelp">@Model.CatalogFilterHelp</p>
+                    <div class="catalog-empty-copy"><span class="live" contenteditable="true" data-edit-field="CatalogEmptyResults">@Model.CatalogEmptyResults</span><span class="live" contenteditable="true" data-edit-field="CatalogSortLabel">@Model.CatalogSortLabel</span></div>
+                </div>
+            </section>
+
+            <div class="site-section">
+                <div class="catalog-workspace-head">
+                    <div>
+                        <span class="catalog-workspace-kicker"><i class="fa fa-sliders"></i> Administración del catálogo</span>
+                        <h2>Productos, banners y categorías</h2>
+                        <p>Organizá lo que se muestra en la web. Cada bloque se guarda y publica de forma independiente.</p>
+                    </div>
+                </div>
+
+                <section class="catalog-editor-section is-banners">
+                    <div class="catalog-editor-section-head">
+                        <div>
+                            <span class="catalog-editor-icon"><i class="fa fa-picture-o"></i></span>
+                            <h3>Banners promocionales</h3>
+                            <p>Carrusel promocional aparte, con título y botón. No se mezcla con las fotos de portada.</p>
+                        </div>
+                        <button type="button" class="canvas-action" data-open-banner-modal><i class="fa fa-plus"></i>Crear banner</button>
+                    </div>
+                    @if (Model.Banners.Any())
+                    {
+                        <div class="banner-grid">
+                            @foreach (var banner in Model.Banners)
+                            {
+                                <article class="banner-card @(banner.Active ? "" : "is-off")">
+                                    <div class="banner-preview">
+                                        @if (!string.IsNullOrWhiteSpace(banner.PreviewUrl))
+                                        {
+                                            <img src="@banner.PreviewUrl" alt="@banner.Title" />
+                                        }
+                                        else
+                                        {
+                                            <span>Sin imagen</span>
+                                        }
+                                    </div>
+                                    <div class="banner-body">
+                                        <strong>@(string.IsNullOrWhiteSpace(banner.Title) ? "Banner sin título" : banner.Title)</strong>
+                                        <div class="catalog-meta">@(banner.Subtitle ?? "Sin subtítulo") · Orden @banner.SortOrder</div>
+                                        <div class="banner-flags">
+                                            @if (banner.ShowOnHome) { <em>Inicio</em> }
+                                            @if (banner.ShowOnCatalog) { <em>Catálogo</em> }
+                                            @if (!banner.Active) { <em class="is-warn">Inactivo</em> }
+                                        </div>
+                                        <div class="catalog-card-actions">
+                                            <button type="button" class="web-save"
+                                                    data-edit-banner
+                                                    data-banner-id="@banner.Id"
+                                                    data-banner-title="@banner.Title"
+                                                    data-banner-subtitle="@banner.Subtitle"
+                                                    data-banner-link="@banner.LinkUrl"
+                                                    data-banner-cta="@banner.CtaLabel"
+                                                    data-banner-order="@banner.SortOrder"
+                                                    data-banner-preview="@banner.PreviewUrl"
+                                                    data-banner-active="@banner.Active.ToString().ToLowerInvariant()"
+                                                    data-banner-home="@banner.ShowOnHome.ToString().ToLowerInvariant()"
+                                                    data-banner-catalog="@banner.ShowOnCatalog.ToString().ToLowerInvariant()">
+                                                <i class="fa fa-pencil"></i>Editar
+                                            </button>
+                                            <form asp-action="DeleteBanner" method="post">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="bannerId" value="@banner.Id" />
+                                                <button class="catalog-delete" type="submit" onclick="return confirm('¿Eliminar este banner?');" title="Eliminar">
+                                                    <i class="fa fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </article>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <button type="button" class="site-empty site-empty-action" data-open-banner-modal>
+                            <i class="fa fa-plus"></i>Creá el primer banner promocional
+                        </button>
+                    }
+                </section>
+
+                <section class="catalog-editor-section is-products">
+                    <div class="catalog-editor-section-head">
+                        <div>
+                            <span class="catalog-editor-icon"><i class="fa fa-cubes"></i></span>
+                            <h3>Productos del catálogo <b>@allProducts.Count</b></h3>
+                            <p>@visibleProducts.Count visible@(visibleProducts.Count == 1 ? "" : "s") · @publishedCategoryCount categoría@(publishedCategoryCount == 1 ? "" : "s") con productos publicados.</p>
+                        </div>
+                        <div class="catalog-editor-section-actions">
+                            <button type="button" class="canvas-action" data-create-category><i class="fa fa-tag"></i>Nueva categoría</button>
+                            @if (Model.AvailableProducts.Any())
+                            {
+                                <button type="button" class="web-save" data-open-product-modal><i class="fa fa-plus"></i>Sumar producto</button>
+                            }
+                        </div>
+                    </div>
+                    @if (!allProducts.Any())
+                    {
+                        <div class="site-empty">Todavía no sumaste productos. Usá “Sumar producto” para incorporarlos al catálogo web.</div>
+                    }
+                    else
+                    {
+                        <div class="catalog-product-search" data-catalog-product-search>
+                            <label class="catalog-product-search-field">
+                                <i class="fa fa-search" aria-hidden="true"></i>
+                                <input type="search"
+                                       data-catalog-product-query
+                                       placeholder="Buscar producto por nombre, categoría o unidad…"
+                                       autocomplete="off"
+                                       aria-label="Buscar productos del catálogo" />
+                                <button type="button" class="catalog-product-search-clear" data-catalog-product-clear hidden title="Limpiar búsqueda" aria-label="Limpiar búsqueda">
+                                    <i class="fa fa-times"></i>
+                                </button>
+                            </label>
+                            <span class="catalog-product-search-count" data-catalog-product-count></span>
+                        </div>
+                        <div class="catalog-grid" data-catalog-product-grid>
+                        @foreach (var product in allProducts)
+                        {
+                            <form asp-action="SaveProduct" method="post" enctype="multipart/form-data"
+                                  class="catalog-card @(product.Published ? "" : "is-hidden-product")"
+                                  id="product-editor-@product.ProductId"
+                                  data-catalog-card
+                                  data-search="@($"{product.Name} {product.Category} {product.Unit}")">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="ProductId" value="@product.ProductId" />
+
+                                <div class="catalog-photos" data-image-picker data-existing="@product.Images.Count">
+                                    @foreach (var image in product.Images)
+                                    {
+                                        <label class="catalog-photo is-saved" title="@image.OriginalFileName">
+                                            <img src="@image.PreviewUrl" alt="" />
+                                            <span class="catalog-photo-remove" title="Quitar foto">
+                                                <input type="checkbox" name="RemoveImages" value="@image.FileName" />
+                                                <i class="fa fa-times"></i>
+                                            </span>
+                                        </label>
+                                    }
+                                    <div class="catalog-photos-pending" data-pending-previews></div>
+                                    <label class="catalog-photo is-add" title="Agregar fotos (hasta 4)" data-add-slot @if (product.Images.Count >= 4) { <text>hidden</text> }>
+                                        <i class="fa fa-camera"></i>
+                                        <span class="catalog-photo-add-label">+</span>
+                                        <input name="ImageFiles" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" multiple />
+                                    </label>
+                                </div>
+
+                                <div class="catalog-body">
+                                    <header class="catalog-head">
+                                        <div class="catalog-name">@product.Name</div>
+                                        <div class="catalog-meta">
+                                            <span class="catalog-chip-unit">@product.Unit</span>
+                                            Precio interno $ @product.DefaultPrice.ToString("N2")
+                                        </div>
+                                    </header>
+
+                                    <section class="catalog-section">
+                                        <h4 class="catalog-section-title">Precios</h4>
+                                        <div class="catalog-fields">
+                                            <label class="field">
+                                                <span class="field-label">Precio en la web</span>
+                                                <span class="field-input has-prefix">
+                                                    <i class="field-prefix">$</i>
+                                                    <input name="PublicPrice" type="number" step="0.01" min="0" value="@product.PublicPrice" placeholder="@product.DefaultPrice.ToString("0.00")" />
+                                                </span>
+                                                <span class="field-hint">Vacío usa el precio interno</span>
+                                            </label>
+                                            <label class="field">
+                                                <span class="field-label">Precio tachado</span>
+                                                <span class="field-input has-prefix">
+                                                    <i class="field-prefix">$</i>
+                                                    <input name="ListPrice" type="number" step="0.01" min="0" value="@product.ListPrice" placeholder="Opcional" />
+                                                </span>
+                                                <span class="field-hint">Precio de lista anterior</span>
+                                            </label>
+                                        </div>
+                                    </section>
+
+                                    <section class="catalog-section">
+                                        <h4 class="catalog-section-title">Oferta y orden</h4>
+                                        <div class="catalog-fields">
+                                            <label class="field">
+                                                <span class="field-label">Descuento</span>
+                                                <span class="field-input has-suffix">
+                                                    <input name="DiscountPercent" type="number" step="0.01" min="0" max="100" value="@product.DiscountPercent" placeholder="35" />
+                                                    <i class="field-suffix">%</i>
+                                                </span>
+                                            </label>
+                                            <label class="field">
+                                                <span class="field-label">Posición</span>
+                                                <span class="field-input">
+                                                    <input name="SortOrder" type="number" min="0" value="@product.SortOrder" />
+                                                </span>
+                                                <span class="field-hint">El menor aparece primero</span>
+                                            </label>
+                                        </div>
+                                        <label class="field mt-2">
+                                            <span class="field-label">Etiqueta de oferta</span>
+                                            <span class="field-input">
+                                                <input name="OfferLabel" type="text" maxlength="40" value="@product.OfferLabel" placeholder="Ej: 35% OFF" />
+                                            </span>
+                                            <span class="field-hint">Se muestra sobre la foto en la web</span>
+                                        </label>
+                                    </section>
+
+                                    <section class="catalog-section">
+                                        <h4 class="catalog-section-title">Descripción en la web</h4>
+                                        <label class="field">
+                                            <span class="field-label">Texto público</span>
+                                            <span class="field-input">
+                                                <textarea name="PublicDescription" rows="3" maxlength="2000" placeholder="@product.Name">@product.PublicDescription</textarea>
+                                            </span>
+                                            <span class="field-hint">Si lo dejás vacío se usa el nombre del producto interno</span>
+                                        </label>
+                                    </section>
+
+                                    <section class="catalog-section">
+                                        <h4 class="catalog-section-title">Categoría</h4>
+                                        <label class="field">
+                                            <span class="field-input is-select">
+                                                <i class="fa fa-tag"></i>
+                                                <select name="CategoryId">
+                                                    <option value="">Sin categoría</option>
+                                                    @foreach (var category in Model.Categories)
+                                                    {
+                                                        <option value="@category.Id" selected="@(product.CategoryId == category.Id ? "selected" : null)">@category.Name</option>
+                                                    }
+                                                </select>
+                                            </span>
+                                        </label>
+                                    </section>
+
+                                    <section class="catalog-section">
+                                        <h4 class="catalog-section-title">Visibilidad</h4>
+                                        <div class="toggle-chips">
+                                            <label class="toggle-chip is-visible">
+                                                <input type="checkbox" name="Published" value="true" checked="@(product.Published ? "checked" : null)" />
+                                                <input type="hidden" name="Published" value="false" />
+                                                <i class="fa fa-eye"></i>
+                                                <span>Visible</span>
+                                            </label>
+                                            <label class="toggle-chip is-featured">
+                                                <input type="checkbox" name="Featured" value="true" checked="@(product.Featured ? "checked" : null)" />
+                                                <input type="hidden" name="Featured" value="false" />
+                                                <i class="fa fa-star"></i>
+                                                <span>Destacado</span>
+                                            </label>
+                                            <label class="toggle-chip is-offer">
+                                                <input type="checkbox" name="IsOnOffer" value="true" checked="@(product.IsOnOffer ? "checked" : null)" />
+                                                <input type="hidden" name="IsOnOffer" value="false" />
+                                                <i class="fa fa-bolt"></i>
+                                                <span>Oferta</span>
+                                            </label>
+                                        </div>
+                                        <p class="catalog-section-hint">
+                                            Visible lo publica en el catálogo · Destacado lo marca en filtros del catálogo · Oferta lo muestra en Inicio y con etiqueta.
+                                        </p>
+                                    </section>
+
+                                    <details class="catalog-more" @(string.IsNullOrWhiteSpace(product.Model3dUrl) ? null : "open")>
+                                        <summary><i class="fa fa-cube"></i>Modelo 3D <span>opcional · archivo .glb</span></summary>
+                                        <div class="model3d-editor mt-2">
+                                            @if (!string.IsNullOrWhiteSpace(product.Model3dUrl))
+                                            {
+                                                <div class="model3d-current">
+                                                    <i class="fa fa-cube"></i>
+                                                    <div>
+                                                        <strong>Archivo cargado</strong>
+                                                        <span>@(product.Model3dFileName ?? product.Model3dUrl)</span>
+                                                    </div>
+                                                    <label class="model3d-remove">
+                                                        <input type="checkbox" name="RemoveModel3d" value="true" />
+                                                        Quitar
+                                                    </label>
+                                                </div>
+                                                @if (product.HasLocalModel3d)
+                                                {
+                                                    <div class="model3d-preview">
+                                                        <model-viewer src="@product.Model3dUrl" camera-controls auto-rotate shadow-intensity="1" alt="Vista previa 3D de @product.Name"></model-viewer>
+                                                    </div>
+                                                }
+                                            }
+                                            <label class="field">
+                                                <span class="field-label">Subir archivo .glb</span>
+                                                <span class="field-input">
+                                                    <input name="Model3dFile" type="file" accept=".glb,model/gltf-binary" data-model3d-input />
+                                                </span>
+                                                <span class="field-hint">Hasta 25 MB. Podés rotarlo y revisarlo antes de guardar.</span>
+                                            </label>
+                                            <div class="model3d-preview is-pending" data-model3d-pending hidden></div>
+                                        </div>
+                                    </details>
+
+                                    <div class="catalog-card-actions">
+                                        <button class="web-save" type="submit"><i class="fa fa-check"></i>Guardar cambios</button>
+                                        <button class="catalog-delete" type="submit" formaction="@Url.Action("DeleteProduct")" formmethod="post"
+                                                onclick="return confirm('¿Quitar @product.Name del catálogo web?');" title="Quitar del catálogo">
+                                            <i class="fa fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        }
+                        </div>
+                    }
+                </section>
+            </div>
+
+            <div class="site-footer">
+                <div class="site-footer-grid">
+                    <div>
+                        <img src="~/Imagenes/logo-color.png" alt="Logo" />
+                        <p class="live" contenteditable="true" data-edit-field="FooterDescription">@Model.FooterDescription</p>
+                    </div>
+                    <div>
+                        <strong class="live" contenteditable="true" data-edit-field="FooterExploreTitle" data-single-line="true">@Model.FooterExploreTitle</strong>
+                        <div class="site-footer-links">
+                            <span class="live" contenteditable="true" data-edit-field="FooterCatalogLabel" data-single-line="true">@Model.FooterCatalogLabel</span>
+                            <span class="live" contenteditable="true" data-edit-field="FooterAboutLabel" data-single-line="true">@Model.FooterAboutLabel</span>
+                            <span class="live" contenteditable="true" data-edit-field="FooterContactLabel" data-single-line="true">@Model.FooterContactLabel</span>
+                        </div>
+                    </div>
+                    <div>
+                        <strong class="live" contenteditable="true" data-edit-field="FooterCommercialTitle" data-single-line="true">@Model.FooterCommercialTitle</strong>
+                        <p class="live" contenteditable="true" data-edit-field="FooterCommercialText">@Model.FooterCommercialText</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* ------------------------------ CONTACTO ------------------------------ *@
+    <div class="web-tab-pane" id="web-tab-contact">
+        <div class="site-canvas" data-preview>
+            <div class="site-topbar"><span class="live" contenteditable="true" data-edit-field="TopbarPrimary">@Model.TopbarPrimary</span><span class="live" contenteditable="true" data-edit-field="TopbarSecondary">@Model.TopbarSecondary</span></div>
+            <div class="site-header"><img src="~/Imagenes/logo-color.png" alt="Logo" /><div class="site-header-search"><i class="fa fa-search"></i><span class="live" contenteditable="true" data-edit-field="SearchPlaceholder">@Model.SearchPlaceholder</span><span class="live" contenteditable="true" data-edit-field="SearchButton">@Model.SearchButton</span></div><div class="site-nav"><button type="button" data-web-tab="home">@Model.NavHomeLabel</button><button type="button" data-web-tab="catalog">@Model.NavCatalogLabel</button><button type="button" data-web-tab="about">@Model.NavAboutLabel</button><button type="button" class="is-current" data-web-tab="contact">@Model.NavQuoteLabel</button><button type="button" class="site-cart" data-web-tab="cart"><span class="live" contenteditable="true" data-edit-field="CartLabel">@Model.CartLabel</span> (0)</button></div></div>
+            <section class="contact-preview" data-section-theme style="background:@Model.ContactPageColor;color:@Model.ContactPageTextColor;">
+                <partial name="_SectionTheme" model='("ContactPageColor", Model.ContactPageColor, "ContactPageTextColor", Model.ContactPageTextColor)' />
+                <div class="contact-preview-copy theme-copy"><span class="home-editor-kicker">Contacto</span><h1 class="live" contenteditable="true" data-edit-field="ContactTitle">@Model.ContactTitle</h1><p class="live" contenteditable="true" data-edit-field="ContactLead">@Model.ContactLead</p><div class="contact-sent"><strong class="live" contenteditable="true" data-edit-field="ContactSentTitle">@Model.ContactSentTitle</strong><span class="live" contenteditable="true" data-edit-field="ContactSentOpenWhatsApp">@Model.ContactSentOpenWhatsApp</span></div></div>
+                <div class="contact-preview-form">
+                    <label class="live" contenteditable="true" data-edit-field="ContactLabelName">@Model.ContactLabelName</label><input disabled placeholder="Tu nombre" />
+                    <label class="live" contenteditable="true" data-edit-field="ContactLabelCompany">@Model.ContactLabelCompany</label><input disabled placeholder="Empresa (opcional)" />
+                    <label class="live" contenteditable="true" data-edit-field="ContactLabelPhone">@Model.ContactLabelPhone</label><input disabled placeholder="11 1234 5678" />
+                    <label class="live" contenteditable="true" data-edit-field="ContactLabelEmail">@Model.ContactLabelEmail</label><input disabled placeholder="nombre@empresa.com" />
+                    <label class="live" contenteditable="true" data-edit-field="ContactLabelCustomerType">@Model.ContactLabelCustomerType</label><input disabled placeholder="Elegí una opción" />
+                    <label class="live" contenteditable="true" data-edit-field="ContactLabelMessage">@Model.ContactLabelMessage</label><div class="contact-textarea live" contenteditable="true" data-edit-field="ContactMessagePlaceholder">@Model.ContactMessagePlaceholder</div>
+                    <span class="site-btn live" contenteditable="true" data-edit-field="ContactSubmit">@Model.ContactSubmit</span>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    @* ------------------------------ CARRITO ------------------------------ *@
+    <div class="web-tab-pane" id="web-tab-cart">
+        <div class="site-canvas" data-preview>
+            <div class="site-topbar"><span class="live" contenteditable="true" data-edit-field="TopbarPrimary">@Model.TopbarPrimary</span><span class="live" contenteditable="true" data-edit-field="TopbarSecondary">@Model.TopbarSecondary</span></div>
+            <div class="site-header"><img src="~/Imagenes/logo-color.png" alt="Logo" /><div class="site-header-search"><i class="fa fa-search"></i><span class="live" contenteditable="true" data-edit-field="SearchPlaceholder">@Model.SearchPlaceholder</span><span class="live" contenteditable="true" data-edit-field="SearchButton">@Model.SearchButton</span></div><div class="site-nav"><button type="button" data-web-tab="home">@Model.NavHomeLabel</button><button type="button" data-web-tab="catalog">@Model.NavCatalogLabel</button><button type="button" data-web-tab="about">@Model.NavAboutLabel</button><button type="button" data-web-tab="contact">@Model.NavQuoteLabel</button><button type="button" class="site-cart is-current" data-web-tab="cart"><span class="live" contenteditable="true" data-edit-field="CartLabel">@Model.CartLabel</span> (0)</button></div></div>
+            <section class="cart-preview" data-section-theme style="background:@Model.CartPageColor;color:@Model.CartPageTextColor;">
+                <partial name="_SectionTheme" model='("CartPageColor", Model.CartPageColor, "CartPageTextColor", Model.CartPageTextColor)' />
+                <div class="cart-preview-head theme-copy"><span class="home-editor-kicker live" contenteditable="true" data-edit-field="CartKicker">@Model.CartKicker</span><h1 class="live" contenteditable="true" data-edit-field="CartTitle">@Model.CartTitle</h1><p class="live" contenteditable="true" data-edit-field="CartLead">@Model.CartLead</p><button type="button" class="site-text-link live" data-web-tab="catalog" contenteditable="true" data-edit-field="CartContinueShopping">@Model.CartContinueShopping</button></div>
+                <div class="cart-preview-grid"><div class="cart-empty"><i class="fa fa-shopping-cart"></i><h2 class="live" contenteditable="true" data-edit-field="CartEmptyTitle">@Model.CartEmptyTitle</h2><p class="live" contenteditable="true" data-edit-field="CartEmptyText">@Model.CartEmptyText</p><button type="button" class="site-btn live" data-web-tab="catalog" contenteditable="true" data-edit-field="CartEmptyCta">@Model.CartEmptyCta</button></div><aside class="cart-summary"><h2 class="live" contenteditable="true" data-edit-field="CartSummaryTitle">@Model.CartSummaryTitle</h2><span class="cart-badge live" contenteditable="true" data-edit-field="CartSummaryBadge">@Model.CartSummaryBadge</span><p class="live" contenteditable="true" data-edit-field="CartSummaryNote">@Model.CartSummaryNote</p><span class="site-btn live" contenteditable="true" data-edit-field="CartCheckoutCta">@Model.CartCheckoutCta</span><div class="home-editor-lines live" contenteditable="true" data-edit-field="CartSafeItems">@Model.CartSafeItems</div></aside></div>
+                <div class="checkout-preview"><h2 class="live" contenteditable="true" data-edit-field="CheckoutTitle">@Model.CheckoutTitle</h2><p class="live" contenteditable="true" data-edit-field="CheckoutLead">@Model.CheckoutLead</p><span class="site-btn live" contenteditable="true" data-edit-field="CheckoutSubmit">@Model.CheckoutSubmit</span><strong class="live" contenteditable="true" data-edit-field="CheckoutSentTitle">@Model.CheckoutSentTitle</strong><p class="live" contenteditable="true" data-edit-field="CheckoutSentLead">@Model.CheckoutSentLead</p><span class="live" contenteditable="true" data-edit-field="CheckoutSentOpenWhatsApp">@Model.CheckoutSentOpenWhatsApp</span><span class="live" contenteditable="true" data-edit-field="CheckoutSentContinue">@Model.CheckoutSentContinue</span></div>
+            </section>
+        </div>
+    </div>
+
+    <div class="web-modal-backdrop" id="productModal" hidden>
+        <section class="web-modal web-modal-product" role="dialog" aria-modal="true" aria-labelledby="productModalTitle">
+            <button type="button" class="web-modal-close" data-close-product-modal aria-label="Cerrar"><i class="fa fa-times"></i></button>
+            <div class="web-modal-icon"><i class="fa fa-cube"></i></div>
+            <h2 id="productModalTitle">Sumar producto al catálogo</h2>
+            <p>Definí cómo se va a mostrar antes de agregarlo a la web.</p>
+
+            <form asp-action="AddProduct" method="post" enctype="multipart/form-data" class="product-modal-form">
+                @Html.AntiForgeryToken()
+                <div class="modal-field">
+                    <label for="newProductId">Producto de Gestión</label>
+                    <select id="newProductId" name="ProductId" class="form-select web-product-select" required>
+                        <option value=""></option>
+                        @foreach (var product in Model.AvailableProducts)
+                        {
+                            <option value="@product.ProductId" data-price="@product.DefaultPrice.ToString(System.Globalization.CultureInfo.InvariantCulture)">
+                                @product.Name — @product.Category · $ @product.DefaultPrice.ToString("N2")
+                            </option>
+                        }
+                    </select>
+                </div>
+
+                <div class="product-modal-grid">
+                    <div class="modal-field">
+                        <label for="newProductPrice">Precio público</label>
+                        <input id="newProductPrice" name="PublicPrice" class="form-control" type="number" step="0.01" min="0" placeholder="Se usa el precio interno" />
+                    </div>
+                    <div class="modal-field">
+                        <label for="newProductListPrice">Precio lista</label>
+                        <input id="newProductListPrice" name="ListPrice" class="form-control" type="number" step="0.01" min="0" placeholder="Opcional (tachado)" />
+                    </div>
+                </div>
+
+                <div class="product-modal-grid">
+                    <div class="modal-field">
+                        <label for="newProductDiscount">Descuento %</label>
+                        <input id="newProductDiscount" name="DiscountPercent" class="form-control" type="number" step="0.01" min="0" max="100" placeholder="35" />
+                    </div>
+                    <div class="modal-field">
+                        <label for="newProductOfferLabel">Etiqueta oferta</label>
+                        <input id="newProductOfferLabel" name="OfferLabel" class="form-control" maxlength="40" placeholder="35% OFF" />
+                    </div>
+                </div>
+
+                <div class="product-modal-grid">
+                    <div class="modal-field">
+                        <label for="newProductOrder">Orden</label>
+                        <input id="newProductOrder" name="SortOrder" class="form-control" type="number" min="0" value="0" />
+                    </div>
+                    <div class="modal-field">
+                        <label for="newProductCategory">Categoría</label>
+                        <select id="newProductCategory" name="CategoryId" class="form-select">
+                            <option value="">Mantener categoría del producto</option>
+                            @foreach (var category in Model.Categories)
+                            {
+                                <option value="@category.Id">@category.Name</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                <div class="modal-field">
+                    <label for="newProductDescription">Descripción en la web</label>
+                    <textarea id="newProductDescription" name="PublicDescription" class="form-control" rows="3" maxlength="2000" placeholder="Texto que se muestra en la ficha pública"></textarea>
+                </div>
+
+                <div class="modal-field">
+                    <label>Fotos <span class="modal-note">hasta 4 · se previsualizan al elegirlas</span></label>
+                    <div class="catalog-photos is-modal" data-image-picker data-existing="0">
+                        <div class="catalog-photos-pending" data-pending-previews></div>
+                        <label class="catalog-photo is-add" title="Agregar fotos (hasta 4)" data-add-slot>
+                            <i class="fa fa-camera"></i>
+                            <span class="catalog-photo-add-label">+</span>
+                            <input id="newProductImages" name="ImageFiles" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" multiple />
+                        </label>
+                    </div>
+                    <div class="image-file-status" data-new-product-images>JPG, PNG o WebP. Hasta 4 fotos.</div>
+                </div>
+
+                <div class="modal-field">
+                    <label for="newProduct3dFile">Modelo 3D <span class="modal-note">opcional · archivo .glb</span></label>
+                    <input id="newProduct3dFile" name="Model3dFile" class="form-control" type="file" accept=".glb,model/gltf-binary" data-model3d-input />
+                    <div class="image-file-status">Subí un archivo .glb de hasta 25 MB y revisalo antes de agregar el producto.</div>
+                    <div class="model3d-preview is-pending" data-model3d-pending hidden></div>
+                </div>
+
+                <label class="modal-switch">
+                    <input type="checkbox" name="Featured" value="true" />
+                    <input type="hidden" name="Featured" value="false" />
+                    <span>Marcar como destacado en el catálogo</span>
+                </label>
+                <label class="modal-switch">
+                    <input type="checkbox" name="IsOnOffer" value="true" />
+                    <input type="hidden" name="IsOnOffer" value="false" />
+                    <span>Marcar como oferta</span>
+                </label>
+
+                <button class="web-save w-100 mt-3" type="submit"><i class="fa fa-plus"></i>Agregar al catálogo</button>
+            </form>
+        </section>
+    </div>
+
+    <div class="web-modal-backdrop" id="bannerModal" hidden>
+        <section class="web-modal web-modal-product" role="dialog" aria-modal="true" aria-labelledby="bannerModalTitle">
+            <button type="button" class="web-modal-close" data-close-banner-modal aria-label="Cerrar"><i class="fa fa-times"></i></button>
+            <div class="web-modal-icon"><i class="fa fa-picture-o"></i></div>
+            <h2 id="bannerModalTitle">Nuevo banner</h2>
+            <p id="bannerModalText">Se muestra en el carrusel de Inicio y/o Catálogo.</p>
+
+            <form asp-action="SaveBanner" method="post" enctype="multipart/form-data" class="product-modal-form" id="bannerForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="Id" id="bannerId" value="" />
+
+                <div class="modal-field">
+                    <label for="bannerTitle">Título <small class="text-muted">(opcional)</small></label>
+                    <input id="bannerTitle" name="Title" class="form-control" maxlength="160" placeholder="Opcional si la imagen ya dice todo" />
+                </div>
+                <div class="modal-field">
+                    <label for="bannerSubtitle">Subtítulo</label>
+                    <input id="bannerSubtitle" name="Subtitle" class="form-control" maxlength="280" />
+                </div>
+                <div class="product-modal-grid">
+                    <div class="modal-field">
+                        <label for="bannerLink">Link</label>
+                        <input id="bannerLink" name="LinkUrl" class="form-control" placeholder="/Catalog o URL" />
+                    </div>
+                    <div class="modal-field">
+                        <label for="bannerCta">Texto del botón</label>
+                        <input id="bannerCta" name="CtaLabel" class="form-control" maxlength="80" placeholder="Ver ofertas" />
+                    </div>
+                </div>
+                <div class="product-modal-grid">
+                    <div class="modal-field">
+                        <label for="bannerOrder">Orden</label>
+                        <input id="bannerOrder" name="SortOrder" class="form-control" type="number" min="0" value="0" />
+                    </div>
+                    <div class="modal-field">
+                        <label for="bannerImage">Imagen</label>
+                        <input id="bannerImage" name="ImageFile" class="form-control" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" />
+                    </div>
+                </div>
+
+                <div class="banner-modal-preview" data-banner-preview-box hidden>
+                    <div class="banner-modal-preview-frame">
+                        <img data-banner-preview-img alt="Vista previa del banner" />
+                        <div class="banner-modal-preview-meta">
+                            <strong data-banner-preview-title>Vista previa</strong>
+                            <span data-banner-preview-name>Sin archivo</span>
+                        </div>
+                    </div>
+                </div>
+
+                <label class="modal-switch">
+                    <input type="checkbox" name="Active" id="bannerActive" value="true" checked />
+                    <input type="hidden" name="Active" value="false" />
+                    <span>Activo</span>
+                </label>
+                <label class="modal-switch">
+                    <input type="checkbox" name="ShowOnHome" id="bannerHome" value="true" checked />
+                    <input type="hidden" name="ShowOnHome" value="false" />
+                    <span>Mostrar en Inicio</span>
+                </label>
+                <label class="modal-switch">
+                    <input type="checkbox" name="ShowOnCatalog" id="bannerCatalog" value="true" checked />
+                    <input type="hidden" name="ShowOnCatalog" value="false" />
+                    <span>Mostrar en Catálogo</span>
+                </label>
+                <button class="web-save w-100 mt-3" type="submit"><i class="fa fa-save"></i>Guardar banner</button>
+            </form>
+        </section>
+    </div>
+
+    <div class="web-modal-backdrop" id="categoryModal" hidden>
+        <section class="web-modal" role="dialog" aria-modal="true" aria-labelledby="categoryModalTitle">
+            <button type="button" class="web-modal-close" data-close-category-modal aria-label="Cerrar"><i class="fa fa-times"></i></button>
+            <div class="web-modal-icon"><i class="fa fa-tag"></i></div>
+            <h2 id="categoryModalTitle">Nueva categoría</h2>
+            <p id="categoryModalText">Creala y después asignala a los productos que correspondan.</p>
+
+            <form id="categoryCreateForm" asp-action="AddCategory" method="post">
+                @Html.AntiForgeryToken()
+                <label for="categoryCreateName">Nombre</label>
+                <input id="categoryCreateName" name="CategoryName" class="form-control" maxlength="80" autocomplete="off" required />
+                <button class="web-save w-100 mt-3" type="submit"><i class="fa fa-plus"></i>Crear categoría</button>
+            </form>
+
+            <form id="categoryEditForm" asp-action="UpdateCategory" method="post" hidden>
+                @Html.AntiForgeryToken()
+                <input id="categoryEditId" name="CategoryId" type="hidden" />
+                <label for="categoryEditName">Nombre</label>
+                <input id="categoryEditName" name="CategoryName" class="form-control" maxlength="80" autocomplete="off" required />
+                <button class="web-save w-100 mt-3" type="submit"><i class="fa fa-check"></i>Guardar categoría</button>
+            </form>
+        </section>
+    </div>
+
+    <div class="web-publish-dock" id="webPublishDock" hidden aria-live="polite">
+        <div class="web-publish-dock-card">
+            <div class="web-publish-dock-meta">
+                <span class="web-publish-dock-icon" data-publish-icon><i class="fa fa-cloud-upload"></i></span>
+                <div>
+                    <strong data-publish-title>Publicando en la web…</strong>
+                    <span data-publish-subtitle>Sincronizando catálogo, imágenes y textos</span>
+                </div>
+                <span class="web-publish-pct" data-publish-pct>0%</span>
+            </div>
+            <div class="web-publish-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" data-publish-track>
+                <div class="web-publish-fill" id="webPublishFill"></div>
+                <div class="web-publish-shine"></div>
+            </div>
+        </div>
+    </div>
+</main>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script type="module" src="https://unpkg.com/@@google/model-viewer/dist/model-viewer.min.js"></script>
+    <script src="~/js/WebManagement.js" asp-append-version="true"></script>
+}

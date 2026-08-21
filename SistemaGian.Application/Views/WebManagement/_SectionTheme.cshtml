@@ -1,0 +1,12 @@
+@model (string BgName, string BgValue, string FgName, string FgValue)
+<div class="section-theme">
+    <span>Esta sección</span>
+    <label class="section-theme-item" title="Color de fondo">
+        <input type="color" id="@Model.BgName" name="@Model.BgName" form="settingsForm" value="@Model.BgValue" data-theme="bg" />
+        <em>Fondo</em>
+    </label>
+    <label class="section-theme-item" title="Color de letra">
+        <input type="color" id="@Model.FgName" name="@Model.FgName" form="settingsForm" value="@Model.FgValue" data-theme="fg" />
+        <em>Texto</em>
+    </label>
+</div>
