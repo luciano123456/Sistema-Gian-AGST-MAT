@@ -1,0 +1,6 @@
+Este proyecto se movió a:
+
+C:\Users\Luciano\source\repos\SistemaAgsMat.Web
+
+Abrí esa carpeta (o SistemaAgsMat.Web.sln) en Visual Studio / Cursor.
+Podés borrar esta carpeta vacía cuando Cursor ya no la tenga bloqueada.

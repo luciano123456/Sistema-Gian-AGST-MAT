@@ -1,0 +1,90 @@
+@model SistemaGian.Application.Models.WebManagement.WebHeroSlideEditorModel
+@{
+    var remaining = Math.Max(0, 8 - Model.Slides.Count);
+}
+<section class="hero-slide-editor" data-hero-editor="@Model.Placement">
+    <div class="hero-slide-editor-head">
+        <div>
+            <span class="home-editor-kicker">Carrusel de portada</span>
+            <h3>@Model.Title</h3>
+            <p>@Model.Hint La primera foto es la que se ve acá en Gestión. En la web rotan cada 5 segundos.</p>
+        </div>
+        @if (remaining > 0)
+        {
+            <form asp-action="AddHeroSlides" method="post" enctype="multipart/form-data" class="hero-slide-add">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="placement" value="@Model.Placement" />
+                <label class="hero-slide-add-btn">
+                    <i class="fa fa-plus"></i>
+                    <span>Agregar fotos</span>
+                    <input type="file" name="files" multiple accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" onchange="this.form.submit()" />
+                </label>
+            </form>
+        }
+    </div>
+
+    <div class="hero-slide-grid">
+        @if (Model.Slides.Count == 0)
+        {
+            <article class="hero-slide-card is-fallback">
+                <img src="@Model.FallbackUrl" alt="Foto actual" />
+                <div class="hero-slide-meta">
+                    <em>Foto actual</em>
+                    <span>Se usa hasta que agregues el carrusel</span>
+                </div>
+            </article>
+        }
+        @for (var i = 0; i < Model.Slides.Count; i++)
+        {
+            var slide = Model.Slides[i];
+            <article class="hero-slide-card @(i == 0 ? "is-cover" : null)">
+                <div class="hero-slide-thumb">
+                    @if (!string.IsNullOrWhiteSpace(slide.PreviewUrl))
+                    {
+                        <img src="@slide.PreviewUrl" alt="Foto @(i + 1)" />
+                    }
+                    @if (i == 0)
+                    {
+                        <span class="hero-slide-badge">1 · Portada</span>
+                    }
+                    else
+                    {
+                        <span class="hero-slide-badge is-quiet">@(i + 1)</span>
+                    }
+                </div>
+                <div class="hero-slide-tools">
+                    <form asp-action="ReorderHeroSlide" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="slideId" value="@slide.Id" />
+                        <input type="hidden" name="direction" value="up" />
+                        <button type="submit" @(i == 0 ? "disabled" : null) title="Subir"><i class="fa fa-chevron-up"></i></button>
+                    </form>
+                    <form asp-action="ReorderHeroSlide" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="slideId" value="@slide.Id" />
+                        <input type="hidden" name="direction" value="down" />
+                        <button type="submit" @(i == Model.Slides.Count - 1 ? "disabled" : null) title="Bajar"><i class="fa fa-chevron-down"></i></button>
+                    </form>
+                    <form asp-action="DeleteHeroSlide" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="slideId" value="@slide.Id" />
+                        <button class="is-danger" type="submit" title="Quitar" onclick="return confirm('¿Quitar esta foto del carrusel?');"><i class="fa fa-trash"></i></button>
+                    </form>
+                </div>
+            </article>
+        }
+        @if (remaining > 0)
+        {
+            <form asp-action="AddHeroSlides" method="post" enctype="multipart/form-data" class="hero-slide-drop">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="placement" value="@Model.Placement" />
+                <label>
+                    <i class="fa fa-camera"></i>
+                    <strong>Sumar fotos</strong>
+                    <span>Hasta @remaining más · JPG, PNG o WebP</span>
+                    <input type="file" name="files" multiple accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" onchange="this.form.submit()" />
+                </label>
+            </form>
+        }
+    </div>
+</section>

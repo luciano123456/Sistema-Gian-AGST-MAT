@@ -5,7 +5,7 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
 <Project>
   <PropertyGroup>
     <_PublishTargetUrl>D:\Publicaciones Webs\Sistema Gian_Test</_PublishTargetUrl>
-    <History>True|2026-07-25T22:07:43.5489296Z||;True|2026-07-19T14:09:14.0924204-03:00||;True|2026-07-19T03:24:04.0409318-03:00||;True|2026-07-19T03:22:18.1192911-03:00||;True|2026-06-25T09:44:10.8468147-03:00||;True|2026-06-02T00:50:00.5682856-03:00||;True|2026-06-02T00:43:36.1291837-03:00||;True|2026-06-02T00:28:22.5591010-03:00||;True|2026-05-31T04:32:17.6867901-03:00||;True|2026-05-31T04:32:01.0402990-03:00||;True|2026-05-30T19:16:40.7206532-03:00||;True|2026-05-30T18:57:22.3199428-03:00||;True|2026-05-30T18:23:51.1946472-03:00||;True|2026-05-30T17:04:41.8742812-03:00||;True|2026-05-30T17:04:17.5042998-03:00||;True|2026-05-30T17:03:19.3691862-03:00||;True|2025-12-29T02:33:49.3634433-03:00||;True|2025-12-28T18:46:27.0552181-03:00||;True|2025-12-28T18:45:23.0308848-03:00||;True|2025-12-28T18:45:12.5295256-03:00||;True|2025-11-06T11:36:05.5943348-03:00||;True|2025-11-06T11:35:48.1787874-03:00||;True|2025-11-04T03:11:37.5220897-03:00||;True|2025-11-04T03:11:28.7285410-03:00||;True|2025-10-26T21:08:40.4744728-03:00||;True|2025-10-26T20:56:48.9899697-03:00||;True|2025-10-26T20:42:41.1881664-03:00||;True|2025-10-26T20:40:17.8369637-03:00||;True|2025-10-26T20:24:44.1068646-03:00||;True|2025-10-26T20:24:35.7061756-03:00||;True|2025-10-14T18:17:17.8763715-03:00||;True|2025-10-09T23:13:46.4276626-03:00||;True|2025-09-25T21:41:20.2049130-03:00||;True|2025-07-29T02:39:23.5001642-03:00||;True|2025-07-29T02:35:41.1623610-03:00||;True|2025-07-29T00:38:40.0261321-03:00||;True|2025-07-17T17:06:51.7507958-03:00||;True|2025-07-17T16:22:26.6591922-03:00||;True|2025-07-17T16:13:30.9583849-03:00||;True|2025-07-17T02:52:10.1911675-03:00||;True|2025-07-17T02:45:15.6366101-03:00||;True|2025-07-17T00:46:13.1396963-03:00||;True|2025-07-10T02:20:53.5647421-03:00||;True|2025-07-10T02:20:44.5682119-03:00||;True|2025-07-10T02:13:08.6487260-03:00||;True|2025-07-09T04:04:02.5206900-03:00||;True|2025-07-09T03:51:35.7363399-03:00||;True|2025-07-03T02:25:47.5592469-03:00||;True|2025-07-02T16:34:34.0417715-03:00||;True|2025-06-09T02:01:40.9723542-03:00||;True|2025-06-09T01:59:58.3138900-03:00||;True|2025-05-25T00:11:58.5342253-03:00||;True|2025-05-21T12:44:51.7123614-03:00||;True|2025-05-21T02:37:57.2229445-03:00||;True|2025-05-21T02:04:15.5403000-03:00||;True|2025-05-20T23:41:35.1919842-03:00||;True|2025-05-19T23:55:04.2472379-03:00||;True|2025-05-19T01:54:25.7171319-03:00||;True|2025-05-18T20:02:41.8640425-03:00||;True|2025-05-16T00:05:33.5099579-03:00||;True|2025-05-16T00:05:28.3003131-03:00||;True|2025-05-04T23:36:36.1756799-03:00||;True|2025-05-04T23:31:04.8225927-03:00||;True|2025-01-20T00:55:02.7264790-03:00||;True|2025-01-20T00:54:39.9403181-03:00||;True|2025-01-18T06:37:17.2191130-03:00||;True|2025-01-18T06:28:03.6196742-03:00||;True|2025-01-18T06:17:42.5783099-03:00||;True|2025-01-18T06:17:20.5887818-03:00||;True|2025-01-18T06:16:59.7211464-03:00||;True|2025-01-17T03:33:22.1186314-03:00||;True|2025-01-17T03:21:19.5196709-03:00||;True|2025-01-14T14:51:05.7374482-03:00||;True|2025-01-14T12:20:52.7414991-03:00||;</History>
+    <History>True|2026-08-18T17:21:43.2442846Z||;True|2026-08-16T16:08:36.8845456-03:00||;True|2026-07-25T19:07:43.5489296-03:00||;True|2026-07-19T14:09:14.0924204-03:00||;True|2026-07-19T03:24:04.0409318-03:00||;True|2026-07-19T03:22:18.1192911-03:00||;True|2026-06-25T09:44:10.8468147-03:00||;True|2026-06-02T00:50:00.5682856-03:00||;True|2026-06-02T00:43:36.1291837-03:00||;True|2026-06-02T00:28:22.5591010-03:00||;True|2026-05-31T04:32:17.6867901-03:00||;True|2026-05-31T04:32:01.0402990-03:00||;True|2026-05-30T19:16:40.7206532-03:00||;True|2026-05-30T18:57:22.3199428-03:00||;True|2026-05-30T18:23:51.1946472-03:00||;True|2026-05-30T17:04:41.8742812-03:00||;True|2026-05-30T17:04:17.5042998-03:00||;True|2026-05-30T17:03:19.3691862-03:00||;True|2025-12-29T02:33:49.3634433-03:00||;True|2025-12-28T18:46:27.0552181-03:00||;True|2025-12-28T18:45:23.0308848-03:00||;True|2025-12-28T18:45:12.5295256-03:00||;True|2025-11-06T11:36:05.5943348-03:00||;True|2025-11-06T11:35:48.1787874-03:00||;True|2025-11-04T03:11:37.5220897-03:00||;True|2025-11-04T03:11:28.7285410-03:00||;True|2025-10-26T21:08:40.4744728-03:00||;True|2025-10-26T20:56:48.9899697-03:00||;True|2025-10-26T20:42:41.1881664-03:00||;True|2025-10-26T20:40:17.8369637-03:00||;True|2025-10-26T20:24:44.1068646-03:00||;True|2025-10-26T20:24:35.7061756-03:00||;True|2025-10-14T18:17:17.8763715-03:00||;True|2025-10-09T23:13:46.4276626-03:00||;True|2025-09-25T21:41:20.2049130-03:00||;True|2025-07-29T02:39:23.5001642-03:00||;True|2025-07-29T02:35:41.1623610-03:00||;True|2025-07-29T00:38:40.0261321-03:00||;True|2025-07-17T17:06:51.7507958-03:00||;True|2025-07-17T16:22:26.6591922-03:00||;True|2025-07-17T16:13:30.9583849-03:00||;True|2025-07-17T02:52:10.1911675-03:00||;True|2025-07-17T02:45:15.6366101-03:00||;True|2025-07-17T00:46:13.1396963-03:00||;True|2025-07-10T02:20:53.5647421-03:00||;True|2025-07-10T02:20:44.5682119-03:00||;True|2025-07-10T02:13:08.6487260-03:00||;True|2025-07-09T04:04:02.5206900-03:00||;True|2025-07-09T03:51:35.7363399-03:00||;True|2025-07-03T02:25:47.5592469-03:00||;True|2025-07-02T16:34:34.0417715-03:00||;True|2025-06-09T02:01:40.9723542-03:00||;True|2025-06-09T01:59:58.3138900-03:00||;True|2025-05-25T00:11:58.5342253-03:00||;True|2025-05-21T12:44:51.7123614-03:00||;True|2025-05-21T02:37:57.2229445-03:00||;True|2025-05-21T02:04:15.5403000-03:00||;True|2025-05-20T23:41:35.1919842-03:00||;True|2025-05-19T23:55:04.2472379-03:00||;True|2025-05-19T01:54:25.7171319-03:00||;True|2025-05-18T20:02:41.8640425-03:00||;True|2025-05-16T00:05:33.5099579-03:00||;True|2025-05-16T00:05:28.3003131-03:00||;True|2025-05-04T23:36:36.1756799-03:00||;True|2025-05-04T23:31:04.8225927-03:00||;True|2025-01-20T00:55:02.7264790-03:00||;True|2025-01-20T00:54:39.9403181-03:00||;True|2025-01-18T06:37:17.2191130-03:00||;True|2025-01-18T06:28:03.6196742-03:00||;True|2025-01-18T06:17:42.5783099-03:00||;True|2025-01-18T06:17:20.5887818-03:00||;True|2025-01-18T06:16:59.7211464-03:00||;True|2025-01-17T03:33:22.1186314-03:00||;True|2025-01-17T03:21:19.5196709-03:00||;True|2025-01-14T14:51:05.7374482-03:00||;True|2025-01-14T12:20:52.7414991-03:00||;</History>
     <LastFailureDetails />
   </PropertyGroup>
   <ItemGroup>
@@ -64,13 +64,13 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
       <publishTime>01/01/0001 00:00:00</publishTime>
     </File>
     <File Include="Views/AcopioHistorial/Index.cshtml">
-      <publishTime>07/25/2026 17:30:06</publishTime>
+      <publishTime>08/17/2026 17:59:25</publishTime>
     </File>
     <File Include="Views/Choferes/Index.cshtml">
       <publishTime>07/17/2026 03:17:21</publishTime>
     </File>
     <File Include="Views/Clientes/Index.cshtml">
-      <publishTime>07/25/2026 17:30:06</publishTime>
+      <publishTime>08/17/2026 17:59:25</publishTime>
     </File>
     <File Include="Views/Gastos/Index.cshtml">
       <publishTime>07/17/2026 03:17:21</publishTime>
@@ -79,28 +79,28 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
       <publishTime>07/17/2026 03:17:21</publishTime>
     </File>
     <File Include="Views/Home/Index.cshtml">
-      <publishTime>07/25/2026 17:30:06</publishTime>
+      <publishTime>08/17/2026 18:03:45</publishTime>
     </File>
     <File Include="Views/Home/Privacy.cshtml">
       <publishTime>03/08/2025 02:06:36</publishTime>
     </File>
     <File Include="Views/HomePersonalizada/Index.cshtml">
-      <publishTime>07/25/2026 17:30:06</publishTime>
+      <publishTime>08/16/2026 16:00:42</publishTime>
     </File>
     <File Include="Views/HomePersonalizada/Privacy.cshtml">
       <publishTime>12/29/2025 20:22:07</publishTime>
     </File>
     <File Include="Views/Login/Index.cshtml">
-      <publishTime>07/25/2026 17:30:06</publishTime>
+      <publishTime>08/16/2026 16:00:42</publishTime>
     </File>
     <File Include="Views/Monedas/Index.cshtml">
       <publishTime>07/17/2026 03:17:21</publishTime>
     </File>
     <File Include="Views/Pedidos/Index.cshtml">
-      <publishTime>07/25/2026 17:30:06</publishTime>
+      <publishTime>08/16/2026 16:00:42</publishTime>
     </File>
     <File Include="Views/Pedidos/NuevoModif.cshtml">
-      <publishTime>07/25/2026 18:58:31</publishTime>
+      <publishTime>08/16/2026 16:08:07</publishTime>
     </File>
     <File Include="Views/Productos/Index.cshtml">
       <publishTime>07/17/2026 03:17:21</publishTime>
@@ -112,7 +112,7 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
       <publishTime>07/21/2026 22:46:20</publishTime>
     </File>
     <File Include="Views/Reportes/Index.cshtml">
-      <publishTime>07/17/2026 03:17:21</publishTime>
+      <publishTime>08/16/2026 16:08:07</publishTime>
     </File>
     <File Include="Views/Reportes/_FiltroCheck.cshtml">
       <publishTime>07/17/2026 03:17:21</publishTime>
@@ -121,7 +121,7 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
       <publishTime>03/08/2025 02:06:36</publishTime>
     </File>
     <File Include="Views/Shared/Partials/BotonMenu.cshtml">
-      <publishTime>07/25/2026 17:30:06</publishTime>
+      <publishTime>08/17/2026 17:59:26</publishTime>
     </File>
     <File Include="Views/Shared/Partials/ModalExportar.cshtml">
       <publishTime>07/17/2026 03:17:21</publishTime>
@@ -139,7 +139,7 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
       <publishTime>07/17/2026 03:17:31</publishTime>
     </File>
     <File Include="Views/Shared/_Layout.cshtml">
-      <publishTime>07/25/2026 17:30:06</publishTime>
+      <publishTime>08/16/2026 16:00:42</publishTime>
     </File>
     <File Include="Views/Shared/_Layout.cshtml.css">
       <publishTime>03/08/2025 02:06:36</publishTime>
@@ -151,13 +151,22 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
       <publishTime>11/03/2025 23:26:19</publishTime>
     </File>
     <File Include="Views/Usuarios/Index.cshtml">
-      <publishTime>07/25/2026 17:30:46</publishTime>
+      <publishTime>08/16/2026 16:08:07</publishTime>
     </File>
     <File Include="Views/Utils/Modals.cshtml">
       <publishTime>10/24/2025 19:17:06</publishTime>
     </File>
     <File Include="Views/Ventas/Index.cshtml">
-      <publishTime>07/25/2026 17:30:06</publishTime>
+      <publishTime>08/16/2026 16:00:42</publishTime>
+    </File>
+    <File Include="Views/WebManagement/Index.cshtml">
+      <publishTime>08/17/2026 21:38:37</publishTime>
+    </File>
+    <File Include="Views/WebManagement/_HeroSlideEditor.cshtml">
+      <publishTime>08/17/2026 17:59:34</publishTime>
+    </File>
+    <File Include="Views/WebManagement/_SectionTheme.cshtml">
+      <publishTime>08/17/2026 18:14:59</publishTime>
     </File>
     <File Include="Views/Zonas/Index.cshtml">
       <publishTime>07/17/2026 03:17:21</publishTime>
@@ -175,10 +184,10 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
       <publishTime>01/01/0001 00:00:00</publishTime>
     </File>
     <File Include="wwwroot/css/Choferes.css">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/css/Clientes.css">
-      <publishTime>11/04/2025 03:14:58</publishTime>
+      <publishTime>04/11/2025 03:14:58</publishTime>
     </File>
     <File Include="wwwroot/css/ClientesMapa.css">
       <publishTime>01/01/0001 00:00:00</publishTime>
@@ -199,7 +208,7 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
       <publishTime>01/01/0001 00:00:00</publishTime>
     </File>
     <File Include="wwwroot/css/Pedidos.css">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/css/PedidosNuevoModif.css">
       <publishTime>01/01/0001 00:00:00</publishTime>
@@ -234,134 +243,140 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
     <File Include="wwwroot/css/VisitasAlert.css">
       <publishTime>01/01/0001 00:00:00</publishTime>
     </File>
+    <File Include="wwwroot/css/WebManagement.css">
+      <publishTime>01/01/0001 00:00:00</publishTime>
+    </File>
     <File Include="wwwroot/css/Zonas.css">
       <publishTime>01/01/0001 00:00:00</publishTime>
     </File>
     <File Include="wwwroot/favicon.ico">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/Imagenes/agregar.png">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/Imagenes/Barra Lateral.jpg">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/Imagenes/categorias.png">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/Imagenes/choferes.png">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/Imagenes/Clientes.png">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/Imagenes/configuraciones.png">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/Imagenes/historialprecios.png">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
+    </File>
+    <File Include="wwwroot/Imagenes/logo-color.png">
+      <publishTime>01/01/0001 00:00:00</publishTime>
     </File>
     <File Include="wwwroot/Imagenes/Logo.png">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/Imagenes/Logo2.png">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/Imagenes/Marcas.png">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/Imagenes/Menu Principal/Acopio.png">
       <publishTime>01/01/0001 00:00:00</publishTime>
     </File>
     <File Include="wwwroot/Imagenes/Menu Principal/Analisis.png">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/Imagenes/Menu Principal/Chofer.png">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/Imagenes/Menu Principal/Choferes.png">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/Imagenes/Menu Principal/Clientes.png">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/Imagenes/Menu Principal/Configuraciones.png">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/Imagenes/Menu Principal/Gastos.png">
       <publishTime>01/01/0001 00:00:00</publishTime>
     </File>
     <File Include="wwwroot/Imagenes/Menu Principal/historialprecios.png">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/Imagenes/Menu Principal/Lista Productos.png">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/Imagenes/Menu Principal/Lista Proveedores.png">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/Imagenes/Menu Principal/Logo.png">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/Imagenes/Menu Principal/Monedas.png">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/Imagenes/Menu Principal/Nueva Venta.png">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/Imagenes/Menu Principal/Nueva Zona.png">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/Imagenes/Menu Principal/Nuevo Cliente.png">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/Imagenes/Menu Principal/Nuevo Pedido.png">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/Imagenes/Menu Principal/Nuevo Usuario.png">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/Imagenes/Menu Principal/Pedidos.png">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/Imagenes/Menu Principal/Productos.png">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/Imagenes/Menu Principal/Proveedor.png">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/Imagenes/Menu Principal/Usuarios.png">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/Imagenes/Menu Principal/Ventas.png">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/Imagenes/Menu Principal/Zonas.png">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/Imagenes/Menu.png">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/Imagenes/productos.png">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/Imagenes/proveedores.png">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/Imagenes/Roles.png">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/Imagenes/sin-imagen.png">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/Imagenes/unidadmedida.png">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/Imagenes/usuario.png">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/Imagenes/Ventas.png">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/js/AcopioHistorial.js">
       <publishTime>01/01/0001 00:00:00</publishTime>
@@ -444,181 +459,268 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
     <File Include="wwwroot/js/VisitasAlert.js">
       <publishTime>01/01/0001 00:00:00</publishTime>
     </File>
+    <File Include="wwwroot/js/WebManagement.js">
+      <publishTime>01/01/0001 00:00:00</publishTime>
+    </File>
     <File Include="wwwroot/js/Zonas.js">
       <publishTime>01/01/0001 00:00:00</publishTime>
     </File>
     <File Include="wwwroot/lib/bootstrap/dist/css/bootstrap-grid.css">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/lib/bootstrap/dist/css/bootstrap-grid.css.map">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/lib/bootstrap/dist/css/bootstrap-grid.min.css">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/lib/bootstrap/dist/css/bootstrap-grid.min.css.map">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/lib/bootstrap/dist/css/bootstrap-grid.rtl.css">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/lib/bootstrap/dist/css/bootstrap-grid.rtl.css.map">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/lib/bootstrap/dist/css/bootstrap-grid.rtl.min.css">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/lib/bootstrap/dist/css/bootstrap-grid.rtl.min.css.map">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/lib/bootstrap/dist/css/bootstrap-reboot.css">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/lib/bootstrap/dist/css/bootstrap-reboot.css.map">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/lib/bootstrap/dist/css/bootstrap-reboot.min.css">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/lib/bootstrap/dist/css/bootstrap-reboot.min.css.map">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/lib/bootstrap/dist/css/bootstrap-reboot.rtl.css">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/lib/bootstrap/dist/css/bootstrap-reboot.rtl.css.map">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/lib/bootstrap/dist/css/bootstrap-reboot.rtl.min.css">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/lib/bootstrap/dist/css/bootstrap-reboot.rtl.min.css.map">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/lib/bootstrap/dist/css/bootstrap-utilities.css">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/lib/bootstrap/dist/css/bootstrap-utilities.css.map">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/lib/bootstrap/dist/css/bootstrap-utilities.min.css">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/lib/bootstrap/dist/css/bootstrap-utilities.min.css.map">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/lib/bootstrap/dist/css/bootstrap-utilities.rtl.css">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/lib/bootstrap/dist/css/bootstrap-utilities.rtl.css.map">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/lib/bootstrap/dist/css/bootstrap-utilities.rtl.min.css">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/lib/bootstrap/dist/css/bootstrap-utilities.rtl.min.css.map">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/lib/bootstrap/dist/css/bootstrap.css">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/lib/bootstrap/dist/css/bootstrap.css.map">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/lib/bootstrap/dist/css/bootstrap.min.css">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/lib/bootstrap/dist/css/bootstrap.min.css.map">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/lib/bootstrap/dist/css/bootstrap.rtl.css">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/lib/bootstrap/dist/css/bootstrap.rtl.css.map">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/lib/bootstrap/dist/css/bootstrap.rtl.min.css">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/lib/bootstrap/dist/css/bootstrap.rtl.min.css.map">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/lib/bootstrap/dist/js/bootstrap.bundle.js">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/lib/bootstrap/dist/js/bootstrap.bundle.js.map">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/lib/bootstrap/dist/js/bootstrap.bundle.min.js">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/lib/bootstrap/dist/js/bootstrap.bundle.min.js.map">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/lib/bootstrap/dist/js/bootstrap.esm.js">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/lib/bootstrap/dist/js/bootstrap.esm.js.map">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/lib/bootstrap/dist/js/bootstrap.esm.min.js">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/lib/bootstrap/dist/js/bootstrap.esm.min.js.map">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/lib/bootstrap/dist/js/bootstrap.js">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/lib/bootstrap/dist/js/bootstrap.js.map">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/lib/bootstrap/dist/js/bootstrap.min.js">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/lib/bootstrap/dist/js/bootstrap.min.js.map">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/lib/bootstrap/LICENSE">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.js">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/lib/jquery-validation-unobtrusive/LICENSE.txt">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/lib/jquery-validation/dist/additional-methods.js">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/lib/jquery-validation/dist/additional-methods.min.js">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/lib/jquery-validation/dist/jquery.validate.js">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/lib/jquery-validation/dist/jquery.validate.min.js">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/lib/jquery-validation/LICENSE.md">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/lib/jquery/dist/jquery.js">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/lib/jquery/dist/jquery.min.js">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/lib/jquery/dist/jquery.min.map">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/lib/jquery/LICENSE.txt">
-      <publishTime>03/08/2025 02:06:36</publishTime>
+      <publishTime>08/03/2025 02:06:36</publishTime>
     </File>
     <File Include="wwwroot/Sonidos/Notificacion.mp3">
+      <publishTime>01/01/0001 00:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/uploads/web-assets/defaults/about-story.jpg">
+      <publishTime>01/01/0001 00:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/uploads/web-assets/defaults/catalog-hero.jpg">
+      <publishTime>01/01/0001 00:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/uploads/web-assets/defaults/hero.jpg">
+      <publishTime>01/01/0001 00:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/uploads/web-banners/3/ce84f36138e54990b85e9b9521ff1462.jpg">
+      <publishTime>01/01/0001 00:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/uploads/web-hero/3/64f48e3ed4824d6f9965ca5899b2b4ec.jpg">
+      <publishTime>01/01/0001 00:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/uploads/web-products/101/08c667af2156471d9b7295f3bd631ad5.jpg">
+      <publishTime>01/01/0001 00:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/uploads/web-products/101/53e8ebefb0ad42e7851eed9614cde3b7.webp">
+      <publishTime>01/01/0001 00:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/uploads/web-products/101/e0ed4370741044a4a5572eb458069f65.jpg">
+      <publishTime>01/01/0001 00:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/uploads/web-products/101/f61c0d90c3b34e3a87a053668d7c7152.jpg">
+      <publishTime>01/01/0001 00:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/uploads/web-products/137/30e5d21e75d24c1698c53dd4634b88be.jpg">
+      <publishTime>01/01/0001 00:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/uploads/web-products/140/68cbf93fee3747f690a020bdb499d38a.jpg">
+      <publishTime>01/01/0001 00:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/uploads/web-products/149/82055757691c43a1a160325d8c14d6d0.webp">
+      <publishTime>01/01/0001 00:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/uploads/web-products/151/26ff7f176923460489a28c5f24016fd8.jpg">
+      <publishTime>01/01/0001 00:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/uploads/web-products/152/a09a48ef3f6046d7a40c7e3e063f5ad5.webp">
+      <publishTime>01/01/0001 00:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/uploads/web-products/170/794b0980b9f740c4af056740e3923e72.webp">
+      <publishTime>01/01/0001 00:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/uploads/web-products/172/1c286bedb5ad4a8a9e526740474c997f.webp">
+      <publishTime>01/01/0001 00:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/uploads/web-products/204/c3890b702ff142878db0ea6024c4b8dc.png">
+      <publishTime>01/01/0001 00:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/uploads/web-products/205/a7d0c4e0bf64481f83b6fd657491eceb.jpg">
+      <publishTime>01/01/0001 00:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/uploads/web-products/206/b32569f2293644d397d3df3b2206fcd9.webp">
+      <publishTime>01/01/0001 00:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/uploads/web-products/213/6e27cf71c2b74f59870098aef4660720.jpg">
+      <publishTime>01/01/0001 00:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/uploads/web-products/53/44a77e88045746bfb9bbff863134fd1c.jpg">
+      <publishTime>01/01/0001 00:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/uploads/web-products/58/e5a5a11c56084c8daa62f5290696bb06.webp">
+      <publishTime>01/01/0001 00:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/uploads/web-products/60/da28780fd2ed4fcca951fb5bfa06af4c.webp">
+      <publishTime>01/01/0001 00:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/uploads/web-products/63/c4c8bd4bb780426694225163138807b0.jpg">
+      <publishTime>01/01/0001 00:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/uploads/web-products/81/6711e7c7a38a470e957eed8c6df59877.jpg">
+      <publishTime>01/01/0001 00:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/uploads/web-products/82/ecf127c2b4e14e49be9de12412477603.webp">
+      <publishTime>01/01/0001 00:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/uploads/web-products/83/8337ca5bff1a4f6d947688418169226a.webp">
+      <publishTime>01/01/0001 00:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/uploads/web-products/99/model-e4b9cdd81d8a4d9a9773c1ea02ea22fb.glb">
       <publishTime>01/01/0001 00:00:00</publishTime>
     </File>
   </ItemGroup>

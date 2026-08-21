@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -90,6 +90,14 @@ public partial class SistemaGianContext : DbContext
     public virtual DbSet<Zona> Zonas { get; set; }
 
     public virtual DbSet<ZonasCliente> ZonasClientes { get; set; }
+
+    public virtual DbSet<WebConfiguracion> WebConfiguraciones { get; set; }
+
+    public virtual DbSet<WebProductoPublicado> WebProductosPublicados { get; set; }
+
+    public virtual DbSet<WebBanner> WebBanners { get; set; }
+
+    public virtual DbSet<WebHeroSlide> WebHeroSlides { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -706,6 +714,55 @@ public partial class SistemaGianContext : DbContext
                 .HasForeignKey(d => d.IdUsuario)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_RecorridosEventos_Usuarios");
+        });
+
+        modelBuilder.Entity<WebConfiguracion>(entity =>
+        {
+            entity.ToTable("WebConfiguraciones");
+            entity.HasIndex(e => e.Clave).IsUnique();
+            entity.Property(e => e.Clave).HasMaxLength(100).IsRequired();
+            entity.Property(e => e.Valor).HasMaxLength(8000).IsRequired();
+            entity.Property(e => e.FechaActualizacionUtc).HasColumnType("datetime2");
+        });
+
+        modelBuilder.Entity<WebProductoPublicado>(entity =>
+        {
+            entity.ToTable("WebProductosPublicados");
+            entity.HasIndex(e => e.IdProducto).IsUnique();
+            entity.Property(e => e.PrecioPublico).HasColumnType("decimal(20, 2)");
+            entity.Property(e => e.PrecioLista).HasColumnType("decimal(20, 2)");
+            entity.Property(e => e.DescuentoPorcentaje).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.EtiquetaOferta).HasMaxLength(40);
+            entity.Property(e => e.Slug).HasMaxLength(220);
+            entity.Property(e => e.ImagenUrl).HasMaxLength(1000);
+            entity.Property(e => e.ImagenesJson).HasColumnType("nvarchar(max)");
+            entity.Property(e => e.Modelo3dUrl).HasMaxLength(1000);
+            entity.Property(e => e.FechaActualizacionUtc).HasColumnType("datetime2");
+            entity.HasOne(e => e.IdProductoNavigation)
+                .WithMany()
+                .HasForeignKey(e => e.IdProducto)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<WebBanner>(entity =>
+        {
+            entity.ToTable("WebBanners");
+            entity.Property(e => e.Titulo).HasMaxLength(160).IsRequired();
+            entity.Property(e => e.Subtitulo).HasMaxLength(280);
+            entity.Property(e => e.ImagenFileName).HasMaxLength(260);
+            entity.Property(e => e.ImagenOriginal).HasMaxLength(260);
+            entity.Property(e => e.LinkUrl).HasMaxLength(1000);
+            entity.Property(e => e.CtaLabel).HasMaxLength(80);
+            entity.Property(e => e.FechaActualizacionUtc).HasColumnType("datetime2");
+        });
+
+        modelBuilder.Entity<WebHeroSlide>(entity =>
+        {
+            entity.ToTable("WebHeroSlides");
+            entity.Property(e => e.Placement).HasMaxLength(20).IsRequired();
+            entity.Property(e => e.ImagenFileName).HasMaxLength(260);
+            entity.Property(e => e.ImagenOriginal).HasMaxLength(260);
+            entity.Property(e => e.FechaActualizacionUtc).HasColumnType("datetime2");
         });
 
         OnModelCreatingPartial(modelBuilder);

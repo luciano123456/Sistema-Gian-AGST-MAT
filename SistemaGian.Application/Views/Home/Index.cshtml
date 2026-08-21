@@ -233,10 +233,18 @@
                                     <button type="button" class="btn mt-2 btnMenu" onclick="abrirConfiguraciones()">Configuraciones</button>
                                 </div>
                             </div>
+                            
                             <div class="col home-menu-item">
                                 <div class="d-flex flex-column align-items-center">
                                     <img src="~/Imagenes/Menu Principal/Analisis.png" class="img-fluid max-img-size" alt="Reportes" title="Reportes">
                                     <a class="btn mt-2 btnMenu" href="@Url.Action("Index", "Reportes")">Reportes</a>
+                                </div>
+                            </div>
+
+                            <div class="col home-menu-item">
+                                <div class="d-flex flex-column align-items-center">
+                                    <i class="fa fa-globe fa-4x text-primary" aria-hidden="true"></i>
+                                    <a class="btn mt-2 btnMenu" href="@Url.Action("Index", "WebManagement")">Web</a>
                                 </div>
                             </div>
                         </div>
@@ -518,7 +526,7 @@
                         </div>
 
                         <div class="col-md-4">
-                            <label for="txtContrasenaUsuario" class="form-label">Contrase?a</label>
+                            <label for="txtContrasenaUsuario" class="form-label">Contrasena</label>
                             <input type="password" class="form-control" id="txtContrasenaUsuario">
                         </div>
 
